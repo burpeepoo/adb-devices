@@ -4,9 +4,10 @@ import { invoke } from "@tauri-apps/api/core";
 interface Props {
   deviceSerial: string | null;
   saveDir: string;
+  onSaveDirChange: (dir: string) => void;
 }
 
-export default function Screenshot({ deviceSerial, saveDir }: Props) {
+export default function Screenshot({ deviceSerial, saveDir, onSaveDirChange }: Props) {
   const [taking, setTaking] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [lastPath, setLastPath] = useState<string | null>(null);
@@ -32,12 +33,24 @@ export default function Screenshot({ deviceSerial, saveDir }: Props) {
     }
   };
 
-  const handleOpenInFinder = async () => {
+  const handleSelectSaveDir = async () => {
+    try {
+      const dir = await invoke<string | null>("select_directory");
+      if (dir) {
+        onSaveDirChange(dir);
+        setResult({ ok: true, msg: `截图保存目录已修改为: ${dir}` });
+      }
+    } catch {
+      setResult({ ok: false, msg: "无法修改截图保存目录" });
+    }
+  };
+
+  const handleOpenFolder = async () => {
     if (lastPath) {
       try {
         await invoke("reveal_path", { path: lastPath });
       } catch {
-        setResult({ ok: false, msg: "无法打开保存位置，请手动前往保存目录查看" });
+        setResult({ ok: false, msg: "无法打开文件夹，请手动前往保存目录查看" });
       }
     }
   };
@@ -49,8 +62,16 @@ export default function Screenshot({ deviceSerial, saveDir }: Props) {
 
         <div className="mb-4">
           <label className="block text-xs text-gray-500 mb-1">保存目录</label>
-          <div className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-gray-50">
-            {saveDir || "未设置（请在设置中配置）"}
+          <div className="flex gap-2">
+            <div className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-gray-50 truncate">
+              {saveDir || "未设置"}
+            </div>
+            <button
+              onClick={handleSelectSaveDir}
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+            >
+              修改目录
+            </button>
           </div>
         </div>
 
@@ -75,10 +96,10 @@ export default function Screenshot({ deviceSerial, saveDir }: Props) {
 
         {lastPath && (
           <button
-            onClick={handleOpenInFinder}
+            onClick={handleOpenFolder}
             className="mt-2 text-xs text-blue-500 hover:text-blue-700"
           >
-            在 Finder 中显示
+            打开文件夹
           </button>
         )}
 

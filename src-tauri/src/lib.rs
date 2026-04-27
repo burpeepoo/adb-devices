@@ -15,6 +15,7 @@ pub fn run() {
             commands::device::adb_connect,
             commands::device::adb_disconnect,
             commands::install::adb_install,
+            commands::install::parse_apk_package,
             commands::screenshot::adb_screenshot,
             commands::record::adb_start_recording,
             commands::record::adb_stop_recording,

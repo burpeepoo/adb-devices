@@ -5,9 +5,10 @@ import { formatDuration } from "../utils/format";
 interface Props {
   deviceSerial: string | null;
   saveDir: string;
+  onSaveDirChange: (dir: string) => void;
 }
 
-export default function ScreenRecord({ deviceSerial, saveDir }: Props) {
+export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }: Props) {
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [stopping, setStopping] = useState(false);
@@ -69,6 +70,18 @@ export default function ScreenRecord({ deviceSerial, saveDir }: Props) {
     }
   }, [saveDir, deviceSerial]);
 
+  const handleSelectSaveDir = useCallback(async () => {
+    try {
+      const dir = await invoke<string | null>("select_directory");
+      if (dir) {
+        onSaveDirChange(dir);
+        setResult({ ok: true, msg: `录屏保存目录已修改为: ${dir}` });
+      }
+    } catch {
+      setResult({ ok: false, msg: "无法修改录屏保存目录" });
+    }
+  }, [onSaveDirChange]);
+
   // Warning at 2:45 (165 seconds)
   const showWarning = recording && elapsed >= 165;
 
@@ -79,8 +92,17 @@ export default function ScreenRecord({ deviceSerial, saveDir }: Props) {
 
         <div className="mb-4">
           <label className="block text-xs text-gray-500 mb-1">保存目录</label>
-          <div className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-gray-50">
-            {saveDir || "未设置（请在设置中配置）"}
+          <div className="flex gap-2">
+            <div className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-gray-50 truncate">
+              {saveDir || "未设置"}
+            </div>
+            <button
+              onClick={handleSelectSaveDir}
+              disabled={recording}
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              修改目录
+            </button>
           </div>
         </div>
 
@@ -136,12 +158,12 @@ export default function ScreenRecord({ deviceSerial, saveDir }: Props) {
               try {
                 await invoke("reveal_path", { path: lastPath });
               } catch {
-                setResult({ ok: false, msg: "无法打开保存位置，请手动前往保存目录查看" });
+                setResult({ ok: false, msg: "无法打开文件夹，请手动前往保存目录查看" });
               }
             }}
             className="mt-2 text-xs text-blue-500 hover:text-blue-700"
           >
-            打开保存目录
+            打开文件夹
           </button>
         )}
 

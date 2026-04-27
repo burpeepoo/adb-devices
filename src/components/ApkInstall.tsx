@@ -4,9 +4,11 @@ import { open } from "@tauri-apps/plugin-dialog";
 
 interface Props {
   deviceSerial: string | null;
+  recentApkDir: string;
+  onRecentApkDirChange: (dir: string) => void;
 }
 
-export default function ApkInstall({ deviceSerial }: Props) {
+export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirChange }: Props) {
   const [apkPath, setApkPath] = useState("");
   const [force, setForce] = useState(false);
   const [pkgName, setPkgName] = useState("");
@@ -18,16 +20,33 @@ export default function ApkInstall({ deviceSerial }: Props) {
       multiple: false,
       filters: [{ name: "APK", extensions: ["apk"] }],
       title: "选择 APK 文件",
+      defaultPath: recentApkDir || undefined,
     });
     if (selected) {
-      setApkPath(selected as string);
+      const selectedPath = selected as string;
+      setApkPath(selectedPath);
       setResult(null);
+      const separator = selectedPath.includes("\\") ? "\\" : "/";
+      const parentDir = selectedPath.slice(0, selectedPath.lastIndexOf(separator));
+      if (parentDir) {
+        onRecentApkDirChange(parentDir);
+      }
+
+      try {
+        const parsedPkg = await invoke<string>("parse_apk_package", {
+          apkPath: selectedPath,
+        });
+        setPkgName(parsedPkg);
+      } catch {
+        setPkgName("");
+        setResult({ ok: false, msg: "未能自动识别包名，强制安装时请手动填写" });
+      }
     }
   };
 
   const handleInstall = async () => {
     if (!apkPath) return;
-    if (force && !pkgName) {
+    if (force && !pkgName.trim()) {
       setResult({ ok: false, msg: "强制安装需要输入包名" });
       return;
     }
@@ -37,7 +56,7 @@ export default function ApkInstall({ deviceSerial }: Props) {
       const msg = await invoke<string>("adb_install", {
         apkPath,
         force,
-        pkgName: force ? pkgName : null,
+        pkgName: force ? pkgName.trim() : null,
         deviceSerial: deviceSerial || null,
       });
       setResult({ ok: true, msg });
@@ -75,6 +94,15 @@ export default function ApkInstall({ deviceSerial }: Props) {
 
         {/* Force install option */}
         <div className="mb-4 space-y-3">
+          {pkgName && (
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">识别到的包名</label>
+              <div className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-gray-50 font-mono">
+                {pkgName}
+              </div>
+            </div>
+          )}
+
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"

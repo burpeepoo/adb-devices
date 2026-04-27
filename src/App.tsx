@@ -28,6 +28,7 @@ export default function App() {
   const [settings, setSettings] = useState<AppSettings>({
     screenshotDir: "",
     recordingDir: "",
+    recentApkDir: "",
   });
 
   const checkAdb = useCallback(async () => {
@@ -47,6 +48,7 @@ export default function App() {
       setSettings((prev) => ({
         screenshotDir: saved?.screenshotDir || prev.screenshotDir || dir,
         recordingDir: saved?.recordingDir || prev.recordingDir || dir,
+        recentApkDir: saved?.recentApkDir || prev.recentApkDir || "",
       }));
     } catch {
       // ignore
@@ -69,6 +71,17 @@ export default function App() {
       // Non-critical; the current session can still use the selected paths.
     });
   }, []);
+
+  const handleSaveDirChange = useCallback(
+    (type: keyof AppSettings, dir: string) => {
+      const nextSettings = {
+        ...settings,
+        [type]: dir,
+      };
+      handleSettingsChange(nextSettings);
+    },
+    [handleSettingsChange, settings]
+  );
 
   if (adbAvailable === null) {
     return (
@@ -133,12 +146,26 @@ export default function App() {
           {/* Tab content */}
           <div className="flex-1 overflow-auto p-4">
             {activeTab === "pair" && <PairConnect onConnected={refresh} />}
-            {activeTab === "install" && <ApkInstall deviceSerial={selectedDevice} />}
+            {activeTab === "install" && (
+              <ApkInstall
+                deviceSerial={selectedDevice}
+                recentApkDir={settings.recentApkDir}
+                onRecentApkDirChange={(dir) => handleSaveDirChange("recentApkDir", dir)}
+              />
+            )}
             {activeTab === "screenshot" && (
-              <Screenshot deviceSerial={selectedDevice} saveDir={settings.screenshotDir} />
+              <Screenshot
+                deviceSerial={selectedDevice}
+                saveDir={settings.screenshotDir}
+                onSaveDirChange={(dir) => handleSaveDirChange("screenshotDir", dir)}
+              />
             )}
             {activeTab === "record" && (
-              <ScreenRecord deviceSerial={selectedDevice} saveDir={settings.recordingDir} />
+              <ScreenRecord
+                deviceSerial={selectedDevice}
+                saveDir={settings.recordingDir}
+                onSaveDirChange={(dir) => handleSaveDirChange("recordingDir", dir)}
+              />
             )}
             {activeTab === "packages" && <PackageList deviceSerial={selectedDevice} />}
           </div>

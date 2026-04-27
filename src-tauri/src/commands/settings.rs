@@ -136,31 +136,37 @@ pub async fn install_adb() -> Result<String, AdbError> {
 
 #[tauri::command]
 pub fn reveal_path(path: String) -> Result<(), AdbError> {
+    let input_path = PathBuf::from(&path);
+    let folder = if input_path.is_dir() {
+        input_path
+    } else {
+        input_path
+            .parent()
+            .map(|p| p.to_path_buf())
+            .unwrap_or_else(|| PathBuf::from("."))
+    };
+
     #[cfg(target_os = "macos")]
     let mut command = {
         let mut cmd = std::process::Command::new("open");
-        cmd.args(["-R", &path]);
+        cmd.arg(&folder);
         cmd
     };
 
     #[cfg(target_os = "windows")]
     let mut command = {
         let mut cmd = std::process::Command::new("explorer");
-        cmd.arg(format!("/select,{}", path));
+        cmd.arg(&folder);
         cmd
     };
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     let mut command = {
-        let parent = PathBuf::from(&path)
-            .parent()
-            .map(|p| p.to_path_buf())
-            .unwrap_or_else(|| PathBuf::from("."));
         let mut cmd = std::process::Command::new("xdg-open");
-        cmd.arg(parent);
+        cmd.arg(&folder);
         cmd
     };
 
     let output = command.output()?;
-    adb::ensure_success(&output, "打开文件位置失败")
+    adb::ensure_success(&output, "打开文件夹失败")
 }

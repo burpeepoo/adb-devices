@@ -20,6 +20,7 @@ export interface PackageInfo {
 export interface AppSettings {
   screenshotDir: string;
   recordingDir: string;
+  recentApkDir: string;
 }
 
 export interface PairConnectSettings {
