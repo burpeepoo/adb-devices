@@ -29,17 +29,24 @@ impl serde::Serialize for AdbError {
 
 fn get_bundled_adb_path(app: &AppHandle) -> Option<PathBuf> {
     let resource_dir = app.path().resource_dir().ok()?;
-    let relative = if cfg!(target_os = "windows") {
-        "platform-tools\\win\\adb.exe"
+    let candidates: &[&str] = if cfg!(target_os = "windows") {
+        &[
+            "platform-tools/windows/adb.exe",
+            "platform-tools/win/adb.exe",
+        ]
+    } else if cfg!(target_os = "macos") {
+        &["platform-tools/macos/adb", "platform-tools/mac/adb"]
     } else {
-        "platform-tools/mac/adb"
+        &["platform-tools/linux/adb", "platform-tools/adb"]
     };
-    let path = resource_dir.join(relative);
-    if path.exists() {
-        Some(path)
-    } else {
-        None
+
+    for relative in candidates {
+        let path = resource_dir.join(relative);
+        if path.exists() {
+            return Some(path);
+        }
     }
+    None
 }
 
 fn get_system_adb_path() -> Option<PathBuf> {
@@ -47,8 +54,8 @@ fn get_system_adb_path() -> Option<PathBuf> {
 }
 
 fn get_sdk_adb_path() -> Option<PathBuf> {
-    let home = std::env::var("HOME").ok()?;
     if cfg!(target_os = "macos") {
+        let home = std::env::var("HOME").ok()?;
         let path = PathBuf::from(home)
             .join("Library")
             .join("Android")
@@ -59,15 +66,21 @@ fn get_sdk_adb_path() -> Option<PathBuf> {
             return Some(path);
         }
     } else if cfg!(target_os = "windows") {
-        let path = PathBuf::from(home)
-            .join("AppData")
-            .join("Local")
-            .join("Android")
-            .join("sdk")
-            .join("platform-tools")
-            .join("adb.exe");
-        if path.exists() {
-            return Some(path);
+        let bases = [
+            std::env::var("LOCALAPPDATA").ok().map(PathBuf::from),
+            std::env::var("USERPROFILE")
+                .ok()
+                .map(|home| PathBuf::from(home).join("AppData").join("Local")),
+        ];
+        for base in bases.into_iter().flatten() {
+            let path = base
+                .join("Android")
+                .join("sdk")
+                .join("platform-tools")
+                .join("adb.exe");
+            if path.exists() {
+                return Some(path);
+            }
         }
     }
     None
@@ -115,6 +128,22 @@ pub fn run_adb(
     cmd.args(args);
     let output = cmd.output()?;
     Ok(output)
+}
+
+pub fn ensure_success(output: &std::process::Output, context: &str) -> Result<(), AdbError> {
+    if output.status.success() {
+        return Ok(());
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let msg = if !stderr.trim().is_empty() {
+        stderr.trim()
+    } else {
+        stdout.trim()
+    };
+
+    Err(AdbError::CommandFailed(format!("{}: {}", context, msg)))
 }
 
 pub fn run_adb_with_stdin(

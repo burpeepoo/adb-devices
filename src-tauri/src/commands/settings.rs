@@ -32,10 +32,10 @@ pub fn check_adb_available(app: AppHandle) -> Result<bool, AdbError> {
 
 #[tauri::command]
 pub async fn install_adb() -> Result<String, AdbError> {
-    let home = std::env::var("HOME").map_err(|_| AdbError::CommandFailed("无法获取HOME目录".to_string()))?;
-
     #[cfg(target_os = "macos")]
     {
+        let home = std::env::var("HOME")
+            .map_err(|_| AdbError::CommandFailed("无法获取HOME目录".to_string()))?;
         let sdk_dir = PathBuf::from(&home)
             .join("Library")
             .join("Android")
@@ -87,11 +87,10 @@ pub async fn install_adb() -> Result<String, AdbError> {
 
     #[cfg(target_os = "windows")]
     {
-        let sdk_dir = PathBuf::from(&home)
-            .join("AppData")
-            .join("Local")
-            .join("Android")
-            .join("sdk");
+        let local_app_data = std::env::var("LOCALAPPDATA")
+            .or_else(|_| std::env::var("USERPROFILE").map(|home| format!("{}\\AppData\\Local", home)))
+            .map_err(|_| AdbError::CommandFailed("无法获取用户本地应用目录".to_string()))?;
+        let sdk_dir = PathBuf::from(local_app_data).join("Android").join("sdk");
         let platform_tools_dir = sdk_dir.join("platform-tools");
 
         std::fs::create_dir_all(&sdk_dir)?;
@@ -131,7 +130,37 @@ pub async fn install_adb() -> Result<String, AdbError> {
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        let _ = home; // suppress unused warning
         Err(AdbError::CommandFailed("不支持的操作系统".to_string()))
     }
+}
+
+#[tauri::command]
+pub fn reveal_path(path: String) -> Result<(), AdbError> {
+    #[cfg(target_os = "macos")]
+    let mut command = {
+        let mut cmd = std::process::Command::new("open");
+        cmd.args(["-R", &path]);
+        cmd
+    };
+
+    #[cfg(target_os = "windows")]
+    let mut command = {
+        let mut cmd = std::process::Command::new("explorer");
+        cmd.arg(format!("/select,{}", path));
+        cmd
+    };
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    let mut command = {
+        let parent = PathBuf::from(&path)
+            .parent()
+            .map(|p| p.to_path_buf())
+            .unwrap_or_else(|| PathBuf::from("."));
+        let mut cmd = std::process::Command::new("xdg-open");
+        cmd.arg(parent);
+        cmd
+    };
+
+    let output = command.output()?;
+    adb::ensure_success(&output, "打开文件位置失败")
 }

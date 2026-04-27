@@ -7,137 +7,97 @@ interface Props {
 }
 
 export default function PackageList({ deviceSerial }: Props) {
-  const [packages, setPackages] = useState<string[]>([]);
+  const [packages, setPackages] = useState<PackageInfo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [selectedPkg, setSelectedPkg] = useState<string | null>(null);
-  const [pkgInfo, setPkgInfo] = useState<PackageInfo | null>(null);
-  const [pkgLoading, setPkgLoading] = useState(false);
 
   const handleList = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const result = await invoke<string[]>("adb_list_packages", {
+      const result = await invoke<PackageInfo[]>("adb_list_package_details", {
         deviceSerial: deviceSerial || null,
       });
       setPackages(result);
-    } catch {
-      // error handled silently
+    } catch (e) {
+      setPackages([]);
+      setError(String(e));
     } finally {
       setLoading(false);
     }
   }, [deviceSerial]);
 
-  const handleSelectPackage = useCallback(
-    async (pkg: string) => {
-      setSelectedPkg(pkg);
-      setPkgLoading(true);
-      try {
-        const info = await invoke<PackageInfo>("adb_package_info", {
-          packageName: pkg,
-          deviceSerial: deviceSerial || null,
-        });
-        setPkgInfo(info);
-      } catch {
-        setPkgInfo(null);
-      } finally {
-        setPkgLoading(false);
-      }
-    },
-    [deviceSerial]
-  );
-
   const filtered = search
-    ? packages.filter((p) => p.toLowerCase().includes(search.toLowerCase()))
+    ? packages.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     : packages;
 
   return (
-    <div className="flex gap-4 h-full">
-      {/* Package list */}
-      <div className="w-80 bg-white rounded-lg border border-gray-200 flex flex-col">
-        <div className="p-3 border-b border-gray-200">
-          <div className="flex gap-2 mb-2">
-            <button
-              onClick={handleList}
-              disabled={loading || !deviceSerial}
-              className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? "加载中..." : "获取包列表"}
-            </button>
-          </div>
+    <div className="h-full bg-white rounded-lg border border-gray-200 flex flex-col">
+      <div className="p-3 border-b border-gray-200">
+        <div className="flex gap-2 mb-2">
+          <button
+            onClick={handleList}
+            disabled={loading || !deviceSerial}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? "加载中..." : "获取包信息"}
+          </button>
           {packages.length > 0 && (
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="搜索包名..."
-              className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
           )}
         </div>
-
-        <div className="flex-1 overflow-auto">
-          {filtered.map((pkg) => (
-            <button
-              key={pkg}
-              onClick={() => handleSelectPackage(pkg)}
-              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors border-b border-gray-100 ${
-                selectedPkg === pkg ? "bg-blue-50 text-blue-700" : "text-gray-700"
-              }`}
-            >
-              {pkg}
-            </button>
-          ))}
-          {packages.length === 0 && !loading && (
-            <div className="p-4 text-center text-sm text-gray-400">
-              点击"获取包列表"加载
-            </div>
-          )}
-        </div>
-
-        {packages.length > 0 && (
-          <div className="p-2 border-t border-gray-200 text-xs text-gray-400 text-center">
-            共 {filtered.length} 个包
+        {error && (
+          <div className="text-sm px-3 py-2 rounded-lg bg-red-50 text-red-600">
+            {error}
           </div>
         )}
       </div>
 
-      {/* Package detail */}
-      <div className="flex-1 bg-white rounded-lg border border-gray-200 p-5">
-        {selectedPkg ? (
-          pkgLoading ? (
-            <div className="text-center text-gray-400 py-8">加载中...</div>
-          ) : pkgInfo ? (
-            <div>
-              <h3 className="text-base font-semibold text-gray-800 mb-4">包详情</h3>
-              <dl className="space-y-3">
-                <div>
-                  <dt className="text-xs text-gray-500">包名</dt>
-                  <dd className="text-sm text-gray-800 font-mono">{pkgInfo.name}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-gray-500">版本名称 (Version Name)</dt>
-                  <dd className="text-sm text-gray-800">{pkgInfo.version_name || "-"}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-gray-500">版本号 (Version Code)</dt>
-                  <dd className="text-sm text-gray-800">{pkgInfo.version_code || "-"}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-gray-500">Build ID</dt>
-                  <dd className="text-sm text-gray-800">{pkgInfo.build_id || "-"}</dd>
-                </div>
-              </dl>
-            </div>
-          ) : (
-            <div className="text-center text-gray-400 py-8">无法获取包信息</div>
-          )
+      <div className="flex-1 overflow-auto">
+        {filtered.length > 0 ? (
+          <table className="min-w-full text-xs">
+            <thead className="sticky top-0 bg-gray-50 text-gray-500 border-b border-gray-200">
+              <tr>
+                <th className="text-left font-medium px-3 py-2">包名</th>
+                <th className="text-left font-medium px-3 py-2">Version Name</th>
+                <th className="text-left font-medium px-3 py-2">Version Code</th>
+                <th className="text-left font-medium px-3 py-2">Serial Number</th>
+                <th className="text-left font-medium px-3 py-2">Build Number</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((pkg) => (
+                <tr key={pkg.name} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="px-3 py-2 font-mono text-gray-800">{pkg.name}</td>
+                  <td className="px-3 py-2 text-gray-700">{pkg.version_name || "-"}</td>
+                  <td className="px-3 py-2 text-gray-700">{pkg.version_code || "-"}</td>
+                  <td className="px-3 py-2 text-gray-700">{pkg.device_serial || "-"}</td>
+                  <td className="px-3 py-2 text-gray-700">{pkg.build_number || "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            选择一个包查看详情
-          </div>
+          !loading && (
+            <div className="p-6 text-center text-sm text-gray-400">
+              {deviceSerial ? "点击获取包信息加载" : "请先选择在线设备"}
+            </div>
+          )
         )}
       </div>
+
+      {packages.length > 0 && (
+        <div className="p-2 border-t border-gray-200 text-xs text-gray-400 text-center">
+          共 {filtered.length} / {packages.length} 个包
+        </div>
+      )}
     </div>
   );
 }

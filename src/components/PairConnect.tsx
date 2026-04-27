@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
+import { PairConnectSettings } from "../types";
 
 interface Props {
   onConnected: () => void;
@@ -15,9 +17,37 @@ export default function PairConnect({ onConnected }: Props) {
 
   // Connect state
   const [connectIp, setConnectIp] = useState("");
-  const [connectPort, setConnectPort] = useState("5555");
+  const [connectPort, setConnectPort] = useState("");
   const [connectLoading, setConnectLoading] = useState(false);
   const [connectResult, setConnectResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  useEffect(() => {
+    getStore()
+      .then((store) => store.get<PairConnectSettings>(STORE_KEYS.pairConnect))
+      .then((saved) => {
+        if (!saved) return;
+        setPairIp(saved.pairIp || "");
+        setPairPort(saved.pairPort || "");
+        setConnectIp(saved.connectIp || "");
+        setConnectPort(saved.connectPort || "");
+      })
+      .catch(() => {
+        // Keep fields empty when local cache cannot be read.
+      });
+  }, []);
+
+  const savePairConnect = (next: Partial<PairConnectSettings>) => {
+    const value: PairConnectSettings = {
+      pairIp,
+      pairPort,
+      connectIp,
+      connectPort,
+      ...next,
+    };
+    saveStoreValue(STORE_KEYS.pairConnect, value).catch(() => {
+      // Cache failure should not block ADB actions.
+    });
+  };
 
   const handlePair = async () => {
     if (!pairIp || !pairPort || !pairCode) return;
@@ -30,6 +60,7 @@ export default function PairConnect({ onConnected }: Props) {
         code: pairCode,
       });
       setPairResult({ ok: true, msg: result });
+      savePairConnect({ pairIp, pairPort });
     } catch (e) {
       setPairResult({ ok: false, msg: String(e) });
     } finally {
@@ -47,6 +78,7 @@ export default function PairConnect({ onConnected }: Props) {
         port: connectPort,
       });
       setConnectResult({ ok: true, msg: result });
+      savePairConnect({ connectIp, connectPort });
       onConnected();
     } catch (e) {
       setConnectResult({ ok: false, msg: String(e) });
@@ -126,7 +158,7 @@ export default function PairConnect({ onConnected }: Props) {
               type="text"
               value={connectPort}
               onChange={(e) => setConnectPort(e.target.value)}
-              placeholder="5555"
+              placeholder="无线调试页面显示的端口"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
           </div>
@@ -163,7 +195,7 @@ export default function PairConnect({ onConnected }: Props) {
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-0.5 flex-shrink-0">4.</span>
-            <span>配对成功后，在"连接设备"区域输入 <strong>WiFi IP 地址</strong>（设置 → 网络 → WiFi）和端口（默认 <strong>5555</strong>），点击连接</span>
+            <span>配对成功后，在"连接设备"区域输入 <strong>无线调试页面显示的 IP 地址和端口</strong>，点击连接</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-0.5 flex-shrink-0">5.</span>

@@ -35,7 +35,7 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "resources/platform-tools/mac/adb"
+      "resources/platform-tools"
     ]
   }
 }

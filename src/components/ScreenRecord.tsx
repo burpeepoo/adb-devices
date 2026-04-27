@@ -132,9 +132,12 @@ export default function ScreenRecord({ deviceSerial, saveDir }: Props) {
 
         {lastPath && result?.ok && (
           <button
-            onClick={() => {
-              const dir = lastPath.substring(0, lastPath.lastIndexOf("/"));
-              window.open(`file://${dir}`, "_blank");
+            onClick={async () => {
+              try {
+                await invoke("reveal_path", { path: lastPath });
+              } catch {
+                setResult({ ok: false, msg: "无法打开保存位置，请手动前往保存目录查看" });
+              }
             }}
             className="mt-2 text-xs text-blue-500 hover:text-blue-700"
           >

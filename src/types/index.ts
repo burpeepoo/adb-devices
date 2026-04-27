@@ -5,16 +5,28 @@ export interface DeviceInfo {
   product: string;
 }
 
+export interface DeviceHistoryItem extends DeviceInfo {
+  lastSeen: number;
+}
+
 export interface PackageInfo {
   name: string;
   version_name: string;
   version_code: string;
-  build_id: string;
+  device_serial: string;
+  build_number: string;
 }
 
 export interface AppSettings {
   screenshotDir: string;
   recordingDir: string;
+}
+
+export interface PairConnectSettings {
+  pairIp: string;
+  pairPort: string;
+  connectIp: string;
+  connectPort: string;
 }
 
 export type TabKey = "pair" | "install" | "screenshot" | "record" | "packages";

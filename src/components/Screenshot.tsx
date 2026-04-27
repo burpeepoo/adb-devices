@@ -35,16 +35,9 @@ export default function Screenshot({ deviceSerial, saveDir }: Props) {
   const handleOpenInFinder = async () => {
     if (lastPath) {
       try {
-        // Use the OS to reveal the file
-        if (navigator.platform.toLowerCase().includes("mac")) {
-          await invoke("run_command", { command: "open", args: ["-R", lastPath] });
-        } else {
-          await invoke("run_command", { command: "explorer", args: ["/select,", lastPath] });
-        }
+        await invoke("reveal_path", { path: lastPath });
       } catch {
-        // Fallback: open the directory
-        const dir = lastPath.substring(0, lastPath.lastIndexOf("/"));
-        window.open(`file://${dir}`, "_blank");
+        setResult({ ok: false, msg: "无法打开保存位置，请手动前往保存目录查看" });
       }
     }
   };

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { TabKey, AppSettings } from "./types";
 import { useDevices } from "./hooks/useDevices";
+import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import DeviceList from "./components/DeviceList";
 import AdbSetup from "./components/AdbSetup";
 import PairConnect from "./components/PairConnect";
@@ -41,9 +42,11 @@ export default function App() {
   const loadSettings = useCallback(async () => {
     try {
       const dir = await invoke<string>("get_default_save_dir");
+      const store = await getStore();
+      const saved = await store.get<AppSettings>(STORE_KEYS.settings);
       setSettings((prev) => ({
-        screenshotDir: prev.screenshotDir || dir,
-        recordingDir: prev.recordingDir || dir,
+        screenshotDir: saved?.screenshotDir || prev.screenshotDir || dir,
+        recordingDir: saved?.recordingDir || prev.recordingDir || dir,
       }));
     } catch {
       // ignore
@@ -59,6 +62,13 @@ export default function App() {
     setAdbAvailable(true);
     refresh();
   }, [refresh]);
+
+  const handleSettingsChange = useCallback((nextSettings: AppSettings) => {
+    setSettings(nextSettings);
+    saveStoreValue(STORE_KEYS.settings, nextSettings).catch(() => {
+      // Non-critical; the current session can still use the selected paths.
+    });
+  }, []);
 
   if (adbAvailable === null) {
     return (
@@ -147,11 +157,11 @@ export default function App() {
 
       {/* Settings modal */}
       {showSettings && (
-        <Settings
-          settings={settings}
-          onSettingsChange={setSettings}
-          onClose={() => setShowSettings(false)}
-        />
+          <Settings
+            settings={settings}
+            onSettingsChange={handleSettingsChange}
+            onClose={() => setShowSettings(false)}
+          />
       )}
     </div>
   );

@@ -19,12 +19,15 @@ pub fn adb_start_recording(
         }
     }
 
+    let timestamp = Local::now().format("%Y%m%d_%H%M%S");
+    let remote_path = format!("/sdcard/adb_manager_recording_{}.mp4", timestamp);
+
     let adb_path = adb::get_adb_path(&app)?;
     let mut cmd = std::process::Command::new(&adb_path);
     if let Some(serial) = &device_serial {
         cmd.args(["-s", serial]);
     }
-    cmd.args(["shell", "screenrecord", "/sdcard/recording.mp4"]);
+    cmd.args(["shell", "screenrecord", &remote_path]);
 
     let child = cmd.spawn()?;
 
@@ -35,6 +38,10 @@ pub fn adb_start_recording(
     {
         let mut rec_dev = state.recording_device.lock().unwrap();
         *rec_dev = device_serial;
+    }
+    {
+        let mut rec_path = state.recording_remote_path.lock().unwrap();
+        *rec_path = Some(remote_path);
     }
 
     Ok("录屏已开始".to_string())
@@ -66,6 +73,10 @@ pub fn adb_stop_recording(
         let mut rec_dev = state.recording_device.lock().unwrap();
         *rec_dev = None;
     }
+    let remote_path = {
+        let mut rec_path = state.recording_remote_path.lock().unwrap();
+        rec_path.take().unwrap_or_else(|| "/sdcard/recording.mp4".to_string())
+    };
 
     // Give the device a moment to finalize the file
     std::thread::sleep(std::time::Duration::from_secs(1));
@@ -79,7 +90,7 @@ pub fn adb_stop_recording(
     let serial_ref = serial.as_deref();
     let output = adb::run_adb(
         &app,
-        &["pull", "/sdcard/recording.mp4", &local_path_str],
+        &["pull", &remote_path, &local_path_str],
         serial_ref,
     )?;
     if !output.status.success() {
@@ -88,7 +99,7 @@ pub fn adb_stop_recording(
     }
 
     // Cleanup device temp file
-    let _ = adb::run_adb(&app, &["shell", "rm", "/sdcard/recording.mp4"], serial_ref);
+    let _ = adb::run_adb(&app, &["shell", "rm", &remote_path], serial_ref);
 
     Ok(local_path_str)
 }

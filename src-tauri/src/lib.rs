@@ -20,10 +20,12 @@ pub fn run() {
             commands::record::adb_stop_recording,
             commands::package::adb_list_packages,
             commands::package::adb_package_info,
+            commands::package::adb_list_package_details,
             commands::settings::select_directory,
             commands::settings::get_default_save_dir,
             commands::settings::check_adb_available,
             commands::settings::install_adb,
+            commands::settings::reveal_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
