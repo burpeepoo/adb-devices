@@ -151,7 +151,11 @@ export default function PackageList({ deviceSerial }: Props) {
             </tbody>
           </table>
         ) : (
-          !loading && (
+          loading ? (
+            <div className="p-6 text-center text-sm text-gray-400">
+              正在读取设备包信息...
+            </div>
+          ) : (
             <div className="p-6 text-center text-sm text-gray-400">
               {deviceSerial ? "点击获取包信息加载" : "请先选择在线设备"}
             </div>
