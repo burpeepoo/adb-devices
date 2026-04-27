@@ -35,7 +35,11 @@ fn get_bundled_adb_path(app: &AppHandle) -> Option<PathBuf> {
             "platform-tools/win/adb.exe",
         ]
     } else if cfg!(target_os = "macos") {
-        &["platform-tools/macos/adb", "platform-tools/mac/adb"]
+        &[
+            "platform-tools/macos/cozyla-adb",
+            "platform-tools/macos/adb",
+            "platform-tools/mac/adb",
+        ]
     } else {
         &["platform-tools/linux/adb", "platform-tools/adb"]
     };
