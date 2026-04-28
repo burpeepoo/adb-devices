@@ -134,6 +134,25 @@ pub fn run_adb(
     Ok(output)
 }
 
+pub fn run_adb_with_env(
+    app: &AppHandle,
+    args: &[&str],
+    device_serial: Option<&str>,
+    envs: &[(&str, &str)],
+) -> Result<std::process::Output, AdbError> {
+    let adb = get_adb_path(app)?;
+    let mut cmd = std::process::Command::new(&adb);
+    if let Some(serial) = device_serial {
+        cmd.args(["-s", serial]);
+    }
+    for (key, value) in envs {
+        cmd.env(key, value);
+    }
+    cmd.args(args);
+    let output = cmd.output()?;
+    Ok(output)
+}
+
 pub fn ensure_success(output: &std::process::Output, context: &str) -> Result<(), AdbError> {
     if output.status.success() {
         return Ok(());

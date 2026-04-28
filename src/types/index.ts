@@ -10,6 +10,15 @@ export interface DeviceHistoryItem extends DeviceInfo {
   lastSeen: number;
 }
 
+export interface MdnsDevice {
+  service_name: string;
+  service_type: string;
+  ip: string;
+  port: string;
+  address: string;
+  connectable: boolean;
+}
+
 export interface PackageInfo {
   name: string;
   version_name: string;

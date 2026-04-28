@@ -11,6 +11,9 @@ pub fn run() {
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
             commands::device::adb_devices,
+            commands::device::adb_mdns_discover,
+            commands::device::adb_auto_connect,
+            commands::device::adb_mdns_auto_connect,
             commands::device::adb_pair,
             commands::device::adb_connect,
             commands::device::adb_disconnect,
