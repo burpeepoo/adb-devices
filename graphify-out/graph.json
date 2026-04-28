@@ -1407,8 +1407,8 @@
       "source_file": "src-tauri/src/commands/logcat.rs",
       "source_location": "L29",
       "weight": 1.0,
-      "_src": "logcat_adb_start_logcat",
-      "_tgt": "adb_get_adb_path",
+      "_src": "adb_get_adb_path",
+      "_tgt": "logcat_adb_start_logcat",
       "source": "adb_get_adb_path",
       "target": "logcat_adb_start_logcat"
     },
@@ -1539,8 +1539,8 @@
       "source_file": "src-tauri/src/commands/clipboard.rs",
       "source_location": "L20",
       "weight": 1.0,
-      "_src": "clipboard_adb_input_text",
-      "_tgt": "adb_run_adb",
+      "_src": "adb_run_adb",
+      "_tgt": "clipboard_adb_input_text",
       "source": "adb_run_adb",
       "target": "clipboard_adb_input_text"
     },
@@ -1599,8 +1599,8 @@
       "source_file": "src-tauri/src/commands/clipboard.rs",
       "source_location": "L25",
       "weight": 1.0,
-      "_src": "clipboard_adb_input_text",
-      "_tgt": "adb_ensure_success",
+      "_src": "adb_ensure_success",
+      "_tgt": "clipboard_adb_input_text",
       "source": "adb_ensure_success",
       "target": "clipboard_adb_input_text"
     },

@@ -1,7 +1,7 @@
 # Graph Report - adb_project  (2026-04-28)
 
 ## Corpus Check
-- 33 files · ~16,768 words
+- 33 files · ~16,791 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -40,8 +40,8 @@
   src-tauri/src/adb.rs → src-tauri/src/commands/record.rs
 - `ADB Manager App Icon` --shares_data_with--> `Platform Icon Set`  [INFERRED]
   app-icon.png → src-tauri/icons/icon.png
-- `adb_start_logcat()` --calls--> `get_adb_path()`  [INFERRED]
-  src-tauri/src/commands/logcat.rs → src-tauri/src/adb.rs
+- `get_adb_path()` --calls--> `adb_start_logcat()`  [INFERRED]
+  src-tauri/src/adb.rs → src-tauri/src/commands/logcat.rs
 - `run_adb()` --calls--> `adb_pair()`  [INFERRED]
   src-tauri/src/adb.rs → src-tauri/src/commands/device.rs
 

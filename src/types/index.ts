@@ -3,7 +3,7 @@ export interface DeviceInfo {
   state: "device" | "offline" | "unauthorized" | "disconnected";
   model: string;
   product: string;
-  connection_type: "usb" | "wireless";
+  connection_type: "usb" | "wireless" | "unknown";
 }
 
 export interface DeviceHistoryItem extends DeviceInfo {

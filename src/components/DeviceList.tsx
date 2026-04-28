@@ -20,9 +20,13 @@ export default function DeviceList({
   const onlineDevices = devices.filter((d) => d.state === "device");
   const offlineDevices = devices.filter((d) => d.state !== "device");
   const connectionLabel = (type: DeviceInfo["connection_type"]) =>
-    type === "wireless" ? "无线" : "有线";
+    type === "wireless" ? "无线" : type === "usb" ? "有线" : "未知";
   const connectionClass = (type: DeviceInfo["connection_type"]) =>
-    type === "wireless" ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-600";
+    type === "wireless"
+      ? "bg-blue-50 text-blue-600"
+      : type === "usb"
+        ? "bg-gray-100 text-gray-600"
+        : "bg-amber-50 text-amber-600";
 
   return (
     <aside className="w-72 border-r border-gray-200 bg-gray-50 flex flex-col">
