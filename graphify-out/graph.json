@@ -9,7 +9,7 @@
       "source_file": "vite.config.ts",
       "source_location": "L1",
       "id": "vite_config_ts",
-      "community": 19,
+      "community": 22,
       "norm_label": "vite.config.ts"
     },
     {
@@ -18,7 +18,7 @@
       "source_file": "src-tauri/build.rs",
       "source_location": "L1",
       "id": "src_tauri_build_rs",
-      "community": 13,
+      "community": 15,
       "norm_label": "build.rs"
     },
     {
@@ -27,7 +27,7 @@
       "source_file": "src-tauri/build.rs",
       "source_location": "L1",
       "id": "build_main",
-      "community": 13,
+      "community": 15,
       "norm_label": "main()"
     },
     {
@@ -36,7 +36,7 @@
       "source_file": "src-tauri/src/lib.rs",
       "source_location": "L1",
       "id": "src_tauri_src_lib_rs",
-      "community": 5,
+      "community": 4,
       "norm_label": "lib.rs"
     },
     {
@@ -45,7 +45,7 @@
       "source_file": "src-tauri/src/lib.rs",
       "source_location": "L7",
       "id": "lib_run",
-      "community": 5,
+      "community": 4,
       "norm_label": "run()"
     },
     {
@@ -54,7 +54,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L1",
       "id": "src_tauri_src_adb_rs",
-      "community": 3,
+      "community": 1,
       "norm_label": "adb.rs"
     },
     {
@@ -63,7 +63,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L6",
       "id": "adb_adberror",
-      "community": 3,
+      "community": 1,
       "norm_label": "adberror"
     },
     {
@@ -72,7 +72,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L22",
       "id": "adb_adberror_serialize",
-      "community": 3,
+      "community": 1,
       "norm_label": ".serialize()"
     },
     {
@@ -81,7 +81,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L30",
       "id": "adb_get_bundled_adb_path",
-      "community": 3,
+      "community": 1,
       "norm_label": "get_bundled_adb_path()"
     },
     {
@@ -90,7 +90,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L56",
       "id": "adb_get_system_adb_path",
-      "community": 3,
+      "community": 1,
       "norm_label": "get_system_adb_path()"
     },
     {
@@ -99,7 +99,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L60",
       "id": "adb_get_sdk_adb_path",
-      "community": 3,
+      "community": 1,
       "norm_label": "get_sdk_adb_path()"
     },
     {
@@ -108,7 +108,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L93",
       "id": "adb_get_adb_path",
-      "community": 3,
+      "community": 1,
       "norm_label": "get_adb_path()"
     },
     {
@@ -117,7 +117,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L107",
       "id": "adb_ensure_executable",
-      "community": 3,
+      "community": 1,
       "norm_label": "ensure_executable()"
     },
     {
@@ -126,7 +126,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L122",
       "id": "adb_run_adb",
-      "community": 0,
+      "community": 2,
       "norm_label": "run_adb()"
     },
     {
@@ -135,7 +135,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L137",
       "id": "adb_ensure_success",
-      "community": 2,
+      "community": 3,
       "norm_label": "ensure_success()"
     },
     {
@@ -144,7 +144,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L153",
       "id": "adb_run_adb_with_stdin",
-      "community": 3,
+      "community": 1,
       "norm_label": "run_adb_with_stdin()"
     },
     {
@@ -153,7 +153,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L174",
       "id": "adb_check_adb_available",
-      "community": 3,
+      "community": 1,
       "norm_label": "check_adb_available()"
     },
     {
@@ -162,7 +162,7 @@
       "source_file": "src-tauri/src/state.rs",
       "source_location": "L1",
       "id": "src_tauri_src_state_rs",
-      "community": 5,
+      "community": 4,
       "norm_label": "state.rs"
     },
     {
@@ -171,16 +171,16 @@
       "source_file": "src-tauri/src/state.rs",
       "source_location": "L3",
       "id": "state_appstate",
-      "community": 5,
+      "community": 4,
       "norm_label": "appstate"
     },
     {
       "label": ".default()",
       "file_type": "code",
       "source_file": "src-tauri/src/state.rs",
-      "source_location": "L10",
+      "source_location": "L13",
       "id": "state_appstate_default",
-      "community": 5,
+      "community": 4,
       "norm_label": ".default()"
     },
     {
@@ -189,7 +189,7 @@
       "source_file": "src-tauri/src/main.rs",
       "source_location": "L1",
       "id": "src_tauri_src_main_rs",
-      "community": 5,
+      "community": 4,
       "norm_label": "main.rs"
     },
     {
@@ -198,7 +198,7 @@
       "source_file": "src-tauri/src/main.rs",
       "source_location": "L3",
       "id": "main_main",
-      "community": 5,
+      "community": 4,
       "norm_label": "main()"
     },
     {
@@ -207,7 +207,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_device_rs",
-      "community": 0,
+      "community": 2,
       "norm_label": "device.rs"
     },
     {
@@ -216,7 +216,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L7",
       "id": "device_deviceinfo",
-      "community": 0,
+      "community": 2,
       "norm_label": "deviceinfo"
     },
     {
@@ -225,7 +225,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L16",
       "id": "device_adb_devices",
-      "community": 0,
+      "community": 2,
       "norm_label": "adb_devices()"
     },
     {
@@ -234,34 +234,34 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L61",
       "id": "device_adb_pair",
-      "community": 0,
+      "community": 2,
       "norm_label": "adb_pair()"
     },
     {
       "label": "adb_connect()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L80",
+      "source_location": "L85",
       "id": "device_adb_connect",
-      "community": 0,
+      "community": 2,
       "norm_label": "adb_connect()"
     },
     {
       "label": "adb_disconnect()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L102",
+      "source_location": "L107",
       "id": "device_adb_disconnect",
-      "community": 0,
+      "community": 2,
       "norm_label": "adb_disconnect()"
     },
     {
       "label": "infer_connection_type()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L114",
+      "source_location": "L119",
       "id": "device_infer_connection_type",
-      "community": 0,
+      "community": 2,
       "norm_label": "infer_connection_type()"
     },
     {
@@ -270,7 +270,7 @@
       "source_file": "src-tauri/src/commands/package.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_package_rs",
-      "community": 2,
+      "community": 3,
       "norm_label": "package.rs"
     },
     {
@@ -279,7 +279,7 @@
       "source_file": "src-tauri/src/commands/package.rs",
       "source_location": "L7",
       "id": "package_packageinfo",
-      "community": 2,
+      "community": 3,
       "norm_label": "packageinfo"
     },
     {
@@ -288,16 +288,16 @@
       "source_file": "src-tauri/src/commands/package.rs",
       "source_location": "L16",
       "id": "package_adb_list_packages",
-      "community": 2,
+      "community": 3,
       "norm_label": "adb_list_packages()"
     },
     {
       "label": "adb_package_info()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L37",
+      "source_location": "L41",
       "id": "package_adb_package_info",
-      "community": 2,
+      "community": 3,
       "norm_label": "adb_package_info()"
     },
     {
@@ -306,44 +306,80 @@
       "source_file": "src-tauri/src/commands/package.rs",
       "source_location": "L83",
       "id": "package_adb_list_package_details",
-      "community": 2,
+      "community": 3,
       "norm_label": "adb_list_package_details()"
     },
     {
       "label": "parse_package_versions()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L104",
+      "source_location": "L108",
       "id": "package_parse_package_versions",
-      "community": 2,
+      "community": 3,
       "norm_label": "parse_package_versions()"
     },
     {
       "label": "parse_all_package_details()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L128",
+      "source_location": "L132",
       "id": "package_parse_all_package_details",
-      "community": 2,
+      "community": 3,
       "norm_label": "parse_all_package_details()"
     },
     {
       "label": "parse_package_header()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L183",
+      "source_location": "L187",
       "id": "package_parse_package_header",
-      "community": 2,
+      "community": 3,
       "norm_label": "parse_package_header()"
     },
     {
       "label": "push_package()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L189",
+      "source_location": "L193",
       "id": "package_push_package",
-      "community": 2,
+      "community": 3,
       "norm_label": "push_package()"
+    },
+    {
+      "label": "logcat.rs",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/logcat.rs",
+      "source_location": "L1",
+      "id": "src_tauri_src_commands_logcat_rs",
+      "community": 1,
+      "norm_label": "logcat.rs"
+    },
+    {
+      "label": "adb_start_logcat()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/logcat.rs",
+      "source_location": "L11",
+      "id": "logcat_adb_start_logcat",
+      "community": 1,
+      "norm_label": "adb_start_logcat()"
+    },
+    {
+      "label": "adb_stop_logcat()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/logcat.rs",
+      "source_location": "L88",
+      "id": "logcat_adb_stop_logcat",
+      "community": 1,
+      "norm_label": "adb_stop_logcat()"
+    },
+    {
+      "label": "export_text_file()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/logcat.rs",
+      "source_location": "L107",
+      "id": "logcat_export_text_file",
+      "community": 1,
+      "norm_label": "export_text_file()"
     },
     {
       "label": "mod.rs",
@@ -351,7 +387,7 @@
       "source_file": "src-tauri/src/commands/mod.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_mod_rs",
-      "community": 20,
+      "community": 23,
       "norm_label": "mod.rs"
     },
     {
@@ -360,7 +396,7 @@
       "source_file": "src-tauri/src/commands/screenshot.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_screenshot_rs",
-      "community": 0,
+      "community": 2,
       "norm_label": "screenshot.rs"
     },
     {
@@ -369,7 +405,7 @@
       "source_file": "src-tauri/src/commands/screenshot.rs",
       "source_location": "L8",
       "id": "screenshot_adb_screenshot",
-      "community": 0,
+      "community": 2,
       "norm_label": "adb_screenshot()"
     },
     {
@@ -378,116 +414,170 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_install_rs",
-      "community": 1,
+      "community": 0,
       "norm_label": "install.rs"
+    },
+    {
+      "label": "InstallGuard",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/install.rs",
+      "source_location": "L8",
+      "id": "install_installguard",
+      "community": 0,
+      "norm_label": "installguard"
+    },
+    {
+      "label": ".drop()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/install.rs",
+      "source_location": "L11",
+      "id": "install_installguard_drop",
+      "community": 0,
+      "norm_label": ".drop()"
+    },
+    {
+      "label": "acquire_install_lock()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/install.rs",
+      "source_location": "L18",
+      "id": "install_acquire_install_lock",
+      "community": 0,
+      "norm_label": "acquire_install_lock()"
     },
     {
       "label": "adb_install()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L7",
+      "source_location": "L33",
       "id": "install_adb_install",
-      "community": 1,
+      "community": 0,
       "norm_label": "adb_install()"
     },
     {
       "label": "parse_apk_package()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L59",
+      "source_location": "L86",
       "id": "install_parse_apk_package",
-      "community": 1,
+      "community": 0,
       "norm_label": "parse_apk_package()"
     },
     {
       "label": "extract_apk_package_name()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L63",
+      "source_location": "L90",
       "id": "install_extract_apk_package_name",
-      "community": 1,
+      "community": 0,
       "norm_label": "extract_apk_package_name()"
     },
     {
       "label": "parse_binary_manifest_package()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L76",
+      "source_location": "L103",
       "id": "install_parse_binary_manifest_package",
-      "community": 1,
+      "community": 0,
       "norm_label": "parse_binary_manifest_package()"
     },
     {
       "label": "parse_start_element_package()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L102",
+      "source_location": "L129",
       "id": "install_parse_start_element_package",
-      "community": 1,
+      "community": 0,
       "norm_label": "parse_start_element_package()"
     },
     {
       "label": "parse_string_pool()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L136",
+      "source_location": "L163",
       "id": "install_parse_string_pool",
-      "community": 1,
+      "community": 0,
       "norm_label": "parse_string_pool()"
     },
     {
       "label": "read_utf8_string()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L160",
+      "source_location": "L187",
       "id": "install_read_utf8_string",
-      "community": 1,
+      "community": 0,
       "norm_label": "read_utf8_string()"
     },
     {
       "label": "read_utf16_string()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L170",
+      "source_location": "L197",
       "id": "install_read_utf16_string",
-      "community": 1,
+      "community": 0,
       "norm_label": "read_utf16_string()"
     },
     {
       "label": "read_length8()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L183",
+      "source_location": "L210",
       "id": "install_read_length8",
-      "community": 1,
+      "community": 0,
       "norm_label": "read_length8()"
     },
     {
       "label": "read_length16()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L193",
+      "source_location": "L220",
       "id": "install_read_length16",
-      "community": 1,
+      "community": 0,
       "norm_label": "read_length16()"
     },
     {
       "label": "read_u16()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L203",
+      "source_location": "L230",
       "id": "install_read_u16",
-      "community": 1,
+      "community": 0,
       "norm_label": "read_u16()"
     },
     {
       "label": "read_u32()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L208",
+      "source_location": "L235",
       "id": "install_read_u32",
-      "community": 1,
+      "community": 0,
       "norm_label": "read_u32()"
+    },
+    {
+      "label": "clipboard.rs",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/clipboard.rs",
+      "source_location": "L1",
+      "id": "src_tauri_src_commands_clipboard_rs",
+      "community": 12,
+      "norm_label": "clipboard.rs"
+    },
+    {
+      "label": "adb_input_text()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/clipboard.rs",
+      "source_location": "L6",
+      "id": "clipboard_adb_input_text",
+      "community": 12,
+      "norm_label": "adb_input_text()"
+    },
+    {
+      "label": "escape_adb_input_text()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/clipboard.rs",
+      "source_location": "L29",
+      "id": "clipboard_escape_adb_input_text",
+      "community": 12,
+      "norm_label": "escape_adb_input_text()"
     },
     {
       "label": "settings.rs",
@@ -495,7 +585,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_settings_rs",
-      "community": 4,
+      "community": 5,
       "norm_label": "settings.rs"
     },
     {
@@ -504,7 +594,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L8",
       "id": "settings_select_directory",
-      "community": 4,
+      "community": 5,
       "norm_label": "select_directory()"
     },
     {
@@ -513,7 +603,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L19",
       "id": "settings_get_default_save_dir",
-      "community": 4,
+      "community": 5,
       "norm_label": "get_default_save_dir()"
     },
     {
@@ -522,7 +612,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L30",
       "id": "settings_check_adb_available",
-      "community": 4,
+      "community": 5,
       "norm_label": "check_adb_available()"
     },
     {
@@ -531,34 +621,34 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L35",
       "id": "settings_install_adb",
-      "community": 4,
+      "community": 5,
       "norm_label": "install_adb()"
     },
     {
       "label": "download_with_progress()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/settings.rs",
-      "source_location": "L132",
+      "source_location": "L136",
       "id": "settings_download_with_progress",
-      "community": 4,
+      "community": 5,
       "norm_label": "download_with_progress()"
     },
     {
       "label": "emit_install_progress()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/settings.rs",
-      "source_location": "L167",
+      "source_location": "L184",
       "id": "settings_emit_install_progress",
-      "community": 4,
+      "community": 5,
       "norm_label": "emit_install_progress()"
     },
     {
       "label": "reveal_path()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/settings.rs",
-      "source_location": "L172",
+      "source_location": "L189",
       "id": "settings_reveal_path",
-      "community": 2,
+      "community": 3,
       "norm_label": "reveal_path()"
     },
     {
@@ -567,7 +657,7 @@
       "source_file": "src-tauri/src/commands/record.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_record_rs",
-      "community": 0,
+      "community": 2,
       "norm_label": "record.rs"
     },
     {
@@ -576,7 +666,7 @@
       "source_file": "src-tauri/src/commands/record.rs",
       "source_location": "L9",
       "id": "record_adb_start_recording",
-      "community": 0,
+      "community": 2,
       "norm_label": "adb_start_recording()"
     },
     {
@@ -585,7 +675,7 @@
       "source_file": "src-tauri/src/commands/record.rs",
       "source_location": "L51",
       "id": "record_adb_stop_recording",
-      "community": 0,
+      "community": 2,
       "norm_label": "adb_stop_recording()"
     },
     {
@@ -594,16 +684,16 @@
       "source_file": "src/App.tsx",
       "source_location": "L1",
       "id": "src_app_tsx",
-      "community": 7,
+      "community": 11,
       "norm_label": "app.tsx"
     },
     {
       "label": "App()",
       "file_type": "code",
       "source_file": "src/App.tsx",
-      "source_location": "L23",
+      "source_location": "L27",
       "id": "app_app",
-      "community": 7,
+      "community": 11,
       "norm_label": "app()"
     },
     {
@@ -612,7 +702,7 @@
       "source_file": "src/main.tsx",
       "source_location": "L1",
       "id": "src_main_tsx",
-      "community": 21,
+      "community": 24,
       "norm_label": "main.tsx"
     },
     {
@@ -621,7 +711,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L1",
       "id": "src_storage_ts",
-      "community": 11,
+      "community": 13,
       "norm_label": "storage.ts"
     },
     {
@@ -630,7 +720,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L13",
       "id": "storage_getstore",
-      "community": 11,
+      "community": 13,
       "norm_label": "getstore()"
     },
     {
@@ -639,7 +729,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L20",
       "id": "storage_savestorevalue",
-      "community": 11,
+      "community": 13,
       "norm_label": "savestorevalue()"
     },
     {
@@ -648,7 +738,7 @@
       "source_file": "src/vite-env.d.ts",
       "source_location": "L1",
       "id": "src_vite_env_d_ts",
-      "community": 22,
+      "community": 25,
       "norm_label": "vite-env.d.ts"
     },
     {
@@ -657,7 +747,7 @@
       "source_file": "src/types/index.ts",
       "source_location": "L1",
       "id": "src_types_index_ts",
-      "community": 23,
+      "community": 26,
       "norm_label": "index.ts"
     },
     {
@@ -666,7 +756,7 @@
       "source_file": "src/utils/format.ts",
       "source_location": "L1",
       "id": "src_utils_format_ts",
-      "community": 8,
+      "community": 7,
       "norm_label": "format.ts"
     },
     {
@@ -675,7 +765,7 @@
       "source_file": "src/utils/format.ts",
       "source_location": "L1",
       "id": "format_formatduration",
-      "community": 8,
+      "community": 7,
       "norm_label": "formatduration()"
     },
     {
@@ -684,7 +774,7 @@
       "source_file": "src/utils/format.ts",
       "source_location": "L7",
       "id": "format_truncatepackagename",
-      "community": 8,
+      "community": 7,
       "norm_label": "truncatepackagename()"
     },
     {
@@ -693,7 +783,7 @@
       "source_file": "src/utils/format.ts",
       "source_location": "L12",
       "id": "format_nowtimestamp",
-      "community": 8,
+      "community": 7,
       "norm_label": "nowtimestamp()"
     },
     {
@@ -702,7 +792,7 @@
       "source_file": "src/components/Settings.tsx",
       "source_location": "L1",
       "id": "src_components_settings_tsx",
-      "community": 14,
+      "community": 16,
       "norm_label": "settings.tsx"
     },
     {
@@ -711,8 +801,26 @@
       "source_file": "src/components/Settings.tsx",
       "source_location": "L11",
       "id": "settings_settings",
-      "community": 14,
+      "community": 16,
       "norm_label": "settings()"
+    },
+    {
+      "label": "Clipboard.tsx",
+      "file_type": "code",
+      "source_file": "src/components/Clipboard.tsx",
+      "source_location": "L1",
+      "id": "src_components_clipboard_tsx",
+      "community": 17,
+      "norm_label": "clipboard.tsx"
+    },
+    {
+      "label": "handleSend()",
+      "file_type": "code",
+      "source_file": "src/components/Clipboard.tsx",
+      "source_location": "L15",
+      "id": "clipboard_handlesend",
+      "community": 17,
+      "norm_label": "handlesend()"
     },
     {
       "label": "PairConnect.tsx",
@@ -720,7 +828,7 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L1",
       "id": "src_components_pairconnect_tsx",
-      "community": 15,
+      "community": 18,
       "norm_label": "pairconnect.tsx"
     },
     {
@@ -729,7 +837,7 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L10",
       "id": "pairconnect_pairconnect",
-      "community": 15,
+      "community": 18,
       "norm_label": "pairconnect()"
     },
     {
@@ -738,7 +846,7 @@
       "source_file": "src/components/Screenshot.tsx",
       "source_location": "L1",
       "id": "src_components_screenshot_tsx",
-      "community": 16,
+      "community": 19,
       "norm_label": "screenshot.tsx"
     },
     {
@@ -747,7 +855,7 @@
       "source_file": "src/components/Screenshot.tsx",
       "source_location": "L10",
       "id": "screenshot_screenshot",
-      "community": 16,
+      "community": 19,
       "norm_label": "screenshot()"
     },
     {
@@ -756,34 +864,34 @@
       "source_file": "src/components/ApkInstall.tsx",
       "source_location": "L1",
       "id": "src_components_apkinstall_tsx",
-      "community": 9,
+      "community": 8,
       "norm_label": "apkinstall.tsx"
     },
     {
       "label": "handleSelectApk()",
       "file_type": "code",
       "source_file": "src/components/ApkInstall.tsx",
-      "source_location": "L21",
+      "source_location": "L22",
       "id": "apkinstall_handleselectapk",
-      "community": 9,
+      "community": 8,
       "norm_label": "handleselectapk()"
     },
     {
       "label": "handleInstall()",
       "file_type": "code",
       "source_file": "src/components/ApkInstall.tsx",
-      "source_location": "L50",
+      "source_location": "L51",
       "id": "apkinstall_handleinstall",
-      "community": 9,
+      "community": 8,
       "norm_label": "handleinstall()"
     },
     {
       "label": "handleLoadPackages()",
       "file_type": "code",
       "source_file": "src/components/ApkInstall.tsx",
-      "source_location": "L73",
+      "source_location": "L76",
       "id": "apkinstall_handleloadpackages",
-      "community": 9,
+      "community": 8,
       "norm_label": "handleloadpackages()"
     },
     {
@@ -792,7 +900,7 @@
       "source_file": "src/components/PackageList.tsx",
       "source_location": "L1",
       "id": "src_components_packagelist_tsx",
-      "community": 10,
+      "community": 9,
       "norm_label": "packagelist.tsx"
     },
     {
@@ -801,7 +909,7 @@
       "source_file": "src/components/PackageList.tsx",
       "source_location": "L49",
       "id": "packagelist_handlesort",
-      "community": 10,
+      "community": 9,
       "norm_label": "handlesort()"
     },
     {
@@ -810,7 +918,7 @@
       "source_file": "src/components/PackageList.tsx",
       "source_location": "L58",
       "id": "packagelist_sortindicator",
-      "community": 10,
+      "community": 9,
       "norm_label": "sortindicator()"
     },
     {
@@ -819,7 +927,7 @@
       "source_file": "src/components/PackageList.tsx",
       "source_location": "L63",
       "id": "packagelist_handlecopypackagename",
-      "community": 10,
+      "community": 9,
       "norm_label": "handlecopypackagename()"
     },
     {
@@ -828,7 +936,7 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L1",
       "id": "src_components_devicelist_tsx",
-      "community": 12,
+      "community": 14,
       "norm_label": "devicelist.tsx"
     },
     {
@@ -837,7 +945,7 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L22",
       "id": "devicelist_connectionlabel",
-      "community": 12,
+      "community": 14,
       "norm_label": "connectionlabel()"
     },
     {
@@ -846,8 +954,44 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L24",
       "id": "devicelist_connectionclass",
-      "community": 12,
+      "community": 14,
       "norm_label": "connectionclass()"
+    },
+    {
+      "label": "Logcat.tsx",
+      "file_type": "code",
+      "source_file": "src/components/Logcat.tsx",
+      "source_location": "L1",
+      "id": "src_components_logcat_tsx",
+      "community": 10,
+      "norm_label": "logcat.tsx"
+    },
+    {
+      "label": "handleStart()",
+      "file_type": "code",
+      "source_file": "src/components/Logcat.tsx",
+      "source_location": "L48",
+      "id": "logcat_handlestart",
+      "community": 10,
+      "norm_label": "handlestart()"
+    },
+    {
+      "label": "handleStop()",
+      "file_type": "code",
+      "source_file": "src/components/Logcat.tsx",
+      "source_location": "L63",
+      "id": "logcat_handlestop",
+      "community": 10,
+      "norm_label": "handlestop()"
+    },
+    {
+      "label": "handleExport()",
+      "file_type": "code",
+      "source_file": "src/components/Logcat.tsx",
+      "source_location": "L77",
+      "id": "logcat_handleexport",
+      "community": 10,
+      "norm_label": "handleexport()"
     },
     {
       "label": "ScreenRecord.tsx",
@@ -855,7 +999,7 @@
       "source_file": "src/components/ScreenRecord.tsx",
       "source_location": "L1",
       "id": "src_components_screenrecord_tsx",
-      "community": 24,
+      "community": 27,
       "norm_label": "screenrecord.tsx"
     },
     {
@@ -864,7 +1008,7 @@
       "source_file": "src/components/AdbSetup.tsx",
       "source_location": "L1",
       "id": "src_components_adbsetup_tsx",
-      "community": 17,
+      "community": 20,
       "norm_label": "adbsetup.tsx"
     },
     {
@@ -873,7 +1017,7 @@
       "source_file": "src/components/AdbSetup.tsx",
       "source_location": "L27",
       "id": "adbsetup_handleinstall",
-      "community": 17,
+      "community": 20,
       "norm_label": "handleinstall()"
     },
     {
@@ -882,7 +1026,7 @@
       "source_file": "src/hooks/useDevices.ts",
       "source_location": "L1",
       "id": "src_hooks_usedevices_ts",
-      "community": 7,
+      "community": 11,
       "norm_label": "usedevices.ts"
     },
     {
@@ -891,7 +1035,7 @@
       "source_file": "src/hooks/useDevices.ts",
       "source_location": "L6",
       "id": "usedevices_usedevices",
-      "community": 7,
+      "community": 11,
       "norm_label": "usedevices()"
     },
     {
@@ -900,7 +1044,7 @@
       "source_file": "src/hooks/useAdb.ts",
       "source_location": "L1",
       "id": "src_hooks_useadb_ts",
-      "community": 18,
+      "community": 21,
       "norm_label": "useadb.ts"
     },
     {
@@ -909,7 +1053,7 @@
       "source_file": "src/hooks/useAdb.ts",
       "source_location": "L4",
       "id": "useadb_useadb",
-      "community": 18,
+      "community": 21,
       "norm_label": "useadb()"
     },
     {
@@ -1260,6 +1404,18 @@
       "relation": "calls",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
+      "source_file": "src-tauri/src/commands/logcat.rs",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_src": "logcat_adb_start_logcat",
+      "_tgt": "adb_get_adb_path",
+      "source": "adb_get_adb_path",
+      "target": "logcat_adb_start_logcat"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "src-tauri/src/commands/record.rs",
       "source_location": "L22",
       "weight": 1.0,
@@ -1347,8 +1503,8 @@
       "source_file": "src-tauri/src/commands/package.rs",
       "source_location": "L88",
       "weight": 1.0,
-      "_src": "package_adb_list_package_details",
-      "_tgt": "adb_run_adb",
+      "_src": "adb_run_adb",
+      "_tgt": "package_adb_list_package_details",
       "source": "adb_run_adb",
       "target": "package_adb_list_package_details"
     },
@@ -1380,6 +1536,18 @@
       "relation": "calls",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
+      "source_file": "src-tauri/src/commands/clipboard.rs",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_src": "clipboard_adb_input_text",
+      "_tgt": "adb_run_adb",
+      "source": "adb_run_adb",
+      "target": "clipboard_adb_input_text"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "src-tauri/src/commands/record.rs",
       "source_location": "L80",
       "weight": 1.0,
@@ -1395,8 +1563,8 @@
       "source_file": "src-tauri/src/commands/package.rs",
       "source_location": "L21",
       "weight": 1.0,
-      "_src": "package_adb_list_packages",
-      "_tgt": "adb_ensure_success",
+      "_src": "adb_ensure_success",
+      "_tgt": "package_adb_list_packages",
       "source": "adb_ensure_success",
       "target": "package_adb_list_packages"
     },
@@ -1407,8 +1575,8 @@
       "source_file": "src-tauri/src/commands/package.rs",
       "source_location": "L50",
       "weight": 1.0,
-      "_src": "package_adb_package_info",
-      "_tgt": "adb_ensure_success",
+      "_src": "adb_ensure_success",
+      "_tgt": "package_adb_package_info",
       "source": "adb_ensure_success",
       "target": "package_adb_package_info"
     },
@@ -1419,10 +1587,22 @@
       "source_file": "src-tauri/src/commands/package.rs",
       "source_location": "L89",
       "weight": 1.0,
-      "_src": "package_adb_list_package_details",
-      "_tgt": "adb_ensure_success",
+      "_src": "adb_ensure_success",
+      "_tgt": "package_adb_list_package_details",
       "source": "adb_ensure_success",
       "target": "package_adb_list_package_details"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src-tauri/src/commands/clipboard.rs",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_src": "clipboard_adb_input_text",
+      "_tgt": "adb_ensure_success",
+      "source": "adb_ensure_success",
+      "target": "clipboard_adb_input_text"
     },
     {
       "relation": "calls",
@@ -1431,8 +1611,8 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L205",
       "weight": 1.0,
-      "_src": "settings_reveal_path",
-      "_tgt": "adb_ensure_success",
+      "_src": "adb_ensure_success",
+      "_tgt": "settings_reveal_path",
       "source": "adb_ensure_success",
       "target": "settings_reveal_path"
     },
@@ -1452,7 +1632,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/state.rs",
-      "source_location": "L10",
+      "source_location": "L13",
       "weight": 1.0,
       "_src": "state_appstate",
       "_tgt": "state_appstate_default",
@@ -1512,7 +1692,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L80",
+      "source_location": "L85",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_adb_connect",
@@ -1524,7 +1704,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L102",
+      "source_location": "L107",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_adb_disconnect",
@@ -1536,7 +1716,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L114",
+      "source_location": "L119",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_infer_connection_type",
@@ -1584,7 +1764,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L37",
+      "source_location": "L41",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_package_rs",
       "_tgt": "package_adb_package_info",
@@ -1608,7 +1788,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L104",
+      "source_location": "L108",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_package_rs",
       "_tgt": "package_parse_package_versions",
@@ -1620,7 +1800,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L128",
+      "source_location": "L132",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_package_rs",
       "_tgt": "package_parse_all_package_details",
@@ -1632,7 +1812,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L183",
+      "source_location": "L187",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_package_rs",
       "_tgt": "package_parse_package_header",
@@ -1644,7 +1824,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L189",
+      "source_location": "L193",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_package_rs",
       "_tgt": "package_push_package",
@@ -1656,7 +1836,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L53",
+      "source_location": "L57",
       "weight": 1.0,
       "_src": "package_adb_package_info",
       "_tgt": "package_parse_package_versions",
@@ -1668,7 +1848,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L99",
+      "source_location": "L103",
       "weight": 1.0,
       "_src": "package_adb_list_package_details",
       "_tgt": "package_parse_all_package_details",
@@ -1680,7 +1860,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L141",
+      "source_location": "L145",
       "weight": 1.0,
       "_src": "package_parse_all_package_details",
       "_tgt": "package_parse_package_header",
@@ -1692,12 +1872,48 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/package.rs",
-      "source_location": "L142",
+      "source_location": "L146",
       "weight": 1.0,
       "_src": "package_parse_all_package_details",
       "_tgt": "package_push_package",
       "source": "package_parse_all_package_details",
       "target": "package_push_package",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/logcat.rs",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_src": "src_tauri_src_commands_logcat_rs",
+      "_tgt": "logcat_adb_start_logcat",
+      "source": "src_tauri_src_commands_logcat_rs",
+      "target": "logcat_adb_start_logcat",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/logcat.rs",
+      "source_location": "L88",
+      "weight": 1.0,
+      "_src": "src_tauri_src_commands_logcat_rs",
+      "_tgt": "logcat_adb_stop_logcat",
+      "source": "src_tauri_src_commands_logcat_rs",
+      "target": "logcat_adb_stop_logcat",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/logcat.rs",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_src": "src_tauri_src_commands_logcat_rs",
+      "_tgt": "logcat_export_text_file",
+      "source": "src_tauri_src_commands_logcat_rs",
+      "target": "logcat_export_text_file",
       "confidence_score": 1.0
     },
     {
@@ -1716,7 +1932,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L7",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_src": "src_tauri_src_commands_install_rs",
+      "_tgt": "install_installguard",
+      "source": "src_tauri_src_commands_install_rs",
+      "target": "install_installguard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/install.rs",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_src": "src_tauri_src_commands_install_rs",
+      "_tgt": "install_acquire_install_lock",
+      "source": "src_tauri_src_commands_install_rs",
+      "target": "install_acquire_install_lock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/install.rs",
+      "source_location": "L33",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_adb_install",
@@ -1728,7 +1968,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L59",
+      "source_location": "L86",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_parse_apk_package",
@@ -1740,7 +1980,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L63",
+      "source_location": "L90",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_extract_apk_package_name",
@@ -1752,7 +1992,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L76",
+      "source_location": "L103",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_parse_binary_manifest_package",
@@ -1764,7 +2004,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L102",
+      "source_location": "L129",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_parse_start_element_package",
@@ -1776,7 +2016,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L136",
+      "source_location": "L163",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_parse_string_pool",
@@ -1788,7 +2028,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L160",
+      "source_location": "L187",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_read_utf8_string",
@@ -1800,7 +2040,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L170",
+      "source_location": "L197",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_read_utf16_string",
@@ -1812,7 +2052,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L183",
+      "source_location": "L210",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_read_length8",
@@ -1824,7 +2064,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L193",
+      "source_location": "L220",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_read_length16",
@@ -1836,7 +2076,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L203",
+      "source_location": "L230",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_read_u16",
@@ -1848,7 +2088,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L208",
+      "source_location": "L235",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_install_rs",
       "_tgt": "install_read_u32",
@@ -1857,10 +2097,58 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/install.rs",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_src": "install_installguard",
+      "_tgt": "install_installguard_drop",
+      "source": "install_installguard",
+      "target": "install_installguard_drop",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L19",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_src": "install_acquire_install_lock",
+      "_tgt": "install_installguard",
+      "source": "install_installguard",
+      "target": "install_acquire_install_lock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/install.rs",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_src": "install_acquire_install_lock",
+      "_tgt": "install_installguard_drop",
+      "source": "install_installguard_drop",
+      "target": "install_acquire_install_lock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/install.rs",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_src": "install_adb_install",
+      "_tgt": "install_acquire_install_lock",
+      "source": "install_acquire_install_lock",
+      "target": "install_adb_install",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/install.rs",
+      "source_location": "L47",
       "weight": 1.0,
       "_src": "install_adb_install",
       "_tgt": "install_extract_apk_package_name",
@@ -1872,7 +2160,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L60",
+      "source_location": "L87",
       "weight": 1.0,
       "_src": "install_parse_apk_package",
       "_tgt": "install_extract_apk_package_name",
@@ -1884,7 +2172,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L72",
+      "source_location": "L99",
       "weight": 1.0,
       "_src": "install_extract_apk_package_name",
       "_tgt": "install_parse_binary_manifest_package",
@@ -1896,7 +2184,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L81",
+      "source_location": "L108",
       "weight": 1.0,
       "_src": "install_parse_binary_manifest_package",
       "_tgt": "install_read_u16",
@@ -1908,7 +2196,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L83",
+      "source_location": "L110",
       "weight": 1.0,
       "_src": "install_parse_binary_manifest_package",
       "_tgt": "install_read_u32",
@@ -1920,7 +2208,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L89",
+      "source_location": "L116",
       "weight": 1.0,
       "_src": "install_parse_binary_manifest_package",
       "_tgt": "install_parse_string_pool",
@@ -1932,7 +2220,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L91",
+      "source_location": "L118",
       "weight": 1.0,
       "_src": "install_parse_binary_manifest_package",
       "_tgt": "install_parse_start_element_package",
@@ -1944,7 +2232,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L103",
+      "source_location": "L130",
       "weight": 1.0,
       "_src": "install_parse_start_element_package",
       "_tgt": "install_read_u32",
@@ -1956,7 +2244,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L108",
+      "source_location": "L135",
       "weight": 1.0,
       "_src": "install_parse_start_element_package",
       "_tgt": "install_read_u16",
@@ -1968,7 +2256,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L137",
+      "source_location": "L164",
       "weight": 1.0,
       "_src": "install_parse_string_pool",
       "_tgt": "install_read_u16",
@@ -1980,7 +2268,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L138",
+      "source_location": "L165",
       "weight": 1.0,
       "_src": "install_parse_string_pool",
       "_tgt": "install_read_u32",
@@ -1992,7 +2280,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L150",
+      "source_location": "L177",
       "weight": 1.0,
       "_src": "install_parse_string_pool",
       "_tgt": "install_read_utf8_string",
@@ -2004,7 +2292,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L152",
+      "source_location": "L179",
       "weight": 1.0,
       "_src": "install_parse_string_pool",
       "_tgt": "install_read_utf16_string",
@@ -2016,7 +2304,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L161",
+      "source_location": "L188",
       "weight": 1.0,
       "_src": "install_read_utf8_string",
       "_tgt": "install_read_length8",
@@ -2028,7 +2316,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L171",
+      "source_location": "L198",
       "weight": 1.0,
       "_src": "install_read_utf16_string",
       "_tgt": "install_read_length16",
@@ -2040,12 +2328,48 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/install.rs",
-      "source_location": "L194",
+      "source_location": "L221",
       "weight": 1.0,
       "_src": "install_read_length16",
       "_tgt": "install_read_u16",
       "source": "install_read_length16",
       "target": "install_read_u16",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/clipboard.rs",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_src": "src_tauri_src_commands_clipboard_rs",
+      "_tgt": "clipboard_adb_input_text",
+      "source": "src_tauri_src_commands_clipboard_rs",
+      "target": "clipboard_adb_input_text",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/clipboard.rs",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_src": "src_tauri_src_commands_clipboard_rs",
+      "_tgt": "clipboard_escape_adb_input_text",
+      "source": "src_tauri_src_commands_clipboard_rs",
+      "target": "clipboard_escape_adb_input_text",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/clipboard.rs",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "clipboard_adb_input_text",
+      "_tgt": "clipboard_escape_adb_input_text",
+      "source": "clipboard_adb_input_text",
+      "target": "clipboard_escape_adb_input_text",
       "confidence_score": 1.0
     },
     {
@@ -2100,7 +2424,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/settings.rs",
-      "source_location": "L132",
+      "source_location": "L136",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_settings_rs",
       "_tgt": "settings_download_with_progress",
@@ -2112,7 +2436,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/settings.rs",
-      "source_location": "L167",
+      "source_location": "L184",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_settings_rs",
       "_tgt": "settings_emit_install_progress",
@@ -2124,7 +2448,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/settings.rs",
-      "source_location": "L172",
+      "source_location": "L189",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_settings_rs",
       "_tgt": "settings_reveal_path",
@@ -2160,7 +2484,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/settings.rs",
-      "source_location": "L133",
+      "source_location": "L141",
       "weight": 1.0,
       "_src": "settings_download_with_progress",
       "_tgt": "settings_emit_install_progress",
@@ -2196,7 +2520,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.tsx",
-      "source_location": "L23",
+      "source_location": "L27",
       "weight": 1.0,
       "_src": "src_app_tsx",
       "_tgt": "app_app",
@@ -2303,6 +2627,18 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/components/Clipboard.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_src": "src_components_clipboard_tsx",
+      "_tgt": "clipboard_handlesend",
+      "source": "src_components_clipboard_tsx",
+      "target": "clipboard_handlesend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L10",
       "weight": 1.0,
@@ -2328,7 +2664,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/ApkInstall.tsx",
-      "source_location": "L21",
+      "source_location": "L22",
       "weight": 1.0,
       "_src": "src_components_apkinstall_tsx",
       "_tgt": "apkinstall_handleselectapk",
@@ -2340,7 +2676,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/ApkInstall.tsx",
-      "source_location": "L50",
+      "source_location": "L51",
       "weight": 1.0,
       "_src": "src_components_apkinstall_tsx",
       "_tgt": "apkinstall_handleinstall",
@@ -2352,7 +2688,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/ApkInstall.tsx",
-      "source_location": "L73",
+      "source_location": "L76",
       "weight": 1.0,
       "_src": "src_components_apkinstall_tsx",
       "_tgt": "apkinstall_handleloadpackages",
@@ -2418,6 +2754,42 @@
       "_tgt": "devicelist_connectionclass",
       "source": "src_components_devicelist_tsx",
       "target": "devicelist_connectionclass",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/Logcat.tsx",
+      "source_location": "L48",
+      "weight": 1.0,
+      "_src": "src_components_logcat_tsx",
+      "_tgt": "logcat_handlestart",
+      "source": "src_components_logcat_tsx",
+      "target": "logcat_handlestart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/Logcat.tsx",
+      "source_location": "L63",
+      "weight": 1.0,
+      "_src": "src_components_logcat_tsx",
+      "_tgt": "logcat_handlestop",
+      "source": "src_components_logcat_tsx",
+      "target": "logcat_handlestop",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/Logcat.tsx",
+      "source_location": "L77",
+      "weight": 1.0,
+      "_src": "src_components_logcat_tsx",
+      "_tgt": "logcat_handleexport",
+      "source": "src_components_logcat_tsx",
+      "target": "logcat_handleexport",
       "confidence_score": 1.0
     },
     {

@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use std::io::Write;
+use std::path::PathBuf;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::adb::{self, AdbError};
@@ -61,7 +61,8 @@ pub async fn install_adb(app: AppHandle) -> Result<String, AdbError> {
             let _ = std::fs::remove_dir_all(&platform_tools_dir);
         }
 
-        archive.extract(&sdk_dir)
+        archive
+            .extract(&sdk_dir)
             .map_err(|e| AdbError::CommandFailed(format!("解压失败: {}", e)))?;
         emit_install_progress(&app, "解压完成，正在设置执行权限");
 
@@ -87,7 +88,9 @@ pub async fn install_adb(app: AppHandle) -> Result<String, AdbError> {
     #[cfg(target_os = "windows")]
     {
         let local_app_data = std::env::var("LOCALAPPDATA")
-            .or_else(|_| std::env::var("USERPROFILE").map(|home| format!("{}\\AppData\\Local", home)))
+            .or_else(|_| {
+                std::env::var("USERPROFILE").map(|home| format!("{}\\AppData\\Local", home))
+            })
             .map_err(|_| AdbError::CommandFailed("无法获取用户本地应用目录".to_string()))?;
         let sdk_dir = PathBuf::from(local_app_data).join("Android").join("sdk");
         let platform_tools_dir = sdk_dir.join("platform-tools");
@@ -108,7 +111,8 @@ pub async fn install_adb(app: AppHandle) -> Result<String, AdbError> {
             let _ = std::fs::remove_dir_all(&platform_tools_dir);
         }
 
-        archive.extract(&sdk_dir)
+        archive
+            .extract(&sdk_dir)
             .map_err(|e| AdbError::CommandFailed(format!("解压失败: {}", e)))?;
         emit_install_progress(&app, "解压完成，正在检查 adb.exe");
 
@@ -129,7 +133,11 @@ pub async fn install_adb(app: AppHandle) -> Result<String, AdbError> {
     }
 }
 
-async fn download_with_progress(app: &AppHandle, url: &str, zip_path: &PathBuf) -> Result<(), AdbError> {
+async fn download_with_progress(
+    app: &AppHandle,
+    url: &str,
+    zip_path: &PathBuf,
+) -> Result<(), AdbError> {
     emit_install_progress(app, "正在连接下载服务器");
     let client = reqwest::Client::new();
     let mut response = client
@@ -153,10 +161,19 @@ async fn download_with_progress(app: &AppHandle, url: &str, zip_path: &PathBuf) 
             let percent = downloaded.saturating_mul(100) / total;
             if percent >= last_percent + 5 || percent == 100 {
                 last_percent = percent;
-                emit_install_progress(app, &format!("正在下载 Android Platform Tools... {}%", percent));
+                emit_install_progress(
+                    app,
+                    &format!("正在下载 Android Platform Tools... {}%", percent),
+                );
             }
         } else {
-            emit_install_progress(app, &format!("正在下载 Android Platform Tools... {} KB", downloaded / 1024));
+            emit_install_progress(
+                app,
+                &format!(
+                    "正在下载 Android Platform Tools... {} KB",
+                    downloaded / 1024
+                ),
+            );
         }
     }
 

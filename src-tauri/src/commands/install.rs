@@ -1,16 +1,44 @@
 use std::io::Read;
-use tauri::AppHandle;
+use std::sync::Mutex;
+use tauri::{AppHandle, State};
 
 use crate::adb::{self, AdbError};
+use crate::state::AppState;
+
+struct InstallGuard<'a>(&'a Mutex<bool>);
+
+impl Drop for InstallGuard<'_> {
+    fn drop(&mut self) {
+        if let Ok(mut installing) = self.0.lock() {
+            *installing = false;
+        }
+    }
+}
+
+fn acquire_install_lock(lock: &Mutex<bool>) -> Result<InstallGuard<'_>, AdbError> {
+    let mut installing = lock
+        .lock()
+        .map_err(|_| AdbError::CommandFailed("安装状态异常，请重启应用后重试".to_string()))?;
+    if *installing {
+        return Err(AdbError::CommandFailed(
+            "正在安装中，请等待当前安装完成".to_string(),
+        ));
+    }
+    *installing = true;
+    drop(installing);
+    Ok(InstallGuard(lock))
+}
 
 #[tauri::command]
 pub fn adb_install(
     app: AppHandle,
+    state: State<'_, AppState>,
     apk_path: String,
     force: bool,
     pkg_name: Option<String>,
     device_serial: Option<String>,
 ) -> Result<String, AdbError> {
+    let _guard = acquire_install_lock(&state.installing)?;
     let serial = device_serial.as_deref();
 
     if force {
@@ -20,8 +48,7 @@ pub fn adb_install(
         };
 
         if let Some(pkg) = &package_to_uninstall {
-            let uninstall_output =
-                adb::run_adb(&app, &["uninstall", pkg], serial)?;
+            let uninstall_output = adb::run_adb(&app, &["uninstall", pkg], serial)?;
             let uninstall_stdout = String::from_utf8_lossy(&uninstall_output.stdout);
             if !uninstall_stdout.contains("Success") && !uninstall_stdout.contains("成功") {
                 // Uninstall may fail if package not installed, continue anyway

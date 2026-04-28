@@ -58,7 +58,12 @@ pub fn adb_devices(app: AppHandle) -> Result<Vec<DeviceInfo>, AdbError> {
 }
 
 #[tauri::command]
-pub fn adb_pair(app: AppHandle, ip: String, port: String, code: String) -> Result<String, AdbError> {
+pub fn adb_pair(
+    app: AppHandle,
+    ip: String,
+    port: String,
+    code: String,
+) -> Result<String, AdbError> {
     let addr = format!("{}:{}", ip, port);
     let output = adb::run_adb(&app, &["pair", &addr, &code], None)?;
     let stdout = String::from_utf8_lossy(&output.stdout);

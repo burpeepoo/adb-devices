@@ -75,7 +75,9 @@ pub fn adb_stop_recording(
     }
     let remote_path = {
         let mut rec_path = state.recording_remote_path.lock().unwrap();
-        rec_path.take().unwrap_or_else(|| "/sdcard/recording.mp4".to_string())
+        rec_path
+            .take()
+            .unwrap_or_else(|| "/sdcard/recording.mp4".to_string())
     };
 
     // Give the device a moment to finalize the file
@@ -88,14 +90,13 @@ pub fn adb_stop_recording(
     let local_path_str = local_path.to_string_lossy().to_string();
 
     let serial_ref = serial.as_deref();
-    let output = adb::run_adb(
-        &app,
-        &["pull", &remote_path, &local_path_str],
-        serial_ref,
-    )?;
+    let output = adb::run_adb(&app, &["pull", &remote_path, &local_path_str], serial_ref)?;
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(AdbError::CommandFailed(format!("拉取录屏失败: {}", stderr.trim())));
+        return Err(AdbError::CommandFailed(format!(
+            "拉取录屏失败: {}",
+            stderr.trim()
+        )));
     }
 
     // Cleanup device temp file

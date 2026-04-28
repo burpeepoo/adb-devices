@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
@@ -17,6 +17,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
   const [loadingPackages, setLoadingPackages] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const installingRef = useRef(false);
 
   const handleSelectApk = async () => {
     const selected = await open({
@@ -48,11 +49,12 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
   };
 
   const handleInstall = async () => {
-    if (!apkPath) return;
+    if (!apkPath || installingRef.current) return;
     if (force && !pkgName.trim()) {
       setResult({ ok: false, msg: "强制安装需要输入包名" });
       return;
     }
+    installingRef.current = true;
     setInstalling(true);
     setResult(null);
     try {
@@ -66,6 +68,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
     } catch (e) {
       setResult({ ok: false, msg: String(e) });
     } finally {
+      installingRef.current = false;
       setInstalling(false);
     }
   };

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
-use thiserror::Error;
 use tauri::{AppHandle, Manager};
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AdbError {

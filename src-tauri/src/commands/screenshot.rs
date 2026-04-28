@@ -18,7 +18,10 @@ pub fn adb_screenshot(
     let output = adb::run_adb(&app, &["shell", "screencap", "-p", &device_path], serial)?;
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(AdbError::CommandFailed(format!("截图失败: {}", stderr.trim())));
+        return Err(AdbError::CommandFailed(format!(
+            "截图失败: {}",
+            stderr.trim()
+        )));
     }
 
     // Step 2: Generate filename with timestamp
@@ -30,7 +33,10 @@ pub fn adb_screenshot(
     let output = adb::run_adb(&app, &["pull", &device_path, &local_path_str], serial)?;
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(AdbError::CommandFailed(format!("拉取截图失败: {}", stderr.trim())));
+        return Err(AdbError::CommandFailed(format!(
+            "拉取截图失败: {}",
+            stderr.trim()
+        )));
     }
 
     // Step 4: Cleanup device temp file

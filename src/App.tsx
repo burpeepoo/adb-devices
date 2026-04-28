@@ -9,6 +9,8 @@ import PairConnect from "./components/PairConnect";
 import ApkInstall from "./components/ApkInstall";
 import Screenshot from "./components/Screenshot";
 import ScreenRecord from "./components/ScreenRecord";
+import Clipboard from "./components/Clipboard";
+import Logcat from "./components/Logcat";
 import PackageList from "./components/PackageList";
 import Settings from "./components/Settings";
 
@@ -17,6 +19,8 @@ const TAB_LABELS: Record<TabKey, string> = {
   install: "安装应用",
   screenshot: "截图",
   record: "录屏",
+  clipboard: "剪贴板",
+  logcat: "Logcat",
   packages: "包管理",
 };
 
@@ -167,6 +171,8 @@ export default function App() {
                 onSaveDirChange={(dir) => handleSaveDirChange("recordingDir", dir)}
               />
             )}
+            {activeTab === "clipboard" && <Clipboard deviceSerial={selectedDevice} />}
+            {activeTab === "logcat" && <Logcat deviceSerial={selectedDevice} />}
             {activeTab === "packages" && <PackageList deviceSerial={selectedDevice} />}
           </div>
         </main>

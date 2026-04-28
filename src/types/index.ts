@@ -31,4 +31,11 @@ export interface PairConnectSettings {
   connectPort: string;
 }
 
-export type TabKey = "pair" | "install" | "screenshot" | "record" | "packages";
+export type TabKey =
+  | "pair"
+  | "install"
+  | "screenshot"
+  | "record"
+  | "clipboard"
+  | "logcat"
+  | "packages";
