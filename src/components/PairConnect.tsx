@@ -106,7 +106,7 @@ export default function PairConnect({ onConnected }: Props) {
       await refreshConnectedDevices();
       onConnected();
     } catch (e) {
-      setMdnsResult({ ok: false, msg: String(e) });
+      setMdnsResult({ ok: false, msg: `${String(e)}。如果这是第一次连接这台设备，请先在 Android 无线调试里打开配对码并完成配对。` });
     } finally {
       setBusyAddress(null);
     }
@@ -219,7 +219,7 @@ export default function PairConnect({ onConnected }: Props) {
               disabled={busyAddress === "__auto__"}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {busyAddress === "__auto__" ? "连接中..." : "自动连接已配对设备"}
+              {busyAddress === "__auto__" ? "连接中..." : "自动连接可信设备"}
             </button>
           </div>
         </div>
@@ -319,8 +319,8 @@ export default function PairConnect({ onConnected }: Props) {
       <section className="bg-blue-50 rounded-lg border border-blue-200 p-5">
         <h3 className="text-base font-semibold text-blue-800 mb-2">使用指引</h3>
         <ul className="text-sm text-blue-700 space-y-1.5">
-          <li>1. 已配对设备会出现在局域网设备里，可直接一键连接。</li>
-          <li>2. 未配对设备只有在 Android 无线调试的配对对话框打开时才会被发现。</li>
+          <li>1. 可连接设备表示设备正在广播连接服务，不代表本机一定已经配对。</li>
+          <li>2. 首次连接失败时，请在 Android 无线调试里打开配对码，完成配对后再连接。</li>
           <li>3. 配对端口和连接端口通常不同；自动发现会自动填入对应端口。</li>
           <li>4. 手动输入保留为 fallback，用于 mDNS 不可用或跨网段场景。</li>
         </ul>
@@ -345,7 +345,7 @@ function MdnsRow({
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-gray-800 truncate">{device.service_name}</span>
-          <span className="rounded bg-green-50 px-2 py-0.5 text-xs text-green-700">已配对</span>
+          <span className="rounded bg-green-50 px-2 py-0.5 text-xs text-green-700">可连接</span>
           <span className={`rounded px-2 py-0.5 text-xs ${connected ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
             {connected ? "已连接" : "未连接"}
           </span>
