@@ -12,7 +12,7 @@ pub struct PackageInfo {
     pub build_number: String,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_list_packages(
     app: AppHandle,
     device_serial: Option<String>,
@@ -37,7 +37,7 @@ pub fn adb_list_packages(
     Ok(packages)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_package_info(
     app: AppHandle,
     package_name: String,
@@ -79,7 +79,7 @@ pub fn adb_package_info(
     })
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_list_package_details(
     app: AppHandle,
     device_serial: Option<String>,

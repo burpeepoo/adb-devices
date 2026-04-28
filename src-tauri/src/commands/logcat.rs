@@ -17,7 +17,7 @@ pub struct LogcatEntry {
     pub message: String,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_read_logcat(
     app: AppHandle,
     device_serial: Option<String>,
@@ -43,7 +43,7 @@ pub fn adb_read_logcat(
     Ok(stdout.lines().map(parse_logcat_line).collect())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_start_logcat(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -131,7 +131,7 @@ pub fn adb_start_logcat(
     Ok("logcat 已开始".to_string())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_stop_logcat(state: State<'_, AppState>) -> Result<String, AdbError> {
     let mut process = state
         .logcat_process

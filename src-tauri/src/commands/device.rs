@@ -1,8 +1,9 @@
 use serde::Serialize;
-use std::time::Duration;
-use tauri::AppHandle;
+use std::{collections::HashMap, sync::Mutex, time::Duration};
+use tauri::{AppHandle, State};
 
 use crate::adb::{self, AdbError};
+use crate::state::AppState;
 
 #[derive(Debug, Serialize, Clone)]
 pub struct DeviceInfo {
@@ -24,15 +25,22 @@ pub struct MdnsDevice {
     pub connectable: bool,
 }
 
-#[tauri::command]
-pub fn adb_devices(app: AppHandle) -> Result<Vec<DeviceInfo>, AdbError> {
+#[tauri::command(async)]
+pub fn adb_devices(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<Vec<DeviceInfo>, AdbError> {
     let output = adb::run_adb_with_timeout(&app, &["devices", "-l"], None, Duration::from_secs(8))?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     let devices = parse_devices_output(&stdout);
-    Ok(enrich_device_serial_numbers(&app, devices))
+    Ok(enrich_device_serial_numbers(
+        &app,
+        &state.device_sn_cache,
+        devices,
+    ))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_mdns_discover(app: AppHandle) -> Result<Vec<MdnsDevice>, AdbError> {
     let output =
         adb::run_adb_with_timeout(&app, &["mdns", "services"], None, Duration::from_secs(8))?;
@@ -41,7 +49,7 @@ pub fn adb_mdns_discover(app: AppHandle) -> Result<Vec<MdnsDevice>, AdbError> {
     Ok(parse_mdns_services(&stdout))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_auto_connect(app: AppHandle, address: String) -> Result<String, AdbError> {
     let output =
         adb::run_adb_with_timeout(&app, &["connect", &address], None, Duration::from_secs(15))?;
@@ -60,8 +68,11 @@ pub fn adb_auto_connect(app: AppHandle, address: String) -> Result<String, AdbEr
     }
 }
 
-#[tauri::command]
-pub fn adb_mdns_auto_connect(app: AppHandle) -> Result<Vec<DeviceInfo>, AdbError> {
+#[tauri::command(async)]
+pub fn adb_mdns_auto_connect(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<Vec<DeviceInfo>, AdbError> {
     let output = adb::run_adb_with_env_timeout(
         &app,
         &["devices", "-l"],
@@ -72,7 +83,11 @@ pub fn adb_mdns_auto_connect(app: AppHandle) -> Result<Vec<DeviceInfo>, AdbError
     adb::ensure_success(&output, "自动连接已配对设备失败")?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     let devices = parse_devices_output(&stdout);
-    Ok(enrich_device_serial_numbers(&app, devices))
+    Ok(enrich_device_serial_numbers(
+        &app,
+        &state.device_sn_cache,
+        devices,
+    ))
 }
 
 fn parse_devices_output(stdout: &str) -> Vec<DeviceInfo> {
@@ -118,16 +133,44 @@ fn parse_devices_output(stdout: &str) -> Vec<DeviceInfo> {
     devices
 }
 
-fn enrich_device_serial_numbers(app: &AppHandle, devices: Vec<DeviceInfo>) -> Vec<DeviceInfo> {
+fn enrich_device_serial_numbers(
+    app: &AppHandle,
+    device_sn_cache: &Mutex<HashMap<String, String>>,
+    devices: Vec<DeviceInfo>,
+) -> Vec<DeviceInfo> {
     devices
         .into_iter()
         .map(|mut device| {
             if device.state == "device" {
-                device.device_sn = read_device_sn(app, &device.serial);
+                device.device_sn = read_device_sn_cached(app, device_sn_cache, &device.serial);
             }
             device
         })
         .collect()
+}
+
+fn read_device_sn_cached(
+    app: &AppHandle,
+    device_sn_cache: &Mutex<HashMap<String, String>>,
+    adb_serial: &str,
+) -> String {
+    if let Some(device_sn) = parse_mdns_adb_serial(adb_serial) {
+        return device_sn;
+    }
+
+    if let Ok(cache) = device_sn_cache.lock() {
+        if let Some(cached) = cache.get(adb_serial).filter(|value| !value.is_empty()) {
+            return cached.clone();
+        }
+    }
+
+    let device_sn = read_device_sn(app, adb_serial);
+    if !device_sn.is_empty() {
+        if let Ok(mut cache) = device_sn_cache.lock() {
+            cache.insert(adb_serial.to_string(), device_sn.clone());
+        }
+    }
+    device_sn
 }
 
 fn read_device_sn(app: &AppHandle, adb_serial: &str) -> String {
@@ -147,7 +190,16 @@ fn read_device_sn(app: &AppHandle, adb_serial: &str) -> String {
     String::from_utf8_lossy(&output.stdout).trim().to_string()
 }
 
-#[tauri::command]
+fn parse_mdns_adb_serial(adb_serial: &str) -> Option<String> {
+    let serial = adb_serial.strip_prefix("adb-")?;
+    let (device_sn, _) = serial.split_once('-')?;
+    if device_sn.is_empty() || !adb_serial.contains("._adb-tls-connect._tcp") {
+        return None;
+    }
+    Some(device_sn.to_string())
+}
+
+#[tauri::command(async)]
 pub fn adb_pair(
     app: AppHandle,
     ip: String,
@@ -172,7 +224,7 @@ pub fn adb_pair(
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, AdbError> {
     let addr = format!("{}:{}", ip, port);
     let output =
@@ -195,7 +247,7 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_disconnect(app: AppHandle, ip: String, port: String) -> Result<String, AdbError> {
     let addr = format!("{}:{}", ip, port);
     let output =
@@ -284,5 +336,18 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
         assert!(devices[0].connectable);
         assert_eq!(devices[1].service_type, "_adb-tls-pairing._tcp");
         assert!(!devices[1].connectable);
+    }
+
+    #[test]
+    fn parses_mdns_adb_serial() {
+        assert_eq!(
+            parse_mdns_adb_serial("adb-NCRC10008CC-rYbViz._adb-tls-connect._tcp"),
+            Some("NCRC10008CC".to_string())
+        );
+        assert_eq!(parse_mdns_adb_serial("192.168.110.182:45521"), None);
+        assert_eq!(
+            parse_mdns_adb_serial("adb-NCRC10008CC-rYbViz._adb-tls-pairing._tcp"),
+            None
+        );
     }
 }

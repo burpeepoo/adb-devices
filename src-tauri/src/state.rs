@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Mutex;
 
 pub struct AppState {
@@ -7,6 +8,7 @@ pub struct AppState {
     pub logcat_process: Mutex<Option<std::process::Child>>,
     pub logcat_device: Mutex<Option<String>>,
     pub installing: Mutex<bool>,
+    pub device_sn_cache: Mutex<HashMap<String, String>>,
 }
 
 impl Default for AppState {
@@ -18,6 +20,7 @@ impl Default for AppState {
             logcat_process: Mutex::new(None),
             logcat_device: Mutex::new(None),
             installing: Mutex::new(false),
+            device_sn_cache: Mutex::new(HashMap::new()),
         }
     }
 }

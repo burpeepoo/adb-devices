@@ -15,7 +15,7 @@ pub async fn select_directory(app: AppHandle) -> Result<Option<String>, String> 
     Ok(dir.map(|p| p.to_string()))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn get_default_save_dir(app: AppHandle) -> Result<String, AdbError> {
     let pictures = app
         .path()
@@ -26,7 +26,7 @@ pub fn get_default_save_dir(app: AppHandle) -> Result<String, AdbError> {
     Ok(adb_manager_dir.to_string_lossy().to_string())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn check_adb_available(app: AppHandle) -> Result<bool, AdbError> {
     Ok(adb::check_adb_available(&app))
 }
@@ -185,7 +185,7 @@ fn emit_install_progress(app: &AppHandle, message: &str) {
     let _ = app.emit("adb-install-progress", message.to_string());
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn reveal_path(path: String) -> Result<(), AdbError> {
     let input_path = PathBuf::from(&path);
     let folder = if input_path.is_dir() {

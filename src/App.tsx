@@ -149,7 +149,7 @@ export default function App() {
 
           {/* Tab content */}
           <div className="flex-1 overflow-auto p-4">
-            {activeTab === "pair" && <PairConnect onConnected={refresh} />}
+            {activeTab === "pair" && <PairConnect devices={devices} onConnected={refresh} />}
             {activeTab === "install" && (
               <ApkInstall
                 deviceSerial={selectedDevice}

@@ -29,7 +29,7 @@ fn acquire_install_lock(lock: &Mutex<bool>) -> Result<InstallGuard<'_>, AdbError
     Ok(InstallGuard(lock))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_install(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -82,7 +82,7 @@ pub fn adb_install(
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn parse_apk_package(apk_path: String) -> Result<String, AdbError> {
     extract_apk_package_name(&apk_path)
 }

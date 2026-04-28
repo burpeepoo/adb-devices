@@ -126,7 +126,7 @@
       "source_file": "src-tauri/src/lib.rs",
       "source_location": "L1",
       "id": "src_tauri_src_lib_rs",
-      "community": 7,
+      "community": 8,
       "norm_label": "lib.rs"
     },
     {
@@ -135,7 +135,7 @@
       "source_file": "src-tauri/src/lib.rs",
       "source_location": "L7",
       "id": "lib_run",
-      "community": 7,
+      "community": 8,
       "norm_label": "run()"
     },
     {
@@ -216,7 +216,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L126",
       "id": "adb_run_adb",
-      "community": 1,
+      "community": 0,
       "norm_label": "run_adb()"
     },
     {
@@ -225,7 +225,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L136",
       "id": "adb_run_adb_with_timeout",
-      "community": 1,
+      "community": 0,
       "norm_label": "run_adb_with_timeout()"
     },
     {
@@ -297,25 +297,25 @@
       "source_file": "src-tauri/src/state.rs",
       "source_location": "L1",
       "id": "src_tauri_src_state_rs",
-      "community": 7,
+      "community": 8,
       "norm_label": "state.rs"
     },
     {
       "label": "AppState",
       "file_type": "code",
       "source_file": "src-tauri/src/state.rs",
-      "source_location": "L3",
+      "source_location": "L4",
       "id": "state_appstate",
-      "community": 7,
+      "community": 8,
       "norm_label": "appstate"
     },
     {
       "label": ".default()",
       "file_type": "code",
       "source_file": "src-tauri/src/state.rs",
-      "source_location": "L13",
+      "source_location": "L15",
       "id": "state_appstate_default",
-      "community": 7,
+      "community": 8,
       "norm_label": ".default()"
     },
     {
@@ -324,7 +324,7 @@
       "source_file": "src-tauri/src/main.rs",
       "source_location": "L1",
       "id": "src_tauri_src_main_rs",
-      "community": 7,
+      "community": 8,
       "norm_label": "main.rs"
     },
     {
@@ -333,7 +333,7 @@
       "source_file": "src-tauri/src/main.rs",
       "source_location": "L3",
       "id": "main_main",
-      "community": 7,
+      "community": 8,
       "norm_label": "main()"
     },
     {
@@ -342,152 +342,179 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_device_rs",
-      "community": 1,
+      "community": 0,
       "norm_label": "device.rs"
     },
     {
       "label": "DeviceInfo",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L8",
+      "source_location": "L9",
       "id": "device_deviceinfo",
-      "community": 1,
+      "community": 0,
       "norm_label": "deviceinfo"
     },
     {
       "label": "MdnsDevice",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L18",
+      "source_location": "L19",
       "id": "device_mdnsdevice",
-      "community": 1,
+      "community": 0,
       "norm_label": "mdnsdevice"
     },
     {
       "label": "adb_devices()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L28",
+      "source_location": "L29",
       "id": "device_adb_devices",
-      "community": 1,
+      "community": 0,
       "norm_label": "adb_devices()"
     },
     {
       "label": "adb_mdns_discover()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L36",
+      "source_location": "L44",
       "id": "device_adb_mdns_discover",
-      "community": 1,
+      "community": 0,
       "norm_label": "adb_mdns_discover()"
     },
     {
       "label": "adb_auto_connect()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L45",
+      "source_location": "L53",
       "id": "device_adb_auto_connect",
-      "community": 1,
+      "community": 0,
       "norm_label": "adb_auto_connect()"
     },
     {
       "label": "adb_mdns_auto_connect()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L64",
+      "source_location": "L72",
       "id": "device_adb_mdns_auto_connect",
-      "community": 1,
+      "community": 2,
       "norm_label": "adb_mdns_auto_connect()"
     },
     {
       "label": "parse_devices_output()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L78",
+      "source_location": "L93",
       "id": "device_parse_devices_output",
-      "community": 1,
+      "community": 0,
       "norm_label": "parse_devices_output()"
     },
     {
       "label": "enrich_device_serial_numbers()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L121",
+      "source_location": "L136",
       "id": "device_enrich_device_serial_numbers",
-      "community": 1,
+      "community": 0,
       "norm_label": "enrich_device_serial_numbers()"
+    },
+    {
+      "label": "read_device_sn_cached()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/device.rs",
+      "source_location": "L152",
+      "id": "device_read_device_sn_cached",
+      "community": 0,
+      "norm_label": "read_device_sn_cached()"
     },
     {
       "label": "read_device_sn()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L133",
+      "source_location": "L176",
       "id": "device_read_device_sn",
-      "community": 1,
+      "community": 0,
       "norm_label": "read_device_sn()"
+    },
+    {
+      "label": "parse_mdns_adb_serial()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/device.rs",
+      "source_location": "L193",
+      "id": "device_parse_mdns_adb_serial",
+      "community": 0,
+      "norm_label": "parse_mdns_adb_serial()"
     },
     {
       "label": "adb_pair()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L151",
+      "source_location": "L203",
       "id": "device_adb_pair",
-      "community": 1,
+      "community": 0,
       "norm_label": "adb_pair()"
     },
     {
       "label": "adb_connect()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L176",
+      "source_location": "L228",
       "id": "device_adb_connect",
-      "community": 1,
+      "community": 0,
       "norm_label": "adb_connect()"
     },
     {
       "label": "adb_disconnect()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L199",
+      "source_location": "L251",
       "id": "device_adb_disconnect",
-      "community": 1,
+      "community": 0,
       "norm_label": "adb_disconnect()"
     },
     {
       "label": "infer_connection_type()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L212",
+      "source_location": "L264",
       "id": "device_infer_connection_type",
-      "community": 1,
+      "community": 0,
       "norm_label": "infer_connection_type()"
     },
     {
       "label": "parse_mdns_services()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L222",
+      "source_location": "L274",
       "id": "device_parse_mdns_services",
-      "community": 1,
+      "community": 0,
       "norm_label": "parse_mdns_services()"
     },
     {
       "label": "split_address()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L257",
+      "source_location": "L309",
       "id": "device_split_address",
-      "community": 1,
+      "community": 0,
       "norm_label": "split_address()"
     },
     {
       "label": "parses_mdns_services()",
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L270",
+      "source_location": "L322",
       "id": "device_parses_mdns_services",
-      "community": 1,
+      "community": 0,
       "norm_label": "parses_mdns_services()"
+    },
+    {
+      "label": "parses_mdns_adb_serial()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/commands/device.rs",
+      "source_location": "L342",
+      "id": "device_parses_mdns_adb_serial",
+      "community": 0,
+      "norm_label": "parses_mdns_adb_serial()"
     },
     {
       "label": "package.rs",
@@ -657,7 +684,7 @@
       "source_file": "src-tauri/src/commands/screenshot.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_screenshot_rs",
-      "community": 1,
+      "community": 0,
       "norm_label": "screenshot.rs"
     },
     {
@@ -666,7 +693,7 @@
       "source_file": "src-tauri/src/commands/screenshot.rs",
       "source_location": "L8",
       "id": "screenshot_adb_screenshot",
-      "community": 1,
+      "community": 0,
       "norm_label": "adb_screenshot()"
     },
     {
@@ -846,7 +873,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_settings_rs",
-      "community": 8,
+      "community": 7,
       "norm_label": "settings.rs"
     },
     {
@@ -855,7 +882,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L8",
       "id": "settings_select_directory",
-      "community": 8,
+      "community": 7,
       "norm_label": "select_directory()"
     },
     {
@@ -864,7 +891,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L19",
       "id": "settings_get_default_save_dir",
-      "community": 8,
+      "community": 7,
       "norm_label": "get_default_save_dir()"
     },
     {
@@ -873,7 +900,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L30",
       "id": "settings_check_adb_available",
-      "community": 8,
+      "community": 7,
       "norm_label": "check_adb_available()"
     },
     {
@@ -882,7 +909,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L35",
       "id": "settings_install_adb",
-      "community": 8,
+      "community": 7,
       "norm_label": "install_adb()"
     },
     {
@@ -891,7 +918,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L136",
       "id": "settings_download_with_progress",
-      "community": 8,
+      "community": 7,
       "norm_label": "download_with_progress()"
     },
     {
@@ -900,7 +927,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L184",
       "id": "settings_emit_install_progress",
-      "community": 8,
+      "community": 7,
       "norm_label": "emit_install_progress()"
     },
     {
@@ -945,17 +972,8 @@
       "source_file": "src/App.tsx",
       "source_location": "L1",
       "id": "src_app_tsx",
-      "community": 0,
+      "community": 22,
       "norm_label": "app.tsx"
-    },
-    {
-      "label": "App()",
-      "file_type": "code",
-      "source_file": "src/App.tsx",
-      "source_location": "L27",
-      "id": "app_app",
-      "community": 0,
-      "norm_label": "app()"
     },
     {
       "label": "main.tsx",
@@ -963,7 +981,7 @@
       "source_file": "src/main.tsx",
       "source_location": "L1",
       "id": "src_main_tsx",
-      "community": 22,
+      "community": 23,
       "norm_label": "main.tsx"
     },
     {
@@ -972,7 +990,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L1",
       "id": "src_storage_ts",
-      "community": 0,
+      "community": 1,
       "norm_label": "storage.ts"
     },
     {
@@ -981,7 +999,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L14",
       "id": "storage_getstore",
-      "community": 0,
+      "community": 1,
       "norm_label": "getstore()"
     },
     {
@@ -990,7 +1008,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L21",
       "id": "storage_savestorevalue",
-      "community": 0,
+      "community": 1,
       "norm_label": "savestorevalue()"
     },
     {
@@ -999,7 +1017,7 @@
       "source_file": "src/vite-env.d.ts",
       "source_location": "L1",
       "id": "src_vite_env_d_ts",
-      "community": 23,
+      "community": 24,
       "norm_label": "vite-env.d.ts"
     },
     {
@@ -1008,7 +1026,7 @@
       "source_file": "src/types/index.ts",
       "source_location": "L1",
       "id": "src_types_index_ts",
-      "community": 24,
+      "community": 25,
       "norm_label": "index.ts"
     },
     {
@@ -1089,70 +1107,70 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L1",
       "id": "src_components_pairconnect_tsx",
-      "community": 0,
+      "community": 1,
       "norm_label": "pairconnect.tsx"
     },
     {
       "label": "savePairConnect()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L49",
+      "source_location": "L48",
       "id": "pairconnect_savepairconnect",
-      "community": 0,
+      "community": 1,
       "norm_label": "savepairconnect()"
     },
     {
       "label": "handleMdnsConnect()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L122",
+      "source_location": "L104",
       "id": "pairconnect_handlemdnsconnect",
-      "community": 0,
+      "community": 1,
       "norm_label": "handlemdnsconnect()"
     },
     {
       "label": "handleMdnsPair()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L142",
+      "source_location": "L123",
       "id": "pairconnect_handlemdnspair",
-      "community": 0,
+      "community": 1,
       "norm_label": "handlemdnspair()"
     },
     {
       "label": "handleMdnsAutoConnect()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L166",
+      "source_location": "L147",
       "id": "pairconnect_handlemdnsautoconnect",
-      "community": 0,
+      "community": 1,
       "norm_label": "handlemdnsautoconnect()"
     },
     {
       "label": "handleScan()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L186",
+      "source_location": "L166",
       "id": "pairconnect_handlescan",
-      "community": 0,
+      "community": 1,
       "norm_label": "handlescan()"
     },
     {
       "label": "handlePair()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L198",
+      "source_location": "L178",
       "id": "pairconnect_handlepair",
-      "community": 0,
+      "community": 1,
       "norm_label": "handlepair()"
     },
     {
       "label": "handleConnect()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L223",
+      "source_location": "L203",
       "id": "pairconnect_handleconnect",
-      "community": 0,
+      "community": 1,
       "norm_label": "handleconnect()"
     },
     {
@@ -1251,7 +1269,7 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L1",
       "id": "src_components_devicelist_tsx",
-      "community": 0,
+      "community": 1,
       "norm_label": "devicelist.tsx"
     },
     {
@@ -1260,7 +1278,7 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L39",
       "id": "devicelist_handlenotechange",
-      "community": 0,
+      "community": 1,
       "norm_label": "handlenotechange()"
     },
     {
@@ -1269,7 +1287,7 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L136",
       "id": "devicelist_connectionlabel",
-      "community": 0,
+      "community": 1,
       "norm_label": "connectionlabel()"
     },
     {
@@ -1278,7 +1296,7 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L138",
       "id": "devicelist_connectionclass",
-      "community": 0,
+      "community": 1,
       "norm_label": "connectionclass()"
     },
     {
@@ -1287,7 +1305,7 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L145",
       "id": "devicelist_startedit",
-      "community": 0,
+      "community": 1,
       "norm_label": "startedit()"
     },
     {
@@ -1296,7 +1314,7 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L150",
       "id": "devicelist_commitedit",
-      "community": 0,
+      "community": 1,
       "norm_label": "commitedit()"
     },
     {
@@ -1341,7 +1359,7 @@
       "source_file": "src/components/ScreenRecord.tsx",
       "source_location": "L1",
       "id": "src_components_screenrecord_tsx",
-      "community": 25,
+      "community": 26,
       "norm_label": "screenrecord.tsx"
     },
     {
@@ -1368,7 +1386,7 @@
       "source_file": "src/hooks/useDevices.ts",
       "source_location": "L1",
       "id": "src_hooks_usedevices_ts",
-      "community": 0,
+      "community": 1,
       "norm_label": "usedevices.ts"
     },
     {
@@ -1377,7 +1395,7 @@
       "source_file": "src/hooks/useDevices.ts",
       "source_location": "L6",
       "id": "usedevices_usedevices",
-      "community": 0,
+      "community": 1,
       "norm_label": "usedevices()"
     },
     {
@@ -1386,7 +1404,7 @@
       "source_file": "src/hooks/useDevices.ts",
       "source_location": "L76",
       "id": "usedevices_deviceidentitykey",
-      "community": 0,
+      "community": 1,
       "norm_label": "deviceidentitykey()"
     },
     {
@@ -1395,7 +1413,7 @@
       "source_file": "src/hooks/useDevices.ts",
       "source_location": "L80",
       "id": "usedevices_devicedisplaytitle",
-      "community": 0,
+      "community": 1,
       "norm_label": "devicedisplaytitle()"
     },
     {
@@ -2568,7 +2586,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/state.rs",
-      "source_location": "L3",
+      "source_location": "L4",
       "weight": 1.0,
       "_src": "src_tauri_src_state_rs",
       "_tgt": "state_appstate",
@@ -2580,7 +2598,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/state.rs",
-      "source_location": "L13",
+      "source_location": "L15",
       "weight": 1.0,
       "_src": "state_appstate",
       "_tgt": "state_appstate_default",
@@ -2604,7 +2622,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L8",
+      "source_location": "L9",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_deviceinfo",
@@ -2616,7 +2634,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_mdnsdevice",
@@ -2628,7 +2646,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L28",
+      "source_location": "L29",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_adb_devices",
@@ -2640,7 +2658,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L36",
+      "source_location": "L44",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_adb_mdns_discover",
@@ -2652,7 +2670,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L45",
+      "source_location": "L53",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_adb_auto_connect",
@@ -2664,7 +2682,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L64",
+      "source_location": "L72",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_adb_mdns_auto_connect",
@@ -2676,7 +2694,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L78",
+      "source_location": "L93",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_parse_devices_output",
@@ -2688,7 +2706,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L121",
+      "source_location": "L136",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_enrich_device_serial_numbers",
@@ -2700,7 +2718,19 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L133",
+      "source_location": "L152",
+      "weight": 1.0,
+      "_src": "src_tauri_src_commands_device_rs",
+      "_tgt": "device_read_device_sn_cached",
+      "source": "src_tauri_src_commands_device_rs",
+      "target": "device_read_device_sn_cached",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/device.rs",
+      "source_location": "L176",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_read_device_sn",
@@ -2712,7 +2742,19 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L151",
+      "source_location": "L193",
+      "weight": 1.0,
+      "_src": "src_tauri_src_commands_device_rs",
+      "_tgt": "device_parse_mdns_adb_serial",
+      "source": "src_tauri_src_commands_device_rs",
+      "target": "device_parse_mdns_adb_serial",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/device.rs",
+      "source_location": "L203",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_adb_pair",
@@ -2724,7 +2766,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L176",
+      "source_location": "L228",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_adb_connect",
@@ -2736,7 +2778,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L199",
+      "source_location": "L251",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_adb_disconnect",
@@ -2748,7 +2790,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L212",
+      "source_location": "L264",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_infer_connection_type",
@@ -2760,7 +2802,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L222",
+      "source_location": "L274",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_parse_mdns_services",
@@ -2772,7 +2814,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L257",
+      "source_location": "L309",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_split_address",
@@ -2784,7 +2826,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L270",
+      "source_location": "L322",
       "weight": 1.0,
       "_src": "src_tauri_src_commands_device_rs",
       "_tgt": "device_parses_mdns_services",
@@ -2793,10 +2835,22 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/device.rs",
+      "source_location": "L342",
+      "weight": 1.0,
+      "_src": "src_tauri_src_commands_device_rs",
+      "_tgt": "device_parses_mdns_adb_serial",
+      "source": "src_tauri_src_commands_device_rs",
+      "target": "device_parses_mdns_adb_serial",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L31",
+      "source_location": "L35",
       "weight": 1.0,
       "_src": "device_adb_devices",
       "_tgt": "device_parse_devices_output",
@@ -2808,7 +2862,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L32",
+      "source_location": "L36",
       "weight": 1.0,
       "_src": "device_adb_devices",
       "_tgt": "device_enrich_device_serial_numbers",
@@ -2820,7 +2874,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L41",
+      "source_location": "L49",
       "weight": 1.0,
       "_src": "device_adb_mdns_discover",
       "_tgt": "device_parse_mdns_services",
@@ -2832,7 +2886,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L74",
+      "source_location": "L85",
       "weight": 1.0,
       "_src": "device_adb_mdns_auto_connect",
       "_tgt": "device_parse_devices_output",
@@ -2844,7 +2898,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L75",
+      "source_location": "L86",
       "weight": 1.0,
       "_src": "device_adb_mdns_auto_connect",
       "_tgt": "device_enrich_device_serial_numbers",
@@ -2856,7 +2910,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L109",
+      "source_location": "L124",
       "weight": 1.0,
       "_src": "device_parse_devices_output",
       "_tgt": "device_infer_connection_type",
@@ -2868,11 +2922,35 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L126",
+      "source_location": "L145",
       "weight": 1.0,
       "_src": "device_enrich_device_serial_numbers",
-      "_tgt": "device_read_device_sn",
+      "_tgt": "device_read_device_sn_cached",
       "source": "device_enrich_device_serial_numbers",
+      "target": "device_read_device_sn_cached",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/device.rs",
+      "source_location": "L157",
+      "weight": 1.0,
+      "_src": "device_read_device_sn_cached",
+      "_tgt": "device_parse_mdns_adb_serial",
+      "source": "device_read_device_sn_cached",
+      "target": "device_parse_mdns_adb_serial",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands/device.rs",
+      "source_location": "L167",
+      "weight": 1.0,
+      "_src": "device_read_device_sn_cached",
+      "_tgt": "device_read_device_sn",
+      "source": "device_read_device_sn_cached",
       "target": "device_read_device_sn",
       "confidence_score": 1.0
     },
@@ -2880,7 +2958,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L239",
+      "source_location": "L291",
       "weight": 1.0,
       "_src": "device_parse_mdns_services",
       "_tgt": "device_split_address",
@@ -2892,7 +2970,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands/device.rs",
-      "source_location": "L277",
+      "source_location": "L329",
       "weight": 1.0,
       "_src": "device_parses_mdns_services",
       "_tgt": "device_parse_mdns_services",
@@ -3767,30 +3845,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/App.tsx",
-      "source_location": "L27",
-      "weight": 1.0,
-      "_src": "src_app_tsx",
-      "_tgt": "app_app",
-      "source": "src_app_tsx",
-      "target": "app_app",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "src/App.tsx",
-      "source_location": "L23",
-      "weight": 1.0,
-      "_src": "app_app",
-      "_tgt": "usedevices_usedevices",
-      "source": "app_app",
-      "target": "usedevices_usedevices"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "src/storage.ts",
       "source_location": "L14",
       "weight": 1.0,
@@ -3912,7 +3966,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L49",
+      "source_location": "L48",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_savepairconnect",
@@ -3924,7 +3978,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L122",
+      "source_location": "L104",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handlemdnsconnect",
@@ -3936,7 +3990,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L142",
+      "source_location": "L123",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handlemdnspair",
@@ -3948,7 +4002,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L166",
+      "source_location": "L147",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handlemdnsautoconnect",
@@ -3960,7 +4014,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L186",
+      "source_location": "L166",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handlescan",
@@ -3972,7 +4026,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L198",
+      "source_location": "L178",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handlepair",
@@ -3984,7 +4038,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L223",
+      "source_location": "L203",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handleconnect",

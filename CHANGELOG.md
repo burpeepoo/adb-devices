@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1] - 2026-04-28
+
+### Changed
+
+- Reduced click-time UI stalls by moving blocking ADB-backed Tauri commands onto async dispatch.
+- Reused the app-level device list in the pair/connect screen instead of running a second periodic `adb_devices` refresh.
+
+### Fixed
+
+- Cached device serial number enrichment so routine device refreshes no longer run `adb shell getprop ro.serialno` for every known transport.
+- Parsed serial numbers directly from mDNS ADB service names when available, avoiding unnecessary device shell calls.
+
 ## [0.1.0] - 2026-04-28
 
 ### Added

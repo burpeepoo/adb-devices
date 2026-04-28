@@ -4,13 +4,13 @@ import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import { DeviceInfo, MdnsDevice, PairConnectSettings } from "../types";
 
 interface Props {
-  onConnected: () => void;
+  devices: DeviceInfo[];
+  onConnected: () => void | Promise<void>;
 }
 
-export default function PairConnect({ onConnected }: Props) {
+export default function PairConnect({ devices, onConnected }: Props) {
   const adbOperationRef = useRef(false);
   const discoveringRef = useRef(false);
-  const refreshingDevicesRef = useRef(false);
   const pairCodeInputFocusedRef = useRef(false);
   const [pairIp, setPairIp] = useState("");
   const [pairPort, setPairPort] = useState("");
@@ -24,7 +24,6 @@ export default function PairConnect({ onConnected }: Props) {
   const [connectResult, setConnectResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const [mdnsDevices, setMdnsDevices] = useState<MdnsDevice[]>([]);
-  const [connectedDevices, setConnectedDevices] = useState<DeviceInfo[]>([]);
   const [discovering, setDiscovering] = useState(false);
   const [mdnsResult, setMdnsResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [pairCodes, setPairCodes] = useState<Record<string, string>>({});
@@ -94,30 +93,13 @@ export default function PairConnect({ onConnected }: Props) {
     }
   }, []);
 
-  const refreshConnectedDevices = useCallback(async (force = false) => {
-    if (!force && (refreshingDevicesRef.current || adbOperationRef.current || pairCodeInputFocusedRef.current)) {
-      return;
-    }
-    refreshingDevicesRef.current = true;
-    try {
-      const devices = await invoke<DeviceInfo[]>("adb_devices");
-      setConnectedDevices(devices.filter((device) => device.state === "device"));
-    } catch {
-      // Device list failures should not hide mDNS discovery results.
-    } finally {
-      refreshingDevicesRef.current = false;
-    }
-  }, []);
-
   useEffect(() => {
     discoverMdns(true);
-    refreshConnectedDevices();
     const timer = window.setInterval(() => {
       discoverMdns(true);
-      refreshConnectedDevices();
     }, 10000);
     return () => window.clearInterval(timer);
-  }, [discoverMdns, refreshConnectedDevices]);
+  }, [discoverMdns]);
 
   const handleMdnsConnect = async (device: MdnsDevice) => {
     await runAdbOperation(async () => {
@@ -129,8 +111,7 @@ export default function PairConnect({ onConnected }: Props) {
         });
         setMdnsResult({ ok: true, msg: result });
         savePairConnect({ connectIp: device.ip, connectPort: device.port });
-        await refreshConnectedDevices(true);
-        onConnected();
+        await onConnected();
       } catch (e) {
         setMdnsResult({ ok: false, msg: `${String(e)}。如果这是第一次连接这台设备，请先在 Android 无线调试里打开配对码并完成配对。` });
       } finally {
@@ -154,7 +135,7 @@ export default function PairConnect({ onConnected }: Props) {
         setMdnsResult({ ok: true, msg: result });
         savePairConnect({ pairIp: device.ip, pairPort: device.port });
         await discoverMdns(true, true);
-        await refreshConnectedDevices(true);
+        await onConnected();
       } catch (e) {
         setMdnsResult({ ok: false, msg: String(e) });
       } finally {
@@ -170,10 +151,9 @@ export default function PairConnect({ onConnected }: Props) {
       try {
         const devices = await invoke<DeviceInfo[]>("adb_mdns_auto_connect");
         const onlineDevices = devices.filter((device) => device.state === "device");
-        setConnectedDevices(onlineDevices);
         const count = onlineDevices.length;
         setMdnsResult({ ok: true, msg: count ? `已自动连接 ${count} 台在线设备` : "已尝试自动连接，暂未发现在线设备" });
-        onConnected();
+        await onConnected();
         await discoverMdns(true, true);
       } catch (e) {
         setMdnsResult({ ok: false, msg: String(e) });
@@ -188,7 +168,7 @@ export default function PairConnect({ onConnected }: Props) {
       setBusyAddress("__scan__");
       try {
         await discoverMdns(false, true);
-        await refreshConnectedDevices(true);
+        await onConnected();
       } finally {
         setBusyAddress(null);
       }
@@ -234,8 +214,7 @@ export default function PairConnect({ onConnected }: Props) {
         });
         setConnectResult({ ok: true, msg: result });
         savePairConnect({ connectIp: ip, connectPort: port });
-        await refreshConnectedDevices(true);
-        onConnected();
+        await onConnected();
       } catch (e) {
         setConnectResult({ ok: false, msg: String(e) });
       } finally {
@@ -246,6 +225,7 @@ export default function PairConnect({ onConnected }: Props) {
 
   const connectableDevices = mdnsDevices.filter((device) => device.connectable);
   const pairingDevices = mdnsDevices.filter((device) => !device.connectable);
+  const connectedDevices = devices.filter((device) => device.state === "device");
   const adbBusy = busyAddress !== null || pairLoading || connectLoading || discovering;
 
   return (

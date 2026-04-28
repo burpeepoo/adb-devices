@@ -4,7 +4,7 @@ use tauri::AppHandle;
 
 use crate::adb::{self, AdbError};
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_screenshot(
     app: AppHandle,
     save_dir: String,

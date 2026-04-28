@@ -5,7 +5,7 @@ use tauri::AppHandle;
 use crate::adb::{self, AdbError};
 use crate::state::AppState;
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_start_recording(
     app: AppHandle,
     device_serial: Option<String>,
@@ -47,7 +47,7 @@ pub fn adb_start_recording(
     Ok("录屏已开始".to_string())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_stop_recording(
     app: AppHandle,
     save_dir: String,

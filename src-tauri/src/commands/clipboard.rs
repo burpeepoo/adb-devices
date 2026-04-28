@@ -2,7 +2,7 @@ use tauri::AppHandle;
 
 use crate::adb::{self, AdbError};
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn adb_input_text(
     app: AppHandle,
     text: String,

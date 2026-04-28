@@ -1,12 +1,12 @@
 # Graph Report - adb_project  (2026-04-28)
 
 ## Corpus Check
-- 34 files · ~43,738 words
+- 34 files · ~43,960 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 163 nodes · 234 edges · 10 communities detected
-- Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 45 edges (avg confidence: 0.8)
+- 165 nodes · 237 edges · 10 communities detected
+- Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 44 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -48,16 +48,16 @@
 ## Communities
 
 ### Community 0 - "Community 0"
-Cohesion: 0.09
-Nodes (7): App(), handleNoteChange(), savePairConnect(), getStore(), saveStoreValue(), deviceIdentityKey(), useDevices()
+Cohesion: 0.17
+Nodes (20): run_adb(), run_adb_with_timeout(), adb_auto_connect(), adb_connect(), adb_devices(), adb_disconnect(), adb_mdns_discover(), adb_pair() (+12 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.19
-Nodes (19): run_adb(), run_adb_with_timeout(), adb_auto_connect(), adb_connect(), adb_devices(), adb_disconnect(), adb_mdns_auto_connect(), adb_mdns_discover() (+11 more)
+Cohesion: 0.1
+Nodes (5): handleNoteChange(), savePairConnect(), getStore(), saveStoreValue(), deviceIdentityKey()
 
 ### Community 2 - "Community 2"
-Cohesion: 0.19
-Nodes (14): AdbError, build_adb_command(), check_adb_available(), ensure_executable(), get_adb_path(), get_bundled_adb_path(), get_sdk_adb_path(), get_system_adb_path() (+6 more)
+Cohesion: 0.18
+Nodes (15): AdbError, build_adb_command(), check_adb_available(), ensure_executable(), get_adb_path(), get_bundled_adb_path(), get_sdk_adb_path(), get_system_adb_path() (+7 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.28
@@ -76,12 +76,12 @@ Cohesion: 0.36
 Nodes (5): adb_read_logcat(), adb_start_logcat(), append_filter_args(), LogcatEntry, parse_logcat_line()
 
 ### Community 7 - "Community 7"
-Cohesion: 0.29
-Nodes (3): run(), main(), AppState
-
-### Community 8 - "Community 8"
 Cohesion: 0.43
 Nodes (3): download_with_progress(), emit_install_progress(), install_adb()
+
+### Community 8 - "Community 8"
+Cohesion: 0.29
+Nodes (3): run(), main(), AppState
 
 ### Community 9 - "Community 9"
 Cohesion: 0.33
@@ -94,12 +94,12 @@ Nodes (6): ADB Manager App Icon, Android Launcher Icons, iOS App Icon Set, Platf
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `run_adb()` connect `Community 1` to `Community 2`, `Community 3`, `Community 4`, `Community 6`?**
-  _High betweenness centrality (0.159) - this node is a cross-community bridge._
-- **Why does `adb_install()` connect `Community 3` to `Community 1`?**
-  _High betweenness centrality (0.089) - this node is a cross-community bridge._
-- **Why does `ensure_success()` connect `Community 4` to `Community 1`, `Community 2`, `Community 6`?**
-  _High betweenness centrality (0.079) - this node is a cross-community bridge._
+- **Why does `run_adb()` connect `Community 0` to `Community 2`, `Community 3`, `Community 4`, `Community 6`?**
+  _High betweenness centrality (0.164) - this node is a cross-community bridge._
+- **Why does `adb_install()` connect `Community 3` to `Community 0`?**
+  _High betweenness centrality (0.090) - this node is a cross-community bridge._
+- **Why does `ensure_success()` connect `Community 4` to `Community 0`, `Community 2`, `Community 6`?**
+  _High betweenness centrality (0.080) - this node is a cross-community bridge._
 - **Are the 14 inferred relationships involving `run_adb()` (e.g. with `adb_list_packages()` and `adb_package_info()`) actually correct?**
   _`run_adb()` has 14 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 2 inferred relationships involving `get_adb_path()` (e.g. with `adb_start_logcat()` and `adb_start_recording()`) actually correct?**
