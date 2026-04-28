@@ -18,6 +18,14 @@ export interface PackageInfo {
   build_number: string;
 }
 
+export interface LogcatEntry {
+  timestamp: string;
+  level: string;
+  pid: string;
+  tag: string;
+  message: string;
+}
+
 export interface AppSettings {
   screenshotDir: string;
   recordingDir: string;

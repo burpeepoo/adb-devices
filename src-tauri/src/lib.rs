@@ -17,6 +17,7 @@ pub fn run() {
             commands::install::adb_install,
             commands::install::parse_apk_package,
             commands::clipboard::adb_input_text,
+            commands::logcat::adb_read_logcat,
             commands::logcat::adb_start_logcat,
             commands::logcat::adb_stop_logcat,
             commands::logcat::export_text_file,
