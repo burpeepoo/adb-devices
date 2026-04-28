@@ -1,5 +1,6 @@
 export interface DeviceInfo {
   serial: string;
+  device_sn: string;
   state: "device" | "offline" | "unauthorized" | "disconnected";
   model: string;
   product: string;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type HTMLAttributes } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import { DeviceInfo, MdnsDevice, PairConnectSettings } from "../types";
@@ -8,6 +8,10 @@ interface Props {
 }
 
 export default function PairConnect({ onConnected }: Props) {
+  const adbOperationRef = useRef(false);
+  const discoveringRef = useRef(false);
+  const refreshingDevicesRef = useRef(false);
+  const pairCodeInputFocusedRef = useRef(false);
   const [pairIp, setPairIp] = useState("");
   const [pairPort, setPairPort] = useState("");
   const [pairCode, setPairCode] = useState("");
@@ -55,7 +59,21 @@ export default function PairConnect({ onConnected }: Props) {
     });
   };
 
-  const discoverMdns = useCallback(async (silent = false) => {
+  const runAdbOperation = useCallback(async <T,>(operation: () => Promise<T>) => {
+    if (adbOperationRef.current) return null;
+    adbOperationRef.current = true;
+    try {
+      return await operation();
+    } finally {
+      adbOperationRef.current = false;
+    }
+  }, []);
+
+  const discoverMdns = useCallback(async (silent = false, force = false) => {
+    if (!force && (discoveringRef.current || adbOperationRef.current || (silent && pairCodeInputFocusedRef.current))) {
+      return;
+    }
+    discoveringRef.current = true;
     if (!silent) {
       setDiscovering(true);
       setMdnsResult(null);
@@ -71,16 +89,23 @@ export default function PairConnect({ onConnected }: Props) {
         setMdnsResult({ ok: false, msg: String(e) });
       }
     } finally {
+      discoveringRef.current = false;
       if (!silent) setDiscovering(false);
     }
   }, []);
 
-  const refreshConnectedDevices = useCallback(async () => {
+  const refreshConnectedDevices = useCallback(async (force = false) => {
+    if (!force && (refreshingDevicesRef.current || adbOperationRef.current || pairCodeInputFocusedRef.current)) {
+      return;
+    }
+    refreshingDevicesRef.current = true;
     try {
       const devices = await invoke<DeviceInfo[]>("adb_devices");
       setConnectedDevices(devices.filter((device) => device.state === "device"));
     } catch {
       // Device list failures should not hide mDNS discovery results.
+    } finally {
+      refreshingDevicesRef.current = false;
     }
   }, []);
 
@@ -95,105 +120,133 @@ export default function PairConnect({ onConnected }: Props) {
   }, [discoverMdns, refreshConnectedDevices]);
 
   const handleMdnsConnect = async (device: MdnsDevice) => {
-    setBusyAddress(device.address);
-    setMdnsResult(null);
-    try {
-      const result = await invoke<string>("adb_auto_connect", {
-        address: device.address,
-      });
-      setMdnsResult({ ok: true, msg: result });
-      savePairConnect({ connectIp: device.ip, connectPort: device.port });
-      await refreshConnectedDevices();
-      onConnected();
-    } catch (e) {
-      setMdnsResult({ ok: false, msg: `${String(e)}。如果这是第一次连接这台设备，请先在 Android 无线调试里打开配对码并完成配对。` });
-    } finally {
-      setBusyAddress(null);
-    }
+    await runAdbOperation(async () => {
+      setBusyAddress(device.address);
+      setMdnsResult(null);
+      try {
+        const result = await invoke<string>("adb_auto_connect", {
+          address: device.address,
+        });
+        setMdnsResult({ ok: true, msg: result });
+        savePairConnect({ connectIp: device.ip, connectPort: device.port });
+        await refreshConnectedDevices(true);
+        onConnected();
+      } catch (e) {
+        setMdnsResult({ ok: false, msg: `${String(e)}。如果这是第一次连接这台设备，请先在 Android 无线调试里打开配对码并完成配对。` });
+      } finally {
+        setBusyAddress(null);
+      }
+    });
   };
 
   const handleMdnsPair = async (device: MdnsDevice) => {
     const code = pairCodes[device.address]?.trim();
     if (!code) return;
-    setBusyAddress(device.address);
-    setMdnsResult(null);
-    try {
-      const result = await invoke<string>("adb_pair", {
-        ip: device.ip,
-        port: device.port,
-        code,
-      });
-      setMdnsResult({ ok: true, msg: result });
-      savePairConnect({ pairIp: device.ip, pairPort: device.port });
-      await discoverMdns(true);
-      await refreshConnectedDevices();
-    } catch (e) {
-      setMdnsResult({ ok: false, msg: String(e) });
-    } finally {
-      setBusyAddress(null);
-    }
+    await runAdbOperation(async () => {
+      setBusyAddress(device.address);
+      setMdnsResult(null);
+      try {
+        const result = await invoke<string>("adb_pair", {
+          ip: device.ip,
+          port: device.port,
+          code,
+        });
+        setMdnsResult({ ok: true, msg: result });
+        savePairConnect({ pairIp: device.ip, pairPort: device.port });
+        await discoverMdns(true, true);
+        await refreshConnectedDevices(true);
+      } catch (e) {
+        setMdnsResult({ ok: false, msg: String(e) });
+      } finally {
+        setBusyAddress(null);
+      }
+    });
   };
 
   const handleMdnsAutoConnect = async () => {
-    setBusyAddress("__auto__");
-    setMdnsResult(null);
-    try {
-      const devices = await invoke<DeviceInfo[]>("adb_mdns_auto_connect");
-      const onlineDevices = devices.filter((device) => device.state === "device");
-      setConnectedDevices(onlineDevices);
-      const count = onlineDevices.length;
-      setMdnsResult({ ok: true, msg: count ? `已自动连接 ${count} 台在线设备` : "已尝试自动连接，暂未发现在线设备" });
-      onConnected();
-      await discoverMdns(true);
-    } catch (e) {
-      setMdnsResult({ ok: false, msg: String(e) });
-    } finally {
-      setBusyAddress(null);
-    }
+    await runAdbOperation(async () => {
+      setBusyAddress("__auto__");
+      setMdnsResult(null);
+      try {
+        const devices = await invoke<DeviceInfo[]>("adb_mdns_auto_connect");
+        const onlineDevices = devices.filter((device) => device.state === "device");
+        setConnectedDevices(onlineDevices);
+        const count = onlineDevices.length;
+        setMdnsResult({ ok: true, msg: count ? `已自动连接 ${count} 台在线设备` : "已尝试自动连接，暂未发现在线设备" });
+        onConnected();
+        await discoverMdns(true, true);
+      } catch (e) {
+        setMdnsResult({ ok: false, msg: String(e) });
+      } finally {
+        setBusyAddress(null);
+      }
+    });
+  };
+
+  const handleScan = async () => {
+    await runAdbOperation(async () => {
+      setBusyAddress("__scan__");
+      try {
+        await discoverMdns(false, true);
+        await refreshConnectedDevices(true);
+      } finally {
+        setBusyAddress(null);
+      }
+    });
   };
 
   const handlePair = async () => {
-    if (!pairIp || !pairPort || !pairCode) return;
-    setPairLoading(true);
-    setPairResult(null);
-    try {
-      const result = await invoke<string>("adb_pair", {
-        ip: pairIp,
-        port: pairPort,
-        code: pairCode,
-      });
-      setPairResult({ ok: true, msg: result });
-      savePairConnect({ pairIp, pairPort });
-      await discoverMdns(true);
-    } catch (e) {
-      setPairResult({ ok: false, msg: String(e) });
-    } finally {
-      setPairLoading(false);
-    }
+    const ip = pairIp.trim();
+    const port = pairPort.trim();
+    const code = pairCode.trim();
+    if (!ip || !port || !code) return;
+    await runAdbOperation(async () => {
+      setPairLoading(true);
+      setPairResult(null);
+      try {
+        const result = await invoke<string>("adb_pair", {
+          ip,
+          port,
+          code,
+        });
+        setPairResult({ ok: true, msg: result });
+        savePairConnect({ pairIp: ip, pairPort: port });
+        await discoverMdns(true, true);
+      } catch (e) {
+        setPairResult({ ok: false, msg: String(e) });
+      } finally {
+        setPairLoading(false);
+      }
+    });
   };
 
   const handleConnect = async () => {
-    if (!connectIp || !connectPort) return;
-    setConnectLoading(true);
-    setConnectResult(null);
-    try {
-      const result = await invoke<string>("adb_connect", {
-        ip: connectIp,
-        port: connectPort,
-      });
-      setConnectResult({ ok: true, msg: result });
-      savePairConnect({ connectIp, connectPort });
-      await refreshConnectedDevices();
-      onConnected();
-    } catch (e) {
-      setConnectResult({ ok: false, msg: String(e) });
-    } finally {
-      setConnectLoading(false);
-    }
+    const ip = connectIp.trim();
+    const port = connectPort.trim();
+    if (!ip || !port) return;
+    await runAdbOperation(async () => {
+      setConnectLoading(true);
+      setConnectResult(null);
+      try {
+        const result = await invoke<string>("adb_connect", {
+          ip,
+          port,
+        });
+        setConnectResult({ ok: true, msg: result });
+        savePairConnect({ connectIp: ip, connectPort: port });
+        await refreshConnectedDevices(true);
+        onConnected();
+      } catch (e) {
+        setConnectResult({ ok: false, msg: String(e) });
+      } finally {
+        setConnectLoading(false);
+      }
+    });
   };
 
   const connectableDevices = mdnsDevices.filter((device) => device.connectable);
   const pairingDevices = mdnsDevices.filter((device) => !device.connectable);
+  const adbBusy = busyAddress !== null || pairLoading || connectLoading || discovering;
 
   return (
     <div className="max-w-3xl space-y-5">
@@ -205,18 +258,15 @@ export default function PairConnect({ onConnected }: Props) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => {
-                discoverMdns(false);
-                refreshConnectedDevices();
-              }}
-              disabled={discovering}
+              onClick={handleScan}
+              disabled={adbBusy}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {discovering ? "扫描中..." : "扫描"}
             </button>
             <button
               onClick={handleMdnsAutoConnect}
-              disabled={busyAddress === "__auto__"}
+              disabled={adbBusy}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {busyAddress === "__auto__" ? "连接中..." : "自动连接可信设备"}
@@ -230,6 +280,7 @@ export default function PairConnect({ onConnected }: Props) {
               key={`${device.service_name}-${device.address}`}
               device={device}
               busy={busyAddress === device.address}
+              disabled={adbBusy}
               connected={isMdnsDeviceConnected(device, connectedDevices)}
               onConnect={() => handleMdnsConnect(device)}
             />
@@ -240,13 +291,20 @@ export default function PairConnect({ onConnected }: Props) {
               key={`${device.service_name}-${device.address}`}
               device={device}
               busy={busyAddress === device.address}
+              disabled={adbBusy}
               code={pairCodes[device.address] || ""}
               onCodeChange={(code) =>
                 setPairCodes((prev) => ({
                   ...prev,
-                  [device.address]: code,
+                  [device.address]: normalizePairCode(code),
                 }))
               }
+              onCodeFocus={() => {
+                pairCodeInputFocusedRef.current = true;
+              }}
+              onCodeBlur={() => {
+                pairCodeInputFocusedRef.current = false;
+              }}
               onPair={() => handleMdnsPair(device)}
             />
           ))}
@@ -281,11 +339,25 @@ export default function PairConnect({ onConnected }: Props) {
               <div className="grid grid-cols-3 gap-3 mb-3">
                 <Field label="IP 地址" value={pairIp} onChange={setPairIp} placeholder="192.168.1.100" />
                 <Field label="端口" value={pairPort} onChange={setPairPort} placeholder="12345" />
-                <Field label="配对码" value={pairCode} onChange={setPairCode} placeholder="123456" />
+                <Field
+                  label="配对码"
+                  value={pairCode}
+                  onChange={(value) => setPairCode(normalizePairCode(value))}
+                  onFocus={() => {
+                    pairCodeInputFocusedRef.current = true;
+                  }}
+                  onBlur={() => {
+                    pairCodeInputFocusedRef.current = false;
+                  }}
+                  placeholder="123456"
+                  maxLength={8}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                />
               </div>
               <button
                 onClick={handlePair}
-                disabled={pairLoading || !pairIp || !pairPort || !pairCode}
+                disabled={adbBusy || !pairIp.trim() || !pairPort.trim() || !pairCode.trim()}
                 className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {pairLoading ? "配对中..." : "配对"}
@@ -303,7 +375,7 @@ export default function PairConnect({ onConnected }: Props) {
               </div>
               <button
                 onClick={handleConnect}
-                disabled={connectLoading || !connectIp || !connectPort}
+                disabled={adbBusy || !connectIp.trim() || !connectPort.trim()}
                 className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {connectLoading ? "连接中..." : "连接"}
@@ -332,11 +404,13 @@ export default function PairConnect({ onConnected }: Props) {
 function MdnsRow({
   device,
   busy,
+  disabled,
   connected,
   onConnect,
 }: {
   device: MdnsDevice;
   busy: boolean;
+  disabled: boolean;
   connected: boolean;
   onConnect: () => void;
 }) {
@@ -356,7 +430,7 @@ function MdnsRow({
       </div>
       <button
         onClick={onConnect}
-        disabled={busy || connected}
+        disabled={disabled || connected}
         className="shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {connected ? "已连接" : busy ? "连接中..." : "一键连接"}
@@ -380,14 +454,20 @@ function isMdnsDeviceConnected(device: MdnsDevice, connectedDevices: DeviceInfo[
 function MdnsPairRow({
   device,
   busy,
+  disabled,
   code,
   onCodeChange,
+  onCodeFocus,
+  onCodeBlur,
   onPair,
 }: {
   device: MdnsDevice;
   busy: boolean;
+  disabled: boolean;
   code: string;
   onCodeChange: (code: string) => void;
+  onCodeFocus: () => void;
+  onCodeBlur: () => void;
   onPair: () => void;
 }) {
   return (
@@ -406,13 +486,17 @@ function MdnsPairRow({
           <input
             value={code}
             onChange={(event) => onCodeChange(event.target.value)}
+            onFocus={onCodeFocus}
+            onBlur={onCodeBlur}
             placeholder="配对码"
             maxLength={8}
+            inputMode="numeric"
+            autoComplete="one-time-code"
             className="w-28 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           />
           <button
             onClick={onPair}
-            disabled={busy || !code.trim()}
+            disabled={disabled || !code.trim()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {busy ? "配对中..." : "配对"}
@@ -427,12 +511,22 @@ function Field({
   label,
   value,
   onChange,
+  onFocus,
+  onBlur,
   placeholder,
+  maxLength,
+  inputMode,
+  autoComplete,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
   placeholder: string;
+  maxLength?: number;
+  inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
+  autoComplete?: string;
 }) {
   return (
     <div>
@@ -441,11 +535,20 @@ function Field({
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onFocus={onFocus}
+        onBlur={onBlur}
         placeholder={placeholder}
+        maxLength={maxLength}
+        inputMode={inputMode}
+        autoComplete={autoComplete}
         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
       />
     </div>
   );
+}
+
+function normalizePairCode(value: string) {
+  return value.replace(/\D/g, "").slice(0, 8);
 }
 
 function ResultMessage({ result }: { result: { ok: boolean; msg: string } }) {

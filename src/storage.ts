@@ -7,6 +7,7 @@ let storePromise: Promise<Store> | null = null;
 export const STORE_KEYS = {
   settings: "settings",
   deviceHistory: "deviceHistory",
+  deviceNotes: "deviceNotes",
   pairConnect: "pairConnect",
 } as const;
 

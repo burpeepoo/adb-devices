@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v*"
+  release:
+    types:
+      - published
   workflow_dispatch:
 
 jobs:
@@ -52,3 +57,30 @@ jobs:
           name: ${{ matrix.platform.artifact_name }}
           path: ${{ matrix.platform.artifact_path }}
           if-no-files-found: error
+
+  notify-lark:
+    name: Send installers to Feishu
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ needs.build.result == 'success' && (github.event_name == 'workflow_dispatch' || github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Send DMG and EXE to Feishu
+        env:
+          LARK_APP_ID: ${{ secrets.LARK_APP_ID }}
+          LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET }}
+          LARK_RECEIVE_ID: ${{ secrets.LARK_RECEIVE_ID }}
+          LARK_RECEIVE_ID_TYPE: ${{ secrets.LARK_RECEIVE_ID_TYPE }}
+        run: node scripts/send-lark-release.mjs release-artifacts

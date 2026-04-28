@@ -189,7 +189,7 @@ fn emit_install_progress(app: &AppHandle, message: &str) {
 pub fn reveal_path(path: String) -> Result<(), AdbError> {
     let input_path = PathBuf::from(&path);
     let folder = if input_path.is_dir() {
-        input_path
+        input_path.clone()
     } else {
         input_path
             .parent()
@@ -200,14 +200,22 @@ pub fn reveal_path(path: String) -> Result<(), AdbError> {
     #[cfg(target_os = "macos")]
     let mut command = {
         let mut cmd = std::process::Command::new("open");
-        cmd.arg(&folder);
+        if input_path.is_file() {
+            cmd.arg("-R").arg(&input_path);
+        } else {
+            cmd.arg(&folder);
+        }
         cmd
     };
 
     #[cfg(target_os = "windows")]
     let mut command = {
         let mut cmd = std::process::Command::new("explorer");
-        cmd.arg(&folder);
+        if input_path.is_file() {
+            cmd.arg(format!("/select,{}", input_path.to_string_lossy()));
+        } else {
+            cmd.arg(&folder);
+        }
         cmd
     };
 

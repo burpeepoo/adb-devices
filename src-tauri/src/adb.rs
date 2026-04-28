@@ -1,4 +1,6 @@
 use std::path::PathBuf;
+use std::process::{Command, Output};
+use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager};
 use thiserror::Error;
 
@@ -8,6 +10,8 @@ pub enum AdbError {
     AdbNotInstalled,
     #[error("ADB 命令执行失败: {0}")]
     CommandFailed(String),
+    #[error("ADB 命令超时: {0}")]
+    CommandTimedOut(String),
     #[error("未找到设备")]
     NoDevice,
     #[error("正在录屏中")]
@@ -124,14 +128,19 @@ pub fn run_adb(
     args: &[&str],
     device_serial: Option<&str>,
 ) -> Result<std::process::Output, AdbError> {
-    let adb = get_adb_path(app)?;
-    let mut cmd = std::process::Command::new(&adb);
-    if let Some(serial) = device_serial {
-        cmd.args(["-s", serial]);
-    }
-    cmd.args(args);
+    let mut cmd = build_adb_command(app, args, device_serial)?;
     let output = cmd.output()?;
     Ok(output)
+}
+
+pub fn run_adb_with_timeout(
+    app: &AppHandle,
+    args: &[&str],
+    device_serial: Option<&str>,
+    timeout: Duration,
+) -> Result<Output, AdbError> {
+    let mut cmd = build_adb_command(app, args, device_serial)?;
+    wait_with_timeout(&mut cmd, timeout)
 }
 
 pub fn run_adb_with_env(
@@ -151,6 +160,58 @@ pub fn run_adb_with_env(
     cmd.args(args);
     let output = cmd.output()?;
     Ok(output)
+}
+
+pub fn run_adb_with_env_timeout(
+    app: &AppHandle,
+    args: &[&str],
+    device_serial: Option<&str>,
+    envs: &[(&str, &str)],
+    timeout: Duration,
+) -> Result<Output, AdbError> {
+    let mut cmd = build_adb_command(app, args, device_serial)?;
+    for (key, value) in envs {
+        cmd.env(key, value);
+    }
+    wait_with_timeout(&mut cmd, timeout)
+}
+
+fn build_adb_command(
+    app: &AppHandle,
+    args: &[&str],
+    device_serial: Option<&str>,
+) -> Result<Command, AdbError> {
+    let adb = get_adb_path(app)?;
+    let mut cmd = Command::new(&adb);
+    if let Some(serial) = device_serial {
+        cmd.args(["-s", serial]);
+    }
+    cmd.args(args);
+    Ok(cmd)
+}
+
+fn wait_with_timeout(cmd: &mut Command, timeout: Duration) -> Result<Output, AdbError> {
+    cmd.stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped());
+    let mut child = cmd.spawn()?;
+    let started = Instant::now();
+
+    loop {
+        if child.try_wait()?.is_some() {
+            return Ok(child.wait_with_output()?);
+        }
+
+        if started.elapsed() >= timeout {
+            let _ = child.kill();
+            let _ = child.wait_with_output();
+            return Err(AdbError::CommandTimedOut(format!(
+                "{} 秒内没有返回，请检查端口是否仍然有效，或关闭无线调试后重新打开",
+                timeout.as_secs()
+            )));
+        }
+
+        std::thread::sleep(Duration::from_millis(100));
+    }
 }
 
 pub fn ensure_success(output: &std::process::Output, context: &str) -> Result<(), AdbError> {

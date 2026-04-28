@@ -163,7 +163,7 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
             }}
             className="mt-2 text-xs text-blue-500 hover:text-blue-700"
           >
-            打开文件夹
+            在文件夹中显示
           </button>
         )}
 

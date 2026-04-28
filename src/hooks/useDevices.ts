@@ -16,21 +16,22 @@ export function useDevices(refreshInterval = 300000) {
       const result = await invoke<DeviceInfo[]>("adb_devices");
       const store = await getStore();
       const history = (await store.get<DeviceHistoryItem[]>(STORE_KEYS.deviceHistory)) || [];
-      const historyBySerial = new Map(history.map((device) => [device.serial, device]));
+      const historyByDeviceKey = new Map(history.map((device) => [deviceIdentityKey(device), device]));
 
       for (const device of result) {
         if (device.state === "device") {
-          historyBySerial.set(device.serial, {
+          historyByDeviceKey.set(deviceIdentityKey(device), {
             ...device,
             lastSeen: Date.now(),
           });
         }
       }
 
-      const mergedBySerial = new Map<string, DeviceInfo>();
-      for (const device of historyBySerial.values()) {
-        mergedBySerial.set(device.serial, {
+      const mergedByDeviceKey = new Map<string, DeviceInfo>();
+      for (const device of historyByDeviceKey.values()) {
+        mergedByDeviceKey.set(deviceIdentityKey(device), {
           serial: device.serial,
+          device_sn: device.device_sn || "",
           state: "disconnected",
           model: device.model,
           product: device.product,
@@ -38,17 +39,17 @@ export function useDevices(refreshInterval = 300000) {
         });
       }
       for (const device of result) {
-        mergedBySerial.set(device.serial, device);
+        mergedByDeviceKey.set(deviceIdentityKey(device), device);
       }
 
-      const merged = Array.from(mergedBySerial.values()).sort((a, b) => {
+      const merged = Array.from(mergedByDeviceKey.values()).sort((a, b) => {
         if (a.state === "device" && b.state !== "device") return -1;
         if (a.state !== "device" && b.state === "device") return 1;
-        return a.serial.localeCompare(b.serial);
+        return deviceDisplayTitle(a).localeCompare(deviceDisplayTitle(b));
       });
 
       setDevices(merged);
-      await store.set(STORE_KEYS.deviceHistory, Array.from(historyBySerial.values()));
+      await store.set(STORE_KEYS.deviceHistory, Array.from(historyByDeviceKey.values()));
       await store.save();
 
       // Auto-select first device if none selected
@@ -70,4 +71,12 @@ export function useDevices(refreshInterval = 300000) {
   }, [refresh, refreshInterval]);
 
   return { devices, loading, error, selectedDevice, setSelectedDevice, refresh };
+}
+
+function deviceIdentityKey(device: Pick<DeviceInfo, "serial" | "device_sn">) {
+  return device.device_sn || device.serial;
+}
+
+function deviceDisplayTitle(device: Pick<DeviceInfo, "serial" | "device_sn">) {
+  return device.device_sn || device.serial;
 }
