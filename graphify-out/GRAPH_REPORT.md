@@ -1,11 +1,11 @@
 # Graph Report - adb_project  (2026-04-28)
 
 ## Corpus Check
-- 34 files · ~43,609 words
+- 34 files · ~43,738 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 161 nodes · 232 edges · 10 communities detected
+- 163 nodes · 234 edges · 10 communities detected
 - Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 45 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
@@ -42,18 +42,18 @@
   index.html → app-icon.png
 - `run_adb()` --calls--> `adb_stop_recording()`  [INFERRED]
   src-tauri/src/adb.rs → src-tauri/src/commands/record.rs
-- `ensure_success()` --calls--> `reveal_path()`  [INFERRED]
-  src-tauri/src/adb.rs → src-tauri/src/commands/settings.rs
+- `ADB Manager App Icon` --shares_data_with--> `Platform Icon Set`  [INFERRED]
+  app-icon.png → src-tauri/icons/icon.png
 
 ## Communities
 
 ### Community 0 - "Community 0"
-Cohesion: 0.19
-Nodes (19): run_adb(), run_adb_with_timeout(), adb_auto_connect(), adb_connect(), adb_devices(), adb_disconnect(), adb_mdns_auto_connect(), adb_mdns_discover() (+11 more)
+Cohesion: 0.09
+Nodes (7): App(), handleNoteChange(), savePairConnect(), getStore(), saveStoreValue(), deviceIdentityKey(), useDevices()
 
 ### Community 1 - "Community 1"
-Cohesion: 0.1
-Nodes (7): App(), handleNoteChange(), savePairConnect(), getStore(), saveStoreValue(), deviceIdentityKey(), useDevices()
+Cohesion: 0.19
+Nodes (19): run_adb(), run_adb_with_timeout(), adb_auto_connect(), adb_connect(), adb_devices(), adb_disconnect(), adb_mdns_auto_connect(), adb_mdns_discover() (+11 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.19
@@ -64,8 +64,8 @@ Cohesion: 0.28
 Nodes (14): acquire_install_lock(), adb_install(), extract_apk_package_name(), InstallGuard, parse_apk_package(), parse_binary_manifest_package(), parse_start_element_package(), parse_string_pool() (+6 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.24
-Nodes (11): ensure_success(), adb_input_text(), escape_adb_input_text(), adb_list_package_details(), adb_list_packages(), adb_package_info(), PackageInfo, parse_all_package_details() (+3 more)
+Cohesion: 0.22
+Nodes (12): ensure_success(), adb_input_text(), escape_adb_input_text(), adb_list_package_details(), adb_list_packages(), adb_package_info(), PackageInfo, parse_all_package_details() (+4 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.47
@@ -76,12 +76,12 @@ Cohesion: 0.36
 Nodes (5): adb_read_logcat(), adb_start_logcat(), append_filter_args(), LogcatEntry, parse_logcat_line()
 
 ### Community 7 - "Community 7"
-Cohesion: 0.36
-Nodes (4): download_with_progress(), emit_install_progress(), install_adb(), reveal_path()
-
-### Community 8 - "Community 8"
 Cohesion: 0.29
 Nodes (3): run(), main(), AppState
+
+### Community 8 - "Community 8"
+Cohesion: 0.43
+Nodes (3): download_with_progress(), emit_install_progress(), install_adb()
 
 ### Community 9 - "Community 9"
 Cohesion: 0.33
@@ -94,12 +94,12 @@ Nodes (6): ADB Manager App Icon, Android Launcher Icons, iOS App Icon Set, Platf
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `run_adb()` connect `Community 0` to `Community 2`, `Community 3`, `Community 4`, `Community 6`?**
-  _High betweenness centrality (0.163) - this node is a cross-community bridge._
-- **Why does `adb_install()` connect `Community 3` to `Community 0`?**
-  _High betweenness centrality (0.091) - this node is a cross-community bridge._
-- **Why does `ensure_success()` connect `Community 4` to `Community 0`, `Community 2`, `Community 6`, `Community 7`?**
-  _High betweenness centrality (0.081) - this node is a cross-community bridge._
+- **Why does `run_adb()` connect `Community 1` to `Community 2`, `Community 3`, `Community 4`, `Community 6`?**
+  _High betweenness centrality (0.159) - this node is a cross-community bridge._
+- **Why does `adb_install()` connect `Community 3` to `Community 1`?**
+  _High betweenness centrality (0.089) - this node is a cross-community bridge._
+- **Why does `ensure_success()` connect `Community 4` to `Community 1`, `Community 2`, `Community 6`?**
+  _High betweenness centrality (0.079) - this node is a cross-community bridge._
 - **Are the 14 inferred relationships involving `run_adb()` (e.g. with `adb_list_packages()` and `adb_package_info()`) actually correct?**
   _`run_adb()` has 14 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 2 inferred relationships involving `get_adb_path()` (e.g. with `adb_start_logcat()` and `adb_start_recording()`) actually correct?**

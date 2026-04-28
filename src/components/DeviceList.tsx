@@ -68,41 +68,43 @@ export default function DeviceList({
         <div className="px-3 py-2 text-xs text-red-600 bg-red-50">{error}</div>
       )}
 
-      {onlineDevices.length > 0 && (
-        <div className="px-3 pt-2 pb-1">
-          <span className="text-xs text-gray-400 font-medium">在线 ({onlineDevices.length})</span>
-        </div>
-      )}
-      {onlineDevices.map((device) => (
-        <DeviceRow
-          key={device.serial}
-          device={device}
-          note={deviceNotes[deviceIdentityKey(device)] || ""}
-          selected={selectedDevice === device.serial}
-          online
-          onSelect={() => onSelectDevice(device.serial)}
-          onNoteChange={(note) => handleNoteChange(device, note)}
-        />
-      ))}
-
-      {offlineDevices.length > 0 && (
-        <>
-          <div className="px-3 pt-3 pb-1">
-            <span className="text-xs text-gray-400 font-medium">离线 ({offlineDevices.length})</span>
+      <div className="flex-1 overflow-y-auto min-h-0">
+        {onlineDevices.length > 0 && (
+          <div className="px-3 pt-2 pb-1 sticky top-0 bg-gray-50 z-10">
+            <span className="text-xs text-gray-400 font-medium">在线 ({onlineDevices.length})</span>
           </div>
-          {offlineDevices.map((device) => (
-            <DeviceRow
-              key={device.serial}
-              device={device}
-              note={deviceNotes[deviceIdentityKey(device)] || ""}
-              selected={selectedDevice === device.serial}
-              online={false}
-              onSelect={() => onSelectDevice(device.serial)}
-              onNoteChange={(note) => handleNoteChange(device, note)}
-            />
-          ))}
-        </>
-      )}
+        )}
+        {onlineDevices.map((device) => (
+          <DeviceRow
+            key={device.serial}
+            device={device}
+            note={deviceNotes[deviceIdentityKey(device)] || ""}
+            selected={selectedDevice === device.serial}
+            online
+            onSelect={() => onSelectDevice(device.serial)}
+            onNoteChange={(note) => handleNoteChange(device, note)}
+          />
+        ))}
+
+        {offlineDevices.length > 0 && (
+          <>
+            <div className="px-3 pt-3 pb-1">
+              <span className="text-xs text-gray-400 font-medium">离线 ({offlineDevices.length})</span>
+            </div>
+            {offlineDevices.map((device) => (
+              <DeviceRow
+                key={device.serial}
+                device={device}
+                note={deviceNotes[deviceIdentityKey(device)] || ""}
+                selected={selectedDevice === device.serial}
+                online={false}
+                onSelect={() => onSelectDevice(device.serial)}
+                onNoteChange={(note) => handleNoteChange(device, note)}
+              />
+            ))}
+          </>
+        )}
+      </div>
 
       {devices.length === 0 && !loading && (
         <div className="px-3 py-4 text-center text-sm text-gray-400">

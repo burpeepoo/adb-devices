@@ -126,7 +126,7 @@
       "source_file": "src-tauri/src/lib.rs",
       "source_location": "L1",
       "id": "src_tauri_src_lib_rs",
-      "community": 8,
+      "community": 7,
       "norm_label": "lib.rs"
     },
     {
@@ -135,7 +135,7 @@
       "source_file": "src-tauri/src/lib.rs",
       "source_location": "L7",
       "id": "lib_run",
-      "community": 8,
+      "community": 7,
       "norm_label": "run()"
     },
     {
@@ -216,7 +216,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L126",
       "id": "adb_run_adb",
-      "community": 0,
+      "community": 1,
       "norm_label": "run_adb()"
     },
     {
@@ -225,7 +225,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L136",
       "id": "adb_run_adb_with_timeout",
-      "community": 0,
+      "community": 1,
       "norm_label": "run_adb_with_timeout()"
     },
     {
@@ -297,7 +297,7 @@
       "source_file": "src-tauri/src/state.rs",
       "source_location": "L1",
       "id": "src_tauri_src_state_rs",
-      "community": 8,
+      "community": 7,
       "norm_label": "state.rs"
     },
     {
@@ -306,7 +306,7 @@
       "source_file": "src-tauri/src/state.rs",
       "source_location": "L3",
       "id": "state_appstate",
-      "community": 8,
+      "community": 7,
       "norm_label": "appstate"
     },
     {
@@ -315,7 +315,7 @@
       "source_file": "src-tauri/src/state.rs",
       "source_location": "L13",
       "id": "state_appstate_default",
-      "community": 8,
+      "community": 7,
       "norm_label": ".default()"
     },
     {
@@ -324,7 +324,7 @@
       "source_file": "src-tauri/src/main.rs",
       "source_location": "L1",
       "id": "src_tauri_src_main_rs",
-      "community": 8,
+      "community": 7,
       "norm_label": "main.rs"
     },
     {
@@ -333,7 +333,7 @@
       "source_file": "src-tauri/src/main.rs",
       "source_location": "L3",
       "id": "main_main",
-      "community": 8,
+      "community": 7,
       "norm_label": "main()"
     },
     {
@@ -342,7 +342,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_device_rs",
-      "community": 0,
+      "community": 1,
       "norm_label": "device.rs"
     },
     {
@@ -351,7 +351,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L8",
       "id": "device_deviceinfo",
-      "community": 0,
+      "community": 1,
       "norm_label": "deviceinfo"
     },
     {
@@ -360,7 +360,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L18",
       "id": "device_mdnsdevice",
-      "community": 0,
+      "community": 1,
       "norm_label": "mdnsdevice"
     },
     {
@@ -369,7 +369,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L28",
       "id": "device_adb_devices",
-      "community": 0,
+      "community": 1,
       "norm_label": "adb_devices()"
     },
     {
@@ -378,7 +378,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L36",
       "id": "device_adb_mdns_discover",
-      "community": 0,
+      "community": 1,
       "norm_label": "adb_mdns_discover()"
     },
     {
@@ -387,7 +387,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L45",
       "id": "device_adb_auto_connect",
-      "community": 0,
+      "community": 1,
       "norm_label": "adb_auto_connect()"
     },
     {
@@ -396,7 +396,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L64",
       "id": "device_adb_mdns_auto_connect",
-      "community": 0,
+      "community": 1,
       "norm_label": "adb_mdns_auto_connect()"
     },
     {
@@ -405,7 +405,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L78",
       "id": "device_parse_devices_output",
-      "community": 0,
+      "community": 1,
       "norm_label": "parse_devices_output()"
     },
     {
@@ -414,7 +414,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L121",
       "id": "device_enrich_device_serial_numbers",
-      "community": 0,
+      "community": 1,
       "norm_label": "enrich_device_serial_numbers()"
     },
     {
@@ -423,7 +423,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L133",
       "id": "device_read_device_sn",
-      "community": 0,
+      "community": 1,
       "norm_label": "read_device_sn()"
     },
     {
@@ -432,7 +432,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L151",
       "id": "device_adb_pair",
-      "community": 0,
+      "community": 1,
       "norm_label": "adb_pair()"
     },
     {
@@ -441,7 +441,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L176",
       "id": "device_adb_connect",
-      "community": 0,
+      "community": 1,
       "norm_label": "adb_connect()"
     },
     {
@@ -450,7 +450,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L199",
       "id": "device_adb_disconnect",
-      "community": 0,
+      "community": 1,
       "norm_label": "adb_disconnect()"
     },
     {
@@ -459,7 +459,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L212",
       "id": "device_infer_connection_type",
-      "community": 0,
+      "community": 1,
       "norm_label": "infer_connection_type()"
     },
     {
@@ -468,7 +468,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L222",
       "id": "device_parse_mdns_services",
-      "community": 0,
+      "community": 1,
       "norm_label": "parse_mdns_services()"
     },
     {
@@ -477,7 +477,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L257",
       "id": "device_split_address",
-      "community": 0,
+      "community": 1,
       "norm_label": "split_address()"
     },
     {
@@ -486,7 +486,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L270",
       "id": "device_parses_mdns_services",
-      "community": 0,
+      "community": 1,
       "norm_label": "parses_mdns_services()"
     },
     {
@@ -657,7 +657,7 @@
       "source_file": "src-tauri/src/commands/screenshot.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_screenshot_rs",
-      "community": 0,
+      "community": 1,
       "norm_label": "screenshot.rs"
     },
     {
@@ -666,7 +666,7 @@
       "source_file": "src-tauri/src/commands/screenshot.rs",
       "source_location": "L8",
       "id": "screenshot_adb_screenshot",
-      "community": 0,
+      "community": 1,
       "norm_label": "adb_screenshot()"
     },
     {
@@ -846,7 +846,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_settings_rs",
-      "community": 7,
+      "community": 8,
       "norm_label": "settings.rs"
     },
     {
@@ -855,7 +855,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L8",
       "id": "settings_select_directory",
-      "community": 7,
+      "community": 8,
       "norm_label": "select_directory()"
     },
     {
@@ -864,7 +864,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L19",
       "id": "settings_get_default_save_dir",
-      "community": 7,
+      "community": 8,
       "norm_label": "get_default_save_dir()"
     },
     {
@@ -873,7 +873,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L30",
       "id": "settings_check_adb_available",
-      "community": 7,
+      "community": 8,
       "norm_label": "check_adb_available()"
     },
     {
@@ -882,7 +882,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L35",
       "id": "settings_install_adb",
-      "community": 7,
+      "community": 8,
       "norm_label": "install_adb()"
     },
     {
@@ -891,7 +891,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L136",
       "id": "settings_download_with_progress",
-      "community": 7,
+      "community": 8,
       "norm_label": "download_with_progress()"
     },
     {
@@ -900,7 +900,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L184",
       "id": "settings_emit_install_progress",
-      "community": 7,
+      "community": 8,
       "norm_label": "emit_install_progress()"
     },
     {
@@ -909,7 +909,7 @@
       "source_file": "src-tauri/src/commands/settings.rs",
       "source_location": "L189",
       "id": "settings_reveal_path",
-      "community": 7,
+      "community": 4,
       "norm_label": "reveal_path()"
     },
     {
@@ -945,7 +945,7 @@
       "source_file": "src/App.tsx",
       "source_location": "L1",
       "id": "src_app_tsx",
-      "community": 1,
+      "community": 0,
       "norm_label": "app.tsx"
     },
     {
@@ -954,7 +954,7 @@
       "source_file": "src/App.tsx",
       "source_location": "L27",
       "id": "app_app",
-      "community": 1,
+      "community": 0,
       "norm_label": "app()"
     },
     {
@@ -972,7 +972,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L1",
       "id": "src_storage_ts",
-      "community": 1,
+      "community": 0,
       "norm_label": "storage.ts"
     },
     {
@@ -981,7 +981,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L14",
       "id": "storage_getstore",
-      "community": 1,
+      "community": 0,
       "norm_label": "getstore()"
     },
     {
@@ -990,7 +990,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L21",
       "id": "storage_savestorevalue",
-      "community": 1,
+      "community": 0,
       "norm_label": "savestorevalue()"
     },
     {
@@ -1089,7 +1089,7 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L1",
       "id": "src_components_pairconnect_tsx",
-      "community": 1,
+      "community": 0,
       "norm_label": "pairconnect.tsx"
     },
     {
@@ -1098,7 +1098,7 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L49",
       "id": "pairconnect_savepairconnect",
-      "community": 1,
+      "community": 0,
       "norm_label": "savepairconnect()"
     },
     {
@@ -1107,7 +1107,7 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L122",
       "id": "pairconnect_handlemdnsconnect",
-      "community": 1,
+      "community": 0,
       "norm_label": "handlemdnsconnect()"
     },
     {
@@ -1116,7 +1116,7 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L142",
       "id": "pairconnect_handlemdnspair",
-      "community": 1,
+      "community": 0,
       "norm_label": "handlemdnspair()"
     },
     {
@@ -1125,7 +1125,7 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L166",
       "id": "pairconnect_handlemdnsautoconnect",
-      "community": 1,
+      "community": 0,
       "norm_label": "handlemdnsautoconnect()"
     },
     {
@@ -1134,7 +1134,7 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L186",
       "id": "pairconnect_handlescan",
-      "community": 1,
+      "community": 0,
       "norm_label": "handlescan()"
     },
     {
@@ -1143,7 +1143,7 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L198",
       "id": "pairconnect_handlepair",
-      "community": 1,
+      "community": 0,
       "norm_label": "handlepair()"
     },
     {
@@ -1152,7 +1152,7 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L223",
       "id": "pairconnect_handleconnect",
-      "community": 1,
+      "community": 0,
       "norm_label": "handleconnect()"
     },
     {
@@ -1251,7 +1251,7 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L1",
       "id": "src_components_devicelist_tsx",
-      "community": 1,
+      "community": 0,
       "norm_label": "devicelist.tsx"
     },
     {
@@ -1260,26 +1260,44 @@
       "source_file": "src/components/DeviceList.tsx",
       "source_location": "L39",
       "id": "devicelist_handlenotechange",
-      "community": 1,
+      "community": 0,
       "norm_label": "handlenotechange()"
     },
     {
       "label": "connectionLabel()",
       "file_type": "code",
       "source_file": "src/components/DeviceList.tsx",
-      "source_location": "L132",
+      "source_location": "L136",
       "id": "devicelist_connectionlabel",
-      "community": 1,
+      "community": 0,
       "norm_label": "connectionlabel()"
     },
     {
       "label": "connectionClass()",
       "file_type": "code",
       "source_file": "src/components/DeviceList.tsx",
-      "source_location": "L134",
+      "source_location": "L138",
       "id": "devicelist_connectionclass",
-      "community": 1,
+      "community": 0,
       "norm_label": "connectionclass()"
+    },
+    {
+      "label": "startEdit()",
+      "file_type": "code",
+      "source_file": "src/components/DeviceList.tsx",
+      "source_location": "L145",
+      "id": "devicelist_startedit",
+      "community": 0,
+      "norm_label": "startedit()"
+    },
+    {
+      "label": "commitEdit()",
+      "file_type": "code",
+      "source_file": "src/components/DeviceList.tsx",
+      "source_location": "L150",
+      "id": "devicelist_commitedit",
+      "community": 0,
+      "norm_label": "commitedit()"
     },
     {
       "label": "Logcat.tsx",
@@ -1350,7 +1368,7 @@
       "source_file": "src/hooks/useDevices.ts",
       "source_location": "L1",
       "id": "src_hooks_usedevices_ts",
-      "community": 1,
+      "community": 0,
       "norm_label": "usedevices.ts"
     },
     {
@@ -1359,7 +1377,7 @@
       "source_file": "src/hooks/useDevices.ts",
       "source_location": "L6",
       "id": "usedevices_usedevices",
-      "community": 1,
+      "community": 0,
       "norm_label": "usedevices()"
     },
     {
@@ -1368,7 +1386,7 @@
       "source_file": "src/hooks/useDevices.ts",
       "source_location": "L76",
       "id": "usedevices_deviceidentitykey",
-      "community": 1,
+      "community": 0,
       "norm_label": "deviceidentitykey()"
     },
     {
@@ -1377,7 +1395,7 @@
       "source_file": "src/hooks/useDevices.ts",
       "source_location": "L80",
       "id": "usedevices_devicedisplaytitle",
-      "community": 1,
+      "community": 0,
       "norm_label": "devicedisplaytitle()"
     },
     {
@@ -4074,7 +4092,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/DeviceList.tsx",
-      "source_location": "L132",
+      "source_location": "L136",
       "weight": 1.0,
       "_src": "src_components_devicelist_tsx",
       "_tgt": "devicelist_connectionlabel",
@@ -4086,12 +4104,36 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/DeviceList.tsx",
-      "source_location": "L134",
+      "source_location": "L138",
       "weight": 1.0,
       "_src": "src_components_devicelist_tsx",
       "_tgt": "devicelist_connectionclass",
       "source": "src_components_devicelist_tsx",
       "target": "devicelist_connectionclass",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/DeviceList.tsx",
+      "source_location": "L145",
+      "weight": 1.0,
+      "_src": "src_components_devicelist_tsx",
+      "_tgt": "devicelist_startedit",
+      "source": "src_components_devicelist_tsx",
+      "target": "devicelist_startedit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/DeviceList.tsx",
+      "source_location": "L150",
+      "weight": 1.0,
+      "_src": "src_components_devicelist_tsx",
+      "_tgt": "devicelist_commitedit",
+      "source": "src_components_devicelist_tsx",
+      "target": "devicelist_commitedit",
       "confidence_score": 1.0
     },
     {
