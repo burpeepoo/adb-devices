@@ -128,6 +128,8 @@ function DeviceRow({
   onSelect: () => void;
   onNoteChange: (note: string) => void;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(note);
   const title = device.device_sn || device.serial;
   const connectionLabel = (type: DeviceInfo["connection_type"]) =>
     type === "wireless" ? "无线" : type === "usb" ? "有线" : "未知";
@@ -137,6 +139,16 @@ function DeviceRow({
       : type === "usb"
         ? "bg-gray-100 text-gray-600"
         : "bg-amber-50 text-amber-600";
+
+  const startEdit = () => {
+    setDraft(note);
+    setEditing(true);
+  };
+
+  const commitEdit = () => {
+    setEditing(false);
+    if (draft !== note) onNoteChange(draft);
+  };
 
   return (
     <div
@@ -162,16 +174,25 @@ function DeviceRow({
             </div>
           )}
         </button>
-        <label className="mt-2 block text-[10px] font-medium text-gray-400">
-          设备名称备注
+        {editing ? (
           <input
-            value={note}
-            onChange={(event) => onNoteChange(event.target.value)}
-            onClick={(event) => event.stopPropagation()}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") commitEdit(); if (e.key === "Escape") setEditing(false); }}
+            onBlur={commitEdit}
+            onClick={(e) => e.stopPropagation()}
             placeholder="例如：客厅样机"
-            className="mt-1 w-full rounded border border-gray-200 bg-white px-2 py-1.5 text-xs font-normal text-gray-700 placeholder:text-gray-300 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            autoFocus
+            className="mt-2 w-full rounded border border-blue-400 bg-white px-2 py-1.5 text-xs text-gray-700 placeholder:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
           />
-        </label>
+        ) : (
+          <div
+            onClick={(e) => { e.stopPropagation(); startEdit(); }}
+            className={`mt-2 min-h-[26px] w-full cursor-text rounded border border-transparent px-2 py-1.5 text-xs transition-colors hover:border-gray-200 hover:bg-gray-50 ${note ? "text-gray-700" : "text-gray-300"}`}
+          >
+            {note || "点击添加备注"}
+          </div>
+        )}
       </div>
     </div>
   );

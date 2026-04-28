@@ -390,12 +390,26 @@ export default function PairConnect({ onConnected }: Props) {
 
       <section className="bg-blue-50 rounded-lg border border-blue-200 p-5">
         <h3 className="text-base font-semibold text-blue-800 mb-2">使用指引</h3>
-        <ul className="text-sm text-blue-700 space-y-1.5">
-          <li>1. 可连接设备表示设备正在广播连接服务，不代表本机一定已经配对。</li>
-          <li>2. 首次连接失败时，请在 Android 无线调试里打开配对码，完成配对后再连接。</li>
-          <li>3. 配对端口和连接端口通常不同；自动发现会自动填入对应端口。</li>
-          <li>4. 手动输入保留为 fallback，用于 mDNS 不可用或跨网段场景。</li>
-        </ul>
+        <div className="text-sm text-blue-700 space-y-3">
+          <div>
+            <h4 className="font-medium text-blue-800 mb-1">如何获取配对码</h4>
+            <ol className="list-decimal list-inside space-y-0.5 text-blue-700">
+              <li>在 Android 设备上打开 <strong>设置 → 开发者选项 → 无线调试</strong></li>
+              <li>开启无线调试开关</li>
+              <li>点击 <strong>使用配对码配对设备</strong></li>
+              <li>屏幕会显示 6 位配对码和配对端口号，将它们填入上方配对区域</li>
+            </ol>
+          </div>
+          <div>
+            <h4 className="font-medium text-blue-800 mb-1">如何获取连接 IP 和端口</h4>
+            <ol className="list-decimal list-inside space-y-0.5 text-blue-700">
+              <li>在 Android 设备上打开 <strong>设置 → 开发者选项 → 无线调试</strong></li>
+              <li>页面中显示的 <strong>IP 地址和端口</strong> 即为连接地址（注意：此端口与配对端口不同）</li>
+              <li>将 IP 和端口填入上方连接区域即可</li>
+            </ol>
+          </div>
+          <p className="text-xs text-blue-500">提示：配对只需一次，后续连接无需重复配对。局域网扫描会自动发现设备并填入对应地址。</p>
+        </div>
       </section>
     </div>
   );
