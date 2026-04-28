@@ -1,5 +1,6 @@
 use std::path::PathBuf;
-use tauri::{AppHandle, Manager};
+use std::io::Write;
+use tauri::{AppHandle, Emitter, Manager};
 
 use crate::adb::{self, AdbError};
 
@@ -31,7 +32,9 @@ pub fn check_adb_available(app: AppHandle) -> Result<bool, AdbError> {
 }
 
 #[tauri::command]
-pub async fn install_adb() -> Result<String, AdbError> {
+pub async fn install_adb(app: AppHandle) -> Result<String, AdbError> {
+    emit_install_progress(&app, "准备安装 Android Platform Tools");
+
     #[cfg(target_os = "macos")]
     {
         let home = std::env::var("HOME")
@@ -47,14 +50,8 @@ pub async fn install_adb() -> Result<String, AdbError> {
         let url = "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip";
         let zip_path = sdk_dir.join("platform-tools.zip");
 
-        let client = reqwest::Client::new();
-        let response = client.get(url).send().await.map_err(|e| {
-            AdbError::CommandFailed(format!("下载失败: {}", e))
-        })?;
-        let bytes = response.bytes().await.map_err(|e| {
-            AdbError::CommandFailed(format!("下载失败: {}", e))
-        })?;
-        std::fs::write(&zip_path, &bytes)?;
+        download_with_progress(&app, url, &zip_path).await?;
+        emit_install_progress(&app, "下载完成，正在解压");
 
         let file = std::fs::File::open(&zip_path)?;
         let mut archive = zip::ZipArchive::new(file)
@@ -66,6 +63,7 @@ pub async fn install_adb() -> Result<String, AdbError> {
 
         archive.extract(&sdk_dir)
             .map_err(|e| AdbError::CommandFailed(format!("解压失败: {}", e)))?;
+        emit_install_progress(&app, "解压完成，正在设置执行权限");
 
         let adb_binary = platform_tools_dir.join("adb");
         #[cfg(unix)]
@@ -79,6 +77,7 @@ pub async fn install_adb() -> Result<String, AdbError> {
         let _ = std::fs::remove_file(&zip_path);
 
         if adb_binary.exists() {
+            emit_install_progress(&app, "ADB 安装成功");
             Ok("ADB 安装成功！".to_string())
         } else {
             Err(AdbError::CommandFailed("安装后未找到 adb".to_string()))
@@ -98,14 +97,8 @@ pub async fn install_adb() -> Result<String, AdbError> {
         let url = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip";
         let zip_path = sdk_dir.join("platform-tools.zip");
 
-        let client = reqwest::Client::new();
-        let response = client.get(url).send().await.map_err(|e| {
-            AdbError::CommandFailed(format!("下载失败: {}", e))
-        })?;
-        let bytes = response.bytes().await.map_err(|e| {
-            AdbError::CommandFailed(format!("下载失败: {}", e))
-        })?;
-        std::fs::write(&zip_path, &bytes)?;
+        download_with_progress(&app, url, &zip_path).await?;
+        emit_install_progress(&app, "下载完成，正在解压");
 
         let file = std::fs::File::open(&zip_path)?;
         let mut archive = zip::ZipArchive::new(file)
@@ -117,11 +110,13 @@ pub async fn install_adb() -> Result<String, AdbError> {
 
         archive.extract(&sdk_dir)
             .map_err(|e| AdbError::CommandFailed(format!("解压失败: {}", e)))?;
+        emit_install_progress(&app, "解压完成，正在检查 adb.exe");
 
         let _ = std::fs::remove_file(&zip_path);
 
         let adb_binary = platform_tools_dir.join("adb.exe");
         if adb_binary.exists() {
+            emit_install_progress(&app, "ADB 安装成功");
             Ok("ADB 安装成功！".to_string())
         } else {
             Err(AdbError::CommandFailed("安装后未找到 adb.exe".to_string()))
@@ -132,6 +127,45 @@ pub async fn install_adb() -> Result<String, AdbError> {
     {
         Err(AdbError::CommandFailed("不支持的操作系统".to_string()))
     }
+}
+
+async fn download_with_progress(app: &AppHandle, url: &str, zip_path: &PathBuf) -> Result<(), AdbError> {
+    emit_install_progress(app, "正在连接下载服务器");
+    let client = reqwest::Client::new();
+    let mut response = client
+        .get(url)
+        .send()
+        .await
+        .map_err(|e| AdbError::CommandFailed(format!("下载失败: {}", e)))?;
+    let total = response.content_length().unwrap_or(0);
+    let mut downloaded = 0u64;
+    let mut last_percent = 0u64;
+    let mut file = std::fs::File::create(zip_path)?;
+
+    while let Some(chunk) = response
+        .chunk()
+        .await
+        .map_err(|e| AdbError::CommandFailed(format!("下载失败: {}", e)))?
+    {
+        file.write_all(&chunk)?;
+        downloaded += chunk.len() as u64;
+        if total > 0 {
+            let percent = downloaded.saturating_mul(100) / total;
+            if percent >= last_percent + 5 || percent == 100 {
+                last_percent = percent;
+                emit_install_progress(app, &format!("正在下载 Android Platform Tools... {}%", percent));
+            }
+        } else {
+            emit_install_progress(app, &format!("正在下载 Android Platform Tools... {} KB", downloaded / 1024));
+        }
+    }
+
+    file.flush()?;
+    Ok(())
+}
+
+fn emit_install_progress(app: &AppHandle, message: &str) {
+    let _ = app.emit("adb-install-progress", message.to_string());
 }
 
 #[tauri::command]

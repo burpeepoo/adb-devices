@@ -12,6 +12,9 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
   const [apkPath, setApkPath] = useState("");
   const [force, setForce] = useState(false);
   const [pkgName, setPkgName] = useState("");
+  const [pkgSearch, setPkgSearch] = useState("");
+  const [installedPackages, setInstalledPackages] = useState<string[]>([]);
+  const [loadingPackages, setLoadingPackages] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
@@ -67,6 +70,26 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
     }
   };
 
+  const handleLoadPackages = async () => {
+    setLoadingPackages(true);
+    setResult(null);
+    try {
+      const packages = await invoke<string[]>("adb_list_packages", {
+        deviceSerial: deviceSerial || null,
+      });
+      setInstalledPackages(packages);
+      setPkgSearch(pkgName);
+    } catch (e) {
+      setResult({ ok: false, msg: String(e) });
+    } finally {
+      setLoadingPackages(false);
+    }
+  };
+
+  const filteredPackages = pkgSearch
+    ? installedPackages.filter((pkg) => pkg.toLowerCase().includes(pkgSearch.toLowerCase()))
+    : installedPackages;
+
   return (
     <div className="max-w-xl space-y-4">
       <section className="bg-white rounded-lg border border-gray-200 p-5">
@@ -114,16 +137,50 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
           </label>
 
           {force && (
-            <div>
+            <div className="space-y-2">
               <label className="block text-xs text-gray-500 mb-1">包名 (Package Name)</label>
               <input
                 type="text"
                 value={pkgName}
-                onChange={(e) => setPkgName(e.target.value)}
+                onChange={(e) => {
+                  setPkgName(e.target.value);
+                  setPkgSearch(e.target.value);
+                }}
                 placeholder="com.example.app"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
-              <p className="mt-1 text-xs text-gray-400">强制安装需要输入应用包名以便先卸载旧版本</p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleLoadPackages}
+                  disabled={loadingPackages}
+                  className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs hover:bg-gray-200 disabled:opacity-50"
+                >
+                  {loadingPackages ? "加载中..." : "从已安装包中选择"}
+                </button>
+                {installedPackages.length > 0 && (
+                  <span className="text-xs text-gray-400">输入关键词搜索后点击包名选择</span>
+                )}
+              </div>
+              {installedPackages.length > 0 && (
+                <div className="max-h-36 overflow-auto border border-gray-200 rounded-lg bg-white">
+                  {filteredPackages.slice(0, 80).map((pkg) => (
+                    <button
+                      key={pkg}
+                      onClick={() => {
+                        setPkgName(pkg);
+                        setPkgSearch(pkg);
+                      }}
+                      className="w-full text-left px-3 py-1.5 text-xs font-mono text-gray-700 hover:bg-blue-50"
+                    >
+                      {pkg}
+                    </button>
+                  ))}
+                  {filteredPackages.length === 0 && (
+                    <div className="px-3 py-2 text-xs text-gray-400">没有匹配的包名</div>
+                  )}
+                </div>
+              )}
+              <p className="mt-1 text-xs text-gray-400">强制安装会先卸载该包名，再安装当前 APK</p>
             </div>
           )}
         </div>

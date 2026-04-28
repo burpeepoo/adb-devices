@@ -9,6 +9,7 @@ pub struct DeviceInfo {
     pub state: String,
     pub model: String,
     pub product: String,
+    pub connection_type: String,
 }
 
 #[tauri::command]
@@ -45,6 +46,7 @@ pub fn adb_devices(app: AppHandle) -> Result<Vec<DeviceInfo>, AdbError> {
         }
 
         devices.push(DeviceInfo {
+            connection_type: infer_connection_type(&serial),
             serial,
             state,
             model,
@@ -106,5 +108,13 @@ pub fn adb_disconnect(app: AppHandle, ip: String, port: String) -> Result<String
         Ok(format!("已断开 {}", addr))
     } else {
         Ok(format!("断开结果: {}", stdout.trim()))
+    }
+}
+
+fn infer_connection_type(serial: &str) -> String {
+    if serial.contains(':') {
+        "wireless".to_string()
+    } else {
+        "usb".to_string()
     }
 }

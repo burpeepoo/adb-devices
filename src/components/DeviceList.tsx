@@ -19,9 +19,13 @@ export default function DeviceList({
 }: Props) {
   const onlineDevices = devices.filter((d) => d.state === "device");
   const offlineDevices = devices.filter((d) => d.state !== "device");
+  const connectionLabel = (type: DeviceInfo["connection_type"]) =>
+    type === "wireless" ? "无线" : "有线";
+  const connectionClass = (type: DeviceInfo["connection_type"]) =>
+    type === "wireless" ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-600";
 
   return (
-    <aside className="w-56 border-r border-gray-200 bg-gray-50 flex flex-col">
+    <aside className="w-72 border-r border-gray-200 bg-gray-50 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200">
         <h2 className="text-sm font-semibold text-gray-700">设备列表</h2>
@@ -57,8 +61,13 @@ export default function DeviceList({
           }`}
         >
           <span className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0" />
-          <div className="min-w-0">
-            <div className="text-sm text-gray-800 truncate">{device.model || device.serial}</div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-gray-800 truncate">{device.model || device.serial}</div>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded ${connectionClass(device.connection_type)}`}>
+                {connectionLabel(device.connection_type)}
+              </span>
+            </div>
             <div className="text-xs text-gray-400 truncate">{device.serial}</div>
           </div>
         </button>
@@ -79,8 +88,13 @@ export default function DeviceList({
               }`}
             >
               <span className="w-2.5 h-2.5 rounded-full bg-red-400 flex-shrink-0" />
-              <div className="min-w-0">
-                <div className="text-sm text-gray-800 truncate">{device.model || device.serial}</div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-gray-800 truncate">{device.model || device.serial}</div>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${connectionClass(device.connection_type)}`}>
+                    {connectionLabel(device.connection_type)}
+                  </span>
+                </div>
                 <div className="text-xs text-gray-400 truncate">{device.serial}</div>
               </div>
             </button>

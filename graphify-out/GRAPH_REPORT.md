@@ -1,12 +1,12 @@
-# Graph Report - adb_project  (2026-04-27)
+# Graph Report - adb_project  (2026-04-28)
 
 ## Corpus Check
-- 29 files · ~14,996 words
+- 29 files · ~15,403 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 101 nodes · 117 edges · 8 communities detected
-- Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 22 edges (avg confidence: 0.8)
+- 107 nodes · 127 edges · 9 communities detected
+- Extraction: 83% EXTRACTED · 17% INFERRED · 0% AMBIGUOUS · INFERRED: 22 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -16,8 +16,9 @@
 - [[_COMMUNITY_Community 3|Community 3]]
 - [[_COMMUNITY_Community 4|Community 4]]
 - [[_COMMUNITY_Community 5|Community 5]]
+- [[_COMMUNITY_Community 6|Community 6]]
 - [[_COMMUNITY_Community 7|Community 7]]
-- [[_COMMUNITY_Community 10|Community 10]]
+- [[_COMMUNITY_Community 11|Community 11]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `run_adb()` - 12 edges
@@ -38,20 +39,20 @@
   src-tauri/src/adb.rs → src-tauri/src/commands/record.rs
 - `ADB Manager App Icon` --shares_data_with--> `Platform Icon Set`  [INFERRED]
   app-icon.png → src-tauri/icons/icon.png
-- `run_adb()` --calls--> `adb_devices()`  [INFERRED]
-  src-tauri/src/adb.rs → src-tauri/src/commands/device.rs
 - `run_adb()` --calls--> `adb_pair()`  [INFERRED]
+  src-tauri/src/adb.rs → src-tauri/src/commands/device.rs
+- `run_adb()` --calls--> `adb_connect()`  [INFERRED]
   src-tauri/src/adb.rs → src-tauri/src/commands/device.rs
 
 ## Communities
 
 ### Community 0 - "Community 0"
-Cohesion: 0.36
-Nodes (12): adb_install(), extract_apk_package_name(), parse_apk_package(), parse_binary_manifest_package(), parse_start_element_package(), parse_string_pool(), read_length16(), read_length8() (+4 more)
+Cohesion: 0.21
+Nodes (10): run_adb(), adb_connect(), adb_devices(), adb_disconnect(), adb_pair(), DeviceInfo, infer_connection_type(), adb_start_recording() (+2 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.21
-Nodes (9): run_adb(), adb_connect(), adb_devices(), adb_disconnect(), adb_pair(), DeviceInfo, adb_start_recording(), adb_stop_recording() (+1 more)
+Cohesion: 0.36
+Nodes (12): adb_install(), extract_apk_package_name(), parse_apk_package(), parse_binary_manifest_package(), parse_start_element_package(), parse_string_pool(), read_length16(), read_length8() (+4 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.29
@@ -62,10 +63,14 @@ Cohesion: 0.33
 Nodes (8): AdbError, check_adb_available(), ensure_executable(), get_adb_path(), get_bundled_adb_path(), get_sdk_adb_path(), get_system_adb_path(), run_adb_with_stdin()
 
 ### Community 4 - "Community 4"
+Cohesion: 0.43
+Nodes (3): download_with_progress(), emit_install_progress(), install_adb()
+
+### Community 5 - "Community 5"
 Cohesion: 0.29
 Nodes (3): run(), main(), AppState
 
-### Community 5 - "Community 5"
+### Community 6 - "Community 6"
 Cohesion: 0.33
 Nodes (6): ADB Manager App Icon, Android Launcher Icons, iOS App Icon Set, Platform Icon Set, Windows Tile Icons, HTML Entry Point
 
@@ -73,7 +78,7 @@ Nodes (6): ADB Manager App Icon, Android Launcher Icons, iOS App Icon Set, Platf
 Cohesion: 0.5
 Nodes (2): App(), useDevices()
 
-### Community 10 - "Community 10"
+### Community 11 - "Community 11"
 Cohesion: 1.0
 Nodes (2): getStore(), saveStoreValue()
 
@@ -82,18 +87,18 @@ Nodes (2): getStore(), saveStoreValue()
   These have ≤1 connection - possible missing edges or undocumented components.
 - **Thin community `Community 7`** (4 nodes): `App()`, `App.tsx`, `useDevices.ts`, `useDevices()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 10`** (3 nodes): `storage.ts`, `getStore()`, `saveStoreValue()`
+- **Thin community `Community 11`** (3 nodes): `storage.ts`, `getStore()`, `saveStoreValue()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `run_adb()` connect `Community 1` to `Community 0`, `Community 2`, `Community 3`?**
-  _High betweenness centrality (0.169) - this node is a cross-community bridge._
-- **Why does `adb_install()` connect `Community 0` to `Community 1`?**
-  _High betweenness centrality (0.092) - this node is a cross-community bridge._
+- **Why does `run_adb()` connect `Community 0` to `Community 1`, `Community 2`, `Community 3`?**
+  _High betweenness centrality (0.167) - this node is a cross-community bridge._
+- **Why does `adb_install()` connect `Community 1` to `Community 0`?**
+  _High betweenness centrality (0.088) - this node is a cross-community bridge._
 - **Why does `ensure_success()` connect `Community 2` to `Community 3`?**
-  _High betweenness centrality (0.060) - this node is a cross-community bridge._
+  _High betweenness centrality (0.071) - this node is a cross-community bridge._
 - **Are the 10 inferred relationships involving `run_adb()` (e.g. with `adb_devices()` and `adb_pair()`) actually correct?**
   _`run_adb()` has 10 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 4 inferred relationships involving `ensure_success()` (e.g. with `adb_list_packages()` and `adb_package_info()`) actually correct?**

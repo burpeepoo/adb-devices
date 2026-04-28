@@ -34,6 +34,7 @@ export function useDevices(refreshInterval = 300000) {
           state: "disconnected",
           model: device.model,
           product: device.product,
+          connection_type: device.connection_type || "usb",
         });
       }
       for (const device of result) {

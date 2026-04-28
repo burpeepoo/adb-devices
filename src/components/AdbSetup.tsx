@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
 interface Props {
   onInstalled: () => void;
@@ -9,10 +10,24 @@ export default function AdbSetup({ onInstalled }: Props) {
   const [installing, setInstalling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [progress, setProgress] = useState<string[]>([]);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    listen<string>("adb-install-progress", (event) => {
+      setProgress((current) => [...current.slice(-7), event.payload]);
+    }).then((fn) => {
+      unlisten = fn;
+    });
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
 
   const handleInstall = async () => {
     setInstalling(true);
     setError(null);
+    setProgress(["开始安装 ADB"]);
     try {
       await invoke<string>("install_adb");
       setSuccess(true);
@@ -55,8 +70,10 @@ export default function AdbSetup({ onInstalled }: Props) {
             </button>
 
             {installing && (
-              <div className="mt-3 text-sm text-gray-400">
-                正在下载并安装 Android Platform Tools，请稍候...
+              <div className="mt-3 text-left text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1">
+                {progress.map((line, index) => (
+                  <div key={`${line}-${index}`}>{line}</div>
+                ))}
               </div>
             )}
 
