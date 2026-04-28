@@ -1,7 +1,7 @@
 # Graph Report - adb_project  (2026-04-28)
 
 ## Corpus Check
-- 33 files · ~18,392 words
+- 33 files · ~18,505 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

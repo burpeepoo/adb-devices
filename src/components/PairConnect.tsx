@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
-import { MdnsDevice, PairConnectSettings } from "../types";
+import { DeviceInfo, MdnsDevice, PairConnectSettings } from "../types";
 
 interface Props {
   onConnected: () => void;
@@ -20,6 +20,7 @@ export default function PairConnect({ onConnected }: Props) {
   const [connectResult, setConnectResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const [mdnsDevices, setMdnsDevices] = useState<MdnsDevice[]>([]);
+  const [connectedDevices, setConnectedDevices] = useState<DeviceInfo[]>([]);
   const [discovering, setDiscovering] = useState(false);
   const [mdnsResult, setMdnsResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [pairCodes, setPairCodes] = useState<Record<string, string>>({});
@@ -74,13 +75,24 @@ export default function PairConnect({ onConnected }: Props) {
     }
   }, []);
 
+  const refreshConnectedDevices = useCallback(async () => {
+    try {
+      const devices = await invoke<DeviceInfo[]>("adb_devices");
+      setConnectedDevices(devices.filter((device) => device.state === "device"));
+    } catch {
+      // Device list failures should not hide mDNS discovery results.
+    }
+  }, []);
+
   useEffect(() => {
     discoverMdns(true);
+    refreshConnectedDevices();
     const timer = window.setInterval(() => {
       discoverMdns(true);
+      refreshConnectedDevices();
     }, 10000);
     return () => window.clearInterval(timer);
-  }, [discoverMdns]);
+  }, [discoverMdns, refreshConnectedDevices]);
 
   const handleMdnsConnect = async (device: MdnsDevice) => {
     setBusyAddress(device.address);
@@ -91,6 +103,7 @@ export default function PairConnect({ onConnected }: Props) {
       });
       setMdnsResult({ ok: true, msg: result });
       savePairConnect({ connectIp: device.ip, connectPort: device.port });
+      await refreshConnectedDevices();
       onConnected();
     } catch (e) {
       setMdnsResult({ ok: false, msg: String(e) });
@@ -113,6 +126,7 @@ export default function PairConnect({ onConnected }: Props) {
       setMdnsResult({ ok: true, msg: result });
       savePairConnect({ pairIp: device.ip, pairPort: device.port });
       await discoverMdns(true);
+      await refreshConnectedDevices();
     } catch (e) {
       setMdnsResult({ ok: false, msg: String(e) });
     } finally {
@@ -124,8 +138,10 @@ export default function PairConnect({ onConnected }: Props) {
     setBusyAddress("__auto__");
     setMdnsResult(null);
     try {
-      const devices = await invoke("adb_mdns_auto_connect");
-      const count = Array.isArray(devices) ? devices.filter((device) => device?.state === "device").length : 0;
+      const devices = await invoke<DeviceInfo[]>("adb_mdns_auto_connect");
+      const onlineDevices = devices.filter((device) => device.state === "device");
+      setConnectedDevices(onlineDevices);
+      const count = onlineDevices.length;
       setMdnsResult({ ok: true, msg: count ? `已自动连接 ${count} 台在线设备` : "已尝试自动连接，暂未发现在线设备" });
       onConnected();
       await discoverMdns(true);
@@ -167,6 +183,7 @@ export default function PairConnect({ onConnected }: Props) {
       });
       setConnectResult({ ok: true, msg: result });
       savePairConnect({ connectIp, connectPort });
+      await refreshConnectedDevices();
       onConnected();
     } catch (e) {
       setConnectResult({ ok: false, msg: String(e) });
@@ -188,7 +205,10 @@ export default function PairConnect({ onConnected }: Props) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => discoverMdns(false)}
+              onClick={() => {
+                discoverMdns(false);
+                refreshConnectedDevices();
+              }}
               disabled={discovering}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
@@ -210,6 +230,7 @@ export default function PairConnect({ onConnected }: Props) {
               key={`${device.service_name}-${device.address}`}
               device={device}
               busy={busyAddress === device.address}
+              connected={isMdnsDeviceConnected(device, connectedDevices)}
               onConnect={() => handleMdnsConnect(device)}
             />
           ))}
@@ -311,10 +332,12 @@ export default function PairConnect({ onConnected }: Props) {
 function MdnsRow({
   device,
   busy,
+  connected,
   onConnect,
 }: {
   device: MdnsDevice;
   busy: boolean;
+  connected: boolean;
   onConnect: () => void;
 }) {
   return (
@@ -323,6 +346,9 @@ function MdnsRow({
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-gray-800 truncate">{device.service_name}</span>
           <span className="rounded bg-green-50 px-2 py-0.5 text-xs text-green-700">已配对</span>
+          <span className={`rounded px-2 py-0.5 text-xs ${connected ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+            {connected ? "已连接" : "未连接"}
+          </span>
         </div>
         <div className="mt-1 text-xs text-gray-400">
           {device.address} · {device.service_type}
@@ -330,13 +356,25 @@ function MdnsRow({
       </div>
       <button
         onClick={onConnect}
-        disabled={busy}
+        disabled={busy || connected}
         className="shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        {busy ? "连接中..." : "一键连接"}
+        {connected ? "已连接" : busy ? "连接中..." : "一键连接"}
       </button>
     </div>
   );
+}
+
+function isMdnsDeviceConnected(device: MdnsDevice, connectedDevices: DeviceInfo[]) {
+  return connectedDevices.some((connectedDevice) => {
+    const serial = connectedDevice.serial;
+    return (
+      serial === device.address ||
+      serial === device.service_name ||
+      serial.startsWith(`${device.service_name}.`) ||
+      serial.includes(device.address)
+    );
+  });
 }
 
 function MdnsPairRow({
