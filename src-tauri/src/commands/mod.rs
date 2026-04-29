@@ -2,6 +2,7 @@ pub mod clipboard;
 pub mod device;
 pub mod install;
 pub mod logcat;
+pub mod mirror;
 pub mod package;
 pub mod record;
 pub mod screenshot;

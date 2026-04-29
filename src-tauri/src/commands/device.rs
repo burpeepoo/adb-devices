@@ -264,8 +264,8 @@ pub fn adb_disconnect(app: AppHandle, ip: String, port: String) -> Result<String
 fn infer_connection_type(serial: &str) -> String {
     if serial.contains(':') {
         "wireless".to_string()
-    } else if serial.starts_with("adb-") || serial.contains("_adb-tls-connect._tcp") {
-        "unknown".to_string()
+    } else if serial.starts_with("adb-") || serial.contains("_adb-tls-") {
+        "wireless".to_string()
     } else {
         "usb".to_string()
     }

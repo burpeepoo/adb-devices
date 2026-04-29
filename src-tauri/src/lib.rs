@@ -27,6 +27,12 @@ pub fn run() {
             commands::screenshot::adb_screenshot,
             commands::record::adb_start_recording,
             commands::record::adb_stop_recording,
+            commands::mirror::check_scrcpy_available,
+            commands::mirror::get_screen_mirror_state,
+            commands::mirror::install_scrcpy,
+            commands::mirror::send_navigation_key,
+            commands::mirror::start_screen_mirror,
+            commands::mirror::stop_screen_mirror,
             commands::package::adb_list_packages,
             commands::package::adb_package_info,
             commands::package::adb_list_package_details,
@@ -35,6 +41,7 @@ pub fn run() {
             commands::settings::check_adb_available,
             commands::settings::install_adb,
             commands::settings::reveal_path,
+            commands::settings::open_external_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

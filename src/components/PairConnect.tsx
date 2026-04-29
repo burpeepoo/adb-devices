@@ -388,7 +388,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
               <li>将 IP 和端口填入上方连接区域即可</li>
             </ol>
           </div>
-          <p className="text-xs text-blue-500">提示：配对只需一次，后续连接无需重复配对。局域网扫描会自动发现设备并填入对应地址。</p>
+          <p className="text-xs text-blue-500">提示：配对只需一次，后续连接无需重复配对。局域网扫描会自动发现设备并填入对应地址。若无法扫描到该设备，请确保 Android 设备已打开开发者选项中的「无线调试」功能，并尝试切换 Wi-Fi 后重新扫描。</p>
         </div>
       </section>
     </div>

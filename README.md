@@ -8,6 +8,7 @@ ADB Manager is a desktop utility for Cozyla Android device workflows. It wraps c
 - Discover nearby wireless-debugging devices with mDNS.
 - Keep a local device list with online/offline state and editable device notes.
 - Install APK files, with optional force install by uninstalling the existing package first.
+- **Screen mirroring** — open an interactive scrcpy window to control the device with mouse and keyboard, with one-click scrcpy install on macOS and Windows.
 - Send text to the selected device input field.
 - Take screenshots and reveal the saved file in Finder or Explorer.
 - Start and stop screen recordings, then save the video locally.
@@ -65,6 +66,10 @@ Device notes are stored locally on the computer and are keyed by the device seri
 ### Screenshots and Recordings
 
 Use **Settings** to choose default save folders. After a screenshot or recording is saved, use **Show in folder** to reveal the file.
+
+### Screen Mirroring
+
+Open **投屏控制** tab, select an online device, and click **开始投屏**. The app will automatically install scrcpy if needed (Homebrew on macOS, direct download on Windows). Once running, use mouse and keyboard to interact with the device, or click **返回** / **Home** to send navigation keys.
 
 ### Package Information
 

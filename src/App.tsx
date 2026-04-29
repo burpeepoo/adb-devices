@@ -9,6 +9,7 @@ import PairConnect from "./components/PairConnect";
 import ApkInstall from "./components/ApkInstall";
 import Screenshot from "./components/Screenshot";
 import ScreenRecord from "./components/ScreenRecord";
+import ScreenMirror from "./components/ScreenMirror";
 import Clipboard from "./components/Clipboard";
 import Logcat from "./components/Logcat";
 import PackageList from "./components/PackageList";
@@ -19,16 +20,23 @@ const TAB_LABELS: Record<TabKey, string> = {
   install: "安装应用",
   screenshot: "截图",
   record: "录屏",
+  mirror: "投屏控制",
   clipboard: "剪贴板",
   logcat: "Logcat",
   packages: "包管理",
 };
+
+interface ScreenMirrorState {
+  running: boolean;
+  device_serial: string | null;
+}
 
 export default function App() {
   const { devices, loading, error, selectedDevice, setSelectedDevice, refresh } = useDevices();
   const [activeTab, setActiveTab] = useState<TabKey>("pair");
   const [adbAvailable, setAdbAvailable] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [mirroringDeviceSerial, setMirroringDeviceSerial] = useState<string | null>(null);
   const [settings, setSettings] = useState<AppSettings>({
     screenshotDir: "",
     recordingDir: "",
@@ -41,6 +49,15 @@ export default function App() {
       setAdbAvailable(available);
     } catch {
       setAdbAvailable(false);
+    }
+  }, []);
+
+  const syncMirrorState = useCallback(async () => {
+    try {
+      const state = await invoke<ScreenMirrorState>("get_screen_mirror_state");
+      setMirroringDeviceSerial(state.running ? state.device_serial : null);
+    } catch {
+      setMirroringDeviceSerial(null);
     }
   }, []);
 
@@ -62,7 +79,10 @@ export default function App() {
   useEffect(() => {
     checkAdb();
     loadSettings();
-  }, [checkAdb, loadSettings]);
+    syncMirrorState();
+    const mirrorStateTimer = setInterval(syncMirrorState, 2500);
+    return () => clearInterval(mirrorStateTimer);
+  }, [checkAdb, loadSettings, syncMirrorState]);
 
   const handleAdbInstalled = useCallback(() => {
     setAdbAvailable(true);
@@ -124,6 +144,7 @@ export default function App() {
           loading={loading}
           error={error}
           selectedDevice={selectedDevice}
+          mirroringDeviceSerial={mirroringDeviceSerial}
           onSelectDevice={setSelectedDevice}
           onRefresh={refresh}
         />
@@ -171,6 +192,12 @@ export default function App() {
                 onSaveDirChange={(dir) => handleSaveDirChange("recordingDir", dir)}
               />
             )}
+            {activeTab === "mirror" && (
+              <ScreenMirror
+                deviceSerial={selectedDevice}
+                onMirrorStateChange={setMirroringDeviceSerial}
+              />
+            )}
             {activeTab === "clipboard" && <Clipboard deviceSerial={selectedDevice} />}
             {activeTab === "logcat" && <Logcat deviceSerial={selectedDevice} />}
             {activeTab === "packages" && <PackageList deviceSerial={selectedDevice} />}
@@ -190,11 +217,11 @@ export default function App() {
 
       {/* Settings modal */}
       {showSettings && (
-          <Settings
-            settings={settings}
-            onSettingsChange={handleSettingsChange}
-            onClose={() => setShowSettings(false)}
-          />
+        <Settings
+          settings={settings}
+          onSettingsChange={handleSettingsChange}
+          onClose={() => setShowSettings(false)}
+        />
       )}
     </div>
   );

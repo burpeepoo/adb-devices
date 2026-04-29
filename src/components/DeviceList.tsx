@@ -7,6 +7,7 @@ interface Props {
   loading: boolean;
   error: string | null;
   selectedDevice: string | null;
+  mirroringDeviceSerial: string | null;
   onSelectDevice: (serial: string) => void;
   onRefresh: () => void;
 }
@@ -18,6 +19,7 @@ export default function DeviceList({
   loading,
   error,
   selectedDevice,
+  mirroringDeviceSerial,
   onSelectDevice,
   onRefresh,
 }: Props) {
@@ -80,6 +82,7 @@ export default function DeviceList({
             device={device}
             note={deviceNotes[deviceIdentityKey(device)] || ""}
             selected={selectedDevice === device.serial}
+            mirroring={mirroringDeviceSerial === device.serial}
             online
             onSelect={() => onSelectDevice(device.serial)}
             onNoteChange={(note) => handleNoteChange(device, note)}
@@ -97,6 +100,7 @@ export default function DeviceList({
                 device={device}
                 note={deviceNotes[deviceIdentityKey(device)] || ""}
                 selected={selectedDevice === device.serial}
+                mirroring={mirroringDeviceSerial === device.serial}
                 online={false}
                 onSelect={() => onSelectDevice(device.serial)}
                 onNoteChange={(note) => handleNoteChange(device, note)}
@@ -119,6 +123,7 @@ function DeviceRow({
   device,
   note,
   selected,
+  mirroring,
   online,
   onSelect,
   onNoteChange,
@@ -126,6 +131,7 @@ function DeviceRow({
   device: DeviceInfo;
   note: string;
   selected: boolean;
+  mirroring: boolean;
   online: boolean;
   onSelect: () => void;
   onNoteChange: (note: string) => void;
@@ -166,6 +172,11 @@ function DeviceRow({
             <span className={`text-[10px] px-1.5 py-0.5 rounded ${connectionClass(device.connection_type)}`}>
               {connectionLabel(device.connection_type)}
             </span>
+            {mirroring && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600">
+                投屏中
+              </span>
+            )}
           </div>
           <div className="text-xs text-gray-400 truncate" title={device.serial}>
             ADB: {device.serial}

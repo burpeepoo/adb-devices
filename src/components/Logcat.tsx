@@ -165,7 +165,7 @@ export default function Logcat({ deviceSerial }: Props) {
             <select
               value={level}
               onChange={(event) => setLevel(event.target.value as (typeof LEVELS)[number])}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none"
             >
               {LEVELS.map((item) => (
                 <option key={item} value={item}>

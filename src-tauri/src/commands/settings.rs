@@ -229,3 +229,35 @@ pub fn reveal_path(path: String) -> Result<(), AdbError> {
     let output = command.output()?;
     adb::ensure_success(&output, "打开文件夹失败")
 }
+
+#[tauri::command(async)]
+pub fn open_external_url(url: String) -> Result<(), AdbError> {
+    let allowed = ["https://brew.sh/", "https://github.com/Genymobile/scrcpy"];
+    if !allowed.contains(&url.as_str()) {
+        return Err(AdbError::CommandFailed("不支持打开该链接".to_string()));
+    }
+
+    #[cfg(target_os = "macos")]
+    let mut command = {
+        let mut cmd = std::process::Command::new("open");
+        cmd.arg(&url);
+        cmd
+    };
+
+    #[cfg(target_os = "windows")]
+    let mut command = {
+        let mut cmd = std::process::Command::new("rundll32");
+        cmd.arg("url.dll,FileProtocolHandler").arg(&url);
+        cmd
+    };
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    let mut command = {
+        let mut cmd = std::process::Command::new("xdg-open");
+        cmd.arg(&url);
+        cmd
+    };
+
+    let output = command.output()?;
+    adb::ensure_success(&output, "打开链接失败")
+}

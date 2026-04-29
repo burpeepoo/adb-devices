@@ -54,6 +54,7 @@ export type TabKey =
   | "install"
   | "screenshot"
   | "record"
+  | "mirror"
   | "clipboard"
   | "logcat"
   | "packages";

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.3] - 2026-04-29
+
+### Added
+
+- **Screen mirroring** via scrcpy — open an interactive window to control the device with mouse and keyboard.
+- One-click scrcpy installation on macOS (Homebrew) and Windows (direct download from GitHub Releases).
+- Navigation key support — send Back and Home keys to the mirrored device.
+- Mirroring status indicator on device list sidebar ("投屏中" badge).
+
+### Changed
+
+- mDNS-discovered wireless debugging devices now show connection type as "wireless" instead of "unknown".
+- Improved pairing guide hint: users are now advised to ensure Wireless Debugging is enabled and to try switching Wi-Fi if the device is not found.
+
+### Fixed
+
+- Logcat level dropdown now has consistent height and alignment with adjacent filter inputs.
+
 ## [0.1.1] - 2026-04-28
 
 ### Changed
