@@ -212,15 +212,40 @@ pub fn adb_pair(
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    if stdout.contains("Successful") || stderr.contains("Successful") {
-        Ok("配对成功".to_string())
-    } else {
+    if !stdout.contains("Successful") && !stderr.contains("Successful") {
         let msg = if stderr.trim().is_empty() {
             stdout.trim().to_string()
         } else {
             stderr.trim().to_string()
         };
-        Err(AdbError::CommandFailed(format!("配对失败: {}", msg)))
+        return Err(AdbError::CommandFailed(format!("配对失败: {}", msg)));
+    }
+
+    // 配对成功后立即尝试 mDNS 自动连接，避免用户手动输入连接端口
+    let connect_result = adb::run_adb_with_env_timeout(
+        &app,
+        &["devices", "-l"],
+        None,
+        &[("ADB_MDNS_AUTO_CONNECT", "adb-tls-connect")],
+        Duration::from_secs(15),
+    );
+
+    match connect_result {
+        Ok(output) => {
+            let connect_stdout = String::from_utf8_lossy(&output.stdout);
+            if connect_stdout.lines().any(|l| l.contains(&ip) && l.contains("device")) {
+                Ok(format!("配对成功并已连接到 {}", ip))
+            } else {
+                Ok(format!(
+                    "配对成功。设备 {} 稍后将自动连接，也可点击「自动连接可信设备」按钮立即连接",
+                    ip
+                ))
+            }
+        }
+        Err(_) => Ok(format!(
+            "配对成功。设备 {} 稍后将自动连接",
+            ip
+        )),
     }
 }
 
@@ -232,16 +257,38 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
     let stdout = String::from_utf8_lossy(&output.stdout);
 
     if stdout.contains("connected") {
-        Ok(format!("已连接到 {}", addr))
+        return Ok(format!("已连接到 {}", addr));
     } else if stdout.contains("already connected") {
-        Ok(format!("已连接（{} 已在线）", addr))
-    } else if stdout.contains("refused") {
-        Err(AdbError::CommandFailed(
-            "连接被拒绝，请检查IP和端口".to_string(),
-        ))
+        return Ok(format!("已连接（{} 已在线）", addr));
+    }
+
+    // 直接连接失败——设备端口可能已变化，回退到 mDNS 自动发现
+    let fallback_output = adb::run_adb_with_env_timeout(
+        &app,
+        &["devices", "-l"],
+        None,
+        &[("ADB_MDNS_AUTO_CONNECT", "adb-tls-connect")],
+        Duration::from_secs(15),
+    )?;
+    let fallback_stdout = String::from_utf8_lossy(&fallback_output.stdout);
+
+    // 检查 mDNS 自动发现是否成功连接了目标设备
+    for line in fallback_stdout.lines().skip(1) {
+        let line = line.trim();
+        if line.contains(&ip) && line.contains("device") {
+            return Ok(format!("已通过 mDNS 自动发现连接到 {}", ip));
+        }
+    }
+
+    // 两种方式都失败，返回原始错误
+    if stdout.contains("refused") {
+        Err(AdbError::CommandFailed(format!(
+            "连接被拒绝: {}。设备端口可能已变化，请在 Android 上关闭再开启无线调试后重试，或点击「自动连接可信设备」按钮",
+            addr
+        )))
     } else {
         Err(AdbError::CommandFailed(format!(
-            "连接失败: {}",
+            "连接失败: {}。请确认设备在同一 WiFi 下且无线调试已开启",
             stdout.trim()
         )))
     }
