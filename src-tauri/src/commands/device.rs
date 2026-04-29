@@ -233,7 +233,10 @@ pub fn adb_pair(
     match connect_result {
         Ok(output) => {
             let connect_stdout = String::from_utf8_lossy(&output.stdout);
-            if connect_stdout.lines().any(|l| l.contains(&ip) && l.contains("device")) {
+            if connect_stdout
+                .lines()
+                .any(|l| l.contains(&ip) && l.contains("device"))
+            {
                 Ok(format!("配对成功并已连接到 {}", ip))
             } else {
                 Ok(format!(
@@ -242,10 +245,7 @@ pub fn adb_pair(
                 ))
             }
         }
-        Err(_) => Ok(format!(
-            "配对成功。设备 {} 稍后将自动连接",
-            ip
-        )),
+        Err(_) => Ok(format!("配对成功。设备 {} 稍后将自动连接", ip)),
     }
 }
 

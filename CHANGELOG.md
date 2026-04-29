@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.4] - 2026-04-29
+
+### Added
+
+- DMG helper installer script that copies ADB Manager to `/Applications`, removes the macOS quarantine attribute, and can launch the app after installation.
+- Custom DMG build script that includes the installer command next to the app bundle.
+
+### Changed
+
+- Installer falls back to a macOS administrator prompt when `/Applications` requires elevated permissions.
+
 ## [0.1.3] - 2026-04-29
 
 ### Added
