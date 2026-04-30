@@ -20,7 +20,7 @@ ADB Manager is a desktop utility for Cozyla Android device workflows. It wraps c
 Download the latest installer from the GitHub Releases page:
 
 ```text
-https://github.com/burpeepoo/Cozyla-adb-devices/releases
+https://github.com/burpeepoo/adb-devices/releases
 ```
 
 ### macOS
