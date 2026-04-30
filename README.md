@@ -1,6 +1,6 @@
 # ADB Manager
 
-ADB Manager is a desktop utility for Cozyla Android device workflows. It wraps common ADB tasks in a simple Tauri app so PMs, QA, and engineers can pair devices, install APKs, capture logs, take screenshots, record screens, and inspect packages without switching between terminal commands.
+ADB Manager is a desktop utility for Android device workflows. It wraps common ADB tasks in a simple Tauri app so PMs, QA, and engineers can pair devices, install APKs, capture logs, take screenshots, record screens, and inspect packages without switching between terminal commands.
 
 ## Features
 
