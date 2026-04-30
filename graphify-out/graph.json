@@ -9,7 +9,7 @@
       "source_file": "vite.config.ts",
       "source_location": "L1",
       "id": "vite_config_ts",
-      "community": 14,
+      "community": 13,
       "norm_label": "vite.config.ts"
     },
     {
@@ -108,7 +108,7 @@
       "source_file": "src-tauri/build.rs",
       "source_location": "L1",
       "id": "src_tauri_build_rs",
-      "community": 15,
+      "community": 14,
       "norm_label": "build.rs"
     },
     {
@@ -117,7 +117,7 @@
       "source_file": "src-tauri/build.rs",
       "source_location": "L1",
       "id": "build_main",
-      "community": 15,
+      "community": 14,
       "norm_label": "main()"
     },
     {
@@ -144,7 +144,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L1",
       "id": "src_tauri_src_adb_rs",
-      "community": 5,
+      "community": 6,
       "norm_label": "adb.rs"
     },
     {
@@ -153,7 +153,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L8",
       "id": "adb_adberror",
-      "community": 5,
+      "community": 6,
       "norm_label": "adberror"
     },
     {
@@ -162,7 +162,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L26",
       "id": "adb_adberror_serialize",
-      "community": 5,
+      "community": 6,
       "norm_label": ".serialize()"
     },
     {
@@ -171,7 +171,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L34",
       "id": "adb_get_bundled_adb_path",
-      "community": 5,
+      "community": 6,
       "norm_label": "get_bundled_adb_path()"
     },
     {
@@ -180,7 +180,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L60",
       "id": "adb_get_system_adb_path",
-      "community": 5,
+      "community": 6,
       "norm_label": "get_system_adb_path()"
     },
     {
@@ -189,7 +189,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L64",
       "id": "adb_get_sdk_adb_path",
-      "community": 5,
+      "community": 6,
       "norm_label": "get_sdk_adb_path()"
     },
     {
@@ -198,7 +198,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L97",
       "id": "adb_get_adb_path",
-      "community": 5,
+      "community": 6,
       "norm_label": "get_adb_path()"
     },
     {
@@ -207,7 +207,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L111",
       "id": "adb_ensure_executable",
-      "community": 5,
+      "community": 6,
       "norm_label": "ensure_executable()"
     },
     {
@@ -234,7 +234,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L146",
       "id": "adb_run_adb_with_env",
-      "community": 5,
+      "community": 6,
       "norm_label": "run_adb_with_env()"
     },
     {
@@ -252,7 +252,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L179",
       "id": "adb_build_adb_command",
-      "community": 5,
+      "community": 2,
       "norm_label": "build_adb_command()"
     },
     {
@@ -279,7 +279,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L233",
       "id": "adb_run_adb_with_stdin",
-      "community": 5,
+      "community": 6,
       "norm_label": "run_adb_with_stdin()"
     },
     {
@@ -288,7 +288,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L254",
       "id": "adb_check_adb_available",
-      "community": 5,
+      "community": 6,
       "norm_label": "check_adb_available()"
     },
     {
@@ -621,7 +621,7 @@
       "source_file": "src-tauri/src/commands/mirror.rs",
       "source_location": "L204",
       "id": "mirror_send_navigation_key",
-      "community": 2,
+      "community": 3,
       "norm_label": "send_navigation_key()"
     },
     {
@@ -963,7 +963,7 @@
       "source_file": "src-tauri/src/commands/mod.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_mod_rs",
-      "community": 16,
+      "community": 15,
       "norm_label": "mod.rs"
     },
     {
@@ -990,7 +990,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_install_rs",
-      "community": 4,
+      "community": 5,
       "norm_label": "install.rs"
     },
     {
@@ -999,7 +999,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L8",
       "id": "install_installguard",
-      "community": 4,
+      "community": 5,
       "norm_label": "installguard"
     },
     {
@@ -1008,7 +1008,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L11",
       "id": "install_installguard_drop",
-      "community": 4,
+      "community": 5,
       "norm_label": ".drop()"
     },
     {
@@ -1017,7 +1017,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L18",
       "id": "install_acquire_install_lock",
-      "community": 4,
+      "community": 5,
       "norm_label": "acquire_install_lock()"
     },
     {
@@ -1026,7 +1026,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L33",
       "id": "install_adb_install",
-      "community": 4,
+      "community": 5,
       "norm_label": "adb_install()"
     },
     {
@@ -1035,7 +1035,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L86",
       "id": "install_parse_apk_package",
-      "community": 4,
+      "community": 5,
       "norm_label": "parse_apk_package()"
     },
     {
@@ -1044,7 +1044,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L90",
       "id": "install_extract_apk_package_name",
-      "community": 4,
+      "community": 5,
       "norm_label": "extract_apk_package_name()"
     },
     {
@@ -1053,7 +1053,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L103",
       "id": "install_parse_binary_manifest_package",
-      "community": 4,
+      "community": 5,
       "norm_label": "parse_binary_manifest_package()"
     },
     {
@@ -1062,7 +1062,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L129",
       "id": "install_parse_start_element_package",
-      "community": 4,
+      "community": 5,
       "norm_label": "parse_start_element_package()"
     },
     {
@@ -1071,7 +1071,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L163",
       "id": "install_parse_string_pool",
-      "community": 4,
+      "community": 5,
       "norm_label": "parse_string_pool()"
     },
     {
@@ -1080,7 +1080,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L187",
       "id": "install_read_utf8_string",
-      "community": 4,
+      "community": 5,
       "norm_label": "read_utf8_string()"
     },
     {
@@ -1089,7 +1089,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L197",
       "id": "install_read_utf16_string",
-      "community": 4,
+      "community": 5,
       "norm_label": "read_utf16_string()"
     },
     {
@@ -1098,7 +1098,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L210",
       "id": "install_read_length8",
-      "community": 4,
+      "community": 5,
       "norm_label": "read_length8()"
     },
     {
@@ -1107,7 +1107,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L220",
       "id": "install_read_length16",
-      "community": 4,
+      "community": 5,
       "norm_label": "read_length16()"
     },
     {
@@ -1116,7 +1116,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L230",
       "id": "install_read_u16",
-      "community": 4,
+      "community": 5,
       "norm_label": "read_u16()"
     },
     {
@@ -1125,7 +1125,7 @@
       "source_file": "src-tauri/src/commands/install.rs",
       "source_location": "L235",
       "id": "install_read_u32",
-      "community": 4,
+      "community": 5,
       "norm_label": "read_u32()"
     },
     {
@@ -1269,7 +1269,7 @@
       "source_file": "src/App.tsx",
       "source_location": "L1",
       "id": "src_app_tsx",
-      "community": 6,
+      "community": 0,
       "norm_label": "app.tsx"
     },
     {
@@ -1287,7 +1287,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L1",
       "id": "src_storage_ts",
-      "community": 12,
+      "community": 4,
       "norm_label": "storage.ts"
     },
     {
@@ -1296,7 +1296,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L14",
       "id": "storage_getstore",
-      "community": 12,
+      "community": 4,
       "norm_label": "getstore()"
     },
     {
@@ -1305,7 +1305,7 @@
       "source_file": "src/storage.ts",
       "source_location": "L21",
       "id": "storage_savestorevalue",
-      "community": 12,
+      "community": 4,
       "norm_label": "savestorevalue()"
     },
     {
@@ -1314,7 +1314,7 @@
       "source_file": "src/vite-env.d.ts",
       "source_location": "L1",
       "id": "src_vite_env_d_ts",
-      "community": 17,
+      "community": 16,
       "norm_label": "vite-env.d.ts"
     },
     {
@@ -1323,7 +1323,7 @@
       "source_file": "src/types/index.ts",
       "source_location": "L1",
       "id": "src_types_index_ts",
-      "community": 18,
+      "community": 17,
       "norm_label": "index.ts"
     },
     {
@@ -1332,7 +1332,7 @@
       "source_file": "src/utils/format.ts",
       "source_location": "L1",
       "id": "src_utils_format_ts",
-      "community": 13,
+      "community": 12,
       "norm_label": "format.ts"
     },
     {
@@ -1341,7 +1341,7 @@
       "source_file": "src/utils/format.ts",
       "source_location": "L1",
       "id": "format_formatduration",
-      "community": 13,
+      "community": 12,
       "norm_label": "formatduration()"
     },
     {
@@ -1350,7 +1350,7 @@
       "source_file": "src/utils/format.ts",
       "source_location": "L7",
       "id": "format_truncatepackagename",
-      "community": 13,
+      "community": 12,
       "norm_label": "truncatepackagename()"
     },
     {
@@ -1359,7 +1359,7 @@
       "source_file": "src/utils/format.ts",
       "source_location": "L12",
       "id": "format_nowtimestamp",
-      "community": 13,
+      "community": 12,
       "norm_label": "nowtimestamp()"
     },
     {
@@ -1404,71 +1404,152 @@
       "source_file": "src/components/PairConnect.tsx",
       "source_location": "L1",
       "id": "src_components_pairconnect_tsx",
-      "community": 0,
+      "community": 4,
       "norm_label": "pairconnect.tsx"
     },
     {
       "label": "savePairConnect()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L48",
+      "source_location": "L52",
       "id": "pairconnect_savepairconnect",
-      "community": 12,
+      "community": 4,
       "norm_label": "savepairconnect()"
+    },
+    {
+      "label": "fillConnectEndpoint()",
+      "file_type": "code",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L65",
+      "id": "pairconnect_fillconnectendpoint",
+      "community": 4,
+      "norm_label": "fillconnectendpoint()"
+    },
+    {
+      "label": "handleConnectIpChange()",
+      "file_type": "code",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L71",
+      "id": "pairconnect_handleconnectipchange",
+      "community": 4,
+      "norm_label": "handleconnectipchange()"
+    },
+    {
+      "label": "handleConnectPortChange()",
+      "file_type": "code",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L80",
+      "id": "pairconnect_handleconnectportchange",
+      "community": 4,
+      "norm_label": "handleconnectportchange()"
     },
     {
       "label": "handleMdnsConnect()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L104",
+      "source_location": "L132",
       "id": "pairconnect_handlemdnsconnect",
-      "community": 0,
+      "community": 4,
       "norm_label": "handlemdnsconnect()"
     },
     {
       "label": "handleMdnsPair()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L123",
+      "source_location": "L152",
       "id": "pairconnect_handlemdnspair",
-      "community": 0,
+      "community": 4,
       "norm_label": "handlemdnspair()"
     },
     {
       "label": "handleMdnsAutoConnect()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L147",
+      "source_location": "L182",
       "id": "pairconnect_handlemdnsautoconnect",
-      "community": 0,
+      "community": 4,
       "norm_label": "handlemdnsautoconnect()"
     },
     {
       "label": "handleScan()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L166",
+      "source_location": "L203",
       "id": "pairconnect_handlescan",
-      "community": 0,
+      "community": 4,
       "norm_label": "handlescan()"
     },
     {
       "label": "handlePair()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L178",
+      "source_location": "L215",
       "id": "pairconnect_handlepair",
-      "community": 0,
+      "community": 4,
       "norm_label": "handlepair()"
     },
     {
       "label": "handleConnect()",
       "file_type": "code",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L203",
+      "source_location": "L240",
       "id": "pairconnect_handleconnect",
-      "community": 0,
+      "community": 4,
       "norm_label": "handleconnect()"
+    },
+    {
+      "label": "deviceConnectionKeys()",
+      "file_type": "code",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L543",
+      "id": "pairconnect_deviceconnectionkeys",
+      "community": 4,
+      "norm_label": "deviceconnectionkeys()"
+    },
+    {
+      "label": "MdnsPairRow()",
+      "file_type": "code",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L547",
+      "id": "pairconnect_mdnspairrow",
+      "community": 4,
+      "norm_label": "mdnspairrow()"
+    },
+    {
+      "label": "Field()",
+      "file_type": "code",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L603",
+      "id": "pairconnect_field",
+      "community": 4,
+      "norm_label": "field()"
+    },
+    {
+      "label": "normalizePairCode()",
+      "file_type": "code",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L643",
+      "id": "pairconnect_normalizepaircode",
+      "community": 4,
+      "norm_label": "normalizepaircode()"
+    },
+    {
+      "label": "parseConnectEndpoint()",
+      "file_type": "code",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L647",
+      "id": "pairconnect_parseconnectendpoint",
+      "community": 4,
+      "norm_label": "parseconnectendpoint()"
+    },
+    {
+      "label": "ResultMessage()",
+      "file_type": "code",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L659",
+      "id": "pairconnect_resultmessage",
+      "community": 4,
+      "norm_label": "resultmessage()"
     },
     {
       "label": "ScreenMirror.tsx",
@@ -1753,7 +1834,7 @@
       "label": "deviceIdentityKey()",
       "file_type": "code",
       "source_file": "src/hooks/useDevices.ts",
-      "source_location": "L76",
+      "source_location": "L81",
       "id": "usedevices_deviceidentitykey",
       "community": 0,
       "norm_label": "deviceidentitykey()"
@@ -1762,7 +1843,7 @@
       "label": "deviceDisplayTitle()",
       "file_type": "code",
       "source_file": "src/hooks/useDevices.ts",
-      "source_location": "L80",
+      "source_location": "L85",
       "id": "usedevices_devicedisplaytitle",
       "community": 0,
       "norm_label": "devicedisplaytitle()"
@@ -1864,12 +1945,12 @@
       "id": "appicon_android_set"
     },
     {
-      "community": 14,
+      "community": 13,
       "norm_label": "",
       "id": "vite"
     },
     {
-      "community": 14,
+      "community": 13,
       "norm_label": "",
       "id": "plugin_react"
     },
@@ -1899,7 +1980,7 @@
       "id": "process"
     },
     {
-      "community": 1,
+      "community": 6,
       "norm_label": "",
       "id": "time"
     },
@@ -1909,7 +1990,7 @@
       "id": "tauri"
     },
     {
-      "community": 5,
+      "community": 6,
       "norm_label": "",
       "id": "error"
     },
@@ -1989,7 +2070,7 @@
       "id": "local"
     },
     {
-      "community": 4,
+      "community": 5,
       "norm_label": "",
       "id": "read"
     },
@@ -2009,7 +2090,7 @@
       "id": "users_kaizhang_documents_cozyla_adb_project_src_types"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_hooks_usedevices"
     },
@@ -2019,57 +2100,57 @@
       "id": "users_kaizhang_documents_cozyla_adb_project_src_storage"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_devicelist"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_adbsetup"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_pairconnect"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_apkinstall"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_screenshot"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_screenrecord"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_screenmirror"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_clipboard"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_logcat"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_packagelist"
     },
     {
-      "community": 6,
+      "community": 0,
       "norm_label": "",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_components_settings"
     },
@@ -2089,7 +2170,7 @@
       "id": "users_kaizhang_documents_cozyla_adb_project_src_index_css"
     },
     {
-      "community": 12,
+      "community": 4,
       "norm_label": "",
       "id": "plugin_store"
     },
@@ -3173,8 +3254,8 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L225",
       "weight": 1.0,
-      "_src": "device_adb_pair",
-      "_tgt": "adb_run_adb_with_env_timeout",
+      "_src": "adb_run_adb_with_env_timeout",
+      "_tgt": "device_adb_pair",
       "source": "adb_run_adb_with_env_timeout",
       "target": "device_adb_pair"
     },
@@ -3185,8 +3266,8 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L266",
       "weight": 1.0,
-      "_src": "device_adb_connect",
-      "_tgt": "adb_run_adb_with_env_timeout",
+      "_src": "adb_run_adb_with_env_timeout",
+      "_tgt": "device_adb_connect",
       "source": "adb_run_adb_with_env_timeout",
       "target": "device_adb_connect"
     },
@@ -6398,7 +6479,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L48",
+      "source_location": "L52",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_savepairconnect",
@@ -6410,7 +6491,43 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L104",
+      "source_location": "L65",
+      "weight": 1.0,
+      "_src": "src_components_pairconnect_tsx",
+      "_tgt": "pairconnect_fillconnectendpoint",
+      "source": "src_components_pairconnect_tsx",
+      "target": "pairconnect_fillconnectendpoint",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L71",
+      "weight": 1.0,
+      "_src": "src_components_pairconnect_tsx",
+      "_tgt": "pairconnect_handleconnectipchange",
+      "source": "src_components_pairconnect_tsx",
+      "target": "pairconnect_handleconnectipchange",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L80",
+      "weight": 1.0,
+      "_src": "src_components_pairconnect_tsx",
+      "_tgt": "pairconnect_handleconnectportchange",
+      "source": "src_components_pairconnect_tsx",
+      "target": "pairconnect_handleconnectportchange",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L132",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handlemdnsconnect",
@@ -6422,7 +6539,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L123",
+      "source_location": "L152",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handlemdnspair",
@@ -6434,7 +6551,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L147",
+      "source_location": "L182",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handlemdnsautoconnect",
@@ -6446,7 +6563,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L166",
+      "source_location": "L203",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handlescan",
@@ -6458,7 +6575,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L178",
+      "source_location": "L215",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handlepair",
@@ -6470,12 +6587,132 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/PairConnect.tsx",
-      "source_location": "L203",
+      "source_location": "L240",
       "weight": 1.0,
       "_src": "src_components_pairconnect_tsx",
       "_tgt": "pairconnect_handleconnect",
       "source": "src_components_pairconnect_tsx",
       "target": "pairconnect_handleconnect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L543",
+      "weight": 1.0,
+      "_src": "src_components_pairconnect_tsx",
+      "_tgt": "pairconnect_deviceconnectionkeys",
+      "source": "src_components_pairconnect_tsx",
+      "target": "pairconnect_deviceconnectionkeys",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L547",
+      "weight": 1.0,
+      "_src": "src_components_pairconnect_tsx",
+      "_tgt": "pairconnect_mdnspairrow",
+      "source": "src_components_pairconnect_tsx",
+      "target": "pairconnect_mdnspairrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L603",
+      "weight": 1.0,
+      "_src": "src_components_pairconnect_tsx",
+      "_tgt": "pairconnect_field",
+      "source": "src_components_pairconnect_tsx",
+      "target": "pairconnect_field",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L643",
+      "weight": 1.0,
+      "_src": "src_components_pairconnect_tsx",
+      "_tgt": "pairconnect_normalizepaircode",
+      "source": "src_components_pairconnect_tsx",
+      "target": "pairconnect_normalizepaircode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L647",
+      "weight": 1.0,
+      "_src": "src_components_pairconnect_tsx",
+      "_tgt": "pairconnect_parseconnectendpoint",
+      "source": "src_components_pairconnect_tsx",
+      "target": "pairconnect_parseconnectendpoint",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L659",
+      "weight": 1.0,
+      "_src": "src_components_pairconnect_tsx",
+      "_tgt": "pairconnect_resultmessage",
+      "source": "src_components_pairconnect_tsx",
+      "target": "pairconnect_resultmessage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L74",
+      "weight": 1.0,
+      "_src": "pairconnect_handleconnectipchange",
+      "_tgt": "pairconnect_fillconnectendpoint",
+      "source": "pairconnect_fillconnectendpoint",
+      "target": "pairconnect_handleconnectipchange",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L83",
+      "weight": 1.0,
+      "_src": "pairconnect_handleconnectportchange",
+      "_tgt": "pairconnect_fillconnectendpoint",
+      "source": "pairconnect_fillconnectendpoint",
+      "target": "pairconnect_handleconnectportchange",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L72",
+      "weight": 1.0,
+      "_src": "pairconnect_handleconnectipchange",
+      "_tgt": "pairconnect_parseconnectendpoint",
+      "source": "pairconnect_handleconnectipchange",
+      "target": "pairconnect_parseconnectendpoint",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/PairConnect.tsx",
+      "source_location": "L81",
+      "weight": 1.0,
+      "_src": "pairconnect_handleconnectportchange",
+      "_tgt": "pairconnect_parseconnectendpoint",
+      "source": "pairconnect_handleconnectportchange",
+      "target": "pairconnect_parseconnectendpoint",
       "confidence_score": 1.0
     },
     {
@@ -7082,7 +7319,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/hooks/useDevices.ts",
-      "source_location": "L76",
+      "source_location": "L81",
       "weight": 1.0,
       "_src": "src_hooks_usedevices_ts",
       "_tgt": "usedevices_deviceidentitykey",
@@ -7094,7 +7331,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/hooks/useDevices.ts",
-      "source_location": "L80",
+      "source_location": "L85",
       "weight": 1.0,
       "_src": "src_hooks_usedevices_ts",
       "_tgt": "usedevices_devicedisplaytitle",

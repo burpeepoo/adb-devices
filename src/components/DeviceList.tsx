@@ -99,10 +99,10 @@ export default function DeviceList({
                 key={device.serial}
                 device={device}
                 note={deviceNotes[deviceIdentityKey(device)] || ""}
-                selected={selectedDevice === device.serial}
-                mirroring={mirroringDeviceSerial === device.serial}
+                selected={false}
+                mirroring={false}
                 online={false}
-                onSelect={() => onSelectDevice(device.serial)}
+                onSelect={undefined}
                 onNoteChange={(note) => handleNoteChange(device, note)}
               />
             ))}
@@ -133,7 +133,7 @@ function DeviceRow({
   selected: boolean;
   mirroring: boolean;
   online: boolean;
-  onSelect: () => void;
+  onSelect?: () => void;
   onNoteChange: (note: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -160,15 +160,31 @@ function DeviceRow({
 
   return (
     <div
-      className={`w-full px-3 py-2 flex items-start gap-2 hover:bg-gray-100 transition-colors ${
-        selected ? "bg-blue-50 border-l-2 border-blue-500" : "border-l-2 border-transparent"
+      className={`mx-2 my-1 flex w-[calc(100%-1rem)] items-start gap-2 rounded-lg border px-3 py-2 transition-colors ${
+        selected
+          ? "border-blue-400 bg-blue-100 shadow-sm ring-1 ring-blue-200"
+          : "border-transparent hover:border-gray-200 hover:bg-gray-100"
       } ${online ? "" : "opacity-60"}`}
     >
-      <span className={`mt-1.5 w-2.5 h-2.5 rounded-full flex-shrink-0 ${online ? "bg-green-500" : "bg-red-400"}`} />
+      <span
+        className={`mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full ${
+          online ? "bg-green-500" : "bg-red-400"
+        } ${selected ? "ring-2 ring-white" : ""}`}
+      />
       <div className="min-w-0 flex-1">
-        <button type="button" onClick={onSelect} className="w-full text-left">
+        <button
+          type="button"
+          onClick={onSelect}
+          disabled={!online}
+          className={`w-full text-left ${online ? "" : "cursor-default"}`}
+        >
           <div className="flex items-center gap-2">
-            <div className="text-sm text-gray-800 truncate" title={title}>{title}</div>
+            <div
+              className={`truncate text-sm ${selected ? "font-semibold text-blue-950" : "text-gray-800"}`}
+              title={title}
+            >
+              {title}
+            </div>
             <span className={`text-[10px] px-1.5 py-0.5 rounded ${connectionClass(device.connection_type)}`}>
               {connectionLabel(device.connection_type)}
             </span>
@@ -201,7 +217,9 @@ function DeviceRow({
         ) : (
           <div
             onClick={(e) => { e.stopPropagation(); startEdit(); }}
-            className={`mt-2 min-h-[26px] w-full cursor-text rounded border border-transparent px-2 py-1.5 text-xs transition-colors hover:border-gray-200 hover:bg-gray-50 ${note ? "text-gray-700" : "text-gray-300"}`}
+            className={`mt-2 min-h-[26px] w-full cursor-text rounded border border-transparent px-2 py-1.5 text-xs transition-colors hover:border-gray-200 hover:bg-gray-50 ${
+              note ? "text-gray-700" : selected ? "text-blue-400" : "text-gray-300"
+            }`}
           >
             {note || "点击添加备注"}
           </div>

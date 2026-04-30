@@ -244,23 +244,38 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => handleNavigationKey("back")}
-            disabled={!deviceSerial || Boolean(navigationLoading)}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {navigationLoading === "back" ? "发送中..." : "返回"}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleNavigationKey("home")}
-            disabled={!deviceSerial || Boolean(navigationLoading)}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {navigationLoading === "home" ? "发送中..." : "Home"}
-          </button>
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <div className="mb-2 text-xs font-medium text-gray-500">返回 / Home 控制</div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleNavigationKey("back")}
+                disabled={!deviceSerial || Boolean(navigationLoading)}
+                className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {navigationLoading === "back" ? "发送中..." : "返回"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleNavigationKey("home")}
+                disabled={!deviceSerial || Boolean(navigationLoading)}
+                className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {navigationLoading === "home" ? "发送中..." : "Home"}
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
+                <div className="font-medium text-blue-800">scrcpy 右键</div>
+                <div className="mt-0.5 text-blue-600">等同返回</div>
+              </div>
+              <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
+                <div className="font-medium text-blue-800">scrcpy 中键</div>
+                <div className="mt-0.5 text-blue-600">等同 Home</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {installProgress.length > 0 && (
@@ -286,7 +301,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
         <h4 className="text-sm font-medium text-gray-600 mb-1">说明</h4>
         <ul className="text-xs text-gray-500 space-y-1">
           <li>- 投屏窗口由 scrcpy 提供，可以直接用鼠标和键盘操作设备</li>
-          <li>- 返回和 Home 按钮通过 ADB 直接发送到当前选中设备</li>
+          <li>- 返回和 Home 可以点上方按钮，也可以直接在 scrcpy 窗口里右键或中键操作</li>
           <li>- 截图和录屏请使用顶部独立的截图、录屏页面</li>
         </ul>
       </section>

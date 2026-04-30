@@ -52,10 +52,15 @@ export function useDevices(refreshInterval = 300000) {
       await store.set(STORE_KEYS.deviceHistory, Array.from(historyByDeviceKey.values()));
       await store.save();
 
-      // Auto-select first device if none selected
-      if (!selectedDevice && merged.length > 0) {
-        const firstOnline = result.find((d) => d.state === "device");
-        if (firstOnline) setSelectedDevice(firstOnline.serial);
+      const firstOnline = result.find((d) => d.state === "device");
+      const selectedOnline = selectedDevice
+        ? result.some((d) => d.state === "device" && d.serial === selectedDevice)
+        : false;
+
+      if (!selectedDevice && firstOnline) {
+        setSelectedDevice(firstOnline.serial);
+      } else if (selectedDevice && !selectedOnline) {
+        setSelectedDevice(firstOnline?.serial || null);
       }
     } catch (e) {
       setError(String(e));

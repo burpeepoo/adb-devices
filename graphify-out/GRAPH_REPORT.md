@@ -1,12 +1,12 @@
-# Graph Report - adb_project  (2026-04-29)
+# Graph Report - adb_project  (2026-04-30)
 
 ## Corpus Check
-- 36 files · ~81,450 words
+- 36 files · ~81,932 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 253 nodes · 424 edges · 14 communities detected
-- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 45 edges (avg confidence: 0.8)
+- 262 nodes · 437 edges · 13 communities detected
+- Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 45 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -22,8 +22,7 @@
 - [[_COMMUNITY_Community 9|Community 9]]
 - [[_COMMUNITY_Community 10|Community 10]]
 - [[_COMMUNITY_Community 11|Community 11]]
-- [[_COMMUNITY_Community 12|Community 12]]
-- [[_COMMUNITY_Community 14|Community 14]]
+- [[_COMMUNITY_Community 13|Community 13]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `get_adb_path()` - 12 edges
@@ -52,32 +51,32 @@
 ## Communities
 
 ### Community 0 - "Community 0"
-Cohesion: 0.05
-Nodes (12): client, core, handleNoteChange(), event, plugin_dialog, react, deviceIdentityKey(), users_kaizhang_documents_cozyla_adb_project_src_app (+4 more)
+Cohesion: 0.04
+Nodes (24): client, core, handleNoteChange(), event, plugin_dialog, react, deviceIdentityKey(), users_kaizhang_documents_cozyla_adb_project_src_app (+16 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.1
-Nodes (33): deserialize, acquire_install_lock(), capture_process_output(), check_scrcpy_available(), copy_dir_all(), current_screen_mirror_state(), download_with_progress(), emit_install_progress() (+25 more)
+Cohesion: 0.11
+Nodes (32): deserialize, acquire_install_lock(), capture_process_output(), check_scrcpy_available(), copy_dir_all(), current_screen_mirror_state(), download_with_progress(), emit_install_progress() (+24 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.14
-Nodes (24): run_adb_with_env_timeout(), run_adb_with_timeout(), wait_with_timeout(), adb_auto_connect(), adb_connect(), adb_devices(), adb_disconnect(), adb_mdns_auto_connect() (+16 more)
+Nodes (24): build_adb_command(), run_adb_with_env_timeout(), run_adb_with_timeout(), wait_with_timeout(), adb_auto_connect(), adb_connect(), adb_devices(), adb_disconnect() (+16 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.14
-Nodes (21): adb, ensure_success(), run_adb(), apphandle, adb_input_text(), escape_adb_input_text(), local, adb_list_package_details() (+13 more)
+Cohesion: 0.13
+Nodes (22): adb, ensure_success(), run_adb(), apphandle, adb_input_text(), escape_adb_input_text(), local, send_navigation_key() (+14 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.26
-Nodes (15): acquire_install_lock(), adb_install(), extract_apk_package_name(), InstallGuard, parse_apk_package(), parse_binary_manifest_package(), parse_start_element_package(), parse_string_pool() (+7 more)
+Cohesion: 0.12
+Nodes (8): fillConnectEndpoint(), handleConnectIpChange(), handleConnectPortChange(), parseConnectEndpoint(), savePairConnect(), plugin_store, getStore(), saveStoreValue()
 
 ### Community 5 - "Community 5"
 Cohesion: 0.26
-Nodes (11): AdbError, build_adb_command(), check_adb_available(), ensure_executable(), get_adb_path(), get_bundled_adb_path(), get_sdk_adb_path(), get_system_adb_path() (+3 more)
+Nodes (15): acquire_install_lock(), adb_install(), extract_apk_package_name(), InstallGuard, parse_apk_package(), parse_binary_manifest_package(), parse_start_element_package(), parse_string_pool() (+7 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.15
-Nodes (12): users_kaizhang_documents_cozyla_adb_project_src_components_adbsetup, users_kaizhang_documents_cozyla_adb_project_src_components_apkinstall, users_kaizhang_documents_cozyla_adb_project_src_components_clipboard, users_kaizhang_documents_cozyla_adb_project_src_components_devicelist, users_kaizhang_documents_cozyla_adb_project_src_components_logcat, users_kaizhang_documents_cozyla_adb_project_src_components_packagelist, users_kaizhang_documents_cozyla_adb_project_src_components_pairconnect, users_kaizhang_documents_cozyla_adb_project_src_components_screenmirror (+4 more)
+Cohesion: 0.24
+Nodes (11): AdbError, check_adb_available(), ensure_executable(), get_adb_path(), get_bundled_adb_path(), get_sdk_adb_path(), get_system_adb_path(), run_adb_with_env() (+3 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.35
@@ -99,29 +98,25 @@ Nodes (5): download_with_progress(), emit_install_progress(), install_adb(), tau
 Cohesion: 0.33
 Nodes (6): ADB Manager App Icon, Android Launcher Icons, iOS App Icon Set, Platform Icon Set, Windows Tile Icons, HTML Entry Point
 
-### Community 12 - "Community 12"
-Cohesion: 0.5
-Nodes (4): savePairConnect(), plugin_store, getStore(), saveStoreValue()
-
-### Community 14 - "Community 14"
+### Community 13 - "Community 13"
 Cohesion: 0.67
 Nodes (2): plugin_react, vite
 
 ## Knowledge Gaps
 - **11 isolated node(s):** `DeviceInfo`, `MdnsDevice`, `ScreenMirrorState`, `GithubRelease`, `GithubAsset` (+6 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 14`** (3 nodes): `plugin_react`, `vite`, `vite.config.ts`
+- **Thin community `Community 13`** (3 nodes): `plugin_react`, `vite`, `vite.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `env()` connect `Community 7` to `Community 1`, `Community 2`, `Community 5`?**
-  _High betweenness centrality (0.052) - this node is a cross-community bridge._
-- **Why does `start_screen_mirror()` connect `Community 1` to `Community 5`, `Community 7`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
-- **Why does `ensure_success()` connect `Community 3` to `Community 8`, `Community 1`, `Community 2`, `Community 5`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+- **Why does `env()` connect `Community 7` to `Community 1`, `Community 2`, `Community 6`?**
+  _High betweenness centrality (0.049) - this node is a cross-community bridge._
+- **Why does `start_screen_mirror()` connect `Community 1` to `Community 6`, `Community 7`?**
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+- **Why does `ensure_success()` connect `Community 3` to `Community 8`, `Community 1`, `Community 2`, `Community 6`?**
+  _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `get_adb_path()` (e.g. with `start_screen_mirror()` and `adb_start_logcat()`) actually correct?**
   _`get_adb_path()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 9 inferred relationships involving `run_adb_with_timeout()` (e.g. with `adb_devices()` and `adb_mdns_discover()`) actually correct?**

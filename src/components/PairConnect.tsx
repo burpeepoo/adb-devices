@@ -20,6 +20,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
 
   const [connectIp, setConnectIp] = useState("");
   const [connectPort, setConnectPort] = useState("");
+  const [lastConnect, setLastConnect] = useState<{ ip: string; port: string } | null>(null);
   const [connectLoading, setConnectLoading] = useState(false);
   const [connectResult, setConnectResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
@@ -39,6 +40,9 @@ export default function PairConnect({ devices, onConnected }: Props) {
         setPairPort(saved.pairPort || "");
         setConnectIp(saved.connectIp || "");
         setConnectPort(saved.connectPort || "");
+        if (saved.connectIp && saved.connectPort) {
+          setLastConnect({ ip: saved.connectIp, port: saved.connectPort });
+        }
       })
       .catch(() => {
         // Keep fields empty when local cache cannot be read.
@@ -56,6 +60,30 @@ export default function PairConnect({ devices, onConnected }: Props) {
     saveStoreValue(STORE_KEYS.pairConnect, value).catch(() => {
       // Cache failure should not block ADB actions.
     });
+  };
+
+  const fillConnectEndpoint = (ip: string, port: string) => {
+    setConnectIp(ip);
+    setConnectPort(port);
+    setShowManual(true);
+  };
+
+  const handleConnectIpChange = (value: string) => {
+    const endpoint = parseConnectEndpoint(value);
+    if (endpoint) {
+      fillConnectEndpoint(endpoint.ip, endpoint.port);
+      return;
+    }
+    setConnectIp(value.trim());
+  };
+
+  const handleConnectPortChange = (value: string) => {
+    const endpoint = parseConnectEndpoint(value);
+    if (endpoint) {
+      fillConnectEndpoint(endpoint.ip, endpoint.port);
+      return;
+    }
+    setConnectPort(value.trim());
   };
 
   const runAdbOperation = useCallback(async <T,>(operation: () => Promise<T>) => {
@@ -111,6 +139,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
         });
         setMdnsResult({ ok: true, msg: result });
         savePairConnect({ connectIp: device.ip, connectPort: device.port });
+        setLastConnect({ ip: device.ip, port: device.port });
         await onConnected();
       } catch (e) {
         setMdnsResult({ ok: false, msg: `${String(e)}。如果这是第一次连接这台设备，请先在 Android 无线调试里打开配对码并完成配对。` });
@@ -134,6 +163,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
         });
         setMdnsResult({ ok: true, msg: result });
         savePairConnect({ pairIp: device.ip, pairPort: device.port });
+        setPairCodes((prev) => {
+          const next = { ...prev };
+          delete next[device.address];
+          return next;
+        });
+        setMdnsDevices((prev) => prev.filter((item) => item.address !== device.address));
         await discoverMdns(true, true);
         await onConnected();
       } catch (e) {
@@ -153,10 +188,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
         const onlineDevices = devices.filter((device) => device.state === "device");
         const count = onlineDevices.length;
         setMdnsResult({ ok: true, msg: count ? `已自动连接 ${count} 台在线设备` : "已尝试自动连接，暂未发现在线设备" });
+        if (count === 0) setShowManual(true);
         await onConnected();
         await discoverMdns(true, true);
       } catch (e) {
         setMdnsResult({ ok: false, msg: String(e) });
+        setShowManual(true);
       } finally {
         setBusyAddress(null);
       }
@@ -214,6 +251,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
         });
         setConnectResult({ ok: true, msg: result });
         savePairConnect({ connectIp: ip, connectPort: port });
+        setLastConnect({ ip, port });
         await onConnected();
       } catch (e) {
         setConnectResult({ ok: false, msg: String(e) });
@@ -223,9 +261,15 @@ export default function PairConnect({ devices, onConnected }: Props) {
     });
   };
 
-  const connectableDevices = mdnsDevices.filter((device) => device.connectable);
-  const pairingDevices = mdnsDevices.filter((device) => !device.connectable);
   const connectedDevices = devices.filter((device) => device.state === "device");
+  const connectableDevices = mdnsDevices.filter((device) => device.connectable);
+  const connectedDeviceKeys = new Set(connectedDevices.flatMap(deviceConnectionKeys));
+  const connectableDeviceKeys = new Set(connectableDevices.map(mdnsDeviceKey).filter(Boolean));
+  const pairingDevices = mdnsDevices.filter((device) => {
+    if (device.connectable) return false;
+    const key = mdnsDeviceKey(device);
+    return !key || (!connectableDeviceKeys.has(key) && !connectedDeviceKeys.has(key));
+  });
   const adbBusy = busyAddress !== null || pairLoading || connectLoading || discovering;
 
   return (
@@ -290,9 +334,13 @@ export default function PairConnect({ devices, onConnected }: Props) {
           ))}
 
           {mdnsDevices.length === 0 && (
-            <div className="rounded-lg border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-400">
-              未发现局域网 ADB 服务
-            </div>
+            <ManualConnectHint
+              lastConnect={lastConnect}
+              onFillLastConnect={() => {
+                if (lastConnect) fillConnectEndpoint(lastConnect.ip, lastConnect.port);
+              }}
+              onShowManual={() => setShowManual(true)}
+            />
           )}
         </div>
 
@@ -350,8 +398,8 @@ export default function PairConnect({ devices, onConnected }: Props) {
             <div className="border-t border-gray-100 pt-5">
               <h4 className="text-sm font-medium text-gray-700 mb-3">连接设备</h4>
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <Field label="IP 地址" value={connectIp} onChange={setConnectIp} placeholder="192.168.1.100" />
-                <Field label="端口" value={connectPort} onChange={setConnectPort} placeholder="无线调试页面显示的端口" />
+                <Field label="IP 地址" value={connectIp} onChange={handleConnectIpChange} placeholder="192.168.1.100 或 192.168.1.100:12345" />
+                <Field label="端口" value={connectPort} onChange={handleConnectPortChange} placeholder="无线调试页面显示的端口" />
               </div>
               <button
                 onClick={handleConnect}
@@ -395,6 +443,47 @@ export default function PairConnect({ devices, onConnected }: Props) {
   );
 }
 
+function ManualConnectHint({
+  lastConnect,
+  onFillLastConnect,
+  onShowManual,
+}: {
+  lastConnect: { ip: string; port: string } | null;
+  onFillLastConnect: () => void;
+  onShowManual: () => void;
+}) {
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+      <div className="flex flex-col gap-3">
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-amber-900">扫描不到设备时，改用手动连接</div>
+          <div className="mt-1 text-xs leading-5 text-amber-800">
+            在 Android 的无线调试页面查看 <span className="font-medium">IP 地址和端口</span>，填到下方“连接设备”里。这个端口会变化，不要使用旧端口或配对码弹窗里的配对端口。
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {lastConnect && (
+            <button
+              type="button"
+              onClick={onFillLastConnect}
+              className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100"
+            >
+              填入最近连接 {lastConnect.ip}:{lastConnect.port}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onShowManual}
+            className="rounded-lg bg-amber-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-amber-700"
+          >
+            展开手动连接
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MdnsRow({
   device,
   busy,
@@ -434,15 +523,25 @@ function MdnsRow({
 }
 
 function isMdnsDeviceConnected(device: MdnsDevice, connectedDevices: DeviceInfo[]) {
+  const key = mdnsDeviceKey(device);
   return connectedDevices.some((connectedDevice) => {
     const serial = connectedDevice.serial;
     return (
+      (key && deviceConnectionKeys(connectedDevice).includes(key)) ||
       serial === device.address ||
       serial === device.service_name ||
       serial.startsWith(`${device.service_name}.`) ||
       serial.includes(device.address)
     );
   });
+}
+
+function mdnsDeviceKey(device: MdnsDevice) {
+  return device.service_name.match(/^adb-([^-]+)-/)?.[1] || null;
+}
+
+function deviceConnectionKeys(device: DeviceInfo) {
+  return [device.device_sn, device.serial.match(/^adb-([^-]+)-/)?.[1] || ""].filter(Boolean);
 }
 
 function MdnsPairRow({
@@ -543,6 +642,18 @@ function Field({
 
 function normalizePairCode(value: string) {
   return value.replace(/\D/g, "").slice(0, 8);
+}
+
+function parseConnectEndpoint(value: string) {
+  const match = value.trim().match(/^(\d{1,3}(?:\.\d{1,3}){3})\s*:\s*(\d{1,5})$/);
+  if (!match) return null;
+  const [, ip, port] = match;
+  const octets = ip.split(".").map(Number);
+  const portNumber = Number(port);
+  if (octets.some((octet) => octet < 0 || octet > 255) || portNumber < 1 || portNumber > 65535) {
+    return null;
+  }
+  return { ip, port };
 }
 
 function ResultMessage({ result }: { result: { ok: boolean; msg: string } }) {
