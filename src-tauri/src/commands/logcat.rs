@@ -1,3 +1,4 @@
+use rust_i18n::t;
 use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
 use std::thread;
@@ -37,7 +38,7 @@ pub fn adb_read_logcat(
 
     let arg_refs = owned_args.iter().map(String::as_str).collect::<Vec<_>>();
     let output = adb::run_adb(&app, &arg_refs, device_serial.as_deref())?;
-    adb::ensure_success(&output, "读取 logcat 失败")?;
+    adb::ensure_success(&output, &t!("logcat.read_failed"))?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     Ok(stdout.lines().map(parse_logcat_line).collect())
@@ -54,10 +55,12 @@ pub fn adb_start_logcat(
         let mut process = state
             .logcat_process
             .lock()
-            .map_err(|_| AdbError::CommandFailed("logcat 状态异常".to_string()))?;
+            .map_err(|_| AdbError::CommandFailed(t!("logcat.state_error").into_owned()))?;
         if let Some(child) = process.as_mut() {
             if child.try_wait()?.is_none() {
-                return Err(AdbError::CommandFailed("logcat 已在运行".to_string()));
+                return Err(AdbError::CommandFailed(
+                    t!("logcat.already_running").into_owned(),
+                ));
             }
             *process = None;
         }
@@ -117,18 +120,18 @@ pub fn adb_start_logcat(
         let mut process = state
             .logcat_process
             .lock()
-            .map_err(|_| AdbError::CommandFailed("logcat 状态异常".to_string()))?;
+            .map_err(|_| AdbError::CommandFailed(t!("logcat.state_error").into_owned()))?;
         *process = Some(child);
     }
     {
         let mut active_device = state
             .logcat_device
             .lock()
-            .map_err(|_| AdbError::CommandFailed("logcat 状态异常".to_string()))?;
+            .map_err(|_| AdbError::CommandFailed(t!("logcat.state_error").into_owned()))?;
         *active_device = device_serial;
     }
 
-    Ok("logcat 已开始".to_string())
+    Ok(t!("logcat.started").to_string())
 }
 
 #[tauri::command(async)]
@@ -136,7 +139,7 @@ pub fn adb_stop_logcat(state: State<'_, AppState>) -> Result<String, AdbError> {
     let mut process = state
         .logcat_process
         .lock()
-        .map_err(|_| AdbError::CommandFailed("logcat 状态异常".to_string()))?;
+        .map_err(|_| AdbError::CommandFailed(t!("logcat.state_error").into_owned()))?;
 
     if let Some(mut child) = process.take() {
         let _ = child.kill();
@@ -144,9 +147,9 @@ pub fn adb_stop_logcat(state: State<'_, AppState>) -> Result<String, AdbError> {
         if let Ok(mut active_device) = state.logcat_device.lock() {
             *active_device = None;
         }
-        Ok("logcat 已关闭".to_string())
+        Ok(t!("logcat.closed").to_string())
     } else {
-        Ok("logcat 未在运行".to_string())
+        Ok(t!("logcat.not_running").to_string())
     }
 }
 
@@ -162,7 +165,7 @@ pub async fn export_text_file(
         let path = app
             .dialog()
             .file()
-            .set_title("导出日志")
+            .set_title(t!("logcat.export_title").to_string())
             .set_file_name(&default_name)
             .blocking_save_file();
 
@@ -175,7 +178,9 @@ pub async fn export_text_file(
         }
     })
     .await
-    .map_err(|e| AdbError::CommandFailed(format!("导出日志失败: {}", e)))?
+    .map_err(|e| {
+        AdbError::CommandFailed(t!("logcat.export_failed", "message" => e.to_string()).into_owned())
+    })?
 }
 
 fn append_filter_args(args: &mut Vec<String>, logcat_filter: Option<&str>) {

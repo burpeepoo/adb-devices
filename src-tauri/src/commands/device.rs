@@ -1,3 +1,4 @@
+use rust_i18n::t;
 use serde::Serialize;
 use std::{collections::HashMap, sync::Mutex, time::Duration};
 use tauri::{AppHandle, State};
@@ -44,7 +45,7 @@ pub fn adb_devices(
 pub fn adb_mdns_discover(app: AppHandle) -> Result<Vec<MdnsDevice>, AdbError> {
     let output =
         adb::run_adb_with_timeout(&app, &["mdns", "services"], None, Duration::from_secs(8))?;
-    adb::ensure_success(&output, "扫描局域网 ADB 设备失败")?;
+    adb::ensure_success(&output, &t!("device.scan_failed"))?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     Ok(parse_mdns_services(&stdout))
 }
@@ -56,7 +57,7 @@ pub fn adb_auto_connect(app: AppHandle, address: String) -> Result<String, AdbEr
     let stdout = String::from_utf8_lossy(&output.stdout);
 
     if stdout.contains("connected") || stdout.contains("already connected") {
-        Ok(format!("已连接到 {}", address))
+        Ok(t!("device.connected_to", address = address).to_string())
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
         let msg = if stderr.trim().is_empty() {
@@ -64,7 +65,9 @@ pub fn adb_auto_connect(app: AppHandle, address: String) -> Result<String, AdbEr
         } else {
             stderr.trim().to_string()
         };
-        Err(AdbError::CommandFailed(format!("连接失败: {}", msg)))
+        Err(AdbError::CommandFailed(
+            t!("device.connect_failed", "message" => msg).into_owned(),
+        ))
     }
 }
 
@@ -80,7 +83,7 @@ pub fn adb_mdns_auto_connect(
         &[("ADB_MDNS_AUTO_CONNECT", "adb-tls-connect")],
         Duration::from_secs(12),
     )?;
-    adb::ensure_success(&output, "自动连接已配对设备失败")?;
+    adb::ensure_success(&output, &t!("device.auto_connect_failed"))?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     let devices = parse_devices_output(&stdout);
     Ok(enrich_device_serial_numbers(
@@ -218,7 +221,9 @@ pub fn adb_pair(
         } else {
             stderr.trim().to_string()
         };
-        return Err(AdbError::CommandFailed(format!("配对失败: {}", msg)));
+        return Err(AdbError::CommandFailed(
+            t!("device.pair_failed", "message" => msg).into_owned(),
+        ));
     }
 
     // 配对成功后立即尝试 mDNS 自动连接，避免用户手动输入连接端口
@@ -237,15 +242,12 @@ pub fn adb_pair(
                 .lines()
                 .any(|l| l.contains(&ip) && l.contains("device"))
             {
-                Ok(format!("配对成功并已连接到 {}", ip))
+                Ok(t!("device.pair_success_connected", ip = ip).to_string())
             } else {
-                Ok(format!(
-                    "配对成功。设备 {} 稍后将自动连接，也可点击「自动连接可信设备」按钮立即连接",
-                    ip
-                ))
+                Ok(t!("device.pair_success_pending", ip = ip).to_string())
             }
         }
-        Err(_) => Ok(format!("配对成功。设备 {} 稍后将自动连接", ip)),
+        Err(_) => Ok(t!("device.pair_success", ip = ip).to_string()),
     }
 }
 
@@ -257,9 +259,9 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
     let stdout = String::from_utf8_lossy(&output.stdout);
 
     if stdout.contains("connected") {
-        return Ok(format!("已连接到 {}", addr));
+        return Ok(t!("device.connected_to", address = addr).to_string());
     } else if stdout.contains("already connected") {
-        return Ok(format!("已连接（{} 已在线）", addr));
+        return Ok(t!("device.already_connected", address = addr).to_string());
     }
 
     // 直接连接失败——设备端口可能已变化，回退到 mDNS 自动发现
@@ -276,21 +278,19 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
     for line in fallback_stdout.lines().skip(1) {
         let line = line.trim();
         if line.contains(&ip) && line.contains("device") {
-            return Ok(format!("已通过 mDNS 自动发现连接到 {}", ip));
+            return Ok(t!("device.connected_via_mdns", ip = ip).to_string());
         }
     }
 
     // 两种方式都失败，返回原始错误
     if stdout.contains("refused") {
-        Err(AdbError::CommandFailed(format!(
-            "连接被拒绝: {}。设备端口可能已变化，请在 Android 上关闭再开启无线调试后重试，或点击「自动连接可信设备」按钮",
-            addr
-        )))
+        Err(AdbError::CommandFailed(
+            t!("device.connect_refused", address = addr).into_owned(),
+        ))
     } else {
-        Err(AdbError::CommandFailed(format!(
-            "连接失败: {}。请确认设备在同一 WiFi 下且无线调试已开启",
-            stdout.trim()
-        )))
+        Err(AdbError::CommandFailed(
+            t!("device.connect_refused_wifi", "message" => stdout.trim()).into_owned(),
+        ))
     }
 }
 
@@ -302,9 +302,9 @@ pub fn adb_disconnect(app: AppHandle, ip: String, port: String) -> Result<String
     let stdout = String::from_utf8_lossy(&output.stdout);
 
     if stdout.contains("disconnected") {
-        Ok(format!("已断开 {}", addr))
+        Ok(t!("device.disconnected", address = addr).to_string())
     } else {
-        Ok(format!("断开结果: {}", stdout.trim()))
+        Ok(t!("device.disconnect_result", "message" => stdout.trim()).to_string())
     }
 }
 

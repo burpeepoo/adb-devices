@@ -1,25 +1,59 @@
+use rust_i18n::t;
 use std::path::PathBuf;
 use std::process::{Command, Output};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager};
-use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum AdbError {
-    #[error("ADB 未安装，请点击一键安装")]
     AdbNotInstalled,
-    #[error("ADB 命令执行失败: {0}")]
     CommandFailed(String),
-    #[error("ADB 命令超时: {0}")]
     CommandTimedOut(String),
-    #[error("未找到设备")]
     NoDevice,
-    #[error("正在录屏中")]
     AlreadyRecording,
-    #[error("没有正在进行的录屏")]
     NotRecording,
-    #[error("IO 错误: {0}")]
-    Io(#[from] std::io::Error),
+    Io(std::io::Error),
+}
+
+impl std::fmt::Display for AdbError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::AdbNotInstalled => write!(f, "{}", t!("errors.adb_not_installed")),
+            Self::CommandFailed(msg) => {
+                write!(
+                    f,
+                    "{}",
+                    t!("errors.command_failed", "message" => msg.clone())
+                )
+            }
+            Self::CommandTimedOut(msg) => {
+                write!(
+                    f,
+                    "{}",
+                    t!("errors.command_timed_out", "message" => msg.clone())
+                )
+            }
+            Self::NoDevice => write!(f, "{}", t!("errors.no_device")),
+            Self::AlreadyRecording => write!(f, "{}", t!("errors.already_recording")),
+            Self::NotRecording => write!(f, "{}", t!("errors.not_recording")),
+            Self::Io(e) => write!(f, "{}", t!("errors.io", "message" => e.to_string())),
+        }
+    }
+}
+
+impl std::error::Error for AdbError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl From<std::io::Error> for AdbError {
+    fn from(e: std::io::Error) -> Self {
+        Self::Io(e)
+    }
 }
 
 impl serde::Serialize for AdbError {
@@ -204,10 +238,9 @@ fn wait_with_timeout(cmd: &mut Command, timeout: Duration) -> Result<Output, Adb
         if started.elapsed() >= timeout {
             let _ = child.kill();
             let _ = child.wait_with_output();
-            return Err(AdbError::CommandTimedOut(format!(
-                "{} 秒内没有返回，请检查端口是否仍然有效，或关闭无线调试后重新打开",
-                timeout.as_secs()
-            )));
+            return Err(AdbError::CommandTimedOut(
+                t!("errors.timeout_detail", seconds = timeout.as_secs()).into_owned(),
+            ));
         }
 
         std::thread::sleep(Duration::from_millis(100));

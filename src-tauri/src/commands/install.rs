@@ -1,3 +1,4 @@
+use rust_i18n::t;
 use std::io::Read;
 use std::sync::Mutex;
 use tauri::{AppHandle, State};
@@ -18,10 +19,10 @@ impl Drop for InstallGuard<'_> {
 fn acquire_install_lock(lock: &Mutex<bool>) -> Result<InstallGuard<'_>, AdbError> {
     let mut installing = lock
         .lock()
-        .map_err(|_| AdbError::CommandFailed("安装状态异常，请重启应用后重试".to_string()))?;
+        .map_err(|_| AdbError::CommandFailed(t!("install.state_error").into_owned()))?;
     if *installing {
         return Err(AdbError::CommandFailed(
-            "正在安装中，请等待当前安装完成".to_string(),
+            t!("install.in_progress").into_owned(),
         ));
     }
     *installing = true;
@@ -67,10 +68,10 @@ pub fn adb_install(
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     if stdout.contains("Success") {
-        Ok("安装成功".to_string())
+        Ok(t!("install.success").to_string())
     } else if stdout.contains("INSTALL_FAILED_ALREADY_EXISTS") {
         Err(AdbError::CommandFailed(
-            "安装失败: 应用已存在，请勾选强制安装".to_string(),
+            t!("install.failed_exists").into_owned(),
         ))
     } else {
         let msg = if stdout.trim().is_empty() {
@@ -78,7 +79,9 @@ pub fn adb_install(
         } else {
             stdout.trim().to_string()
         };
-        Err(AdbError::CommandFailed(format!("安装失败: {}", msg)))
+        Err(AdbError::CommandFailed(
+            t!("install.failed", "message" => msg).into_owned(),
+        ))
     }
 }
 
@@ -89,15 +92,16 @@ pub fn parse_apk_package(apk_path: String) -> Result<String, AdbError> {
 
 fn extract_apk_package_name(apk_path: &str) -> Result<String, AdbError> {
     let file = std::fs::File::open(apk_path)?;
-    let mut archive = zip::ZipArchive::new(file)
-        .map_err(|e| AdbError::CommandFailed(format!("读取 APK 失败: {}", e)))?;
-    let mut manifest = archive
-        .by_name("AndroidManifest.xml")
-        .map_err(|e| AdbError::CommandFailed(format!("读取 AndroidManifest.xml 失败: {}", e)))?;
+    let mut archive = zip::ZipArchive::new(file).map_err(|e| {
+        AdbError::CommandFailed(t!("install.read_apk_failed", "message" => e).into_owned())
+    })?;
+    let mut manifest = archive.by_name("AndroidManifest.xml").map_err(|e| {
+        AdbError::CommandFailed(t!("install.read_manifest_failed", "message" => e).into_owned())
+    })?;
     let mut data = Vec::new();
     manifest.read_to_end(&mut data)?;
     parse_binary_manifest_package(&data)
-        .ok_or_else(|| AdbError::CommandFailed("无法从 APK 中识别包名".to_string()))
+        .ok_or_else(|| AdbError::CommandFailed(t!("install.cannot_identify_package").into_owned()))
 }
 
 fn parse_binary_manifest_package(data: &[u8]) -> Option<String> {

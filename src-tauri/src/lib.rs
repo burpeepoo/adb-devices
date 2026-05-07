@@ -4,6 +4,8 @@ mod state;
 
 use state::AppState;
 
+rust_i18n::i18n!("locales", fallback = "en");
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -42,6 +44,7 @@ pub fn run() {
             commands::settings::install_adb,
             commands::settings::reveal_path,
             commands::settings::open_external_url,
+            commands::settings::set_locale,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 const MAX_LENGTH = 2000;
 
 export default function Clipboard({ deviceSerial }: Props) {
+  const { t } = useTranslation();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -33,7 +35,7 @@ export default function Clipboard({ deviceSerial }: Props) {
     <div className="max-w-2xl space-y-4">
       <section className="bg-white rounded-lg border border-gray-200 p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-gray-800">剪贴板</h3>
+          <h3 className="text-base font-semibold text-gray-800">{t('clipboard.title')}</h3>
           <span className={`text-xs ${text.length >= MAX_LENGTH ? "text-red-500" : "text-gray-400"}`}>
             {text.length}/{MAX_LENGTH}
           </span>
@@ -44,7 +46,7 @@ export default function Clipboard({ deviceSerial }: Props) {
           onChange={(e) => setText(e.target.value.slice(0, MAX_LENGTH))}
           maxLength={MAX_LENGTH}
           rows={5}
-          placeholder="输入或粘贴要发送到设备当前输入框的文本"
+          placeholder={t('clipboard.placeholder')}
           className="w-full min-h-[120px] resize-y px-3 py-2 border border-gray-300 rounded-lg text-sm leading-6 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
         />
 
@@ -54,7 +56,7 @@ export default function Clipboard({ deviceSerial }: Props) {
             disabled={sending || !text.trim()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {sending ? "发送中..." : "粘贴到设备"}
+            {sending ? t('clipboard.sending') : t('clipboard.pasteToDevice')}
           </button>
           <button
             onClick={() => {
@@ -64,7 +66,7 @@ export default function Clipboard({ deviceSerial }: Props) {
             disabled={!text && !result}
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            清空
+            {t('clipboard.clear')}
           </button>
         </div>
 
@@ -76,7 +78,7 @@ export default function Clipboard({ deviceSerial }: Props) {
 
         {!deviceSerial && (
           <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-            未选择设备，将使用默认设备
+            {t('clipboard.noDevice')}
           </div>
         )}
       </section>

@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { PackageInfo } from "../types";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   deviceSerial: string | null;
@@ -10,6 +11,7 @@ type SortKey = "name" | "version_name" | "version_code" | "device_serial" | "bui
 type SortDirection = "asc" | "desc";
 
 export default function PackageList({ deviceSerial }: Props) {
+  const { t } = useTranslation();
   const [packages, setPackages] = useState<PackageInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +67,7 @@ export default function PackageList({ deviceSerial }: Props) {
       await navigator.clipboard.writeText(name);
       setError(null);
     } catch {
-      setError("复制包名失败");
+      setError(t('packageList.copyFailed'));
     }
   };
 
@@ -78,14 +80,14 @@ export default function PackageList({ deviceSerial }: Props) {
             disabled={loading || !deviceSerial}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? "加载中..." : "获取包信息"}
+            {loading ? t('packageList.loading') : t('packageList.loadPkgInfo')}
           </button>
           {packages.length > 0 && (
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="搜索包名..."
+              placeholder={t('packageList.searchPkg')}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
           )}
@@ -104,30 +106,30 @@ export default function PackageList({ deviceSerial }: Props) {
               <tr>
                 <th className="text-left font-medium px-3 py-2">
                   <button onClick={() => handleSort("name")} className="hover:text-gray-800">
-                    包名{sortIndicator("name")}
+                    {t('packageList.pkgName')}{sortIndicator("name")}
                   </button>
                 </th>
                 <th className="text-left font-medium px-3 py-2">
                   <button onClick={() => handleSort("version_name")} className="hover:text-gray-800">
-                    Version Name{sortIndicator("version_name")}
+                    {t('packageList.versionName')}{sortIndicator("version_name")}
                   </button>
                 </th>
                 <th className="text-left font-medium px-3 py-2">
                   <button onClick={() => handleSort("version_code")} className="hover:text-gray-800">
-                    Version Code{sortIndicator("version_code")}
+                    {t('packageList.versionCode')}{sortIndicator("version_code")}
                   </button>
                 </th>
                 <th className="text-left font-medium px-3 py-2">
                   <button onClick={() => handleSort("device_serial")} className="hover:text-gray-800">
-                    Serial Number{sortIndicator("device_serial")}
+                    {t('packageList.serialNumber')}{sortIndicator("device_serial")}
                   </button>
                 </th>
                 <th className="text-left font-medium px-3 py-2">
                   <button onClick={() => handleSort("build_number")} className="hover:text-gray-800">
-                    Build Number{sortIndicator("build_number")}
+                    {t('packageList.buildNumber')}{sortIndicator("build_number")}
                   </button>
                 </th>
-                <th className="text-left font-medium px-3 py-2">操作</th>
+                <th className="text-left font-medium px-3 py-2">{t('packageList.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -143,7 +145,7 @@ export default function PackageList({ deviceSerial }: Props) {
                       onClick={() => handleCopyPackageName(pkg.name)}
                       className="text-blue-500 hover:text-blue-700"
                     >
-                      复制包名
+                      {t('packageList.copyPkgName')}
                     </button>
                   </td>
                 </tr>
@@ -153,11 +155,11 @@ export default function PackageList({ deviceSerial }: Props) {
         ) : (
           loading ? (
             <div className="p-6 text-center text-sm text-gray-400">
-              正在读取设备包信息...
+              {t('packageList.readingPkg')}
             </div>
           ) : (
             <div className="p-6 text-center text-sm text-gray-400">
-              {deviceSerial ? "点击获取包信息加载" : "请先选择在线设备"}
+              {deviceSerial ? t('packageList.clickToLoad') : t('packageList.selectDevice')}
             </div>
           )
         )}
@@ -165,7 +167,7 @@ export default function PackageList({ deviceSerial }: Props) {
 
       {packages.length > 0 && (
         <div className="p-2 border-t border-gray-200 text-xs text-gray-400 text-center">
-          共 {sorted.length} / {packages.length} 个包
+          {t('packageList.totalPackages', { sorted: sorted.length, total: packages.length })}
         </div>
       )}
     </div>

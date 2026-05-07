@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type HTMLAttributes } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import { DeviceInfo, MdnsDevice, PairConnectSettings } from "../types";
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function PairConnect({ devices, onConnected }: Props) {
+  const { t } = useTranslation();
   const adbOperationRef = useRef(false);
   const discoveringRef = useRef(false);
   const pairCodeInputFocusedRef = useRef(false);
@@ -109,7 +111,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
       setMdnsDevices(devices);
       if (!silent) {
-        setMdnsResult({ ok: true, msg: devices.length ? `发现 ${devices.length} 个局域网 ADB 服务` : "未发现局域网 ADB 服务" });
+        setMdnsResult({ ok: true, msg: devices.length ? t('pairConnect.discovered', { count: devices.length }) : t('pairConnect.notDiscovered') });
       }
     } catch (e) {
       if (!silent) {
@@ -119,7 +121,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       discoveringRef.current = false;
       if (!silent) setDiscovering(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     discoverMdns(true);
@@ -142,7 +144,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
         setLastConnect({ ip: device.ip, port: device.port });
         await onConnected();
       } catch (e) {
-        setMdnsResult({ ok: false, msg: `${String(e)}。如果这是第一次连接这台设备，请先在 Android 无线调试里打开配对码并完成配对。` });
+        setMdnsResult({ ok: false, msg: `${String(e)}。${t('pairConnect.firstTimeHint')}` });
       } finally {
         setBusyAddress(null);
       }
@@ -187,7 +189,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
         const devices = await invoke<DeviceInfo[]>("adb_mdns_auto_connect");
         const onlineDevices = devices.filter((device) => device.state === "device");
         const count = onlineDevices.length;
-        setMdnsResult({ ok: true, msg: count ? `已自动连接 ${count} 台在线设备` : "已尝试自动连接，暂未发现在线设备" });
+        setMdnsResult({ ok: true, msg: count ? t('pairConnect.autoConnected', { count }) : t('pairConnect.autoConnectNone') });
         if (count === 0) setShowManual(true);
         await onConnected();
         await discoverMdns(true, true);
@@ -277,8 +279,8 @@ export default function PairConnect({ devices, onConnected }: Props) {
       <section className="bg-white rounded-lg border border-gray-200 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-800">局域网设备</h3>
-            <p className="text-xs text-gray-400 mt-1">自动扫描 mDNS 发现的 Android 无线调试设备</p>
+            <h3 className="text-base font-semibold text-gray-800">{t('pairConnect.lanDevices')}</h3>
+            <p className="text-xs text-gray-400 mt-1">{t('pairConnect.lanDevicesDesc')}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -286,14 +288,14 @@ export default function PairConnect({ devices, onConnected }: Props) {
               disabled={adbBusy}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {discovering ? "扫描中..." : "扫描"}
+              {discovering ? t('pairConnect.scanning') : t('pairConnect.scan')}
             </button>
             <button
               onClick={handleMdnsAutoConnect}
               disabled={adbBusy}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {busyAddress === "__auto__" ? "连接中..." : "自动连接可信设备"}
+              {busyAddress === "__auto__" ? t('pairConnect.connecting') : t('pairConnect.autoConnect')}
             </button>
           </div>
         </div>
@@ -356,19 +358,19 @@ export default function PairConnect({ devices, onConnected }: Props) {
           onClick={() => setShowManual((value) => !value)}
           className="flex w-full items-center justify-between text-left"
         >
-          <span className="text-base font-semibold text-gray-800">手动输入</span>
-          <span className="text-sm text-gray-400">{showManual ? "收起" : "展开"}</span>
+          <span className="text-base font-semibold text-gray-800">{t('pairConnect.manualInput')}</span>
+          <span className="text-sm text-gray-400">{showManual ? t('pairConnect.collapse') : t('pairConnect.expand')}</span>
         </button>
 
         {showManual && (
           <div className="mt-4 space-y-5">
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">配对设备</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">{t('pairConnect.pairDevice')}</h4>
               <div className="grid grid-cols-3 gap-3 mb-3">
-                <Field label="IP 地址" value={pairIp} onChange={setPairIp} placeholder="192.168.1.100" />
-                <Field label="端口" value={pairPort} onChange={setPairPort} placeholder="12345" />
+                <Field label={t('pairConnect.ipAddress')} value={pairIp} onChange={setPairIp} placeholder="192.168.1.100" />
+                <Field label={t('pairConnect.port')} value={pairPort} onChange={setPairPort} placeholder="12345" />
                 <Field
-                  label="配对码"
+                  label={t('pairConnect.pairCode')}
                   value={pairCode}
                   onChange={(value) => setPairCode(normalizePairCode(value))}
                   onFocus={() => {
@@ -388,7 +390,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
                 disabled={adbBusy || !pairIp.trim() || !pairPort.trim() || !pairCode.trim()}
                 className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {pairLoading ? "配对中..." : "配对"}
+                {pairLoading ? t('pairConnect.pairing') : t('pairConnect.pair')}
               </button>
               {pairResult && (
                 <ResultMessage result={pairResult} />
@@ -396,17 +398,17 @@ export default function PairConnect({ devices, onConnected }: Props) {
             </div>
 
             <div className="border-t border-gray-100 pt-5">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">连接设备</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">{t('pairConnect.connectDevice')}</h4>
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <Field label="IP 地址" value={connectIp} onChange={handleConnectIpChange} placeholder="192.168.1.100 或 192.168.1.100:12345" />
-                <Field label="端口" value={connectPort} onChange={handleConnectPortChange} placeholder="无线调试页面显示的端口" />
+                <Field label={t('pairConnect.ipAddress')} value={connectIp} onChange={handleConnectIpChange} placeholder={t('pairConnect.connectIpPlaceholder')} />
+                <Field label={t('pairConnect.port')} value={connectPort} onChange={handleConnectPortChange} placeholder={t('pairConnect.connectPortPlaceholder')} />
               </div>
               <button
                 onClick={handleConnect}
                 disabled={adbBusy || !connectIp.trim() || !connectPort.trim()}
                 className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {connectLoading ? "连接中..." : "连接"}
+                {connectLoading ? t('pairConnect.connecting') : t('pairConnect.connect')}
               </button>
               {connectResult && (
                 <ResultMessage result={connectResult} />
@@ -417,26 +419,26 @@ export default function PairConnect({ devices, onConnected }: Props) {
       </section>
 
       <section className="bg-blue-50 rounded-lg border border-blue-200 p-5">
-        <h3 className="text-base font-semibold text-blue-800 mb-2">使用指引</h3>
+        <h3 className="text-base font-semibold text-blue-800 mb-2">{t('pairConnect.guide')}</h3>
         <div className="text-sm text-blue-700 space-y-3">
           <div>
-            <h4 className="font-medium text-blue-800 mb-1">如何获取配对码</h4>
+            <h4 className="font-medium text-blue-800 mb-1">{t('pairConnect.howToGetPairCode')}</h4>
             <ol className="list-decimal list-inside space-y-0.5 text-blue-700">
-              <li>在 Android 设备上打开 <strong>设置 → 开发者选项 → 无线调试</strong></li>
-              <li>开启无线调试开关</li>
-              <li>点击 <strong>使用配对码配对设备</strong></li>
-              <li>屏幕会显示 6 位配对码和配对端口号，将它们填入上方配对区域</li>
+              <li>{t('pairConnect.guideStep1')}</li>
+              <li>{t('pairConnect.guideStep2')}</li>
+              <li>{t('pairConnect.guideStep3')}</li>
+              <li>{t('pairConnect.guideStep4')}</li>
             </ol>
           </div>
           <div>
-            <h4 className="font-medium text-blue-800 mb-1">如何获取连接 IP 和端口</h4>
+            <h4 className="font-medium text-blue-800 mb-1">{t('pairConnect.howToGetConnectAddr')}</h4>
             <ol className="list-decimal list-inside space-y-0.5 text-blue-700">
-              <li>在 Android 设备上打开 <strong>设置 → 开发者选项 → 无线调试</strong></li>
-              <li>页面中显示的 <strong>IP 地址和端口</strong> 即为连接地址（注意：此端口与配对端口不同）</li>
-              <li>将 IP 和端口填入上方连接区域即可</li>
+              <li>{t('pairConnect.guideConnectStep1')}</li>
+              <li>{t('pairConnect.guideConnectStep2')}</li>
+              <li>{t('pairConnect.guideConnectStep3')}</li>
             </ol>
           </div>
-          <p className="text-xs text-blue-500">提示：配对只需一次，后续连接无需重复配对。局域网扫描会自动发现设备并填入对应地址。若无法扫描到该设备，请确保 Android 设备已打开开发者选项中的「无线调试」功能，并尝试切换 Wi-Fi 后重新扫描。</p>
+          <p className="text-xs text-blue-500">{t('pairConnect.guideTip')}</p>
         </div>
       </section>
     </div>
@@ -452,13 +454,14 @@ function ManualConnectHint({
   onFillLastConnect: () => void;
   onShowManual: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
       <div className="flex flex-col gap-3">
         <div className="min-w-0">
-          <div className="text-sm font-medium text-amber-900">扫描不到设备时，改用手动连接</div>
+          <div className="text-sm font-medium text-amber-900">{t('pairConnect.noDeviceHintTitle')}</div>
           <div className="mt-1 text-xs leading-5 text-amber-800">
-            在 Android 的无线调试页面查看 <span className="font-medium">IP 地址和端口</span>，填到下方“连接设备”里。这个端口会变化，不要使用旧端口或配对码弹窗里的配对端口。
+            {t('pairConnect.noDeviceHintDesc')}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -468,7 +471,7 @@ function ManualConnectHint({
               onClick={onFillLastConnect}
               className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100"
             >
-              填入最近连接 {lastConnect.ip}:{lastConnect.port}
+              {t('pairConnect.fillLastConnect')} {lastConnect.ip}:{lastConnect.port}
             </button>
           )}
           <button
@@ -476,7 +479,7 @@ function ManualConnectHint({
             onClick={onShowManual}
             className="rounded-lg bg-amber-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-amber-700"
           >
-            展开手动连接
+            {t('pairConnect.showManualConnect')}
           </button>
         </div>
       </div>
@@ -497,14 +500,15 @@ function MdnsRow({
   connected: boolean;
   onConnect: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-4 py-3">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-gray-800 truncate">{device.service_name}</span>
-          <span className="rounded bg-green-50 px-2 py-0.5 text-xs text-green-700">可连接</span>
+          <span className="rounded bg-green-50 px-2 py-0.5 text-xs text-green-700">{t('pairConnect.connectable')}</span>
           <span className={`rounded px-2 py-0.5 text-xs ${connected ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
-            {connected ? "已连接" : "未连接"}
+            {connected ? t('pairConnect.connected') : t('pairConnect.notConnected')}
           </span>
         </div>
         <div className="mt-1 text-xs text-gray-400">
@@ -516,7 +520,7 @@ function MdnsRow({
         disabled={disabled || connected}
         className="shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        {connected ? "已连接" : busy ? "连接中..." : "一键连接"}
+        {connected ? t('pairConnect.connected') : busy ? t('pairConnect.connecting') : t('pairConnect.oneClickConnect')}
       </button>
     </div>
   );
@@ -563,13 +567,14 @@ function MdnsPairRow({
   onCodeBlur: () => void;
   onPair: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-gray-200 px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-800 truncate">{device.service_name}</span>
-            <span className="rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-700">需要配对</span>
+            <span className="rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-700">{t('pairConnect.needPair')}</span>
           </div>
           <div className="mt-1 text-xs text-gray-400">
             {device.address} · {device.service_type}
@@ -581,7 +586,7 @@ function MdnsPairRow({
             onChange={(event) => onCodeChange(event.target.value)}
             onFocus={onCodeFocus}
             onBlur={onCodeBlur}
-            placeholder="配对码"
+            placeholder={t('pairConnect.pairCode')}
             maxLength={8}
             inputMode="numeric"
             autoComplete="one-time-code"
@@ -592,7 +597,7 @@ function MdnsPairRow({
             disabled={disabled || !code.trim()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {busy ? "配对中..." : "配对"}
+            {busy ? t('pairConnect.pairing') : t('pairConnect.pair')}
           </button>
         </div>
       </div>

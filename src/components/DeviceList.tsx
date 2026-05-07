@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { DeviceInfo } from "../types";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   devices: DeviceInfo[];
@@ -23,6 +24,7 @@ export default function DeviceList({
   onSelectDevice,
   onRefresh,
 }: Props) {
+  const { t } = useTranslation();
   const [deviceNotes, setDeviceNotes] = useState<DeviceNotes>({});
   const onlineDevices = devices.filter((d) => d.state === "device");
   const offlineDevices = devices.filter((d) => d.state !== "device");
@@ -52,12 +54,12 @@ export default function DeviceList({
   return (
     <aside className="w-72 border-r border-gray-200 bg-gray-50 flex flex-col">
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200">
-        <h2 className="text-sm font-semibold text-gray-700">设备列表</h2>
+        <h2 className="text-sm font-semibold text-gray-700">{t('deviceList.title')}</h2>
         <button
           onClick={onRefresh}
           disabled={loading}
           className="p-1 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-50"
-          title="刷新"
+          title={t('deviceList.refresh')}
         >
           <svg className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -73,7 +75,7 @@ export default function DeviceList({
       <div className="flex-1 overflow-y-auto min-h-0">
         {onlineDevices.length > 0 && (
           <div className="px-3 pt-2 pb-1 sticky top-0 bg-gray-50 z-10">
-            <span className="text-xs text-gray-400 font-medium">在线 ({onlineDevices.length})</span>
+            <span className="text-xs text-gray-400 font-medium">{`${t('deviceList.online')} (${onlineDevices.length})`}</span>
           </div>
         )}
         {onlineDevices.map((device) => (
@@ -92,7 +94,7 @@ export default function DeviceList({
         {offlineDevices.length > 0 && (
           <>
             <div className="px-3 pt-3 pb-1">
-              <span className="text-xs text-gray-400 font-medium">离线 ({offlineDevices.length})</span>
+              <span className="text-xs text-gray-400 font-medium">{`${t('deviceList.offline')} (${offlineDevices.length})`}</span>
             </div>
             {offlineDevices.map((device) => (
               <DeviceRow
@@ -112,7 +114,7 @@ export default function DeviceList({
 
       {devices.length === 0 && !loading && (
         <div className="px-3 py-4 text-center text-sm text-gray-400">
-          暂无设备<br />请先配对连接
+          {t('deviceList.noDevice')}<br />{t('deviceList.pleasePair')}
         </div>
       )}
     </aside>
@@ -136,11 +138,12 @@ function DeviceRow({
   onSelect?: () => void;
   onNoteChange: (note: string) => void;
 }) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(note);
   const title = device.device_sn || device.serial;
   const connectionLabel = (type: DeviceInfo["connection_type"]) =>
-    type === "wireless" ? "无线" : type === "usb" ? "有线" : "未知";
+    type === "wireless" ? t('deviceList.wireless') : type === "usb" ? t('deviceList.usb') : t('deviceList.unknown');
   const connectionClass = (type: DeviceInfo["connection_type"]) =>
     type === "wireless"
       ? "bg-blue-50 text-blue-600"
@@ -190,16 +193,16 @@ function DeviceRow({
             </span>
             {mirroring && (
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600">
-                投屏中
+                {t('deviceList.mirroring')}
               </span>
             )}
           </div>
           <div className="text-xs text-gray-400 truncate" title={device.serial}>
-            ADB: {device.serial}
+            {t('deviceList.adb')}: {device.serial}
           </div>
           {device.model && (
             <div className="text-xs text-gray-400 truncate" title={device.model}>
-              Model: {device.model}
+              {t('deviceList.model')}: {device.model}
             </div>
           )}
         </button>
@@ -210,7 +213,7 @@ function DeviceRow({
             onKeyDown={(e) => { if (e.key === "Enter") commitEdit(); if (e.key === "Escape") setEditing(false); }}
             onBlur={commitEdit}
             onClick={(e) => e.stopPropagation()}
-            placeholder="例如：客厅样机"
+            placeholder={t('deviceList.notePlaceholder')}
             autoFocus
             className="mt-2 w-full rounded border border-blue-400 bg-white px-2 py-1.5 text-xs text-gray-700 placeholder:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
           />
@@ -221,7 +224,7 @@ function DeviceRow({
               note ? "text-gray-700" : selected ? "text-blue-400" : "text-gray-300"
             }`}
           >
-            {note || "点击添加备注"}
+            {note || t('deviceList.addNote')}
           </div>
         )}
       </div>

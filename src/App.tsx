@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { TabKey, AppSettings } from "./types";
 import { useDevices } from "./hooks/useDevices";
@@ -15,24 +16,25 @@ import Logcat from "./components/Logcat";
 import PackageList from "./components/PackageList";
 import Settings from "./components/Settings";
 
-const TAB_LABELS: Record<TabKey, string> = {
-  pair: "配对连接",
-  install: "安装应用",
-  screenshot: "截图",
-  record: "录屏",
-  mirror: "投屏控制",
-  clipboard: "剪贴板",
-  logcat: "Logcat",
-  packages: "包管理",
-};
-
 interface ScreenMirrorState {
   running: boolean;
   device_serial: string | null;
 }
 
 export default function App() {
+  const { t } = useTranslation();
   const { devices, loading, error, selectedDevice, setSelectedDevice, refresh } = useDevices();
+
+  const TAB_LABELS: Record<TabKey, string> = {
+    pair: t('tabs.pairConnect'),
+    install: t('tabs.apkInstall'),
+    screenshot: t('tabs.screenshot'),
+    record: t('tabs.screenRecord'),
+    mirror: t('tabs.screenMirror'),
+    clipboard: t('tabs.clipboard'),
+    logcat: t('tabs.logcat'),
+    packages: t('tabs.packageList'),
+  };
   const [activeTab, setActiveTab] = useState<TabKey>("pair");
   const [adbAvailable, setAdbAvailable] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -110,7 +112,7 @@ export default function App() {
   if (adbAvailable === null) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">正在检测 ADB...</div>
+        <div className="text-gray-500">{t('app.detectingAdb')}</div>
       </div>
     );
   }
@@ -123,11 +125,11 @@ export default function App() {
     <div className="flex flex-col h-screen">
       {/* Top bar */}
       <header className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200 shadow-sm">
-        <h1 className="text-lg font-semibold text-gray-800">ADB Manager</h1>
+        <h1 className="text-lg font-semibold text-gray-800">{t('app.title')}</h1>
         <button
           onClick={() => setShowSettings(true)}
           className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
-          title="设置"
+          title={t('app.settings')}
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -209,10 +211,10 @@ export default function App() {
       <footer className="flex items-center justify-between px-4 py-1.5 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
         <span>
           {devices.length > 0
-            ? `${devices.filter((d) => d.state === "device").length} 台设备在线`
-            : "无设备连接"}
+            ? t('app.devicesOnline', { count: devices.filter((d) => d.state === "device").length })
+            : t('app.noDevice')}
         </span>
-        <span>每5分钟自动刷新</span>
+        <span>{t('app.autoRefresh')}</span>
       </footer>
 
       {/* Settings modal */}

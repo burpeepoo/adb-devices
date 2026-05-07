@@ -1,3 +1,4 @@
+use rust_i18n::t;
 use serde::Serialize;
 use tauri::AppHandle;
 
@@ -22,7 +23,7 @@ pub fn adb_list_packages(
         &["shell", "pm", "list", "packages"],
         device_serial.as_deref(),
     )?;
-    adb::ensure_success(&output, "获取包列表失败")?;
+    adb::ensure_success(&output, &t!("package.list_failed"))?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     let mut packages = Vec::new();
 
@@ -51,21 +52,21 @@ pub fn adb_package_info(
         &["shell", "dumpsys", "package", &package_name],
         serial,
     )?;
-    adb::ensure_success(&output, "获取包详情失败")?;
+    adb::ensure_success(&output, &t!("package.detail_failed"))?;
     let stdout = String::from_utf8_lossy(&output.stdout);
 
     let (version_name, version_code) = parse_package_versions(&stdout);
 
     // Get build ID
     let build_output = adb::run_adb(&app, &["shell", "getprop", "ro.build.display.id"], serial)?;
-    adb::ensure_success(&build_output, "获取 Build Number 失败")?;
+    adb::ensure_success(&build_output, &t!("package.build_number_failed"))?;
     let build_id = String::from_utf8_lossy(&build_output.stdout)
         .trim()
         .to_string();
 
     // Get serial number
     let serial_output = adb::run_adb(&app, &["shell", "getprop", "ro.serialno"], serial)?;
-    adb::ensure_success(&serial_output, "获取 Serial Number 失败")?;
+    adb::ensure_success(&serial_output, &t!("package.serial_number_failed"))?;
     let serial_no = String::from_utf8_lossy(&serial_output.stdout)
         .trim()
         .to_string();
@@ -86,19 +87,19 @@ pub fn adb_list_package_details(
 ) -> Result<Vec<PackageInfo>, AdbError> {
     let serial = device_serial.as_deref();
     let build_output = adb::run_adb(&app, &["shell", "getprop", "ro.build.display.id"], serial)?;
-    adb::ensure_success(&build_output, "获取 Build Number 失败")?;
+    adb::ensure_success(&build_output, &t!("package.build_number_failed"))?;
     let build_number = String::from_utf8_lossy(&build_output.stdout)
         .trim()
         .to_string();
 
     let serial_output = adb::run_adb(&app, &["shell", "getprop", "ro.serialno"], serial)?;
-    adb::ensure_success(&serial_output, "获取 Serial Number 失败")?;
+    adb::ensure_success(&serial_output, &t!("package.serial_number_failed"))?;
     let device_serial_value = String::from_utf8_lossy(&serial_output.stdout)
         .trim()
         .to_string();
 
     let output = adb::run_adb(&app, &["shell", "dumpsys", "package", "packages"], serial)?;
-    adb::ensure_success(&output, "获取包详情失败")?;
+    adb::ensure_success(&output, &t!("package.detail_failed"))?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     let mut packages = parse_all_package_details(&stdout, &device_serial_value, &build_number);
     packages.sort_by(|a, b| a.name.cmp(&b.name));

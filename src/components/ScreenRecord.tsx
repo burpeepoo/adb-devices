@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { formatDuration } from "../utils/format";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   deviceSerial: string | null;
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }: Props) {
+  const { t } = useTranslation();
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [stopping, setStopping] = useState(false);
@@ -34,7 +36,7 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
 
   const handleStart = useCallback(async () => {
     if (!deviceSerial) {
-      setResult({ ok: false, msg: "请先选择设备" });
+      setResult({ ok: false, msg: t('screenRecord.selectDevice') });
       return;
     }
     try {
@@ -47,11 +49,11 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
     } catch (e) {
       setResult({ ok: false, msg: String(e) });
     }
-  }, [deviceSerial]);
+  }, [deviceSerial, t]);
 
   const handleStop = useCallback(async () => {
     if (!saveDir) {
-      setResult({ ok: false, msg: "请先在设置中配置录屏保存目录" });
+      setResult({ ok: false, msg: t('screenRecord.noSaveDir') });
       return;
     }
     setStopping(true);
@@ -61,26 +63,26 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
         deviceSerial: deviceSerial || null,
       });
       setLastPath(path);
-      setResult({ ok: true, msg: `录屏已保存到: ${path}` });
+      setResult({ ok: true, msg: t('screenRecord.saved', { path }) });
     } catch (e) {
       setResult({ ok: false, msg: String(e) });
     } finally {
       setRecording(false);
       setStopping(false);
     }
-  }, [saveDir, deviceSerial]);
+  }, [saveDir, deviceSerial, t]);
 
   const handleSelectSaveDir = useCallback(async () => {
     try {
       const dir = await invoke<string | null>("select_directory");
       if (dir) {
         onSaveDirChange(dir);
-        setResult({ ok: true, msg: `录屏保存目录已修改为: ${dir}` });
+        setResult({ ok: true, msg: t('screenRecord.dirChanged', { dir }) });
       }
     } catch {
-      setResult({ ok: false, msg: "无法修改录屏保存目录" });
+      setResult({ ok: false, msg: t('screenRecord.changeDirFailed') });
     }
-  }, [onSaveDirChange]);
+  }, [onSaveDirChange, t]);
 
   // Warning at 2:45 (165 seconds)
   const showWarning = recording && elapsed >= 165;
@@ -88,20 +90,20 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
   return (
     <div className="max-w-xl space-y-4">
       <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <h3 className="text-base font-semibold text-gray-800 mb-4">设备录屏</h3>
+        <h3 className="text-base font-semibold text-gray-800 mb-4">{t('screenRecord.title')}</h3>
 
         <div className="mb-4">
-          <label className="block text-xs text-gray-500 mb-1">保存目录</label>
+          <label className="block text-xs text-gray-500 mb-1">{t('screenRecord.saveDir')}</label>
           <div className="flex gap-2">
             <div className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-gray-50 truncate">
-              {saveDir || "未设置"}
+              {saveDir || t('screenRecord.notSet')}
             </div>
             <button
               onClick={handleSelectSaveDir}
               disabled={recording}
               className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              修改目录
+              {t('screenRecord.changeDir')}
             </button>
           </div>
         </div>
@@ -115,7 +117,7 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
             </div>
             {showWarning && (
               <div className="mt-2 text-sm text-amber-600">
-                录屏即将达到 3 分钟上限，设备将自动停止
+                {t('screenRecord.nearingLimit')}
               </div>
             )}
           </div>
@@ -131,7 +133,7 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="8" />
             </svg>
-            开始录屏
+            {t('screenRecord.startRecord')}
           </button>
         ) : (
           <button
@@ -142,7 +144,7 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <rect x="6" y="6" width="12" height="12" rx="1" />
             </svg>
-            {stopping ? "停止中..." : "停止录屏"}
+            {stopping ? t('screenRecord.stopping') : t('screenRecord.stopRecord')}
           </button>
         )}
 
@@ -158,29 +160,29 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
               try {
                 await invoke("reveal_path", { path: lastPath });
               } catch {
-                setResult({ ok: false, msg: "无法打开文件夹，请手动前往保存目录查看" });
+                setResult({ ok: false, msg: t('screenRecord.openFolderFailed') });
               }
             }}
             className="mt-2 text-xs text-blue-500 hover:text-blue-700"
           >
-            在文件夹中显示
+            {t('screenRecord.showInFolder')}
           </button>
         )}
 
         {!deviceSerial && !recording && (
           <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-            请先选择设备
+            {t('screenRecord.noDevice')}
           </div>
         )}
       </section>
 
       {/* Info */}
       <section className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-        <h4 className="text-sm font-medium text-gray-600 mb-1">说明</h4>
+        <h4 className="text-sm font-medium text-gray-600 mb-1">{t('screenRecord.notes')}</h4>
         <ul className="text-xs text-gray-500 space-y-1">
-          <li>- 设备录屏最长 <strong>3 分钟</strong>（Android 系统限制）</li>
-          <li>- 录屏文件格式为 MP4</li>
-          <li>- 点击"停止录屏"后文件将自动保存到本地</li>
+          <li>- {t('screenRecord.note1')}</li>
+          <li>- {t('screenRecord.note2')}</li>
+          <li>- {t('screenRecord.note3')}</li>
         </ul>
       </section>
     </div>

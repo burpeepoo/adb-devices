@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { LogcatEntry } from "../types";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   deviceSerial: string | null;
@@ -10,6 +11,7 @@ const LEVELS = ["ALL", "V", "D", "I", "W", "E", "F"] as const;
 const AUTO_REFRESH_MS = 60000;
 
 export default function Logcat({ deviceSerial }: Props) {
+  const { t } = useTranslation();
   const [entries, setEntries] = useState<LogcatEntry[]>([]);
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ export default function Logcat({ deviceSerial }: Props) {
       });
       setEntries(nextEntries);
       setActive(true);
-      setStatus({ ok: true, msg: `已刷新 ${nextEntries.length} 行日志` });
+      setStatus({ ok: true, msg: t('logcat.refreshed', { count: nextEntries.length }) });
     } catch (e) {
       setStatus({ ok: false, msg: String(e) });
     } finally {
@@ -88,7 +90,7 @@ export default function Logcat({ deviceSerial }: Props) {
 
   const handleClose = async () => {
     setActive(false);
-    setStatus({ ok: true, msg: "已关闭自动刷新" });
+    setStatus({ ok: true, msg: t('logcat.autoRefreshClosed') });
     await invoke("adb_stop_logcat").catch(() => {
       // Snapshot mode does not keep a process alive.
     });
@@ -105,7 +107,7 @@ export default function Logcat({ deviceSerial }: Props) {
         content: exportText,
       });
       if (savedPath) {
-        setStatus({ ok: true, msg: `已导出到 ${savedPath}` });
+        setStatus({ ok: true, msg: t('logcat.exported', { path: savedPath }) });
       }
     } catch (e) {
       setStatus({ ok: false, msg: String(e) });
@@ -119,9 +121,9 @@ export default function Logcat({ deviceSerial }: Props) {
       <section className="bg-white rounded-lg border border-gray-200 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-800">ADB Logcat</h3>
+            <h3 className="text-base font-semibold text-gray-800">{t('logcat.title')}</h3>
             <p className="text-xs text-gray-400 mt-1">
-              {active ? "每 1 分钟自动刷新，也可以手动刷新" : "点击查看后读取最近日志"}
+              {active ? t('logcat.autoRefresh') : t('logcat.clickToView')}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -130,14 +132,14 @@ export default function Logcat({ deviceSerial }: Props) {
               disabled={loading}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? "刷新中..." : active ? "刷新" : "查看 logcat"}
+              {loading ? t('logcat.refreshing') : active ? t('logcat.refresh') : t('logcat.viewLogcat')}
             </button>
             <button
               onClick={handleClose}
               disabled={!active}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              关闭
+              {t('logcat.close')}
             </button>
             <button
               onClick={() => {
@@ -147,21 +149,21 @@ export default function Logcat({ deviceSerial }: Props) {
               disabled={entries.length === 0}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              清空
+              {t('logcat.clear')}
             </button>
             <button
               onClick={handleExport}
               disabled={!exportText || exporting}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {exporting ? "导出中..." : "导出"}
+              {exporting ? t('logcat.exporting') : t('logcat.export')}
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
           <label className="space-y-1">
-            <span className="text-xs text-gray-500">级别</span>
+            <span className="text-xs text-gray-500">{t('logcat.level')}</span>
             <select
               value={level}
               onChange={(event) => setLevel(event.target.value as (typeof LEVELS)[number])}
@@ -169,7 +171,7 @@ export default function Logcat({ deviceSerial }: Props) {
             >
               {LEVELS.map((item) => (
                 <option key={item} value={item}>
-                  {item === "ALL" ? "全部" : item}
+                  {item === "ALL" ? t('logcat.all') : item}
                 </option>
               ))}
             </select>
@@ -193,20 +195,20 @@ export default function Logcat({ deviceSerial }: Props) {
             />
           </label>
           <label className="space-y-1">
-            <span className="text-xs text-gray-500">全文搜索</span>
+            <span className="text-xs text-gray-500">{t('logcat.fullSearch')}</span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="关键词"
+              placeholder={t('logcat.keyword')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
           </label>
           <label className="space-y-1">
-            <span className="text-xs text-gray-500">ADB 过滤</span>
+            <span className="text-xs text-gray-500">{t('logcat.adbFilter')}</span>
             <input
               value={adbFilter}
               onChange={(event) => setAdbFilter(event.target.value)}
-              placeholder="*:W 或 Tag:D *:S"
+              placeholder={t('logcat.adbFilterPlaceholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
           </label>
@@ -232,14 +234,14 @@ export default function Logcat({ deviceSerial }: Props) {
               </div>
             ))
           ) : (
-            <div className="px-3 py-2 text-gray-500">暂无日志</div>
+            <div className="px-3 py-2 text-gray-500">{t('logcat.noLog')}</div>
           )}
         </div>
 
         <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
-          <span>每次读取最近 1000 行</span>
+          <span>{t('logcat.readLatest')}</span>
           <span>
-            显示 {visibleEntries.length} / {entries.length} 行
+            {t('logcat.showCount', { visible: visibleEntries.length, total: entries.length })}
           </span>
         </div>
 
@@ -251,7 +253,7 @@ export default function Logcat({ deviceSerial }: Props) {
 
         {!deviceSerial && (
           <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-            未选择设备，将使用默认设备读取 logcat
+            {t('logcat.noDevice')}
           </div>
         )}
       </section>

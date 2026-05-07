@@ -1,4 +1,5 @@
 use chrono::Local;
+use rust_i18n::t;
 use std::path::PathBuf;
 use tauri::AppHandle;
 
@@ -44,7 +45,7 @@ pub fn adb_start_recording(
         *rec_path = Some(remote_path);
     }
 
-    Ok("录屏已开始".to_string())
+    Ok(t!("recording.started").to_string())
 }
 
 #[tauri::command(async)]
@@ -93,10 +94,9 @@ pub fn adb_stop_recording(
     let output = adb::run_adb(&app, &["pull", &remote_path, &local_path_str], serial_ref)?;
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(AdbError::CommandFailed(format!(
-            "拉取录屏失败: {}",
-            stderr.trim()
-        )));
+        return Err(AdbError::CommandFailed(
+            t!("recording.pull_failed", "message" => stderr.trim()).into_owned(),
+        ));
     }
 
     // Cleanup device temp file

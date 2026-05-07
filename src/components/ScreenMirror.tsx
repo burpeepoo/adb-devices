@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
@@ -13,6 +14,7 @@ interface MirrorState {
 }
 
 export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Props) {
+  const { t } = useTranslation();
   const [scrcpyAvailable, setScrcpyAvailable] = useState<boolean | null>(null);
   const [installingScrcpy, setInstallingScrcpy] = useState(false);
   const [installProgress, setInstallProgress] = useState<string[]>([]);
@@ -69,7 +71,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
     if (installingScrcpy) return;
     setInstallingScrcpy(true);
     setStatus(null);
-    setInstallProgress(["开始安装 scrcpy"]);
+    setInstallProgress([t('screenMirror.startInstallScrcpy')]);
     try {
       const msg = await invoke<string>("install_scrcpy");
       setScrcpyAvailable(true);
@@ -146,8 +148,8 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
     return (
       <div className="max-w-3xl space-y-4">
         <section className="bg-white rounded-lg border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-800">投屏控制</h3>
-          <div className="mt-3 text-sm text-gray-500">正在检测 scrcpy...</div>
+          <h3 className="text-base font-semibold text-gray-800">{t('screenMirror.title')}</h3>
+          <div className="mt-3 text-sm text-gray-500">{t('screenMirror.detectingScrcpy')}</div>
         </section>
       </div>
     );
@@ -157,20 +159,19 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
     return (
       <div className="max-w-3xl space-y-4">
         <section className="bg-white rounded-lg border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-800">投屏控制</h3>
+          <h3 className="text-base font-semibold text-gray-800">{t('screenMirror.title')}</h3>
           <p className="text-sm text-gray-500 mt-2">
-            投屏控制需要 scrcpy。macOS 会自动检测并安装 Homebrew 后执行 brew install scrcpy；Windows 会自动下载
-            scrcpy 并安装到本地应用目录。
+            {t('screenMirror.scrcpyRequired')}
           </p>
 
           <div className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
-            <div className="font-medium text-amber-800">温馨提示</div>
+            <div className="font-medium text-amber-800">{t('screenMirror.warmTip')}</div>
             <p>
-              macOS 投屏需要 Homebrew 和 scrcpy，Windows 投屏需要 scrcpy。下面的一键安装会尽量自动完成；如果安装失败，请打开官方页面，按官方最新指令手动安装后再返回本页。
+              {t('screenMirror.warmTipDesc')}
             </p>
             <div className="space-y-1">
               <div>
-                <span>Homebrew 官方: </span>
+                <span>{t('screenMirror.homebrewOfficial')}: </span>
                 <button
                   type="button"
                   onClick={() => handleOpenExternalUrl("https://brew.sh/")}
@@ -180,7 +181,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
                 </button>
               </div>
               <div>
-                <span>scrcpy 官方: </span>
+                <span>{t('screenMirror.scrcpyOfficial')}: </span>
                 <button
                   type="button"
                   onClick={() => handleOpenExternalUrl("https://github.com/Genymobile/scrcpy")}
@@ -197,7 +198,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
             disabled={installingScrcpy}
             className="mt-4 w-full py-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {installingScrcpy ? "正在安装..." : "一键安装 scrcpy"}
+            {installingScrcpy ? t('screenMirror.installing') : t('screenMirror.installScrcpy')}
           </button>
 
           {(installingScrcpy || installProgress.length > 0) && (
@@ -223,8 +224,8 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
       <section className="bg-white rounded-lg border border-gray-200 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-800">投屏控制</h3>
-            <p className="text-xs text-gray-400 mt-1">通过 scrcpy 打开可交互投屏窗口</p>
+            <h3 className="text-base font-semibold text-gray-800">{t('screenMirror.title')}</h3>
+            <p className="text-xs text-gray-400 mt-1">{t('screenMirror.openInteractive')}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -232,20 +233,20 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
               disabled={!deviceSerial || mirroring || mirrorLoading}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {mirrorLoading && !mirroring ? "启动中..." : "开始投屏"}
+              {mirrorLoading && !mirroring ? t('screenMirror.starting') : t('screenMirror.startMirror')}
             </button>
             <button
               onClick={handleStopMirror}
               disabled={!mirroring || mirrorLoading}
               className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:bg-red-200 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
             >
-              {mirrorLoading && mirroring ? "关闭中..." : "停止投屏"}
+              {mirrorLoading && mirroring ? t('screenMirror.stopping') : t('screenMirror.stopMirror')}
             </button>
           </div>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-          <div className="mb-2 text-xs font-medium text-gray-500">返回 / Home 控制</div>
+          <div className="mb-2 text-xs font-medium text-gray-500">{t('screenMirror.navControl')}</div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex gap-2">
               <button
@@ -254,7 +255,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
                 disabled={!deviceSerial || Boolean(navigationLoading)}
                 className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {navigationLoading === "back" ? "发送中..." : "返回"}
+                {navigationLoading === "back" ? t('screenMirror.sending') : t('screenMirror.back')}
               </button>
               <button
                 type="button"
@@ -262,17 +263,17 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
                 disabled={!deviceSerial || Boolean(navigationLoading)}
                 className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {navigationLoading === "home" ? "发送中..." : "Home"}
+                {navigationLoading === "home" ? t('screenMirror.sending') : t('screenMirror.home')}
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
-                <div className="font-medium text-blue-800">scrcpy 右键</div>
-                <div className="mt-0.5 text-blue-600">等同返回</div>
+                <div className="font-medium text-blue-800">{t('screenMirror.scrcpyRightClick')}</div>
+                <div className="mt-0.5 text-blue-600">{t('screenMirror.equalsBack')}</div>
               </div>
               <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
-                <div className="font-medium text-blue-800">scrcpy 中键</div>
-                <div className="mt-0.5 text-blue-600">等同 Home</div>
+                <div className="font-medium text-blue-800">{t('screenMirror.scrcpyMiddleClick')}</div>
+                <div className="mt-0.5 text-blue-600">{t('screenMirror.equalsHome')}</div>
               </div>
             </div>
           </div>
@@ -293,16 +294,16 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
         )}
 
         {!deviceSerial && (
-          <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">请先选择在线设备</div>
+          <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">{t('screenMirror.selectDevice')}</div>
         )}
       </section>
 
       <section className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-        <h4 className="text-sm font-medium text-gray-600 mb-1">说明</h4>
+        <h4 className="text-sm font-medium text-gray-600 mb-1">{t('screenMirror.notes')}</h4>
         <ul className="text-xs text-gray-500 space-y-1">
-          <li>- 投屏窗口由 scrcpy 提供，可以直接用鼠标和键盘操作设备</li>
-          <li>- 返回和 Home 可以点上方按钮，也可以直接在 scrcpy 窗口里右键或中键操作</li>
-          <li>- 截图和录屏请使用顶部独立的截图、录屏页面</li>
+          <li>- {t('screenMirror.note1')}</li>
+          <li>- {t('screenMirror.note2')}</li>
+          <li>- {t('screenMirror.note3')}</li>
         </ul>
       </section>
     </div>
