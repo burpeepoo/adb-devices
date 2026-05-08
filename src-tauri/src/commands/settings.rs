@@ -232,6 +232,40 @@ pub fn reveal_path(path: String) -> Result<(), AdbError> {
 }
 
 #[tauri::command(async)]
+pub fn open_file(path: String) -> Result<(), AdbError> {
+    let file_path = PathBuf::from(&path);
+    if !file_path.exists() {
+        return Err(AdbError::CommandFailed(
+            t!("settings.file_not_found", "path" => path).into_owned(),
+        ));
+    }
+
+    #[cfg(target_os = "macos")]
+    let mut command = {
+        let mut cmd = std::process::Command::new("open");
+        cmd.arg(&file_path);
+        cmd
+    };
+
+    #[cfg(target_os = "windows")]
+    let mut command = {
+        let mut cmd = std::process::Command::new("cmd");
+        cmd.args(["/c", "start", "", &file_path.to_string_lossy()]);
+        cmd
+    };
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    let mut command = {
+        let mut cmd = std::process::Command::new("xdg-open");
+        cmd.arg(&file_path);
+        cmd
+    };
+
+    let output = command.output()?;
+    adb::ensure_success(&output, &t!("settings.open_file_failed"))
+}
+
+#[tauri::command(async)]
 pub fn open_external_url(url: String) -> Result<(), AdbError> {
     let allowed = ["https://brew.sh/", "https://github.com/Genymobile/scrcpy"];
     if !allowed.contains(&url.as_str()) {

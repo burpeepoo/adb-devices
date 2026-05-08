@@ -13,6 +13,8 @@ pub fn run() {
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
             commands::device::adb_devices,
+            commands::device::adb_restart_server,
+            commands::device::get_local_ipv4_addresses,
             commands::device::adb_mdns_discover,
             commands::device::adb_auto_connect,
             commands::device::adb_mdns_auto_connect,
@@ -43,6 +45,7 @@ pub fn run() {
             commands::settings::check_adb_available,
             commands::settings::install_adb,
             commands::settings::reveal_path,
+            commands::settings::open_file,
             commands::settings::open_external_url,
             commands::settings::set_locale,
         ])

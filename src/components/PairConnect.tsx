@@ -32,6 +32,8 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const [pairCodes, setPairCodes] = useState<Record<string, string>>({});
   const [busyAddress, setBusyAddress] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
+  const [repairingAdb, setRepairingAdb] = useState(false);
+  const [localIps, setLocalIps] = useState<string[]>([]);
 
   useEffect(() => {
     getStore()
@@ -49,6 +51,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
       .catch(() => {
         // Keep fields empty when local cache cannot be read.
       });
+  }, []);
+
+  useEffect(() => {
+    invoke<string[]>("get_local_ipv4_addresses")
+      .then(setLocalIps)
+      .catch(() => setLocalIps([]));
   }, []);
 
   const savePairConnect = (next: Partial<PairConnectSettings>) => {
@@ -202,6 +210,35 @@ export default function PairConnect({ devices, onConnected }: Props) {
     });
   };
 
+  const handleRestartAdbAndScan = async () => {
+    await runAdbOperation(async () => {
+      setBusyAddress("__repair__");
+      setRepairingAdb(true);
+      setDiscovering(true);
+      setMdnsResult(null);
+      try {
+        const restartMessage = await invoke<string>("adb_restart_server");
+        const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
+        setMdnsDevices(devices);
+        setMdnsResult({
+          ok: true,
+          msg: devices.length
+            ? t('pairConnect.repairFound', { message: restartMessage, count: devices.length })
+            : t('pairConnect.repairNoDevice', { message: restartMessage }),
+        });
+        if (devices.length === 0) setShowManual(true);
+        await onConnected();
+      } catch (e) {
+        setMdnsResult({ ok: false, msg: String(e) });
+        setShowManual(true);
+      } finally {
+        setRepairingAdb(false);
+        setDiscovering(false);
+        setBusyAddress(null);
+      }
+    });
+  };
+
   const handleScan = async () => {
     await runAdbOperation(async () => {
       setBusyAddress("__scan__");
@@ -272,7 +309,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
     const key = mdnsDeviceKey(device);
     return !key || (!connectableDeviceKeys.has(key) && !connectedDeviceKeys.has(key));
   });
-  const adbBusy = busyAddress !== null || pairLoading || connectLoading || discovering;
+  const adbBusy = busyAddress !== null || pairLoading || connectLoading || discovering || repairingAdb;
 
   return (
     <div className="max-w-3xl space-y-5">
@@ -338,9 +375,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
           {mdnsDevices.length === 0 && (
             <ManualConnectHint
               lastConnect={lastConnect}
+              localIps={localIps}
+              repairing={repairingAdb}
               onFillLastConnect={() => {
                 if (lastConnect) fillConnectEndpoint(lastConnect.ip, lastConnect.port);
               }}
+              onRestartAdbAndScan={handleRestartAdbAndScan}
               onShowManual={() => setShowManual(true)}
             />
           )}
@@ -447,14 +487,21 @@ export default function PairConnect({ devices, onConnected }: Props) {
 
 function ManualConnectHint({
   lastConnect,
+  localIps,
+  repairing,
   onFillLastConnect,
+  onRestartAdbAndScan,
   onShowManual,
 }: {
   lastConnect: { ip: string; port: string } | null;
+  localIps: string[];
+  repairing: boolean;
   onFillLastConnect: () => void;
+  onRestartAdbAndScan: () => void;
   onShowManual: () => void;
 }) {
   const { t } = useTranslation();
+  const hasMultipleLocalNetworks = new Set(localIps.map(ipv4NetworkPrefix)).size > 1;
   return (
     <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
       <div className="flex flex-col gap-3">
@@ -463,8 +510,21 @@ function ManualConnectHint({
           <div className="mt-1 text-xs leading-5 text-amber-800">
             {t('pairConnect.noDeviceHintDesc')}
           </div>
+          {hasMultipleLocalNetworks && (
+            <div className="mt-2 rounded-md border border-amber-200 bg-white/70 px-3 py-2 text-xs leading-5 text-amber-900">
+              {t('pairConnect.multiNetworkHint', { ips: localIps.join(", ") })}
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={onRestartAdbAndScan}
+            disabled={repairing}
+            className="rounded-lg bg-amber-700 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {repairing ? t('pairConnect.repairingAdb') : t('pairConnect.restartAdbAndScan')}
+          </button>
           {lastConnect && (
             <button
               type="button"
@@ -485,6 +545,10 @@ function ManualConnectHint({
       </div>
     </div>
   );
+}
+
+function ipv4NetworkPrefix(ip: string) {
+  return ip.split(".").slice(0, 3).join(".");
 }
 
 function MdnsRow({

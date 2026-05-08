@@ -1,6 +1,6 @@
 use rust_i18n::t;
 use serde::Serialize;
-use std::{collections::HashMap, sync::Mutex, time::Duration};
+use std::{collections::HashMap, process::Command, sync::Mutex, time::Duration};
 use tauri::{AppHandle, State};
 
 use crate::adb::{self, AdbError};
@@ -24,6 +24,18 @@ pub struct MdnsDevice {
     pub port: String,
     pub address: String,
     pub connectable: bool,
+}
+
+#[tauri::command(async)]
+pub fn adb_restart_server(app: AppHandle) -> Result<String, AdbError> {
+    let _ = adb::run_adb_with_timeout(&app, &["kill-server"], None, Duration::from_secs(5));
+    start_adb_server(&app)?;
+    Ok(t!("device.adb_restarted").to_string())
+}
+
+#[tauri::command(async)]
+pub fn get_local_ipv4_addresses() -> Vec<String> {
+    local_ipv4_addresses()
 }
 
 #[tauri::command(async)]
@@ -52,23 +64,18 @@ pub fn adb_mdns_discover(app: AppHandle) -> Result<Vec<MdnsDevice>, AdbError> {
 
 #[tauri::command(async)]
 pub fn adb_auto_connect(app: AppHandle, address: String) -> Result<String, AdbError> {
-    let output =
-        adb::run_adb_with_timeout(&app, &["connect", &address], None, Duration::from_secs(15))?;
-    let stdout = String::from_utf8_lossy(&output.stdout);
-
-    if stdout.contains("connected") || stdout.contains("already connected") {
-        Ok(t!("device.connected_to", address = address).to_string())
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        let msg = if stderr.trim().is_empty() {
-            stdout.trim().to_string()
-        } else {
-            stderr.trim().to_string()
-        };
-        Err(AdbError::CommandFailed(
-            t!("device.connect_failed", "message" => msg).into_owned(),
-        ))
+    let output = connect_address(&app, &address)?;
+    if let Some(message) = connect_success_message(&output, &address, false) {
+        return Ok(message);
     }
+
+    start_adb_server(&app)?;
+    let retry_output = connect_address(&app, &address)?;
+    if let Some(message) = connect_success_message(&retry_output, &address, true) {
+        return Ok(message);
+    }
+
+    Err(connect_failed_error(&retry_output))
 }
 
 #[tauri::command(async)]
@@ -254,14 +261,16 @@ pub fn adb_pair(
 #[tauri::command(async)]
 pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, AdbError> {
     let addr = format!("{}:{}", ip, port);
-    let output =
-        adb::run_adb_with_timeout(&app, &["connect", &addr], None, Duration::from_secs(15))?;
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let output = connect_address(&app, &addr)?;
 
-    if stdout.contains("connected") {
-        return Ok(t!("device.connected_to", address = addr).to_string());
-    } else if stdout.contains("already connected") {
-        return Ok(t!("device.already_connected", address = addr).to_string());
+    if let Some(message) = connect_success_message(&output, &addr, false) {
+        return Ok(message);
+    }
+
+    start_adb_server(&app)?;
+    let retry_output = connect_address(&app, &addr)?;
+    if let Some(message) = connect_success_message(&retry_output, &addr, true) {
+        return Ok(message);
     }
 
     // 直接连接失败——设备端口可能已变化，回退到 mDNS 自动发现
@@ -283,6 +292,7 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
     }
 
     // 两种方式都失败，返回原始错误
+    let stdout = String::from_utf8_lossy(&retry_output.stdout);
     if stdout.contains("refused") {
         Err(AdbError::CommandFailed(
             t!("device.connect_refused", address = addr).into_owned(),
@@ -292,6 +302,46 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
             t!("device.connect_refused_wifi", "message" => stdout.trim()).into_owned(),
         ))
     }
+}
+
+fn start_adb_server(app: &AppHandle) -> Result<(), AdbError> {
+    let output = adb::run_adb_with_timeout(app, &["start-server"], None, Duration::from_secs(8))?;
+    adb::ensure_success(&output, &t!("device.adb_start_failed"))?;
+    Ok(())
+}
+
+fn connect_address(app: &AppHandle, address: &str) -> Result<std::process::Output, AdbError> {
+    adb::run_adb_with_timeout(app, &["connect", address], None, Duration::from_secs(15))
+}
+
+fn connect_success_message(
+    output: &std::process::Output,
+    address: &str,
+    after_restart: bool,
+) -> Option<String> {
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    if stdout.contains("already connected") {
+        return Some(t!("device.already_connected", address = address).to_string());
+    }
+    if stdout.contains("connected") {
+        return Some(if after_restart {
+            t!("device.connected_after_adb_restart", address = address).to_string()
+        } else {
+            t!("device.connected_to", address = address).to_string()
+        });
+    }
+    None
+}
+
+fn connect_failed_error(output: &std::process::Output) -> AdbError {
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let msg = if stderr.trim().is_empty() {
+        stdout.trim().to_string()
+    } else {
+        stderr.trim().to_string()
+    };
+    AdbError::CommandFailed(t!("device.connect_failed", "message" => msg).into_owned())
 }
 
 #[tauri::command(async)]
@@ -361,6 +411,59 @@ fn split_address(address: &str) -> Option<(String, String)> {
     Some((ip.trim_matches(['[', ']']).to_string(), port.to_string()))
 }
 
+fn local_ipv4_addresses() -> Vec<String> {
+    let output = if cfg!(target_os = "windows") {
+        Command::new("ipconfig").output()
+    } else {
+        Command::new("ifconfig").output()
+    };
+
+    let Ok(output) = output else {
+        return Vec::new();
+    };
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    parse_local_ipv4_addresses(&stdout)
+}
+
+fn parse_local_ipv4_addresses(stdout: &str) -> Vec<String> {
+    let mut addresses = Vec::new();
+
+    for line in stdout.lines() {
+        let line = line.trim();
+        let candidate = if let Some(rest) = line.strip_prefix("inet ") {
+            rest.split_whitespace().next()
+        } else if line.contains("IPv4") {
+            line.rsplit_once(':').map(|(_, value)| value.trim())
+        } else {
+            None
+        };
+
+        let Some(candidate) = candidate else {
+            continue;
+        };
+        let candidate = candidate.trim_start_matches("addr:");
+        if is_private_ipv4(candidate) && !addresses.iter().any(|item| item == candidate) {
+            addresses.push(candidate.to_string());
+        }
+    }
+
+    addresses
+}
+
+fn is_private_ipv4(value: &str) -> bool {
+    let parts = value
+        .split('.')
+        .filter_map(|part| part.parse::<u8>().ok())
+        .collect::<Vec<_>>();
+    if parts.len() != 4 {
+        return false;
+    }
+    parts[0] == 10
+        || (parts[0] == 172 && (16..=31).contains(&parts[1]))
+        || (parts[0] == 192 && parts[1] == 168)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -395,6 +498,25 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
         assert_eq!(
             parse_mdns_adb_serial("adb-NCRC10008CC-rYbViz._adb-tls-pairing._tcp"),
             None
+        );
+    }
+
+    #[test]
+    fn parses_local_ipv4_addresses() {
+        let output = "\
+en0: flags=8863<UP,BROADCAST,RUNNING> mtu 1500
+    inet 192.168.1.19 netmask 0xffffff00 broadcast 192.168.1.255
+en1: flags=8863<UP,BROADCAST,RUNNING> mtu 1500
+    inet 192.168.110.252 netmask 0xffffff00 broadcast 192.168.110.255
+Windows IP Configuration
+   IPv4 Address. . . . . . . . . . . : 10.0.0.12
+";
+
+        let addresses = parse_local_ipv4_addresses(output);
+
+        assert_eq!(
+            addresses,
+            vec!["192.168.1.19", "192.168.110.252", "10.0.0.12"]
         );
     }
 }

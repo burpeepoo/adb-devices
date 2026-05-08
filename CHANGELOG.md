@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.7] - 2026-05-08
+
+### Added
+
+- Added a screenshot-and-preview action that saves a screenshot and opens the image file for immediate review.
+- Added a screenshot shortcut hint for macOS and Windows. `Control/Ctrl + Shift + 0` now takes a screenshot without opening preview.
+- Added an ADB recovery action for wireless scanning: users can restart the ADB server and rescan when no LAN devices are discovered.
+- Added multi-network guidance when the computer has multiple local IPv4 addresses, helping users match the Android wireless debugging subnet.
+
+### Changed
+
+- Manual wireless connection now retries once after starting the ADB server when the first `adb connect` attempt fails.
+- One-click mDNS connection now also retries after starting the ADB server before reporting a connection failure.
+
+### Fixed
+
+- Fixed screenshot preview handling by opening the saved file through the desktop instead of relying on an inline asset preview.
+- Improved wireless debugging recovery for cases where ADB mDNS discovery stops seeing devices after switching between USB and wireless workflows.
+
 ## [0.1.6] - 2026-05-07
 
 ### Added
