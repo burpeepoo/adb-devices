@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type HTMLAttributes } from "react";
+import { useCallback, useEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
@@ -34,6 +34,28 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const [showManual, setShowManual] = useState(false);
   const [repairingAdb, setRepairingAdb] = useState(false);
   const [localIps, setLocalIps] = useState<string[]>([]);
+  const [pairRepairVisible, setPairRepairVisible] = useState(false);
+  const localIpsRef = useRef<string[]>([]);
+
+  const updateLocalIps = useCallback((ips: string[]) => {
+    const previousSignature = ipv4NetworkSignature(localIpsRef.current);
+    const nextSignature = ipv4NetworkSignature(ips);
+    localIpsRef.current = ips;
+    setLocalIps(ips);
+    if (previousSignature && previousSignature !== nextSignature) {
+      setMdnsDevices((devices) => filterMdnsDevicesForLocalNetworks(devices, ips));
+    }
+  }, []);
+
+  const refreshLocalIps = useCallback(async () => {
+    try {
+      const ips = await invoke<string[]>("get_local_ipv4_addresses");
+      updateLocalIps(ips);
+      return ips;
+    } catch {
+      return localIpsRef.current;
+    }
+  }, [updateLocalIps]);
 
   useEffect(() => {
     getStore()
@@ -54,10 +76,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
   }, []);
 
   useEffect(() => {
-    invoke<string[]>("get_local_ipv4_addresses")
-      .then(setLocalIps)
-      .catch(() => setLocalIps([]));
-  }, []);
+    refreshLocalIps();
+    const timer = window.setInterval(() => {
+      refreshLocalIps();
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [refreshLocalIps]);
 
   const savePairConnect = (next: Partial<PairConnectSettings>) => {
     const value: PairConnectSettings = {
@@ -114,12 +138,15 @@ export default function PairConnect({ devices, onConnected }: Props) {
     if (!silent) {
       setDiscovering(true);
       setMdnsResult(null);
+      setPairRepairVisible(false);
     }
     try {
+      const currentLocalIps = await refreshLocalIps();
       const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
-      setMdnsDevices(devices);
+      const visibleDevices = filterMdnsDevicesForLocalNetworks(devices, currentLocalIps);
+      setMdnsDevices(visibleDevices);
       if (!silent) {
-        setMdnsResult({ ok: true, msg: devices.length ? t('pairConnect.discovered', { count: devices.length }) : t('pairConnect.notDiscovered') });
+        setMdnsResult({ ok: true, msg: visibleDevices.length ? t('pairConnect.discovered', { count: visibleDevices.length }) : t('pairConnect.notDiscovered') });
       }
     } catch (e) {
       if (!silent) {
@@ -129,7 +156,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       discoveringRef.current = false;
       if (!silent) setDiscovering(false);
     }
-  }, [t]);
+  }, [refreshLocalIps, t]);
 
   useEffect(() => {
     discoverMdns(true);
@@ -143,6 +170,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
     await runAdbOperation(async () => {
       setBusyAddress(device.address);
       setMdnsResult(null);
+      setPairRepairVisible(false);
       try {
         const result = await invoke<string>("adb_auto_connect", {
           address: device.address,
@@ -165,6 +193,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
     await runAdbOperation(async () => {
       setBusyAddress(device.address);
       setMdnsResult(null);
+      setPairRepairVisible(false);
       try {
         const result = await invoke<string>("adb_pair", {
           ip: device.ip,
@@ -183,6 +212,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
         await onConnected();
       } catch (e) {
         setMdnsResult({ ok: false, msg: String(e) });
+        setPairRepairVisible(true);
       } finally {
         setBusyAddress(null);
       }
@@ -193,6 +223,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
     await runAdbOperation(async () => {
       setBusyAddress("__auto__");
       setMdnsResult(null);
+      setPairRepairVisible(false);
       try {
         const devices = await invoke<DeviceInfo[]>("adb_mdns_auto_connect");
         const onlineDevices = devices.filter((device) => device.state === "device");
@@ -216,17 +247,20 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setRepairingAdb(true);
       setDiscovering(true);
       setMdnsResult(null);
+      setPairRepairVisible(false);
       try {
         const restartMessage = await invoke<string>("adb_restart_server");
+        const currentLocalIps = await refreshLocalIps();
         const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
-        setMdnsDevices(devices);
+        const visibleDevices = filterMdnsDevicesForLocalNetworks(devices, currentLocalIps);
+        setMdnsDevices(visibleDevices);
         setMdnsResult({
           ok: true,
-          msg: devices.length
-            ? t('pairConnect.repairFound', { message: restartMessage, count: devices.length })
+          msg: visibleDevices.length
+            ? t('pairConnect.repairFound', { message: restartMessage, count: visibleDevices.length })
             : t('pairConnect.repairNoDevice', { message: restartMessage }),
         });
-        if (devices.length === 0) setShowManual(true);
+        if (visibleDevices.length === 0) setShowManual(true);
         await onConnected();
       } catch (e) {
         setMdnsResult({ ok: false, msg: String(e) });
@@ -259,6 +293,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
     await runAdbOperation(async () => {
       setPairLoading(true);
       setPairResult(null);
+      setPairRepairVisible(false);
       try {
         const result = await invoke<string>("adb_pair", {
           ip,
@@ -270,6 +305,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
         await discoverMdns(true, true);
       } catch (e) {
         setPairResult({ ok: false, msg: String(e) });
+        setPairRepairVisible(true);
       } finally {
         setPairLoading(false);
       }
@@ -283,6 +319,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
     await runAdbOperation(async () => {
       setConnectLoading(true);
       setConnectResult(null);
+      setPairRepairVisible(false);
       try {
         const result = await invoke<string>("adb_connect", {
           ip,
@@ -388,7 +425,13 @@ export default function PairConnect({ devices, onConnected }: Props) {
 
         {mdnsResult && (
           <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${mdnsResult.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-            {mdnsResult.msg}
+            <div>{mdnsResult.msg}</div>
+            {!mdnsResult.ok && pairRepairVisible && (
+              <PairRepairAction
+                repairing={repairingAdb}
+                onRestartAdbAndScan={handleRestartAdbAndScan}
+              />
+            )}
           </div>
         )}
       </section>
@@ -433,7 +476,14 @@ export default function PairConnect({ devices, onConnected }: Props) {
                 {pairLoading ? t('pairConnect.pairing') : t('pairConnect.pair')}
               </button>
               {pairResult && (
-                <ResultMessage result={pairResult} />
+                <ResultMessage result={pairResult}>
+                  {!pairResult.ok && pairRepairVisible && (
+                    <PairRepairAction
+                      repairing={repairingAdb}
+                      onRestartAdbAndScan={handleRestartAdbAndScan}
+                    />
+                  )}
+                </ResultMessage>
               )}
             </div>
 
@@ -549,6 +599,16 @@ function ManualConnectHint({
 
 function ipv4NetworkPrefix(ip: string) {
   return ip.split(".").slice(0, 3).join(".");
+}
+
+function ipv4NetworkSignature(ips: string[]) {
+  return Array.from(new Set(ips.map(ipv4NetworkPrefix).filter(Boolean))).sort().join("|");
+}
+
+function filterMdnsDevicesForLocalNetworks(devices: MdnsDevice[], localIps: string[]) {
+  const localNetworks = new Set(localIps.map(ipv4NetworkPrefix).filter(Boolean));
+  if (localNetworks.size === 0) return devices;
+  return devices.filter((device) => localNetworks.has(ipv4NetworkPrefix(device.ip)));
 }
 
 function MdnsRow({
@@ -725,10 +785,37 @@ function parseConnectEndpoint(value: string) {
   return { ip, port };
 }
 
-function ResultMessage({ result }: { result: { ok: boolean; msg: string } }) {
+function PairRepairAction({
+  repairing,
+  onRestartAdbAndScan,
+}: {
+  repairing: boolean;
+  onRestartAdbAndScan: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={onRestartAdbAndScan}
+      disabled={repairing}
+      className="mt-3 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {repairing ? t('pairConnect.repairingAdb') : t('pairConnect.restartAdbAndScan')}
+    </button>
+  );
+}
+
+function ResultMessage({
+  result,
+  children,
+}: {
+  result: { ok: boolean; msg: string };
+  children?: ReactNode;
+}) {
   return (
     <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${result.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-      {result.msg}
+      <div>{result.msg}</div>
+      {children}
     </div>
   );
 }

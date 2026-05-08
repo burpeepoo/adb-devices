@@ -97,6 +97,8 @@
     "startMirror": "Start Mirror",
     "stopping": "Stopping...",
     "stopMirror": "Stop Mirror",
+    "audioCapture": "Capture device audio",
+    "audioCaptureDesc": "Off by default to avoid startup failures on Android devices that do not support scrcpy AudioRecord capture. Enable it to try mirroring device audio.",
     "navControl": "Back / Home Controls",
     "sending": "Sending...",
     "back": "Back",

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.8] - 2026-05-08
+
+### Added
+
+- Added a restart ADB action directly on pairing failures, so users can recover stale pairing sessions without leaving the Pair & Connect tab.
+- Added a screen mirroring audio capture toggle. Audio capture is off by default and can be enabled manually when the device supports scrcpy audio forwarding.
+
+### Changed
+
+- Screen mirroring now starts with scrcpy audio disabled by default to avoid immediate exits on Android devices that cannot create an `AudioRecord`.
+- LAN wireless debugging scan results are filtered to the Mac's current local IPv4 subnet, preventing stale mDNS results from a previous Wi-Fi network from appearing as connectable devices.
+- Pair & Connect now refreshes local IPv4 addresses periodically so switching Wi-Fi updates the visible scan results automatically.
+
+### Fixed
+
+- Fixed scrcpy startup failures caused by device-side audio capture errors such as `Cannot create AudioRecord`.
+- Fixed stale wireless debugging scan entries remaining visible after switching Wi-Fi networks.
+
 ## [0.1.7] - 2026-05-08
 
 ### Added

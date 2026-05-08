@@ -106,6 +106,7 @@ pub fn start_screen_mirror(
     app: AppHandle,
     state: State<'_, AppState>,
     device_serial: Option<String>,
+    audio_enabled: Option<bool>,
 ) -> Result<String, AdbError> {
     let device_serial = device_serial
         .map(|serial| serial.trim().to_string())
@@ -136,6 +137,9 @@ pub fn start_screen_mirror(
 
     let mut command = Command::new(scrcpy_path);
     command.args(["-s", &device_serial]);
+    if !audio_enabled.unwrap_or(false) {
+        command.arg("--no-audio");
+    }
     command
         .arg("--window-title")
         .arg("ADB Manager - Screen Mirror")

@@ -97,6 +97,8 @@
     "startMirror": "开始投屏",
     "stopping": "关闭中...",
     "stopMirror": "停止投屏",
+    "audioCapture": "采集设备音频",
+    "audioCaptureDesc": "默认关闭，避免部分 Android 设备因 AudioRecord 不支持导致投屏启动失败。开启后将尝试同步设备音频。",
     "navControl": "返回 / Home 控制",
     "sending": "发送中...",
     "back": "返回",

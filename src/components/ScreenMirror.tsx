@@ -20,6 +20,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
   const [installProgress, setInstallProgress] = useState<string[]>([]);
   const [mirroring, setMirroring] = useState(false);
   const [mirrorLoading, setMirrorLoading] = useState(false);
+  const [mirrorAudioEnabled, setMirrorAudioEnabled] = useState(false);
   const [navigationLoading, setNavigationLoading] = useState<"back" | "home" | null>(null);
   const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(null);
 
@@ -91,6 +92,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
     try {
       const msg = await invoke<string>("start_screen_mirror", {
         deviceSerial,
+        audioEnabled: mirrorAudioEnabled,
       });
       await syncMirrorState();
       setStatus({ ok: true, msg });
@@ -244,6 +246,20 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
             </button>
           </div>
         </div>
+
+        <label className={`mb-4 flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 ${mirroring || mirrorLoading ? "opacity-60" : ""}`}>
+          <input
+            type="checkbox"
+            checked={mirrorAudioEnabled}
+            onChange={(event) => setMirrorAudioEnabled(event.target.checked)}
+            disabled={mirroring || mirrorLoading}
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
+          />
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-gray-700">{t('screenMirror.audioCapture')}</span>
+            <span className="mt-0.5 block text-xs leading-5 text-gray-500">{t('screenMirror.audioCaptureDesc')}</span>
+          </span>
+        </label>
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
           <div className="mb-2 text-xs font-medium text-gray-500">{t('screenMirror.navControl')}</div>
