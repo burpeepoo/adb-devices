@@ -23,8 +23,7 @@ jobs:
             os: macos-latest
             artifact_name: macos-package
             artifact_path: |
-              src-tauri/target/release/bundle/dmg/*.dmg
-              src-tauri/target/release/bundle/macos/*.app
+              src-tauri/target/release/bundle/dmg/ADB_Manager_*_*.dmg
           - name: Windows
             os: windows-latest
             artifact_name: windows-package
@@ -49,7 +48,7 @@ jobs:
         run: npm ci
 
       - name: Build Tauri package
-        run: npm run tauri build
+        run: ${{ matrix.platform.name == 'macOS' && 'npm run build:dmg' || 'npm run tauri build' }}
 
       - name: Upload package
         uses: actions/upload-artifact@v4

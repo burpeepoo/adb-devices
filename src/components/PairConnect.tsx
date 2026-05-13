@@ -4,6 +4,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import { DeviceInfo, MdnsDevice, PairConnectSettings } from "../types";
 
+const REPAIR_ACTION_FAILURE_THRESHOLD = 2;
+
 interface Props {
   devices: DeviceInfo[];
   onConnected: () => void | Promise<void>;
@@ -14,6 +16,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const adbOperationRef = useRef(false);
   const discoveringRef = useRef(false);
   const pairCodeInputFocusedRef = useRef(false);
+  const pairConnectFailureCountRef = useRef(0);
   const [pairIp, setPairIp] = useState("");
   const [pairPort, setPairPort] = useState("");
   const [pairCode, setPairCode] = useState("");
@@ -130,6 +133,18 @@ export default function PairConnect({ devices, onConnected }: Props) {
     }
   }, []);
 
+  const clearPairConnectFailures = useCallback(() => {
+    pairConnectFailureCountRef.current = 0;
+    setPairRepairVisible(false);
+  }, []);
+
+  const recordPairConnectFailure = useCallback(() => {
+    pairConnectFailureCountRef.current += 1;
+    if (pairConnectFailureCountRef.current >= REPAIR_ACTION_FAILURE_THRESHOLD) {
+      setPairRepairVisible(true);
+    }
+  }, []);
+
   const discoverMdns = useCallback(async (silent = false, force = false) => {
     if (!force && (discoveringRef.current || adbOperationRef.current || (silent && pairCodeInputFocusedRef.current))) {
       return;
@@ -176,10 +191,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
           address: device.address,
         });
         setMdnsResult({ ok: true, msg: result });
+        clearPairConnectFailures();
         savePairConnect({ connectIp: device.ip, connectPort: device.port });
         setLastConnect({ ip: device.ip, port: device.port });
         await onConnected();
       } catch (e) {
+        recordPairConnectFailure();
         setMdnsResult({ ok: false, msg: `${String(e)}。${t('pairConnect.firstTimeHint')}` });
       } finally {
         setBusyAddress(null);
@@ -208,11 +225,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
           return next;
         });
         setMdnsDevices((prev) => prev.filter((item) => item.address !== device.address));
+        clearPairConnectFailures();
         await discoverMdns(true, true);
         await onConnected();
       } catch (e) {
+        recordPairConnectFailure();
         setMdnsResult({ ok: false, msg: String(e) });
-        setPairRepairVisible(true);
       } finally {
         setBusyAddress(null);
       }
@@ -230,9 +248,11 @@ export default function PairConnect({ devices, onConnected }: Props) {
         const count = onlineDevices.length;
         setMdnsResult({ ok: true, msg: count ? t('pairConnect.autoConnected', { count }) : t('pairConnect.autoConnectNone') });
         if (count === 0) setShowManual(true);
+        if (count > 0) clearPairConnectFailures();
         await onConnected();
         await discoverMdns(true, true);
       } catch (e) {
+        recordPairConnectFailure();
         setMdnsResult({ ok: false, msg: String(e) });
         setShowManual(true);
       } finally {
@@ -261,8 +281,10 @@ export default function PairConnect({ devices, onConnected }: Props) {
             : t('pairConnect.repairNoDevice', { message: restartMessage }),
         });
         if (visibleDevices.length === 0) setShowManual(true);
+        clearPairConnectFailures();
         await onConnected();
       } catch (e) {
+        setPairRepairVisible(true);
         setMdnsResult({ ok: false, msg: String(e) });
         setShowManual(true);
       } finally {
@@ -301,11 +323,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
           code,
         });
         setPairResult({ ok: true, msg: result });
+        clearPairConnectFailures();
         savePairConnect({ pairIp: ip, pairPort: port });
         await discoverMdns(true, true);
       } catch (e) {
+        recordPairConnectFailure();
         setPairResult({ ok: false, msg: String(e) });
-        setPairRepairVisible(true);
       } finally {
         setPairLoading(false);
       }
@@ -326,10 +349,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
           port,
         });
         setConnectResult({ ok: true, msg: result });
+        clearPairConnectFailures();
         savePairConnect({ connectIp: ip, connectPort: port });
         setLastConnect({ ip, port });
         await onConnected();
       } catch (e) {
+        recordPairConnectFailure();
         setConnectResult({ ok: false, msg: String(e) });
       } finally {
         setConnectLoading(false);
@@ -501,7 +526,14 @@ export default function PairConnect({ devices, onConnected }: Props) {
                 {connectLoading ? t('pairConnect.connecting') : t('pairConnect.connect')}
               </button>
               {connectResult && (
-                <ResultMessage result={connectResult} />
+                <ResultMessage result={connectResult}>
+                  {!connectResult.ok && pairRepairVisible && (
+                    <PairRepairAction
+                      repairing={repairingAdb}
+                      onRestartAdbAndScan={handleRestartAdbAndScan}
+                    />
+                  )}
+                </ResultMessage>
               )}
             </div>
           </div>

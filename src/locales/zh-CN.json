@@ -122,7 +122,7 @@
     "take": "截图",
     "takeAndPreview": "截图并预览",
     "shortcutTitle": "快捷键",
-    "shortcutHint": "在截图页按下快捷键会立即截图，不打开预览。",
+    "shortcutHint": "按下全局快捷键会立即截图，不打开预览。ADB Manager 需要保持运行。",
     "shortcutMac": "macOS: Control + Shift + 0（⌃ ⇧ 0）",
     "shortcutWindows": "Windows: Ctrl + Shift + 0",
     "previewTitle": "截图预览",

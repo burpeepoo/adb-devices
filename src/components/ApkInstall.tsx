@@ -14,6 +14,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
   const [apkPath, setApkPath] = useState("");
   const [force, setForce] = useState(false);
   const [pkgName, setPkgName] = useState("");
+  const [packageParseFailed, setPackageParseFailed] = useState(false);
   const [pkgSearch, setPkgSearch] = useState("");
   const [installedPackages, setInstalledPackages] = useState<string[]>([]);
   const [loadingPackages, setLoadingPackages] = useState(false);
@@ -32,6 +33,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
       const selectedPath = selected as string;
       setApkPath(selectedPath);
       setResult(null);
+      setPackageParseFailed(false);
       const separator = selectedPath.includes("\\") ? "\\" : "/";
       const parentDir = selectedPath.slice(0, selectedPath.lastIndexOf(separator));
       if (parentDir) {
@@ -43,9 +45,10 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
           apkPath: selectedPath,
         });
         setPkgName(parsedPkg);
+        setPackageParseFailed(false);
       } catch {
         setPkgName("");
-        setResult({ ok: false, msg: t('apkInstall.parseFailed') });
+        setPackageParseFailed(true);
       }
     }
   };
@@ -150,10 +153,14 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
                 onChange={(e) => {
                   setPkgName(e.target.value);
                   setPkgSearch(e.target.value);
+                  setPackageParseFailed(false);
                 }}
                 placeholder="com.example.app"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
+              {packageParseFailed && !pkgName.trim() && (
+                <p className="text-xs text-red-600">{t('apkInstall.parseFailed')}</p>
+              )}
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleLoadPackages}

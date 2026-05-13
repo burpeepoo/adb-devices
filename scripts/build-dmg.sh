@@ -40,7 +40,7 @@ ln -s /Applications "$STAGING_DIR/Applications"
 # Step 4: Create DMG with custom content
 echo "[3/4] 打包 DMG ..."
 mkdir -p "$DMG_DIR"
-rm -f "$DMG_PATH"
+rm -f "$DMG_DIR"/*.dmg
 
 hdiutil create \
     -volname "ADB Manager" \

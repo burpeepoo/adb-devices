@@ -3,13 +3,36 @@ mod commands;
 mod state;
 
 use state::AppState;
+use tauri::Emitter;
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 rust_i18n::i18n!("locales", fallback = "en");
+
+const GLOBAL_SCREENSHOT_SHORTCUT_EVENT: &str = "global-screenshot-shortcut";
+
+fn screenshot_shortcut() -> Shortcut {
+    Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::Digit0)
+}
 
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .setup(|app| {
+            let shortcut = screenshot_shortcut();
+            if let Err(error) =
+                app.global_shortcut()
+                    .on_shortcut(shortcut, |app, _shortcut, event| {
+                        if event.state == ShortcutState::Pressed {
+                            let _ = app.emit(GLOBAL_SCREENSHOT_SHORTCUT_EVENT, ());
+                        }
+                    })
+            {
+                eprintln!("failed to register global screenshot shortcut: {error}");
+            }
+            Ok(())
+        })
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
             commands::device::adb_devices,

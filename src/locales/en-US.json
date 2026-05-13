@@ -122,7 +122,7 @@
     "take": "Screenshot",
     "takeAndPreview": "Screenshot & Preview",
     "shortcutTitle": "Shortcut",
-    "shortcutHint": "Press the shortcut on the Screenshot tab to take a screenshot without opening the preview.",
+    "shortcutHint": "Press the global shortcut to take a screenshot without opening the preview. ADB Manager must be running.",
     "shortcutMac": "macOS: Control + Shift + 0 (⌃ ⇧ 0)",
     "shortcutWindows": "Windows: Ctrl + Shift + 0",
     "previewTitle": "Screenshot Preview",

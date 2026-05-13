@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { TabKey, AppSettings } from "./types";
 import { useDevices } from "./hooks/useDevices";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
@@ -21,6 +22,13 @@ interface ScreenMirrorState {
   device_serial: string | null;
 }
 
+interface ScreenshotShortcutResult {
+  id: number;
+  ok: boolean;
+  msg: string;
+  path?: string | null;
+}
+
 export default function App() {
   const { t } = useTranslation();
   const { devices, loading, error, selectedDevice, setSelectedDevice, refresh } = useDevices();
@@ -39,11 +47,23 @@ export default function App() {
   const [adbAvailable, setAdbAvailable] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [mirroringDeviceSerial, setMirroringDeviceSerial] = useState<string | null>(null);
+  const [screenshotShortcutResult, setScreenshotShortcutResult] = useState<ScreenshotShortcutResult | null>(null);
   const [settings, setSettings] = useState<AppSettings>({
     screenshotDir: "",
     recordingDir: "",
     recentApkDir: "",
   });
+  const selectedDeviceRef = useRef<string | null>(selectedDevice);
+  const settingsRef = useRef<AppSettings>(settings);
+  const screenshotShortcutRunningRef = useRef(false);
+
+  useEffect(() => {
+    selectedDeviceRef.current = selectedDevice;
+  }, [selectedDevice]);
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
 
   const checkAdb = useCallback(async () => {
     try {
@@ -85,6 +105,70 @@ export default function App() {
     const mirrorStateTimer = setInterval(syncMirrorState, 2500);
     return () => clearInterval(mirrorStateTimer);
   }, [checkAdb, loadSettings, syncMirrorState]);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let cancelled = false;
+
+    listen("global-screenshot-shortcut", async () => {
+      if (screenshotShortcutRunningRef.current) {
+        return;
+      }
+
+      const saveDir = settingsRef.current.screenshotDir;
+      if (!saveDir) {
+        setScreenshotShortcutResult({
+          id: Date.now(),
+          ok: false,
+          msg: t('screenshot.noSaveDir'),
+        });
+        return;
+      }
+
+      screenshotShortcutRunningRef.current = true;
+      try {
+        const path = await invoke<string>("adb_screenshot", {
+          saveDir,
+          deviceSerial: selectedDeviceRef.current || null,
+        });
+        setScreenshotShortcutResult({
+          id: Date.now(),
+          ok: true,
+          msg: t('screenshot.saved', { path }),
+          path,
+        });
+      } catch (e) {
+        setScreenshotShortcutResult({
+          id: Date.now(),
+          ok: false,
+          msg: String(e),
+        });
+      } finally {
+        screenshotShortcutRunningRef.current = false;
+      }
+    })
+      .then((cleanup) => {
+        if (cancelled) {
+          cleanup();
+        } else {
+          unlisten = cleanup;
+        }
+      })
+      .catch((e) => {
+        setScreenshotShortcutResult({
+          id: Date.now(),
+          ok: false,
+          msg: String(e),
+        });
+      });
+
+    return () => {
+      cancelled = true;
+      if (unlisten) {
+        unlisten();
+      }
+    };
+  }, [t]);
 
   const handleAdbInstalled = useCallback(() => {
     setAdbAvailable(true);
@@ -184,6 +268,7 @@ export default function App() {
               <Screenshot
                 deviceSerial={selectedDevice}
                 saveDir={settings.screenshotDir}
+                shortcutResult={screenshotShortcutResult}
                 onSaveDirChange={(dir) => handleSaveDirChange("screenshotDir", dir)}
               />
             )}

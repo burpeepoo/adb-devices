@@ -5,10 +5,16 @@ import { useTranslation } from "react-i18next";
 interface Props {
   deviceSerial: string | null;
   saveDir: string;
+  shortcutResult?: {
+    id: number;
+    ok: boolean;
+    msg: string;
+    path?: string | null;
+  } | null;
   onSaveDirChange: (dir: string) => void;
 }
 
-export default function Screenshot({ deviceSerial, saveDir, onSaveDirChange }: Props) {
+export default function Screenshot({ deviceSerial, saveDir, shortcutResult, onSaveDirChange }: Props) {
   const { t } = useTranslation();
   const [taking, setTaking] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -46,27 +52,15 @@ export default function Screenshot({ deviceSerial, saveDir, onSaveDirChange }: P
   }, [deviceSerial, saveDir, taking, t]);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.repeat) {
-        return;
-      }
+    if (!shortcutResult) {
+      return;
+    }
 
-      const isShortcut =
-        event.ctrlKey &&
-        event.shiftKey &&
-        (event.key === "0" || event.code === "Digit0" || event.code === "Numpad0");
-
-      if (!isShortcut) {
-        return;
-      }
-
-      event.preventDefault();
-      void handleScreenshot(false);
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleScreenshot]);
+    setResult({ ok: shortcutResult.ok, msg: shortcutResult.msg });
+    if (shortcutResult.path) {
+      setLastPath(shortcutResult.path);
+    }
+  }, [shortcutResult]);
 
   const handleSelectSaveDir = async () => {
     try {
