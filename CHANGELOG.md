@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.9] - 2026-05-13
+
+### Added
+
+- Added a restart ADB recovery action after repeated pair or connect failures.
+- Added a single-command DMG build path that produces one macOS DMG containing both the app and `install.command`.
+
+### Changed
+
+- macOS package builds now upload only the custom DMG artifact instead of both the app bundle and a default Tauri DMG.
+
+### Fixed
+
+- APK package-name parsing failures no longer show an immediate red error after selecting a file; the warning is only shown when force install is enabled.
+
 ## [0.1.8] - 2026-05-08
 
 ### Added
