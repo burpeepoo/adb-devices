@@ -1,6 +1,6 @@
 {
   "name": "adb-manager",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "ADB Manager for Cozyla PMs",
   "scripts": {
     "dev": "vite",

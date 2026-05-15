@@ -1,92 +1,517 @@
 {
-  "/Users/kaizhang/Documents/Cozyla/adb_project/vite.config.ts": 1777294933.1091945,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/scripts/send-lark-release.mjs": 1777366987.4449666,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/build.rs": 1777294933.0314114,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/lib.rs": 1778136259.6420627,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/adb.rs": 1778124924.667125,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/state.rs": 1777430336.2837107,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/main.rs": 1777294933.1058772,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/device.rs": 1778134752.4800043,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/mirror.rs": 1778124924.6684248,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/package.rs": 1778124924.6686528,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/logcat.rs": 1778124924.6681838,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/mod.rs": 1777429705.0808043,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/screenshot.rs": 1778124924.6690266,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/install.rs": 1778124924.6677425,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/clipboard.rs": 1778124924.6673043,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/settings.rs": 1778136420.5690937,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/record.rs": 1778124924.668856,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/App.tsx": 1778124924.66992,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/main.tsx": 1778124924.6733246,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/i18n.ts": 1778124924.6725695,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/storage.ts": 1777366304.8872168,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/vite-env.d.ts": 1777294933.1087549,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/types/index.ts": 1777432601.766671,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/utils/format.ts": 1777294933.108626,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Settings.tsx": 1778124924.6723912,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Clipboard.tsx": 1778124924.6705294,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/PairConnect.tsx": 1778134690.202981,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ScreenMirror.tsx": 1778124924.6717374,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Screenshot.tsx": 1778136349.6590893,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ApkInstall.tsx": 1778124924.6703136,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/PackageList.tsx": 1778124924.6711533,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/DeviceList.tsx": 1778124924.6707158,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Logcat.tsx": 1778124924.6709435,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ScreenRecord.tsx": 1778124924.6719482,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/AdbSetup.tsx": 1778124924.6701083,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/hooks/useDevices.ts": 1777531678.9315596,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/hooks/useAdb.ts": 1777294933.107713,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/index.html": 1778124924.6647556,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/CHANGELOG.md": 1778124924.6638067,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/README.md": 1777541828.329456,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/baidu_search_screenshot.png": 1777431749.9649577,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/app-icon.png": 1777347550.1020694,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/icon.png": 1777347565.381343,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square30x30Logo.png": 1777347564.6351273,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square150x150Logo.png": 1777347564.720111,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/StoreLogo.png": 1777347564.6253402,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square107x107Logo.png": 1777347564.6838799,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square89x89Logo.png": 1777347564.6690655,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square310x310Logo.png": 1777347564.782703,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square142x142Logo.png": 1777347564.7019105,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/128x128.png": 1777347565.2939708,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square284x284Logo.png": 1777347564.7497838,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/32x32.png": 1777347565.2669187,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square44x44Logo.png": 1777347564.6448016,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square71x71Logo.png": 1777347564.6560335,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/128x128@2x.png": 1777347565.3219814,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/64x64.png": 1777347565.2777846,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@3x.png": 1777347565.4228003,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-512@2x.png": 1777347565.7069476,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-83.5x83.5@2x.png": 1777347565.614056,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@2x.png": 1777347565.4113464,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@3x.png": 1777347565.4686854,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@2x.png": 1777347565.505716,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-60x60@3x.png": 1777347565.5617478,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@2x-1.png": 1777347565.4819088,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@2x-1.png": 1777347565.392316,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-60x60@2x.png": 1777347565.539517,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-76x76@1x.png": 1777347565.5746903,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@3x.png": 1777347565.5225034,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@2x.png": 1777347565.4554684,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-76x76@2x.png": 1777347565.5939584,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@1x.png": 1777347565.4443166,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@1x.png": 1777347565.4926083,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@1x.png": 1777347565.40142,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@2x-1.png": 1777347565.434378,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-mdpi/ic_launcher_foreground.png": 1777347565.7432513,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-mdpi/ic_launcher.png": 1777347565.8976228,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-mdpi/ic_launcher_round.png": 1777347565.8869865,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-hdpi/ic_launcher_foreground.png": 1777347565.727233,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-hdpi/ic_launcher.png": 1777347565.876181,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-hdpi/ic_launcher_round.png": 1777347565.8651795,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_foreground.png": 1777347565.8544695,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher.png": 1777347566.0110996,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_round.png": 1777347565.98758,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_foreground.png": 1777347565.8050864,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher.png": 1777347565.964019,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_round.png": 1777347565.9450986,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_foreground.png": 1777347565.7683883,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xhdpi/ic_launcher.png": 1777347565.925935,
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_round.png": 1777347565.9118814
+  "/Users/kaizhang/Documents/Cozyla/adb_project/package.json": {
+    "mtime": 1778840327.774523,
+    "ast_hash": "93e5252b0b4a8b7eee34d6d14300c3fd",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/tsconfig.json": {
+    "mtime": 1777294933.108876,
+    "ast_hash": "46a2df1ae61059923a1201cd3a77e176",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/vite.config.ts": {
+    "mtime": 1777294933.1091945,
+    "ast_hash": "5a9a0d4bb5f7bc107554a1ecbd7805d0",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/scripts/build-dmg.sh": {
+    "mtime": 1778813348.0542517,
+    "ast_hash": "229bf5a4d554df1e249b2fe8c273458a",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/scripts/send-lark-release.mjs": {
+    "mtime": 1777366987.4449666,
+    "ast_hash": "e70b13edf7d4f0c390646fcbe93834c6",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/tauri.conf.json": {
+    "mtime": 1778840327.948393,
+    "ast_hash": "84009180e58c90809632f3b17b5b2aab",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/build.rs": {
+    "mtime": 1777294933.0314114,
+    "ast_hash": "1be34a5c61c2c35365de3dab14298f0b",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/capabilities/default.json": {
+    "mtime": 1777341686.5818996,
+    "ast_hash": "36fa40459017cc51c7fe89199c5961f7",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/gen/schemas/capabilities.json": {
+    "mtime": 1777341831.619943,
+    "ast_hash": "6b606133d786d6f109688d7fa28f9069",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/gen/schemas/acl-manifests.json": {
+    "mtime": 1778495605.9191844,
+    "ast_hash": "51396ef8c2eb44abe7c25bf728685047",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/gen/schemas/macOS-schema.json": {
+    "mtime": 1778495605.9230857,
+    "ast_hash": "d7d54ca20be8d18aa7545667b9f34d38",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/gen/schemas/desktop-schema.json": {
+    "mtime": 1778495605.9230857,
+    "ast_hash": "d7d54ca20be8d18aa7545667b9f34d38",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/lib.rs": {
+    "mtime": 1778751750.32063,
+    "ast_hash": "00a3304b84ddcca4318237ff355fc05f",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/adb.rs": {
+    "mtime": 1778124924.667125,
+    "ast_hash": "e92cc6ca1a23d0a9469521e4a14688c5",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/state.rs": {
+    "mtime": 1777430336.2837107,
+    "ast_hash": "2e629e2ae5e242a9a9923d56d87d302e",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/main.rs": {
+    "mtime": 1777294933.1058772,
+    "ast_hash": "e52f1152a846d420c74073145c276300",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/device.rs": {
+    "mtime": 1778134752.4800043,
+    "ast_hash": "6c9a4653fe2543d8fc87d237971cd173",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/mirror.rs": {
+    "mtime": 1778238467.6868644,
+    "ast_hash": "37773f9840935f0c5fd54183e4b33951",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/package.rs": {
+    "mtime": 1778751824.5023017,
+    "ast_hash": "8e5498709f68308ba8f1541f39c395ba",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/logcat.rs": {
+    "mtime": 1778124924.6681838,
+    "ast_hash": "1cb3f0fcd022aa73dea2e853f4c9d356",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/mod.rs": {
+    "mtime": 1777429705.0808043,
+    "ast_hash": "e114e016b26fde929d811846e9d33bc6",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/screenshot.rs": {
+    "mtime": 1778124924.6690266,
+    "ast_hash": "dac7d0976ee465c7aae8d6da4dc94897",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/install.rs": {
+    "mtime": 1778124924.6677425,
+    "ast_hash": "3b1b36997bbc01597d42f0ea55337315",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/clipboard.rs": {
+    "mtime": 1778124924.6673043,
+    "ast_hash": "d08d1a2dbe1556c0d081b128a78b04a4",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/settings.rs": {
+    "mtime": 1778136420.5690937,
+    "ast_hash": "56a34ce929f4385d9dda797fe7c3a4ce",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/record.rs": {
+    "mtime": 1778124924.668856,
+    "ast_hash": "17026b3755d656911545b761585a95e5",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/App.tsx": {
+    "mtime": 1778495524.3026545,
+    "ast_hash": "12c1e161a13ba9208fe3f5040d00f263",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/main.tsx": {
+    "mtime": 1778124924.6733246,
+    "ast_hash": "a443989afc3f84fb6d17b77ee0097a18",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/i18n.ts": {
+    "mtime": 1778124924.6725695,
+    "ast_hash": "dbcd743fcfd086fdb631fe1f560ea7ef",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/storage.ts": {
+    "mtime": 1777366304.8872168,
+    "ast_hash": "994887f4e45fcb6fc09dcf015baba8fc",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/vite-env.d.ts": {
+    "mtime": 1777294933.1087549,
+    "ast_hash": "0352474ba2918efe13895edbc3780d94",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/types/index.ts": {
+    "mtime": 1778751756.7525403,
+    "ast_hash": "72884ffef5147ae09366cf5e065e0097",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/locales/zh-CN.json": {
+    "mtime": 1778839976.5479765,
+    "ast_hash": "bc2d40c7a7f2ef96fff7da87d37f465c",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/locales/en-US.json": {
+    "mtime": 1778839976.595953,
+    "ast_hash": "c61f11e970064a70823babcdf8d295ea",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/utils/format.ts": {
+    "mtime": 1777294933.108626,
+    "ast_hash": "1a1cd47828dd9b478141bdb8466af5c6",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Settings.tsx": {
+    "mtime": 1778124924.6723912,
+    "ast_hash": "6e31a4c180e63bace0b8e093caeca584",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Clipboard.tsx": {
+    "mtime": 1778124924.6705294,
+    "ast_hash": "2278a4afefb26c8795ead0c00a7b2868",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/PairConnect.tsx": {
+    "mtime": 1778644686.3827739,
+    "ast_hash": "54d6f672db5b93125b88960010eb6c10",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ScreenMirror.tsx": {
+    "mtime": 1778238459.827988,
+    "ast_hash": "fd599e257192db4fc0d1809eb1991f7f",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Screenshot.tsx": {
+    "mtime": 1778495536.6806107,
+    "ast_hash": "9f303c7502cc0b88d61c08c544ff12f7",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ApkInstall.tsx": {
+    "mtime": 1778840852.6975856,
+    "ast_hash": "49cecad46185efd0dfdb6bddc7f90212",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/PackageList.tsx": {
+    "mtime": 1778751780.4358015,
+    "ast_hash": "c3ad92b3cdf0617925ec1087d6c69d79",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/DeviceList.tsx": {
+    "mtime": 1778124924.6707158,
+    "ast_hash": "bde1be4c787c09a488f6de977cbb9eba",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Logcat.tsx": {
+    "mtime": 1778124924.6709435,
+    "ast_hash": "3cff64aa526bc7c9d41729eacb47936f",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ScreenRecord.tsx": {
+    "mtime": 1778124924.6719482,
+    "ast_hash": "322ba06cc0a5353eec39f3fb9756b6ea",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/AdbSetup.tsx": {
+    "mtime": 1778124924.6701083,
+    "ast_hash": "0f77ab2dffb6cad0b4bf7e155fab9419",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/hooks/useDevices.ts": {
+    "mtime": 1777531678.9315596,
+    "ast_hash": "e1d982077509a85ddde6d5fbcd8d5746",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/hooks/useAdb.ts": {
+    "mtime": 1777294933.107713,
+    "ast_hash": "957c1f7031cefc30166c6e5b6ddd670b",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/index.html": {
+    "mtime": 1778124924.6647556,
+    "ast_hash": "776c31362a32753cdc77cdce0428cc88",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/CHANGELOG.md": {
+    "mtime": 1778840327.9903924,
+    "ast_hash": "415e7038be1c04a93469662656ba159e",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/README.md": {
+    "mtime": 1777541828.329456,
+    "ast_hash": "004cd61e0c0c4ef769ff8c202ab6578e",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/locales/en.yml": {
+    "mtime": 1778751813.165069,
+    "ast_hash": "9f8d048ed904d922c99094c0521b12dd",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/locales/zh-CN.yml": {
+    "mtime": 1778751807.0745559,
+    "ast_hash": "60c5974265ec9cb44fed8c3b229bce1f",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/baidu_search_screenshot.png": {
+    "mtime": 1777431749.9649577,
+    "ast_hash": "cb1e810f1adab140ec3aef53e24f3876",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/app-icon.png": {
+    "mtime": 1777347550.1020694,
+    "ast_hash": "17e56b984d8c3db3aa23364c0d8b6e55",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/icon.png": {
+    "mtime": 1777347565.381343,
+    "ast_hash": "1460777bfff351dc9b8f7972fca73ec3",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square30x30Logo.png": {
+    "mtime": 1777347564.6351273,
+    "ast_hash": "749b0e984726c63c290fc05ed21d1bee",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square150x150Logo.png": {
+    "mtime": 1777347564.720111,
+    "ast_hash": "43a01ccdca78f59f0d9fdafcacdad763",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/StoreLogo.png": {
+    "mtime": 1777347564.6253402,
+    "ast_hash": "2a40304a97829b72bc4f2126b4ef229d",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square107x107Logo.png": {
+    "mtime": 1777347564.6838799,
+    "ast_hash": "a86ddfb30ea67c8a440c8e13944e83c6",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square89x89Logo.png": {
+    "mtime": 1777347564.6690655,
+    "ast_hash": "7e4ab4817af150232e71e6edaca0afd7",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square310x310Logo.png": {
+    "mtime": 1777347564.782703,
+    "ast_hash": "8842099de2000e6ece67bea709177099",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square142x142Logo.png": {
+    "mtime": 1777347564.7019105,
+    "ast_hash": "e60c7fcf3307b1656b79a12e075c4a73",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/128x128.png": {
+    "mtime": 1777347565.2939708,
+    "ast_hash": "55aef5c11be4bc897110c333b4e6f999",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square284x284Logo.png": {
+    "mtime": 1777347564.7497838,
+    "ast_hash": "35939832b0c0a66b7d1c668724d7d06c",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/32x32.png": {
+    "mtime": 1777347565.2669187,
+    "ast_hash": "3a10630bd64faf0d345253e7f4e083ad",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square44x44Logo.png": {
+    "mtime": 1777347564.6448016,
+    "ast_hash": "4d75f18868e652145c96eaf377dd4d63",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square71x71Logo.png": {
+    "mtime": 1777347564.6560335,
+    "ast_hash": "91354bf0d6b532ecd88293953b2adc67",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/128x128@2x.png": {
+    "mtime": 1777347565.3219814,
+    "ast_hash": "931a4cc7f647a63e7cf2088df5368a16",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/64x64.png": {
+    "mtime": 1777347565.2777846,
+    "ast_hash": "ad4edbcf8e97b251f964f0640315abbb",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@3x.png": {
+    "mtime": 1777347565.4228003,
+    "ast_hash": "bdc38a94d33b38da3d9e77dd56ad7364",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-512@2x.png": {
+    "mtime": 1777347565.7069476,
+    "ast_hash": "790ff6456201cc22edfb61be8d00b85c",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-83.5x83.5@2x.png": {
+    "mtime": 1777347565.614056,
+    "ast_hash": "a11bde191390cecfa8538eb99567cf27",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@2x.png": {
+    "mtime": 1777347565.4113464,
+    "ast_hash": "c663aa7eb4e7c9b4a4a879bd765f8651",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@3x.png": {
+    "mtime": 1777347565.4686854,
+    "ast_hash": "8c69179ca0c127ec8cfb2c2da7767249",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@2x.png": {
+    "mtime": 1777347565.505716,
+    "ast_hash": "d9f97a4668a51c75d68829df650aa0da",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-60x60@3x.png": {
+    "mtime": 1777347565.5617478,
+    "ast_hash": "7e74ca6f189769f2daf2332de3647059",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@2x-1.png": {
+    "mtime": 1777347565.4819088,
+    "ast_hash": "d9f97a4668a51c75d68829df650aa0da",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@2x-1.png": {
+    "mtime": 1777347565.392316,
+    "ast_hash": "c663aa7eb4e7c9b4a4a879bd765f8651",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-60x60@2x.png": {
+    "mtime": 1777347565.539517,
+    "ast_hash": "8672813f788e4cb91f5ffcfc7b15b9f2",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-76x76@1x.png": {
+    "mtime": 1777347565.5746903,
+    "ast_hash": "cf1ac51e79740e50610f9c4ce4f66a6d",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@3x.png": {
+    "mtime": 1777347565.5225034,
+    "ast_hash": "8672813f788e4cb91f5ffcfc7b15b9f2",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@2x.png": {
+    "mtime": 1777347565.4554684,
+    "ast_hash": "382ddeb5e9c301690d8c7b57257412f7",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-76x76@2x.png": {
+    "mtime": 1777347565.5939584,
+    "ast_hash": "a2e2445e24432b6edf126f40c1288ac2",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@1x.png": {
+    "mtime": 1777347565.4443166,
+    "ast_hash": "2ab2dac59053e7e2352760bdd3f97506",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@1x.png": {
+    "mtime": 1777347565.4926083,
+    "ast_hash": "c663aa7eb4e7c9b4a4a879bd765f8651",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@1x.png": {
+    "mtime": 1777347565.40142,
+    "ast_hash": "d1cf3b9e1afa1eec5599184bfb57dac8",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@2x-1.png": {
+    "mtime": 1777347565.434378,
+    "ast_hash": "382ddeb5e9c301690d8c7b57257412f7",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-mdpi/ic_launcher_foreground.png": {
+    "mtime": 1777347565.7432513,
+    "ast_hash": "77ee1d22ffa1bc4e31370cbf065aa35f",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1777347565.8976228,
+    "ast_hash": "955e669ec2b216f1e80b24af9d3a0f0f",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-mdpi/ic_launcher_round.png": {
+    "mtime": 1777347565.8869865,
+    "ast_hash": "5909b438602017bf20cd8ba77cdce916",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-hdpi/ic_launcher_foreground.png": {
+    "mtime": 1777347565.727233,
+    "ast_hash": "83d4a1acb9f5111ebe4986ad1946bb95",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1777347565.876181,
+    "ast_hash": "3c69dacbc4b925397392ae8370d87267",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-hdpi/ic_launcher_round.png": {
+    "mtime": 1777347565.8651795,
+    "ast_hash": "a338f5e7e87f6f363729ace7c3ff6859",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_foreground.png": {
+    "mtime": 1777347565.8544695,
+    "ast_hash": "5062ddcd22c6b60dd1c341f3c6dd5547",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1777347566.0110996,
+    "ast_hash": "c9ec33d45a3da1a7ec11ed1d0d54eb31",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_round.png": {
+    "mtime": 1777347565.98758,
+    "ast_hash": "0ae668cfd0dfc0dd270d990f2ed13332",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_foreground.png": {
+    "mtime": 1777347565.8050864,
+    "ast_hash": "2177bdffff969f847bf8a64f46a580d0",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1777347565.964019,
+    "ast_hash": "5a6de9817e5a95418851bb65893fae52",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_round.png": {
+    "mtime": 1777347565.9450986,
+    "ast_hash": "830dfc43abd816ab98b9ce8265b4c0c0",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_foreground.png": {
+    "mtime": 1777347565.7683883,
+    "ast_hash": "f7f10fca473606c5bf88473f9bbd6b4f",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1777347565.925935,
+    "ast_hash": "8360994e93acd2cc29124d121591a9cf",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_round.png": {
+    "mtime": 1777347565.9118814,
+    "ast_hash": "aba770dbfe8c3435455f88671716e526",
+    "semantic_hash": ""
+  }
 }

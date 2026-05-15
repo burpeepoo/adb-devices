@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.11] - 2026-05-15
+
+### Added
+
+- Added multi-APK selection and drag-and-drop support in the APK installer.
+- Added a sequential install queue with per-APK status, progress, and completion summary.
+
+### Changed
+
+- APK installation now continues to the next selected APK after an individual install failure.
+- Force install now supports multi-APK queues with a package name field for each APK.
+
 ## [0.1.10] - 2026-05-15
 
 ### Added
