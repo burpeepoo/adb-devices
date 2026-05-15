@@ -28,6 +28,12 @@ export interface PackageInfo {
   build_number: string;
 }
 
+export interface ExportedApk {
+  package_name: string;
+  output_dir: string;
+  files: string[];
+}
+
 export interface LogcatEntry {
   timestamp: string;
   level: string;

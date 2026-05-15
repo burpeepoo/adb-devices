@@ -19,14 +19,26 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - name: macOS
+          - name: macOS Apple Silicon
             os: macos-latest
-            artifact_name: macos-package
+            artifact_name: macos-aarch64-package
+            build_command: |
+              rustup target add aarch64-apple-darwin
+              npm run build:dmg:apple
             artifact_path: |
-              src-tauri/target/release/bundle/dmg/ADB_Manager_*_*.dmg
+              src-tauri/target/release/bundle/dmg/ADB_Manager_*_aarch64.dmg
+          - name: macOS Intel
+            os: macos-13
+            artifact_name: macos-x64-package
+            build_command: |
+              rustup target add x86_64-apple-darwin
+              npm run build:dmg:intel
+            artifact_path: |
+              src-tauri/target/release/bundle/dmg/ADB_Manager_*_x64.dmg
           - name: Windows
             os: windows-latest
             artifact_name: windows-package
+            build_command: npm run tauri build
             artifact_path: |
               src-tauri/target/release/bundle/nsis/*.exe
               src-tauri/target/release/bundle/msi/*.msi
@@ -48,7 +60,7 @@ jobs:
         run: npm ci
 
       - name: Build Tauri package
-        run: ${{ matrix.platform.name == 'macOS' && 'npm run build:dmg' || 'npm run tauri build' }}
+        run: ${{ matrix.platform.build_command }}
 
       - name: Upload package
         uses: actions/upload-artifact@v4

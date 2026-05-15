@@ -1,57 +1,102 @@
 #!/bin/bash
-# Build ADB Manager with install script bundled inside the DMG
+# Build ADB Manager DMGs with install.command bundled beside the app.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 VERSION=$(grep '"version"' src-tauri/tauri.conf.json | head -1 | sed 's/.*"\(.*\)".*/\1/')
-ARCH="aarch64"
-DMG_NAME="ADB_Manager_${VERSION}_${ARCH}.dmg"
 DMG_DIR="src-tauri/target/release/bundle/dmg"
-DMG_PATH="$DMG_DIR/$DMG_NAME"
-STAGING_DIR=$(mktemp -d)
-APP_SRC="src-tauri/target/release/bundle/macos/ADB Manager.app"
-trap 'rm -rf "$STAGING_DIR"' EXIT
+INSTALL_SCRIPT="scripts/install.command"
 
-echo "=== 构建 ADB Manager v${VERSION} ==="
+normalize_arch() {
+    case "${1:-}" in
+        "" | native)
+            case "$(uname -m)" in
+                arm64 | aarch64) echo "aarch64" ;;
+                x86_64 | amd64) echo "x64" ;;
+                *)
+                    echo "Unsupported host architecture: $(uname -m)" >&2
+                    exit 1
+                    ;;
+            esac
+            ;;
+        aarch64 | arm64 | apple | apple-silicon | m | m-series) echo "aarch64" ;;
+        x64 | x86_64 | amd64 | intel) echo "x64" ;;
+        *)
+            echo "Unsupported DMG architecture: $1" >&2
+            echo "Usage: $0 [native|aarch64|x64|all]" >&2
+            exit 1
+            ;;
+    esac
+}
 
-# Step 1: Build the app bundle.
-echo "[1/4] 编译应用..."
-find src-tauri/target/release/bundle/macos src-tauri/target/release/bundle/dmg \
-    -maxdepth 1 -name 'rw.*.dmg' -type f -delete 2>/dev/null || true
-npx tauri build --bundles app
+target_for_arch() {
+    case "$1" in
+        aarch64) echo "aarch64-apple-darwin" ;;
+        x64) echo "x86_64-apple-darwin" ;;
+    esac
+}
 
-# Step 2: Verify generated build artifacts exist.
-if [[ ! -d "$APP_SRC" ]]; then
-    echo "错误: .app 未生成: $APP_SRC"
-    exit 1
+build_one() {
+    local arch="$1"
+    local target
+    local dmg_name
+    local dmg_path
+    local staging_dir
+    local app_src
+
+    target=$(target_for_arch "$arch")
+    dmg_name="ADB_Manager_${VERSION}_${arch}.dmg"
+    dmg_path="$DMG_DIR/$dmg_name"
+    staging_dir=$(mktemp -d)
+    app_src="src-tauri/target/${target}/release/bundle/macos/ADB Manager.app"
+
+    cleanup() {
+        rm -rf "$staging_dir"
+    }
+    trap cleanup RETURN
+
+    echo "=== Building ADB Manager v${VERSION} for ${arch} (${target}) ==="
+
+    echo "[1/4] Building app bundle..."
+    find "src-tauri/target/${target}/release/bundle/macos" "$DMG_DIR" \
+        -maxdepth 1 -name 'rw.*.dmg' -type f -delete 2>/dev/null || true
+    npx tauri build --bundles app --target "$target"
+
+    if [[ ! -d "$app_src" ]]; then
+        echo "Error: app bundle was not generated: $app_src" >&2
+        exit 1
+    fi
+    if [[ ! -f "$INSTALL_SCRIPT" ]]; then
+        echo "Error: missing installer script: $INSTALL_SCRIPT" >&2
+        exit 1
+    fi
+
+    echo "[2/4] Staging DMG contents..."
+    cp -R "$app_src" "$staging_dir/"
+    cp "$INSTALL_SCRIPT" "$staging_dir/"
+    ln -s /Applications "$staging_dir/Applications"
+
+    echo "[3/4] Creating DMG..."
+    mkdir -p "$DMG_DIR"
+    rm -f "$dmg_path"
+    hdiutil create \
+        -volname "ADB Manager" \
+        -srcfolder "$staging_dir" \
+        -format UDZO \
+        -ov \
+        "$dmg_path"
+
+    echo "[4/4] Done"
+    echo "Output: $dmg_path"
+    ls -lh "$dmg_path"
+}
+
+if [[ "${1:-native}" == "all" ]]; then
+    mkdir -p "$DMG_DIR"
+    rm -f "$DMG_DIR"/ADB_Manager_"${VERSION}"_*.dmg
+    build_one "aarch64"
+    build_one "x64"
+else
+    build_one "$(normalize_arch "${1:-native}")"
 fi
-if [[ ! -f "scripts/install.command" ]]; then
-    echo "错误: 未找到安装脚本 scripts/install.command"
-    exit 1
-fi
-
-# Step 3: Prepare staging directory
-echo "[2/4] 准备 DMG 内容..."
-cp -R "$APP_SRC" "$STAGING_DIR/"
-cp scripts/install.command "$STAGING_DIR/"
-ln -s /Applications "$STAGING_DIR/Applications"
-
-# Step 4: Create DMG with custom content
-echo "[3/4] 打包 DMG ..."
-mkdir -p "$DMG_DIR"
-rm -f "$DMG_DIR"/*.dmg
-
-hdiutil create \
-    -volname "ADB Manager" \
-    -srcfolder "$STAGING_DIR" \
-    -format UDZO \
-    -ov \
-    "$DMG_PATH"
-
-echo "[4/4] 清理..."
-
-echo ""
-echo "=== DMG 打包完成 ==="
-echo "输出: $DMG_PATH"
-ls -lh "$DMG_PATH"

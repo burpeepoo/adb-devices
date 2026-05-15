@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { PackageInfo } from "../types";
+import { ExportedApk, PackageInfo } from "../types";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -18,10 +18,13 @@ export default function PackageList({ deviceSerial }: Props) {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [exportingPackage, setExportingPackage] = useState<string | null>(null);
+  const [exportResult, setExportResult] = useState<ExportedApk | null>(null);
 
   const handleList = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setExportResult(null);
     try {
       const result = await invoke<PackageInfo[]>("adb_list_package_details", {
         deviceSerial: deviceSerial || null,
@@ -71,6 +74,32 @@ export default function PackageList({ deviceSerial }: Props) {
     }
   };
 
+  const handleExportApk = async (name: string) => {
+    setExportingPackage(name);
+    setError(null);
+    setExportResult(null);
+    try {
+      const result = await invoke<ExportedApk>("adb_export_package_apk", {
+        packageName: name,
+        deviceSerial: deviceSerial || null,
+      });
+      setExportResult(result);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setExportingPackage(null);
+    }
+  };
+
+  const handleRevealExport = async (path: string) => {
+    try {
+      await invoke("reveal_path", { path });
+      setError(null);
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
   return (
     <div className="h-full bg-white rounded-lg border border-gray-200 flex flex-col">
       <div className="p-3 border-b border-gray-200">
@@ -95,6 +124,24 @@ export default function PackageList({ deviceSerial }: Props) {
         {error && (
           <div className="text-sm px-3 py-2 rounded-lg bg-red-50 text-red-600">
             {error}
+          </div>
+        )}
+        {exportResult && (
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm px-3 py-2 rounded-lg bg-green-50 text-green-700">
+            <span>
+              {t('packageList.exportedApk', {
+                package: exportResult.package_name,
+                count: exportResult.files.length,
+                path: exportResult.output_dir,
+              })}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleRevealExport(exportResult.output_dir)}
+              className="text-green-800 underline underline-offset-2 hover:text-green-900"
+            >
+              {t('packageList.revealExport')}
+            </button>
           </div>
         )}
       </div>
@@ -141,12 +188,21 @@ export default function PackageList({ deviceSerial }: Props) {
                   <td className="px-3 py-2 text-gray-700">{pkg.device_serial || "-"}</td>
                   <td className="px-3 py-2 text-gray-700">{pkg.build_number || "-"}</td>
                   <td className="px-3 py-2">
-                    <button
-                      onClick={() => handleCopyPackageName(pkg.name)}
-                      className="text-blue-500 hover:text-blue-700"
-                    >
-                      {t('packageList.copyPkgName')}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => handleCopyPackageName(pkg.name)}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        {t('packageList.copyPkgName')}
+                      </button>
+                      <button
+                        onClick={() => handleExportApk(pkg.name)}
+                        disabled={exportingPackage !== null}
+                        className="text-blue-500 hover:text-blue-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                      >
+                        {exportingPackage === pkg.name ? t('packageList.exportingApk') : t('packageList.exportApk')}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

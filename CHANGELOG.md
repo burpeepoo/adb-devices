@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.10] - 2026-05-15
+
+### Added
+
+- Added APK export from the Package tab, including support for packages installed as split APKs.
+- Added separate macOS DMG builds for Apple Silicon and Intel Macs.
+
+### Changed
+
+- Release packaging now uses architecture-specific DMG commands while keeping `install.command` bundled in every macOS installer.
+- GitHub Actions now uploads separate `aarch64` and `x64` macOS DMG artifacts for release publishing.
+
 ## [0.1.9] - 2026-05-13
 
 ### Added
