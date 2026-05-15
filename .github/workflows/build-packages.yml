@@ -28,7 +28,7 @@ jobs:
             artifact_path: |
               src-tauri/target/release/bundle/dmg/ADB_Manager_*_aarch64.dmg
           - name: macOS Intel
-            os: macos-13
+            os: macos-latest
             artifact_name: macos-x64-package
             build_command: |
               rustup target add x86_64-apple-darwin
