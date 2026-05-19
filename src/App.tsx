@@ -3,11 +3,13 @@ import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { TabKey, AppSettings } from "./types";
+import { applyLanguagePreference } from "./i18n";
 import { useDevices } from "./hooks/useDevices";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import DeviceList from "./components/DeviceList";
 import AdbSetup from "./components/AdbSetup";
 import PairConnect from "./components/PairConnect";
+import AdbWorkbench from "./components/AdbWorkbench";
 import ApkInstall from "./components/ApkInstall";
 import Screenshot from "./components/Screenshot";
 import ScreenRecord from "./components/ScreenRecord";
@@ -35,6 +37,7 @@ export default function App() {
 
   const TAB_LABELS: Record<TabKey, string> = {
     pair: t('tabs.pairConnect'),
+    workbench: t('tabs.workbench'),
     install: t('tabs.apkInstall'),
     screenshot: t('tabs.screenshot'),
     record: t('tabs.screenRecord'),
@@ -52,6 +55,7 @@ export default function App() {
     screenshotDir: "",
     recordingDir: "",
     recentApkDir: "",
+    languagePreference: "system",
   });
   const selectedDeviceRef = useRef<string | null>(selectedDevice);
   const settingsRef = useRef<AppSettings>(settings);
@@ -88,11 +92,14 @@ export default function App() {
       const dir = await invoke<string>("get_default_save_dir");
       const store = await getStore();
       const saved = await store.get<AppSettings>(STORE_KEYS.settings);
-      setSettings((prev) => ({
-        screenshotDir: saved?.screenshotDir || prev.screenshotDir || dir,
-        recordingDir: saved?.recordingDir || prev.recordingDir || dir,
-        recentApkDir: saved?.recentApkDir || prev.recentApkDir || "",
-      }));
+      const nextSettings = {
+        screenshotDir: saved?.screenshotDir || dir,
+        recordingDir: saved?.recordingDir || dir,
+        recentApkDir: saved?.recentApkDir || "",
+        languagePreference: saved?.languagePreference || "system",
+      };
+      setSettings(nextSettings);
+      await applyLanguagePreference(nextSettings.languagePreference);
     } catch {
       // ignore
     }
@@ -177,6 +184,9 @@ export default function App() {
 
   const handleSettingsChange = useCallback((nextSettings: AppSettings) => {
     setSettings(nextSettings);
+    applyLanguagePreference(nextSettings.languagePreference).catch(() => {
+      // Frontend language changes are best-effort; persisted settings still save below.
+    });
     saveStoreValue(STORE_KEYS.settings, nextSettings).catch(() => {
       // Non-critical; the current session can still use the selected paths.
     });
@@ -236,14 +246,14 @@ export default function App() {
         />
 
         {/* Main content */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="min-w-0 flex-1 flex flex-col overflow-hidden">
           {/* Tab bar */}
-          <nav className="flex border-b border-gray-200 bg-white px-2">
+          <nav className="flex overflow-x-auto whitespace-nowrap border-b border-gray-200 bg-white px-2">
             {(Object.keys(TAB_LABELS) as TabKey[]).map((key) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                className={`flex-none px-3 py-2.5 text-sm font-medium border-b-2 transition-colors sm:px-4 ${
                   activeTab === key
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -257,6 +267,7 @@ export default function App() {
           {/* Tab content */}
           <div className="flex-1 overflow-auto p-4">
             {activeTab === "pair" && <PairConnect devices={devices} onConnected={refresh} />}
+            {activeTab === "workbench" && <AdbWorkbench deviceSerial={selectedDevice} />}
             {activeTab === "install" && (
               <ApkInstall
                 deviceSerial={selectedDevice}

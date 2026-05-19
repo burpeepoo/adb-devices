@@ -1,5 +1,8 @@
 use rust_i18n::t;
+use std::collections::HashSet;
 use std::io::Read;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::sync::Mutex;
 use tauri::{AppHandle, State};
 
@@ -88,6 +91,122 @@ pub fn adb_install(
 #[tauri::command(async)]
 pub fn parse_apk_package(apk_path: String) -> Result<String, AdbError> {
     extract_apk_package_name(&apk_path)
+}
+
+#[tauri::command(async)]
+pub fn resolve_apk_paths(paths: Vec<String>) -> Result<Vec<String>, AdbError> {
+    let mut seen = HashSet::new();
+    let mut apk_paths = Vec::new();
+
+    for path in paths {
+        collect_apk_paths(Path::new(path.trim()), &mut seen, &mut apk_paths);
+    }
+
+    Ok(apk_paths)
+}
+
+#[tauri::command(async)]
+pub fn read_clipboard_apk_paths() -> Result<Vec<String>, AdbError> {
+    let mut paths = read_clipboard_file_paths();
+
+    if paths.is_empty() {
+        paths = read_clipboard_text_paths();
+    }
+
+    resolve_apk_paths(paths)
+}
+
+fn collect_apk_paths(path: &Path, seen: &mut HashSet<String>, apk_paths: &mut Vec<String>) {
+    if !path.exists() {
+        return;
+    }
+
+    if path.is_file() {
+        if path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("apk"))
+        {
+            let normalized = path.to_string_lossy().to_string();
+            if seen.insert(normalized.clone()) {
+                apk_paths.push(normalized);
+            }
+        }
+        return;
+    }
+
+    if !path.is_dir() {
+        return;
+    }
+
+    let mut children = match std::fs::read_dir(path) {
+        Ok(entries) => entries
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .collect::<Vec<PathBuf>>(),
+        Err(_) => return,
+    };
+    children.sort();
+
+    for child in children {
+        collect_apk_paths(&child, seen, apk_paths);
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn read_clipboard_file_paths() -> Vec<String> {
+    let script = r#"
+set output to ""
+try
+  set clipboardItems to the clipboard as list
+  repeat with clipboardItem in clipboardItems
+    try
+      set output to output & POSIX path of (clipboardItem as alias) & linefeed
+    end try
+  end repeat
+on error
+end try
+if output is "" then
+  try
+    set output to POSIX path of ((the clipboard) as alias)
+  on error
+  end try
+end if
+return output
+"#;
+
+    let output = Command::new("/usr/bin/osascript")
+        .arg("-e")
+        .arg(script)
+        .output();
+
+    match output {
+        Ok(output) if output.status.success() => String::from_utf8_lossy(&output.stdout)
+            .lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty())
+            .map(ToOwned::to_owned)
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn read_clipboard_file_paths() -> Vec<String> {
+    Vec::new()
+}
+
+fn read_clipboard_text_paths() -> Vec<String> {
+    let output = Command::new("pbpaste").output();
+    match output {
+        Ok(output) if output.status.success() => String::from_utf8_lossy(&output.stdout)
+            .lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty())
+            .map(ToOwned::to_owned)
+            .collect(),
+        _ => Vec::new(),
+    }
 }
 
 fn extract_apk_package_name(apk_path: &str) -> Result<String, AdbError> {
@@ -239,4 +358,31 @@ fn read_u16(data: &[u8], offset: usize) -> Option<u16> {
 fn read_u32(data: &[u8], offset: usize) -> Option<u32> {
     let bytes = data.get(offset..offset + 4)?;
     Some(u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn collects_apks_from_nested_folders() {
+        let root =
+            std::env::temp_dir().join(format!("adb-manager-apk-scan-{}", std::process::id()));
+        let nested = root.join("nested");
+        std::fs::create_dir_all(&nested).unwrap();
+        std::fs::write(root.join("a.apk"), b"").unwrap();
+        std::fs::write(root.join("ignore.txt"), b"").unwrap();
+        std::fs::write(nested.join("b.APK"), b"").unwrap();
+
+        let mut seen = HashSet::new();
+        let mut apk_paths = Vec::new();
+        collect_apk_paths(&root, &mut seen, &mut apk_paths);
+
+        apk_paths.sort();
+        assert_eq!(apk_paths.len(), 2);
+        assert!(apk_paths.iter().any(|path| path.ends_with("a.apk")));
+        assert!(apk_paths.iter().any(|path| path.ends_with("b.APK")));
+
+        std::fs::remove_dir_all(root).unwrap();
+    }
 }

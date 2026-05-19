@@ -10,6 +10,7 @@
   },
   "tabs": {
     "pairConnect": "Pair & Connect",
+    "workbench": "ADB Workbench",
     "apkInstall": "Install APK",
     "screenshot": "Screenshot",
     "screenRecord": "Record",
@@ -20,6 +21,10 @@
   },
   "settings": {
     "title": "Settings",
+    "language": "Language",
+    "languageSystem": "Follow system",
+    "languageEnglish": "English",
+    "languageChinese": "中文",
     "screenshotDir": "Screenshot Save Directory",
     "recordingDir": "Recording Save Directory",
     "notSet": "Not set",
@@ -166,6 +171,356 @@
     "clear": "Clear",
     "noDevice": "No device selected, using default device"
   },
+  "workbench": {
+    "title": "ADB Workbench",
+    "subtitle": "Use preset abilities, reusable templates, or custom ADB subcommands without opening Terminal.",
+    "searchPlaceholder": "Search setprop, clear data, logcat...",
+    "libraryMode": "Library",
+    "templatesMode": "My Templates",
+    "customMode": "Custom command",
+    "templatesTitle": "My Templates",
+    "templatesDesc": "Saved reusable commands appear here for quick selection and execution.",
+    "noTemplates": "No saved templates yet",
+    "customTitle": "Custom ADB subcommand",
+    "customDesc": "Enter the part after adb. The selected device is added automatically.",
+    "noParams": "This command has no parameters.",
+    "preview": "Command Preview",
+    "execute": "Execute",
+    "executing": "Executing...",
+    "copy": "Copy",
+    "exportOutput": "Export",
+    "exporting": "Exporting...",
+    "exported": "Exported to {{path}}",
+    "output": "Output",
+    "exitCode": "Exit code",
+    "noOutput": "Command completed without output",
+    "history": "Recent history",
+    "noHistory": "No commands executed yet",
+    "ok": "OK",
+    "failed": "Failed",
+    "saveTemplate": "Save",
+    "templateSaved": "Saved to My Templates",
+    "templateName": "Template name",
+    "noDevice": "No device selected. ADB will use its default device selection.",
+    "missingParams": "Fill required parameters before executing.",
+    "highRiskConfirm": "I understand this command may delete data, uninstall apps, reboot the device, or make destructive changes.",
+    "risk": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "categories": {
+      "all": "All",
+      "device": "Device",
+      "app": "Apps",
+      "system": "System",
+      "diagnostics": "Diagnostics",
+      "display": "Display",
+      "media": "Media",
+      "files": "Files",
+      "network": "Network",
+      "power": "Power",
+      "input": "Input",
+      "saved": "My Templates"
+    },
+    "params": {
+      "packageName": "Package name",
+      "componentName": "Component",
+      "propKey": "Key",
+      "value": "Value",
+      "activity": "Activity",
+      "permission": "Permission",
+      "apkPath": "APK path",
+      "localPath": "Local path",
+      "remotePath": "Device path",
+      "seconds": "Seconds",
+      "installMode": "Install mode",
+      "keyevent": "Key event",
+      "x": "X",
+      "y": "Y",
+      "x1": "Start X",
+      "y1": "Start Y",
+      "x2": "End X",
+      "y2": "End Y",
+      "duration": "Duration (ms)",
+      "query": "Query",
+      "text": "Text",
+      "namespace": "Namespace"
+    },
+    "placeholders": {
+      "packageName": "com.example.app",
+      "componentName": "com.example/.MainActivity",
+      "propKey": "persist.sys.cozyla.osfull",
+      "value": "true",
+      "activity": "com.example/.MainActivity",
+      "permission": "android.permission.POST_NOTIFICATIONS",
+      "apkPath": "/Users/name/Downloads/app.apk",
+      "localPath": "/Users/name/Downloads/file.txt",
+      "remotePath": "/sdcard/Download/file.txt",
+      "screenshotPath": "/sdcard/Download/screenshot.png",
+      "recordingPath": "/sdcard/Download/screenrecord.mp4",
+      "seconds": "10",
+      "keyevent": "3",
+      "x": "500",
+      "y": "1200",
+      "x1": "500",
+      "y1": "1600",
+      "x2": "500",
+      "y2": "400",
+      "duration": "300",
+      "query": "ActivityTaskManager",
+      "text": "hello"
+    },
+    "namespaces": {
+      "global": "global",
+      "system": "system",
+      "secure": "secure"
+    },
+    "installModes": {
+      "replace": "Replace install (-r)",
+      "grant": "Install and grant permissions (-r -g)",
+      "downgrade": "Allow downgrade (-r -d)",
+      "test": "Allow test APK (-r -t)"
+    },
+    "catalog": {
+      "deviceProps": {
+        "title": "Read all device properties",
+        "desc": "Run getprop to inspect build, product, and system properties."
+      },
+      "deviceModel": {
+        "title": "Read device model",
+        "desc": "Get ro.product.model from the selected device."
+      },
+      "appList": {
+        "title": "List installed packages",
+        "desc": "Show installed package names on the device."
+      },
+      "installApk": {
+        "title": "Install APK",
+        "desc": "Run adb install with replace, grant, downgrade, or test APK options."
+      },
+      "installExisting": {
+        "title": "Install existing package",
+        "desc": "Run cmd package install-existing for a package already present on the device."
+      },
+      "listPermissions": {
+        "title": "List dangerous permissions",
+        "desc": "Run pm list permissions -g -d to inspect grouped dangerous permissions."
+      },
+      "clearData": {
+        "title": "Clear app data",
+        "desc": "Run pm clear. This signs users out and deletes local app data."
+      },
+      "forceStop": {
+        "title": "Force stop app",
+        "desc": "Stop a running app process by package name."
+      },
+      "startActivity": {
+        "title": "Start activity",
+        "desc": "Launch an app activity with am start -n."
+      },
+      "grant": {
+        "title": "Grant permission",
+        "desc": "Grant a runtime permission to an app package."
+      },
+      "setprop": {
+        "title": "Set system property",
+        "desc": "Run shell setprop for device/system feature flags."
+      },
+      "settingsPut": {
+        "title": "Write Android setting",
+        "desc": "Run settings put global/system/secure."
+      },
+      "dumpsysActivity": {
+        "title": "Inspect top activity",
+        "desc": "Run dumpsys activity top for foreground app diagnostics."
+      },
+      "keyevent": {
+        "title": "Send key event",
+        "desc": "Send Android keyevent values such as Home, Back, or Power."
+      },
+      "inputText": {
+        "title": "Input text",
+        "desc": "Type text into the currently focused field on the device."
+      },
+      "logcatSearch": {
+        "title": "Dump logcat",
+        "desc": "Read current logcat output, optionally scoped by tag/query."
+      },
+      "deviceSerial": {
+        "title": "Read device serial",
+        "desc": "Read ro.serialno to identify the physical device."
+      },
+      "androidVersion": {
+        "title": "Read Android version",
+        "desc": "Read ro.build.version.release."
+      },
+      "sdkVersion": {
+        "title": "Read SDK version",
+        "desc": "Read ro.build.version.sdk."
+      },
+      "cpuAbi": {
+        "title": "Read CPU ABI",
+        "desc": "Show the device's preferred ABI."
+      },
+      "displaySize": {
+        "title": "Read display size",
+        "desc": "Run wm size to inspect physical and override sizes."
+      },
+      "displayDensity": {
+        "title": "Read display density",
+        "desc": "Run wm density to inspect DPI settings."
+      },
+      "currentFocus": {
+        "title": "Inspect window focus",
+        "desc": "Run dumpsys window to diagnose focused window and Activity state."
+      },
+      "screenshot": {
+        "title": "Take device screenshot",
+        "desc": "Run screencap -p and save the screenshot to a device path."
+      },
+      "screenrecord": {
+        "title": "Record device screen",
+        "desc": "Run screenrecord --time-limit and save the recording to a device path."
+      },
+      "pullFile": {
+        "title": "Pull file",
+        "desc": "Run adb pull to copy a file from the device to this computer."
+      },
+      "pushFile": {
+        "title": "Push file",
+        "desc": "Run adb push to copy a local file to a device path."
+      },
+      "networkIp": {
+        "title": "Inspect network addresses",
+        "desc": "Run ip addr to list network interface addresses."
+      },
+      "networkRoute": {
+        "title": "Inspect routes",
+        "desc": "Run ip route to inspect default routes and network egress."
+      },
+      "wifiStatus": {
+        "title": "Inspect Wi-Fi status",
+        "desc": "Run dumpsys wifi for Wi-Fi connection diagnostics."
+      },
+      "appListThirdParty": {
+        "title": "List third-party apps",
+        "desc": "Run pm list packages -3."
+      },
+      "appListSystem": {
+        "title": "List system apps",
+        "desc": "Run pm list packages -s."
+      },
+      "appListDisabled": {
+        "title": "List disabled apps",
+        "desc": "Run pm list packages -d."
+      },
+      "appPath": {
+        "title": "Read APK path",
+        "desc": "Run pm path for a package."
+      },
+      "packageDump": {
+        "title": "Inspect package details",
+        "desc": "Run dumpsys package for a package."
+      },
+      "monkeyLaunch": {
+        "title": "Launch app by package",
+        "desc": "Use monkey to launch the package's Launcher Activity."
+      },
+      "disableApp": {
+        "title": "Disable app",
+        "desc": "Run pm disable-user for the package."
+      },
+      "enableApp": {
+        "title": "Enable app",
+        "desc": "Run pm enable for the package."
+      },
+      "uninstall": {
+        "title": "Uninstall app",
+        "desc": "Run adb uninstall to remove the app."
+      },
+      "revoke": {
+        "title": "Revoke permission",
+        "desc": "Revoke a runtime permission from an app package."
+      },
+      "enableComponent": {
+        "title": "Enable component",
+        "desc": "Enable an Activity, Receiver, or Service component."
+      },
+      "disableComponent": {
+        "title": "Disable component",
+        "desc": "Disable an Activity, Receiver, or Service component."
+      },
+      "settingsGet": {
+        "title": "Read Android setting",
+        "desc": "Run settings get global/system/secure."
+      },
+      "deviceDate": {
+        "title": "Read device time",
+        "desc": "Run shell date."
+      },
+      "meminfo": {
+        "title": "Inspect app memory",
+        "desc": "Run dumpsys meminfo for a package."
+      },
+      "cpuTop": {
+        "title": "Inspect CPU usage",
+        "desc": "Run top -n 1 to snapshot process CPU usage."
+      },
+      "processes": {
+        "title": "List processes",
+        "desc": "Run ps -A."
+      },
+      "diskUsage": {
+        "title": "Inspect disk usage",
+        "desc": "Run df -h to inspect device partition usage."
+      },
+      "storage": {
+        "title": "Inspect storage stats",
+        "desc": "Run dumpsys diskstats to inspect Android storage statistics."
+      },
+      "dumpsysInput": {
+        "title": "Inspect input system",
+        "desc": "Run dumpsys input to diagnose touch and input state."
+      },
+      "battery": {
+        "title": "Inspect battery status",
+        "desc": "Run dumpsys battery."
+      },
+      "wake": {
+        "title": "Wake screen",
+        "desc": "Send KEYCODE_WAKEUP."
+      },
+      "sleep": {
+        "title": "Sleep screen",
+        "desc": "Send KEYCODE_SLEEP."
+      },
+      "back": {
+        "title": "Back key",
+        "desc": "Send Android Back."
+      },
+      "home": {
+        "title": "Home key",
+        "desc": "Send Android Home."
+      },
+      "recents": {
+        "title": "Recents key",
+        "desc": "Open recent apps."
+      },
+      "tap": {
+        "title": "Tap coordinates",
+        "desc": "Run input tap x y."
+      },
+      "swipe": {
+        "title": "Swipe coordinates",
+        "desc": "Run input swipe x1 y1 x2 y2 duration."
+      },
+      "logcatClear": {
+        "title": "Clear logcat buffer",
+        "desc": "Run logcat -c to clear the current log buffer."
+      }
+    }
+  },
   "logcat": {
     "title": "ADB Logcat",
     "autoRefresh": "Auto-refreshing every 1 minute — you can also refresh manually",
@@ -201,9 +556,11 @@
     "selectApkTitle": "Select APK File",
     "selectedCount": "{{count}} APK selected",
     "removeFile": "Remove file",
-    "dropOnlyApk": "Drop APK files only",
+    "dropOnlyApk": "No APK files found",
     "dropHere": "Release to add APK files",
-    "dropHint": "Drag one or more APK files here, or click Select Files",
+    "dropHint": "Drag APKs or folders containing APKs here, or click Select Files",
+    "pasteHint": "You can also copy APKs or folders in Finder, then click Paste to detect them.",
+    "pastePaths": "Paste",
     "parsedPkg": "Detected package name",
     "forceInstall": "Force install (uninstall old version first)",
     "pkgName": "Package Name",

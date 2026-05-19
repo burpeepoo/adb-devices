@@ -46,6 +46,8 @@ pub fn run() {
             commands::device::adb_disconnect,
             commands::install::adb_install,
             commands::install::parse_apk_package,
+            commands::install::read_clipboard_apk_paths,
+            commands::install::resolve_apk_paths,
             commands::clipboard::adb_input_text,
             commands::logcat::adb_read_logcat,
             commands::logcat::adb_start_logcat,
@@ -72,6 +74,7 @@ pub fn run() {
             commands::settings::open_file,
             commands::settings::open_external_url,
             commands::settings::set_locale,
+            commands::workbench::adb_workbench_execute,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

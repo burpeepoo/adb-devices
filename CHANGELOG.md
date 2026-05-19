@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.0.1] - 2026-05-19
+
+### Added
+
+- Added ADB Workbench with a categorized ADB capability library, reusable templates, custom command execution, command history, and output export.
+- Added Workbench actions for APK install, install-existing, screenshots, screen recording, file pull/push, permission listing, disk usage, and storage diagnostics.
+- Added package-name search and selection for ADB Workbench package commands.
+- Added APK folder drag-and-drop and clipboard paste detection for APK files or folders copied from Finder.
+- Added a Settings language preference for following the system language, English, or Chinese.
+
+### Changed
+
+- Reworked ADB Workbench into an IDE-style layout with shell preview and output below the command builder.
+- Sorted Workbench actions by risk from low to high and added category filtering.
+- Separated saved templates into a dedicated My Templates area with an empty state and save confirmation.
+
+### Fixed
+
+- Reduced package-name search stalls and high memory use by avoiding hidden lookups and limiting search result processing.
+- Reduced the initial height of the custom command input.
+
 ## [1.0.0] - 2026-05-19
 
 ### Added

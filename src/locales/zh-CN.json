@@ -10,6 +10,7 @@
   },
   "tabs": {
     "pairConnect": "配对连接",
+    "workbench": "ADB 工作台",
     "apkInstall": "安装应用",
     "screenshot": "截图",
     "screenRecord": "录屏",
@@ -20,6 +21,10 @@
   },
   "settings": {
     "title": "设置",
+    "language": "语言",
+    "languageSystem": "跟随系统",
+    "languageEnglish": "English",
+    "languageChinese": "中文",
     "screenshotDir": "截图保存目录",
     "recordingDir": "录屏保存目录",
     "notSet": "未设置",
@@ -166,6 +171,356 @@
     "clear": "清空",
     "noDevice": "未选择设备，将使用默认设备"
   },
+  "workbench": {
+    "title": "ADB 工作台",
+    "subtitle": "通过预设能力、可复用模板或自定义 ADB 子命令执行操作，无需打开命令行。",
+    "searchPlaceholder": "搜索 setprop、清数据、logcat...",
+    "libraryMode": "能力库",
+    "templatesMode": "我的模板",
+    "customMode": "自定义命令",
+    "templatesTitle": "我的模板",
+    "templatesDesc": "保存后的常用命令会出现在这里，可直接选择并执行。",
+    "noTemplates": "还没有保存模板",
+    "customTitle": "自定义 ADB 子命令",
+    "customDesc": "只输入 adb 后面的部分。当前选择的设备会自动拼接。",
+    "noParams": "这个命令不需要参数。",
+    "preview": "命令预览",
+    "execute": "执行",
+    "executing": "执行中...",
+    "copy": "复制",
+    "exportOutput": "导出",
+    "exporting": "导出中...",
+    "exported": "已导出到 {{path}}",
+    "output": "输出",
+    "exitCode": "退出码",
+    "noOutput": "命令执行完成，无输出",
+    "history": "最近历史",
+    "noHistory": "还没有执行过命令",
+    "ok": "成功",
+    "failed": "失败",
+    "saveTemplate": "保存",
+    "templateSaved": "已保存到我的模板",
+    "templateName": "模板名称",
+    "noDevice": "未选择设备，ADB 将使用默认设备选择逻辑。",
+    "missingParams": "请先填写必填参数。",
+    "highRiskConfirm": "我确认这个命令可能删除数据、卸载应用、重启设备或进行破坏性修改。",
+    "risk": {
+      "low": "低风险",
+      "medium": "中风险",
+      "high": "高风险"
+    },
+    "categories": {
+      "all": "全部",
+      "device": "设备",
+      "app": "应用",
+      "system": "系统",
+      "diagnostics": "诊断",
+      "display": "显示",
+      "media": "媒体",
+      "files": "文件",
+      "network": "网络",
+      "power": "电源",
+      "input": "输入",
+      "saved": "我的模板"
+    },
+    "params": {
+      "packageName": "包名",
+      "componentName": "组件名",
+      "propKey": "键",
+      "value": "值",
+      "activity": "Activity",
+      "permission": "权限",
+      "apkPath": "APK 路径",
+      "localPath": "本地路径",
+      "remotePath": "设备路径",
+      "seconds": "秒数",
+      "installMode": "安装模式",
+      "keyevent": "按键事件",
+      "x": "X",
+      "y": "Y",
+      "x1": "起点 X",
+      "y1": "起点 Y",
+      "x2": "终点 X",
+      "y2": "终点 Y",
+      "duration": "时长(ms)",
+      "query": "查询",
+      "text": "文本",
+      "namespace": "命名空间"
+    },
+    "placeholders": {
+      "packageName": "com.example.app",
+      "componentName": "com.example/.MainActivity",
+      "propKey": "persist.sys.cozyla.osfull",
+      "value": "true",
+      "activity": "com.example/.MainActivity",
+      "permission": "android.permission.POST_NOTIFICATIONS",
+      "apkPath": "/Users/name/Downloads/app.apk",
+      "localPath": "/Users/name/Downloads/file.txt",
+      "remotePath": "/sdcard/Download/file.txt",
+      "screenshotPath": "/sdcard/Download/screenshot.png",
+      "recordingPath": "/sdcard/Download/screenrecord.mp4",
+      "seconds": "10",
+      "keyevent": "3",
+      "x": "500",
+      "y": "1200",
+      "x1": "500",
+      "y1": "1600",
+      "x2": "500",
+      "y2": "400",
+      "duration": "300",
+      "query": "ActivityTaskManager",
+      "text": "hello"
+    },
+    "namespaces": {
+      "global": "global",
+      "system": "system",
+      "secure": "secure"
+    },
+    "installModes": {
+      "replace": "替换安装 (-r)",
+      "grant": "安装并授予权限 (-r -g)",
+      "downgrade": "允许降级安装 (-r -d)",
+      "test": "允许测试包 (-r -t)"
+    },
+    "catalog": {
+      "deviceProps": {
+        "title": "读取全部设备属性",
+        "desc": "执行 getprop，查看 build、product 和系统属性。"
+      },
+      "deviceModel": {
+        "title": "读取设备型号",
+        "desc": "从当前设备读取 ro.product.model。"
+      },
+      "appList": {
+        "title": "列出已安装包",
+        "desc": "显示设备上的已安装应用包名。"
+      },
+      "installApk": {
+        "title": "安装 APK",
+        "desc": "执行 adb install，可选择替换、授权、降级或测试包模式。"
+      },
+      "installExisting": {
+        "title": "恢复已存在应用",
+        "desc": "执行 cmd package install-existing，恢复当前用户下已存在但未安装的包。"
+      },
+      "listPermissions": {
+        "title": "列出危险权限",
+        "desc": "执行 pm list permissions -g -d，查看按组归类的危险权限。"
+      },
+      "clearData": {
+        "title": "清除应用数据",
+        "desc": "执行 pm clear，会退出登录并删除应用本地数据。"
+      },
+      "forceStop": {
+        "title": "强停应用",
+        "desc": "按包名停止正在运行的应用进程。"
+      },
+      "startActivity": {
+        "title": "启动 Activity",
+        "desc": "通过 am start -n 启动指定应用 Activity。"
+      },
+      "grant": {
+        "title": "授予权限",
+        "desc": "给指定应用包授予运行时权限。"
+      },
+      "setprop": {
+        "title": "设置系统属性",
+        "desc": "执行 shell setprop，用于设备或系统功能开关。"
+      },
+      "settingsPut": {
+        "title": "写入 Android 设置",
+        "desc": "执行 settings put global/system/secure。"
+      },
+      "dumpsysActivity": {
+        "title": "查看当前顶层 Activity",
+        "desc": "执行 dumpsys activity top，诊断前台应用状态。"
+      },
+      "keyevent": {
+        "title": "发送按键事件",
+        "desc": "发送 Home、Back、Power 等 Android keyevent。"
+      },
+      "inputText": {
+        "title": "输入文本",
+        "desc": "向设备当前焦点输入框输入文本。"
+      },
+      "logcatSearch": {
+        "title": "读取 logcat",
+        "desc": "读取当前 logcat 输出，可按 tag/query 限定。"
+      },
+      "deviceSerial": {
+        "title": "读取设备 SN",
+        "desc": "读取 ro.serialno，用于确认真实设备序列号。"
+      },
+      "androidVersion": {
+        "title": "读取 Android 版本",
+        "desc": "读取 ro.build.version.release。"
+      },
+      "sdkVersion": {
+        "title": "读取 SDK 版本",
+        "desc": "读取 ro.build.version.sdk。"
+      },
+      "cpuAbi": {
+        "title": "读取 CPU ABI",
+        "desc": "查看设备首选 ABI。"
+      },
+      "displaySize": {
+        "title": "查看屏幕尺寸",
+        "desc": "执行 wm size，读取物理/覆盖屏幕尺寸。"
+      },
+      "displayDensity": {
+        "title": "查看屏幕密度",
+        "desc": "执行 wm density，读取 DPI 设置。"
+      },
+      "currentFocus": {
+        "title": "查看窗口焦点",
+        "desc": "执行 dumpsys window，排查当前焦点窗口和 Activity。"
+      },
+      "screenshot": {
+        "title": "设备截图",
+        "desc": "执行 screencap -p，将截图保存到设备指定路径。"
+      },
+      "screenrecord": {
+        "title": "设备录屏",
+        "desc": "执行 screenrecord --time-limit，将录屏保存到设备指定路径。"
+      },
+      "pullFile": {
+        "title": "拉取文件",
+        "desc": "执行 adb pull，从设备路径复制文件到本机。"
+      },
+      "pushFile": {
+        "title": "推送文件",
+        "desc": "执行 adb push，把本机文件复制到设备路径。"
+      },
+      "networkIp": {
+        "title": "查看网络地址",
+        "desc": "执行 ip addr，查看设备网络接口地址。"
+      },
+      "networkRoute": {
+        "title": "查看路由",
+        "desc": "执行 ip route，查看默认路由和网络出口。"
+      },
+      "wifiStatus": {
+        "title": "查看 Wi-Fi 状态",
+        "desc": "执行 dumpsys wifi，查看 Wi-Fi 连接和诊断信息。"
+      },
+      "appListThirdParty": {
+        "title": "列出三方应用",
+        "desc": "执行 pm list packages -3。"
+      },
+      "appListSystem": {
+        "title": "列出系统应用",
+        "desc": "执行 pm list packages -s。"
+      },
+      "appListDisabled": {
+        "title": "列出已停用应用",
+        "desc": "执行 pm list packages -d。"
+      },
+      "appPath": {
+        "title": "查看 APK 路径",
+        "desc": "按包名执行 pm path。"
+      },
+      "packageDump": {
+        "title": "查看包详情",
+        "desc": "按包名执行 dumpsys package。"
+      },
+      "monkeyLaunch": {
+        "title": "按包名启动应用",
+        "desc": "通过 monkey 启动指定包的 Launcher Activity。"
+      },
+      "disableApp": {
+        "title": "停用应用",
+        "desc": "执行 pm disable-user，停用指定包。"
+      },
+      "enableApp": {
+        "title": "启用应用",
+        "desc": "执行 pm enable，恢复指定包。"
+      },
+      "uninstall": {
+        "title": "卸载应用",
+        "desc": "执行 adb uninstall，会移除应用。"
+      },
+      "revoke": {
+        "title": "撤销权限",
+        "desc": "从指定应用撤销运行时权限。"
+      },
+      "enableComponent": {
+        "title": "启用组件",
+        "desc": "启用 Activity/Receiver/Service 组件。"
+      },
+      "disableComponent": {
+        "title": "停用组件",
+        "desc": "停用 Activity/Receiver/Service 组件。"
+      },
+      "settingsGet": {
+        "title": "读取 Android 设置",
+        "desc": "执行 settings get global/system/secure。"
+      },
+      "deviceDate": {
+        "title": "查看设备时间",
+        "desc": "执行 shell date。"
+      },
+      "meminfo": {
+        "title": "查看应用内存",
+        "desc": "按包名执行 dumpsys meminfo。"
+      },
+      "cpuTop": {
+        "title": "查看 CPU 占用",
+        "desc": "执行 top -n 1，抓取一次进程 CPU 情况。"
+      },
+      "processes": {
+        "title": "列出进程",
+        "desc": "执行 ps -A。"
+      },
+      "diskUsage": {
+        "title": "查看磁盘空间",
+        "desc": "执行 df -h，查看设备分区空间占用。"
+      },
+      "storage": {
+        "title": "查看存储诊断",
+        "desc": "执行 dumpsys diskstats，查看 Android 存储统计信息。"
+      },
+      "dumpsysInput": {
+        "title": "查看输入系统",
+        "desc": "执行 dumpsys input，诊断触摸和输入状态。"
+      },
+      "battery": {
+        "title": "查看电池状态",
+        "desc": "执行 dumpsys battery。"
+      },
+      "wake": {
+        "title": "唤醒屏幕",
+        "desc": "发送 KEYCODE_WAKEUP。"
+      },
+      "sleep": {
+        "title": "关闭屏幕",
+        "desc": "发送 KEYCODE_SLEEP。"
+      },
+      "back": {
+        "title": "返回键",
+        "desc": "发送 Android Back 按键。"
+      },
+      "home": {
+        "title": "Home 键",
+        "desc": "发送 Android Home 按键。"
+      },
+      "recents": {
+        "title": "最近任务键",
+        "desc": "打开最近任务。"
+      },
+      "tap": {
+        "title": "点击坐标",
+        "desc": "执行 input tap x y。"
+      },
+      "swipe": {
+        "title": "滑动坐标",
+        "desc": "执行 input swipe x1 y1 x2 y2 duration。"
+      },
+      "logcatClear": {
+        "title": "清空 logcat 缓冲",
+        "desc": "执行 logcat -c，清空当前日志缓冲。"
+      }
+    }
+  },
   "logcat": {
     "title": "ADB Logcat",
     "autoRefresh": "每 1 分钟自动刷新，也可以手动刷新",
@@ -201,9 +556,11 @@
     "selectApkTitle": "选择 APK 文件",
     "selectedCount": "已选择 {{count}} 个 APK",
     "removeFile": "移除文件",
-    "dropOnlyApk": "请拖入 APK 文件",
+    "dropOnlyApk": "没有识别到 APK 文件",
     "dropHere": "松开以添加 APK 文件",
-    "dropHint": "拖拽一个或多个 APK 到这里，或点击选择文件",
+    "dropHint": "拖拽 APK 或包含 APK 的文件夹到这里，或点击选择文件",
+    "pasteHint": "也可以先在 Finder 复制 APK 或文件夹，再点击粘贴识别。",
+    "pastePaths": "粘贴",
     "parsedPkg": "识别到的包名",
     "forceInstall": "强制安装（先卸载旧版本再安装）",
     "pkgName": "包名 (Package Name)",

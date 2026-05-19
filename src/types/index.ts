@@ -46,7 +46,10 @@ export interface AppSettings {
   screenshotDir: string;
   recordingDir: string;
   recentApkDir: string;
+  languagePreference?: LanguagePreference;
 }
+
+export type LanguagePreference = "system" | "en-US" | "zh-CN";
 
 export interface PairConnectSettings {
   pairIp: string;
@@ -57,6 +60,7 @@ export interface PairConnectSettings {
 
 export type TabKey =
   | "pair"
+  | "workbench"
   | "install"
   | "screenshot"
   | "record"

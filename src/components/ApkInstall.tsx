@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ClipboardEvent } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useTranslation } from "react-i18next";
+import PackageNameInput from "./PackageNameInput";
+import { packageMatchScore } from "../utils/packageSearch";
 
 type InstallStatus = "pending" | "installing" | "success" | "failed";
 
@@ -22,60 +25,6 @@ interface Props {
 }
 
 const fileName = (path: string) => path.split(/[\\/]/).pop() || path;
-
-const normalizePackageQuery = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/\.apk$/, "")
-    .replace(/[_-]+/g, ".")
-    .replace(/[^a-z0-9.]+/g, ".")
-    .replace(/\.+/g, ".")
-    .replace(/^\./, "")
-    .replace(/\.$/, "");
-
-const packageTokens = (value: string) =>
-  normalizePackageQuery(value)
-    .split(".")
-    .filter((token) => token.length > 1 && !/^\d+$/.test(token) && !/^v\d+$/.test(token));
-
-const packageMatchScore = (query: string, pkg: string) => {
-  const normalizedQuery = normalizePackageQuery(query);
-  const normalizedPkg = normalizePackageQuery(pkg);
-  if (!normalizedQuery || !normalizedPkg) return 0;
-  if (normalizedPkg === normalizedQuery) return 1000;
-  if (normalizedPkg.startsWith(normalizedQuery)) return 900 - (normalizedPkg.length - normalizedQuery.length);
-  if (normalizedPkg.includes(normalizedQuery)) return 800 - normalizedPkg.indexOf(normalizedQuery);
-
-  const queryTokens = packageTokens(normalizedQuery);
-  const pkgTokens = packageTokens(normalizedPkg);
-  if (queryTokens.length === 0 || pkgTokens.length === 0) return 0;
-
-  let score = 0;
-  for (const token of queryTokens) {
-    if (pkgTokens.includes(token)) {
-      score += 120;
-    } else if (pkgTokens.some((pkgToken) => pkgToken.includes(token) || token.includes(pkgToken))) {
-      score += 60;
-    }
-  }
-
-  const lastToken = queryTokens[queryTokens.length - 1];
-  if (lastToken) {
-    if (pkgTokens.includes(lastToken)) score += 120;
-    if (normalizedPkg.endsWith(`.${lastToken}`)) score += 160;
-  }
-
-  const includedTokenCount = queryTokens.filter((token) => normalizedPkg.includes(token)).length;
-  score += Math.round((includedTokenCount / queryTokens.length) * 80);
-  return score;
-};
-
-const rankedPackages = (packages: string[], query: string) =>
-  packages
-    .map((pkg) => ({ pkg, score: packageMatchScore(query, pkg) }))
-    .filter((item) => item.score > 0)
-    .sort((a, b) => b.score - a.score || a.pkg.localeCompare(b.pkg))
-    .map((item) => item.pkg);
 
 const bestPackageMatch = (item: ApkInstallItem, packages: string[]) => {
   const queries = [item.pkgName, fileName(item.path)].filter(Boolean);
@@ -103,7 +52,6 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
   const [dragging, setDragging] = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
-  const [focusedPackagePath, setFocusedPackagePath] = useState<string | null>(null);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const installingRef = useRef(false);
   const autoPackageLoadAttemptedRef = useRef(false);
@@ -119,9 +67,6 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
     if (installingRef.current) return;
 
     setApkItems((items) => items.filter((item) => item.path !== path));
-    if (focusedPackagePath === path) {
-      setFocusedPackagePath(null);
-    }
     setCompletedCount(0);
     setCurrentIndex(null);
     setResult(null);
@@ -130,9 +75,8 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
   const loadApkPaths = useCallback(async (paths: string[]) => {
     if (installingRef.current) return;
 
-    const apkPaths = Array.from(
-      new Set(paths.filter((path) => path.toLowerCase().endsWith(".apk"))),
-    );
+    const apkPaths = await invoke<string[]>("resolve_apk_paths", { paths })
+      .catch(() => paths.filter((path) => path.toLowerCase().endsWith(".apk")));
     if (apkPaths.length === 0) {
       setResult({ ok: false, msg: t('apkInstall.dropOnlyApk') });
       return;
@@ -148,8 +92,9 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
       onRecentApkDirChange(parentDir);
     }
 
+    const uniqueApkPaths = Array.from(new Set(apkPaths));
     const parsedItems = await Promise.all(
-      apkPaths.map(async (path) => {
+      uniqueApkPaths.map(async (path) => {
         try {
           const parsedPkg = await invoke<string>("parse_apk_package", {
             apkPath: path,
@@ -177,6 +122,33 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
 
     setApkItems(parsedItems);
   }, [onRecentApkDirChange, t]);
+
+  const handlePasteApks = useCallback(async () => {
+    if (installingRef.current) return;
+
+    try {
+      const paths = await invoke<string[]>("read_clipboard_apk_paths");
+      await loadApkPaths(paths);
+      return;
+    } catch {
+      // Browser-only dev sessions do not expose the Tauri clipboard helper.
+    }
+
+    try {
+      const text = await navigator.clipboard?.readText();
+      await loadApkPaths(text ? text.split(/\r?\n/) : []);
+    } catch (e) {
+      setResult({ ok: false, msg: String(e) });
+    }
+  }, [loadApkPaths]);
+
+  const handlePasteText = useCallback((event: ClipboardEvent<HTMLDivElement>) => {
+    const text = event.clipboardData.getData("text");
+    if (!text.trim() || installingRef.current) return;
+
+    event.preventDefault();
+    void loadApkPaths(text.split(/\r?\n/));
+  }, [loadApkPaths]);
 
   useEffect(() => {
     let unlisten: (() => void) | null = null;
@@ -354,6 +326,8 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
         <div className="mb-4">
           <label className="block text-xs text-gray-500 mb-1">{t('apkInstall.apkFiles')}</label>
           <div
+            tabIndex={0}
+            onPaste={handlePasteText}
             className={`rounded-lg border p-3 transition-colors ${
               dragging ? "border-blue-400 bg-blue-50" : "border-dashed border-gray-300 bg-gray-50"
             }`}
@@ -361,6 +335,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
             <div className="mb-2 text-sm font-medium text-gray-700">
               {dragging ? t('apkInstall.dropHere') : t('apkInstall.dropHint')}
             </div>
+            <div className="mb-2 text-xs text-gray-400">{t('apkInstall.pasteHint')}</div>
             <div className="flex gap-2">
               <textarea
                 value={apkItems.map((item) => item.path).join("\n")}
@@ -375,6 +350,13 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
               >
                 {t('apkInstall.selectFiles')}
+              </button>
+              <button
+                onClick={handlePasteApks}
+                disabled={installing}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+              >
+                {t('apkInstall.pastePaths')}
               </button>
             </div>
           </div>
@@ -459,36 +441,18 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
                   </div>
                   {force && (
                     <div className="mt-2">
-                      <input
-                        type="text"
+                      <PackageNameInput
                         value={item.pkgName}
-                        onChange={(e) => updateItem(item.path, { pkgName: e.target.value, pkgEdited: true, parseFailed: false })}
-                        onFocus={() => setFocusedPackagePath(item.path)}
+                        onChange={(pkgName) => updateItem(item.path, { pkgName, pkgEdited: true, parseFailed: false })}
+                        onSelectPackage={(pkgName) => updateItem(item.path, { pkgName, pkgEdited: true, parseFailed: false })}
+                        deviceSerial={deviceSerial}
                         disabled={installing}
                         placeholder={t('apkInstall.pkgName')}
+                        packages={installedPackages}
+                        loadingPackages={loadingPackages}
+                        onLoadPackages={() => handleLoadPackages({ showErrors: true })}
                         className="w-full px-2 py-1.5 border border-gray-200 rounded-md font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-50"
                       />
-                      {focusedPackagePath === item.path && installedPackages.length > 0 && item.pkgName.trim() && (
-                        <div className="mt-1 max-h-32 overflow-auto rounded-md border border-gray-200 bg-white">
-                          {rankedPackages(installedPackages, item.pkgName).slice(0, 30).map((pkg) => (
-                            <button
-                              key={pkg}
-                              type="button"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => {
-                                updateItem(item.path, { pkgName: pkg, pkgEdited: true, parseFailed: false });
-                                setFocusedPackagePath(item.path);
-                              }}
-                              className="w-full px-2 py-1.5 text-left font-mono text-xs text-gray-700 hover:bg-blue-50"
-                            >
-                              {pkg}
-                            </button>
-                          ))}
-                          {rankedPackages(installedPackages, item.pkgName).length === 0 && (
-                            <div className="px-2 py-1.5 text-xs text-gray-400">{t('apkInstall.noMatch')}</div>
-                          )}
-                        </div>
-                      )}
                       {item.parseFailed && !item.pkgName.trim() && (
                         <p className="mt-1 text-xs text-red-600">{t('apkInstall.parseFailed')}</p>
                       )}

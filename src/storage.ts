@@ -9,6 +9,8 @@ export const STORE_KEYS = {
   deviceHistory: "deviceHistory",
   deviceNotes: "deviceNotes",
   pairConnect: "pairConnect",
+  workbenchTemplates: "workbenchTemplates",
+  workbenchHistory: "workbenchHistory",
 } as const;
 
 export function getStore() {

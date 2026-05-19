@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
-import { AppSettings } from "../types";
+import { AppSettings, LanguagePreference } from "../types";
 
 interface Props {
   settings: AppSettings;
@@ -47,6 +47,24 @@ export default function Settings({ settings, onSettingsChange, onClose }: Props)
         </div>
 
         <div className="p-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.language')}</label>
+            <select
+              value={local.languagePreference || "system"}
+              onChange={(event) =>
+                setLocal({
+                  ...local,
+                  languagePreference: event.target.value as LanguagePreference,
+                })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            >
+              <option value="system">{t('settings.languageSystem')}</option>
+              <option value="en-US">{t('settings.languageEnglish')}</option>
+              <option value="zh-CN">{t('settings.languageChinese')}</option>
+            </select>
+          </div>
+
           {/* Screenshot dir */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.screenshotDir')}</label>
