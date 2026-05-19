@@ -1,12 +1,11 @@
 #!/bin/bash
-# Build ADB Manager DMGs with install.command bundled beside the app.
+# Build ADB Manager DMGs with the app and Applications shortcut.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 VERSION=$(grep '"version"' src-tauri/tauri.conf.json | head -1 | sed 's/.*"\(.*\)".*/\1/')
 DMG_DIR="src-tauri/target/release/bundle/dmg"
-INSTALL_SCRIPT="scripts/install.command"
 
 normalize_arch() {
     case "${1:-}" in
@@ -27,6 +26,13 @@ normalize_arch() {
             echo "Usage: $0 [native|aarch64|x64|all]" >&2
             exit 1
             ;;
+    esac
+}
+
+scrcpy_path_for_arch() {
+    case "$1" in
+        aarch64) echo "src-tauri/resources/scrcpy/macos-aarch64/scrcpy" ;;
+        x64) echo "src-tauri/resources/scrcpy/macos-x86_64/scrcpy" ;;
     esac
 }
 
@@ -58,7 +64,7 @@ build_one() {
 
     echo "=== Building ADB Manager v${VERSION} for ${arch} (${target}) ==="
 
-    echo "[1/4] Building app bundle..."
+    echo "[1/3] Building app bundle..."
     find "src-tauri/target/${target}/release/bundle/macos" "$DMG_DIR" \
         -maxdepth 1 -name 'rw.*.dmg' -type f -delete 2>/dev/null || true
     npx tauri build --bundles app --target "$target"
@@ -67,17 +73,19 @@ build_one() {
         echo "Error: app bundle was not generated: $app_src" >&2
         exit 1
     fi
-    if [[ ! -f "$INSTALL_SCRIPT" ]]; then
-        echo "Error: missing installer script: $INSTALL_SCRIPT" >&2
+    local scrcpy_resource
+    scrcpy_resource=$(scrcpy_path_for_arch "$arch")
+    if [[ ! -x "$scrcpy_resource" ]]; then
+        echo "Error: missing bundled scrcpy for ${arch}: $scrcpy_resource" >&2
+        echo "Run ./scripts/prepare-scrcpy.sh before building DMGs." >&2
         exit 1
     fi
 
-    echo "[2/4] Staging DMG contents..."
+    echo "[2/3] Staging DMG contents..."
     cp -R "$app_src" "$staging_dir/"
-    cp "$INSTALL_SCRIPT" "$staging_dir/"
     ln -s /Applications "$staging_dir/Applications"
 
-    echo "[3/4] Creating DMG..."
+    echo "[3/3] Creating DMG..."
     mkdir -p "$DMG_DIR"
     rm -f "$dmg_path"
     hdiutil create \
@@ -87,7 +95,7 @@ build_one() {
         -ov \
         "$dmg_path"
 
-    echo "[4/4] Done"
+    echo "Done"
     echo "Output: $dmg_path"
     ls -lh "$dmg_path"
 }

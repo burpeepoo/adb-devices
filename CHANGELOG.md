@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.0] - 2026-05-19
+
+### Added
+
+- Added a repeatable macOS Developer ID release flow for version updates, signing, notarization, stapling, and verification.
+- Added a modern blue ADB-themed app icon asset set.
+
+### Changed
+
+- Changed the macOS bundle identifier to `com.burpeepoo.adb-manager`.
+- Release packaging now signs bundled macOS `scrcpy` binaries before app notarization.
+- macOS DMGs now contain only `ADB Manager.app` and the `/Applications` shortcut.
+
 ## [0.1.11] - 2026-05-15
 
 ### Added

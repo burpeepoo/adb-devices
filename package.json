@@ -1,6 +1,6 @@
 {
   "name": "adb-manager",
-  "version": "0.1.11",
+  "version": "1.0.0",
   "description": "ADB Manager for Cozyla PMs",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,8 @@
     "build:dmg:apple": "./scripts/build-dmg.sh aarch64",
     "build:dmg:intel": "./scripts/build-dmg.sh x64",
     "build:dmg:all": "./scripts/build-dmg.sh all",
+    "set-version": "./scripts/set-version.sh",
+    "release:macos": "./scripts/release-macos.sh",
     "tauri": "tauri"
   },
   "dependencies": {

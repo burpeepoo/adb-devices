@@ -59,6 +59,10 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Prepare bundled scrcpy
+        shell: bash
+        run: bash scripts/prepare-scrcpy.sh
+
       - name: Build Tauri package
         run: ${{ matrix.platform.build_command }}
 

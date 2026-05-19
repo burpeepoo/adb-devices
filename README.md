@@ -110,7 +110,19 @@ Build local installers:
 npm run tauri build
 ```
 
-On macOS, the `.dmg` is generated under:
+### macOS Release
+
+Developer ID releases are built by a repeatable script that updates versions, signs bundled binaries, builds Apple Silicon and Intel DMGs, notarizes them, staples tickets, and runs Gatekeeper checks.
+
+1. Copy `.env.release.example` to `.env.release`.
+2. Fill in the local Apple Developer values. Keep the `.p8` key outside this repo.
+3. Run:
+
+```bash
+npm run release:macos -- 1.0.0
+```
+
+The final `.dmg` files are generated under:
 
 ```text
 src-tauri/target/release/bundle/dmg/

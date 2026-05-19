@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 #[cfg(target_os = "windows")]
 use serde::Deserialize;
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::adb::{self, AdbError};
 use crate::state::AppState;
@@ -51,8 +51,8 @@ struct GithubAsset {
 }
 
 #[tauri::command(async)]
-pub fn check_scrcpy_available() -> Result<bool, AdbError> {
-    Ok(get_scrcpy_path().is_some())
+pub fn check_scrcpy_available(app: AppHandle) -> Result<bool, AdbError> {
+    Ok(get_scrcpy_path(&app).is_some())
 }
 
 #[tauri::command(async)]
@@ -67,7 +67,7 @@ pub async fn install_scrcpy(
 ) -> Result<String, AdbError> {
     let _guard = acquire_install_lock(&state.scrcpy_installing)?;
 
-    if get_scrcpy_path().is_some() {
+    if get_scrcpy_path(&app).is_some() {
         emit_install_progress(&app, &t!("mirror.scrcpy_installed"));
         return Ok(t!("mirror.scrcpy_installed").to_string());
     }
@@ -91,7 +91,7 @@ pub async fn install_scrcpy(
         ));
     }
 
-    if get_scrcpy_path().is_some() {
+    if get_scrcpy_path(&app).is_some() {
         emit_install_progress(&app, &t!("mirror.install_success"));
         Ok(t!("mirror.install_success").to_string())
     } else {
@@ -131,11 +131,11 @@ pub fn start_screen_mirror(
         }
     }
 
-    let scrcpy_path = get_scrcpy_path()
+    let scrcpy_path = get_scrcpy_path(&app)
         .ok_or_else(|| AdbError::CommandFailed(t!("mirror.scrcpy_not_found").into_owned()))?;
     let adb_path = adb::get_adb_path(&app)?;
 
-    let mut command = Command::new(scrcpy_path);
+    let mut command = Command::new(&scrcpy_path);
     command.args(["-s", &device_serial]);
     if !audio_enabled.unwrap_or(false) {
         command.arg("--no-audio");
@@ -147,6 +147,11 @@ pub fn start_screen_mirror(
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+
+    // If using bundled scrcpy, point it to the bundled scrcpy-server
+    if let Some(server_path) = get_bundled_scrcpy_server_path(&app) {
+        command.env("SCRCPY_SERVER_PATH", server_path);
+    }
 
     if let Some(path_env) = scrcpy_path_env(&adb_path) {
         command.env("PATH", path_env);
@@ -262,7 +267,42 @@ fn current_screen_mirror_state(state: &State<'_, AppState>) -> Result<ScreenMirr
     })
 }
 
-fn get_scrcpy_path() -> Option<PathBuf> {
+fn get_bundled_scrcpy_path(app: &AppHandle) -> Option<PathBuf> {
+    let resource_dir = app.path().resource_dir().ok()?;
+
+    let relative = if cfg!(target_os = "windows") {
+        "resources/scrcpy/windows/scrcpy.exe"
+    } else if cfg!(target_os = "macos") {
+        if cfg!(target_arch = "x86_64") {
+            "resources/scrcpy/macos-x86_64/scrcpy"
+        } else if cfg!(target_arch = "aarch64") {
+            "resources/scrcpy/macos-aarch64/scrcpy"
+        } else {
+            return None;
+        }
+    } else {
+        return None;
+    };
+
+    let path = resource_dir.join(relative);
+    path.exists().then_some(path)
+}
+
+fn get_bundled_scrcpy_server_path(app: &AppHandle) -> Option<PathBuf> {
+    get_bundled_scrcpy_path(app)?
+        .parent()?
+        .join("scrcpy-server")
+        .canonicalize()
+        .ok()
+}
+
+fn get_scrcpy_path(app: &AppHandle) -> Option<PathBuf> {
+    // Prefer bundled scrcpy (shipped inside the app)
+    if let Some(bundled) = get_bundled_scrcpy_path(app) {
+        return Some(bundled);
+    }
+
+    // Fall back to system-installed scrcpy
     if let Ok(path) = which::which("scrcpy") {
         return Some(path);
     }

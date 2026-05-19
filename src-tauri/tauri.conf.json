@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-cli/schema.json",
   "productName": "ADB Manager",
-  "version": "0.1.11",
-  "identifier": "com.cozyla.adb-manager",
+  "version": "1.0.0",
+  "identifier": "com.burpeepoo.adb-manager",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -37,7 +37,8 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "resources/platform-tools"
+      "resources/platform-tools",
+      "resources/scrcpy"
     ],
     "macOS": {
       "dmg": {

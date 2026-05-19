@@ -69,17 +69,20 @@ fn get_bundled_adb_path(app: &AppHandle) -> Option<PathBuf> {
     let resource_dir = app.path().resource_dir().ok()?;
     let candidates: &[&str] = if cfg!(target_os = "windows") {
         &[
-            "platform-tools/windows/adb.exe",
-            "platform-tools/win/adb.exe",
+            "resources/platform-tools/windows/adb.exe",
+            "resources/platform-tools/win/adb.exe",
         ]
     } else if cfg!(target_os = "macos") {
         &[
-            "platform-tools/macos/cozyla-adb",
-            "platform-tools/macos/adb",
-            "platform-tools/mac/adb",
+            "resources/platform-tools/macos/cozyla-adb",
+            "resources/platform-tools/macos/adb",
+            "resources/platform-tools/mac/adb",
         ]
     } else {
-        &["platform-tools/linux/adb", "platform-tools/adb"]
+        &[
+            "resources/platform-tools/linux/adb",
+            "resources/platform-tools/adb",
+        ]
     };
 
     for relative in candidates {
