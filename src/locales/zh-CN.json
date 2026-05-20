@@ -200,6 +200,8 @@
     "failed": "失败",
     "saveTemplate": "保存",
     "templateSaved": "已保存到我的模板",
+    "templateRemoved": "模板已移除",
+    "removeTemplate": "移除",
     "templateName": "模板名称",
     "noDevice": "未选择设备，ADB 将使用默认设备选择逻辑。",
     "missingParams": "请先填写必填参数。",
@@ -250,13 +252,14 @@
     "placeholders": {
       "packageName": "com.example.app",
       "componentName": "com.example/.MainActivity",
-      "propKey": "persist.sys.cozyla.osfull",
-      "value": "true",
+      "propKey": "example.feature.flag",
+      "value": "enabled",
       "activity": "com.example/.MainActivity",
       "permission": "android.permission.POST_NOTIFICATIONS",
       "apkPath": "/Users/name/Downloads/app.apk",
       "localPath": "/Users/name/Downloads/file.txt",
       "remotePath": "/sdcard/Download/file.txt",
+      "directoryPath": "/sdcard/Download",
       "screenshotPath": "/sdcard/Download/screenshot.png",
       "recordingPath": "/sdcard/Download/screenrecord.mp4",
       "seconds": "10",
@@ -382,6 +385,10 @@
       "screenrecord": {
         "title": "设备录屏",
         "desc": "执行 screenrecord --time-limit，将录屏保存到设备指定路径。"
+      },
+      "listDirectory": {
+        "title": "列出设备目录",
+        "desc": "执行 ls -la，查看 /sdcard、Download 等设备目录下有什么。"
       },
       "pullFile": {
         "title": "拉取文件",
@@ -559,7 +566,7 @@
     "dropOnlyApk": "没有识别到 APK 文件",
     "dropHere": "松开以添加 APK 文件",
     "dropHint": "拖拽 APK 或包含 APK 的文件夹到这里，或点击选择文件",
-    "pasteHint": "也可以先在 Finder 复制 APK 或文件夹，再点击粘贴识别。",
+    "pasteHint": "也可以先在 Finder 复制 APK 或文件夹，再回到这里按 Cmd/Ctrl+V，或点击粘贴识别。",
     "pastePaths": "粘贴",
     "parsedPkg": "识别到的包名",
     "forceInstall": "强制安装（先卸载旧版本再安装）",

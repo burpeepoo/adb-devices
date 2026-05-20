@@ -80,6 +80,7 @@ const PARAMS = {
   apkPath: { name: "apkPath", labelKey: "workbench.params.apkPath", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.apkPath" },
   localPath: { name: "localPath", labelKey: "workbench.params.localPath", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.localPath" },
   remotePath: { name: "remotePath", labelKey: "workbench.params.remotePath", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.remotePath" },
+  directoryPath: { name: "remotePath", labelKey: "workbench.params.remotePath", type: "text" as const, required: true, defaultValue: "/sdcard/Download", placeholderKey: "workbench.placeholders.directoryPath" },
   screenshotPath: { name: "remotePath", labelKey: "workbench.params.remotePath", type: "text" as const, required: true, defaultValue: "/sdcard/Download/screenshot.png", placeholderKey: "workbench.placeholders.screenshotPath" },
   recordingPath: { name: "remotePath", labelKey: "workbench.params.remotePath", type: "text" as const, required: true, defaultValue: "/sdcard/Download/screenrecord.mp4", placeholderKey: "workbench.placeholders.recordingPath" },
   seconds: { name: "seconds", labelKey: "workbench.params.seconds", type: "text" as const, required: true, defaultValue: "10", placeholderKey: "workbench.placeholders.seconds" },
@@ -243,6 +244,16 @@ const CATALOG: WorkbenchItem[] = [
     risk: "low",
     params: [PARAMS.seconds, PARAMS.recordingPath],
     buildCommand: (values) => ["shell", "screenrecord", "--time-limit", values.seconds, values.remotePath],
+  },
+  {
+    id: "files.listDir",
+    kind: "template",
+    titleKey: "workbench.catalog.listDirectory.title",
+    descriptionKey: "workbench.catalog.listDirectory.desc",
+    categoryKey: "workbench.categories.files",
+    risk: "low",
+    params: [PARAMS.directoryPath],
+    buildCommand: (values) => ["shell", "ls", "-la", values.remotePath],
   },
   {
     id: "files.pull",
@@ -1030,6 +1041,16 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
     await saveStoreValue(STORE_KEYS.workbenchTemplates, nextTemplates).catch(() => {});
   };
 
+  const removeTemplate = async (templateId: string) => {
+    const nextTemplates = savedTemplates.filter((template) => template.id !== templateId);
+    setSavedTemplates(nextTemplates);
+    if (selectedTemplateId === templateId) {
+      setSelectedTemplateId(nextTemplates[0]?.id ?? null);
+    }
+    setTemplateStatus(t("workbench.templateRemoved"));
+    await saveStoreValue(STORE_KEYS.workbenchTemplates, nextTemplates).catch(() => {});
+  };
+
   const loadFromHistory = (item: WorkbenchHistoryItem) => {
     const historyItem = item.itemId ? allItems.find((candidate) => candidate.id === item.itemId) : null;
     const historyTemplate = item.itemId ? savedItems.find((candidate) => candidate.id === item.itemId) : null;
@@ -1223,15 +1244,14 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
               {savedItems.map((item) => {
                 const selected = item.id === selectedTemplate?.id;
                 return (
-                  <button
+                  <div
                     key={item.id}
-                    type="button"
-                    onClick={() => chooseTemplate(item)}
-                    className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+                    className={`flex items-start gap-2 rounded-lg border px-3 py-2 transition-colors ${
                       selected ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
+                    <button type="button" onClick={() => chooseTemplate(item)} className="min-w-0 flex-1 text-left">
+                      <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="truncate text-sm font-medium text-gray-800">{item.title}</div>
                         <div className="mt-1 truncate font-mono text-xs text-gray-500">{item.savedCommand}</div>
@@ -1239,11 +1259,24 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
                       <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] ${riskClasses[item.risk]}`}>
                         {t(`workbench.risk.${item.risk}`)}
                       </span>
-                    </div>
-                  </button>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeTemplate(item.id)}
+                      className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                    >
+                      {t("workbench.removeTemplate")}
+                    </button>
+                  </div>
                 );
               })}
             </div>
+            {templateStatus && (
+              <div className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+                {templateStatus}
+              </div>
+            )}
           </div>
         ) : (
           <div>
@@ -1256,7 +1289,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
                 setHighRiskConfirmed(false);
               }}
               rows={4}
-              placeholder="shell setprop persist.sys.cozyla.osfull true"
+              placeholder="shell setprop example.feature.flag enabled"
               className="mt-4 w-full resize-y rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
             />
           </div>

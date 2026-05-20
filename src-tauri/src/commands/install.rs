@@ -99,7 +99,10 @@ pub fn resolve_apk_paths(paths: Vec<String>) -> Result<Vec<String>, AdbError> {
     let mut apk_paths = Vec::new();
 
     for path in paths {
-        collect_apk_paths(Path::new(path.trim()), &mut seen, &mut apk_paths);
+        let normalized = normalize_clipboard_path(&path);
+        if !normalized.is_empty() {
+            collect_apk_paths(Path::new(&normalized), &mut seen, &mut apk_paths);
+        }
     }
 
     Ok(apk_paths)
@@ -156,22 +159,20 @@ fn collect_apk_paths(path: &Path, seen: &mut HashSet<String>, apk_paths: &mut Ve
 #[cfg(target_os = "macos")]
 fn read_clipboard_file_paths() -> Vec<String> {
     let script = r#"
+use framework "AppKit"
+use framework "Foundation"
+use scripting additions
+
 set output to ""
-try
-  set clipboardItems to the clipboard as list
-  repeat with clipboardItem in clipboardItems
-    try
-      set output to output & POSIX path of (clipboardItem as alias) & linefeed
-    end try
-  end repeat
-on error
-end try
-if output is "" then
+set pasteboard to current application's NSPasteboard's generalPasteboard()
+set fileURLs to pasteboard's readObjectsForClasses:{current application's NSURL} options:(missing value)
+repeat with fileURL in fileURLs
   try
-    set output to POSIX path of ((the clipboard) as alias)
-  on error
+    if (fileURL's isFileURL()) as boolean then
+      set output to output & ((fileURL's |path|()) as text) & linefeed
+    end if
   end try
-end if
+end repeat
 return output
 "#;
 
@@ -206,6 +207,44 @@ fn read_clipboard_text_paths() -> Vec<String> {
             .map(ToOwned::to_owned)
             .collect(),
         _ => Vec::new(),
+    }
+}
+
+fn normalize_clipboard_path(path: &str) -> String {
+    let trimmed = path.trim().trim_matches(['"', '\'']);
+    let file_path = trimmed.strip_prefix("file://").unwrap_or(trimmed);
+    percent_decode(file_path)
+}
+
+fn percent_decode(value: &str) -> String {
+    let bytes = value.as_bytes();
+    let mut output = Vec::with_capacity(bytes.len());
+    let mut index = 0;
+
+    while index < bytes.len() {
+        if bytes[index] == b'%' && index + 2 < bytes.len() {
+            let high = bytes[index + 1];
+            let low = bytes[index + 2];
+            if let (Some(high), Some(low)) = (hex_value(high), hex_value(low)) {
+                output.push((high << 4) | low);
+                index += 3;
+                continue;
+            }
+        }
+
+        output.push(bytes[index]);
+        index += 1;
+    }
+
+    String::from_utf8_lossy(&output).to_string()
+}
+
+fn hex_value(byte: u8) -> Option<u8> {
+    match byte {
+        b'0'..=b'9' => Some(byte - b'0'),
+        b'a'..=b'f' => Some(byte - b'a' + 10),
+        b'A'..=b'F' => Some(byte - b'A' + 10),
+        _ => None,
     }
 }
 
@@ -384,5 +423,17 @@ mod tests {
         assert!(apk_paths.iter().any(|path| path.ends_with("b.APK")));
 
         std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn normalizes_quoted_file_uri_clipboard_paths() {
+        assert_eq!(
+            normalize_clipboard_path("\"file:///Users/test/My%20App/app.apk\""),
+            "/Users/test/My App/app.apk"
+        );
+        assert_eq!(
+            normalize_clipboard_path("'/Users/test/app.apk'"),
+            "/Users/test/app.apk"
+        );
     }
 }

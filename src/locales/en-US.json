@@ -200,6 +200,8 @@
     "failed": "Failed",
     "saveTemplate": "Save",
     "templateSaved": "Saved to My Templates",
+    "templateRemoved": "Template removed",
+    "removeTemplate": "Remove",
     "templateName": "Template name",
     "noDevice": "No device selected. ADB will use its default device selection.",
     "missingParams": "Fill required parameters before executing.",
@@ -250,13 +252,14 @@
     "placeholders": {
       "packageName": "com.example.app",
       "componentName": "com.example/.MainActivity",
-      "propKey": "persist.sys.cozyla.osfull",
-      "value": "true",
+      "propKey": "example.feature.flag",
+      "value": "enabled",
       "activity": "com.example/.MainActivity",
       "permission": "android.permission.POST_NOTIFICATIONS",
       "apkPath": "/Users/name/Downloads/app.apk",
       "localPath": "/Users/name/Downloads/file.txt",
       "remotePath": "/sdcard/Download/file.txt",
+      "directoryPath": "/sdcard/Download",
       "screenshotPath": "/sdcard/Download/screenshot.png",
       "recordingPath": "/sdcard/Download/screenrecord.mp4",
       "seconds": "10",
@@ -382,6 +385,10 @@
       "screenrecord": {
         "title": "Record device screen",
         "desc": "Run screenrecord --time-limit and save the recording to a device path."
+      },
+      "listDirectory": {
+        "title": "List device directory",
+        "desc": "Run ls -la to inspect folders such as /sdcard and Download on the device."
       },
       "pullFile": {
         "title": "Pull file",
@@ -559,7 +566,7 @@
     "dropOnlyApk": "No APK files found",
     "dropHere": "Release to add APK files",
     "dropHint": "Drag APKs or folders containing APKs here, or click Select Files",
-    "pasteHint": "You can also copy APKs or folders in Finder, then click Paste to detect them.",
+    "pasteHint": "You can also copy APKs or folders in Finder, then return here and press Cmd/Ctrl+V or click Paste.",
     "pastePaths": "Paste",
     "parsedPkg": "Detected package name",
     "forceInstall": "Force install (uninstall old version first)",

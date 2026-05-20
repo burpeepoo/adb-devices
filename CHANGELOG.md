@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.2] - 2026-05-20
+
+### Added
+
+- Added saved-template removal in ADB Workbench.
+- Added a Workbench action for listing device directories before saving screenshots or recordings.
+
+### Changed
+
+- Stabilized the APK install layout with fixed drag area height, internal scrolling, and fixed-width queue controls.
+- Replaced Workbench system-property examples with neutral placeholder values.
+
+### Fixed
+
+- Fixed Finder-copied APK or folder paste handling in the APK installer, including Cmd/Ctrl+V paste inside the tab.
+
 ## [1.0.1] - 2026-05-19
 
 ### Added
