@@ -65,6 +65,7 @@ export type TabKey =
   | "screenshot"
   | "record"
   | "mirror"
+  | "imageCast"
   | "clipboard"
   | "logcat"
   | "packages";

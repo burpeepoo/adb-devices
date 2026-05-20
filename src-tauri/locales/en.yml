@@ -102,6 +102,22 @@ logcat.export_failed: "Failed to export logs: %{message}"
 screenshot.failed: "Screenshot failed: %{message}"
 screenshot.pull_failed: "Failed to pull screenshot: %{message}"
 
+# Image cast
+image_cast.invalid_file: "Image file does not exist or cannot be read: %{path}"
+image_cast.unsupported_format: "Only PNG, JPG, JPEG, or WebP images are supported"
+image_cast.invalid_remote_path: "Unsupported device path: %{path}"
+image_cast.mkdir_failed: "Failed to create image directory on device"
+image_cast.push_failed: "Failed to push image to device"
+image_cast.no_output: "Command produced no output"
+image_cast.pushed: "Image pushed to device: %{path}"
+image_cast.pushed_scan_failed: "Image pushed to device: %{path}. Media scan failed: %{message}"
+image_cast.opened: "Image opened on device: %{path}"
+image_cast.opened_scan_failed: "Image opened on device: %{path}. Media scan failed: %{message}"
+image_cast.open_failed: "Failed to open image on device: %{path}. %{message}"
+image_cast.open_failed_with_scan: "Failed to open image on device: %{path}. Media scan failed: %{scan_message}. Open failed: %{message}"
+image_cast.open_failed_after_push: "Image was pushed to device, but the system image viewer could not open it: %{path}. %{message}"
+image_cast.open_failed_after_push_with_scan: "Image was pushed to device, but the system image viewer could not open it: %{path}. Media scan failed: %{scan_message}. Open failed: %{message}"
+
 # Clipboard
 clipboard.empty: "Please enter text to paste"
 clipboard.too_long: "Text length cannot exceed 2000"

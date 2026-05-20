@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0] - 2026-05-20
+
+### Added
+
+- Added Image Cast for pushing local PNG, JPG, JPEG, or WebP reference images to Android devices and opening them with the system image viewer.
+- Added device-side media scan and open-last-image retry support for pushed reference images.
+
+### Changed
+
+- Renamed Screen Mirror to Remote Control in Chinese and English UI labels.
+- Enabled local image previews through Tauri's asset protocol for selected Image Cast files.
+
 ## [1.0.3] - 2026-05-20
 
 ### Added

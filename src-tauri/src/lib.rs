@@ -48,6 +48,8 @@ pub fn run() {
             commands::install::parse_apk_package,
             commands::install::read_clipboard_apk_paths,
             commands::install::resolve_apk_paths,
+            commands::image_cast::adb_open_reference_image,
+            commands::image_cast::adb_push_reference_image,
             commands::clipboard::adb_input_text,
             commands::logcat::adb_read_logcat,
             commands::logcat::adb_start_logcat,

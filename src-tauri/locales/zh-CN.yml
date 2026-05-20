@@ -102,6 +102,22 @@ logcat.export_failed: "导出日志失败: %{message}"
 screenshot.failed: "截图失败: %{message}"
 screenshot.pull_failed: "拉取截图失败: %{message}"
 
+# Image cast
+image_cast.invalid_file: "图片文件不存在或无法读取: %{path}"
+image_cast.unsupported_format: "只支持 PNG、JPG、JPEG 或 WebP 图片"
+image_cast.invalid_remote_path: "设备路径不支持: %{path}"
+image_cast.mkdir_failed: "创建设备图片目录失败"
+image_cast.push_failed: "推送图片到设备失败"
+image_cast.no_output: "命令没有输出"
+image_cast.pushed: "图片已推送到设备: %{path}"
+image_cast.pushed_scan_failed: "图片已推送到设备: %{path}。媒体扫描失败: %{message}"
+image_cast.opened: "图片已在设备上打开: %{path}"
+image_cast.opened_scan_failed: "图片已在设备上打开: %{path}。媒体扫描失败: %{message}"
+image_cast.open_failed: "打开设备图片失败: %{path}。%{message}"
+image_cast.open_failed_with_scan: "打开设备图片失败: %{path}。媒体扫描失败: %{scan_message}。打开失败: %{message}"
+image_cast.open_failed_after_push: "图片已推送到设备，但系统图片查看器未能打开: %{path}。%{message}"
+image_cast.open_failed_after_push_with_scan: "图片已推送到设备，但系统图片查看器未能打开: %{path}。媒体扫描失败: %{scan_message}。打开失败: %{message}"
+
 # Clipboard
 clipboard.empty: "请输入要粘贴的文本"
 clipboard.too_long: "文本长度不能超过 2000"

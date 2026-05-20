@@ -18,6 +18,7 @@ import ApkInstall from "./components/ApkInstall";
 import Screenshot from "./components/Screenshot";
 import ScreenRecord from "./components/ScreenRecord";
 import ScreenMirror from "./components/ScreenMirror";
+import ImageCast from "./components/ImageCast";
 import Clipboard from "./components/Clipboard";
 import Logcat from "./components/Logcat";
 import PackageList from "./components/PackageList";
@@ -46,6 +47,7 @@ export default function App() {
     screenshot: t('tabs.screenshot'),
     record: t('tabs.screenRecord'),
     mirror: t('tabs.screenMirror'),
+    imageCast: t('tabs.imageCast'),
     clipboard: t('tabs.clipboard'),
     logcat: t('tabs.logcat'),
     packages: t('tabs.packageList'),
@@ -248,6 +250,7 @@ export default function App() {
     if (activeTab === "mirror") {
       return <ScreenMirror deviceSerial={selectedDevice} onMirrorStateChange={setMirroringDeviceSerial} />;
     }
+    if (activeTab === "imageCast") return <ImageCast deviceSerial={selectedDevice} />;
     if (activeTab === "clipboard") return <Clipboard deviceSerial={selectedDevice} />;
     if (activeTab === "logcat") return <Logcat deviceSerial={selectedDevice} />;
     if (activeTab === "packages") return <PackageList deviceSerial={selectedDevice} />;
