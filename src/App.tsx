@@ -6,7 +6,11 @@ import { TabKey, AppSettings } from "./types";
 import { applyLanguagePreference } from "./i18n";
 import { useDevices } from "./hooks/useDevices";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
-import DeviceList from "./components/DeviceList";
+import AppShellLayout from "./components/layout/AppShellLayout";
+import DevicePanel from "./components/layout/DevicePanel";
+import PageHeader from "./components/layout/PageHeader";
+import StatusBar from "./components/layout/StatusBar";
+import ToolRail, { toolIcons } from "./components/layout/ToolRail";
 import AdbSetup from "./components/AdbSetup";
 import PairConnect from "./components/PairConnect";
 import AdbWorkbench from "./components/AdbWorkbench";
@@ -46,6 +50,11 @@ export default function App() {
     logcat: t('tabs.logcat'),
     packages: t('tabs.packageList'),
   };
+  const tools = (Object.keys(TAB_LABELS) as TabKey[]).map((key) => ({
+    key,
+    label: TAB_LABELS[key],
+    icon: toolIcons[key],
+  }));
   const [activeTab, setActiveTab] = useState<TabKey>("pair");
   const [adbAvailable, setAdbAvailable] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -203,6 +212,48 @@ export default function App() {
     [handleSettingsChange, settings]
   );
 
+  const selectedDeviceLabel = selectedDevice || t("layout.defaultDevice");
+
+  const renderActiveContent = () => {
+    if (activeTab === "pair") return <PairConnect devices={devices} onConnected={refresh} />;
+    if (activeTab === "workbench") return <AdbWorkbench deviceSerial={selectedDevice} />;
+    if (activeTab === "install") {
+      return (
+        <ApkInstall
+          deviceSerial={selectedDevice}
+          recentApkDir={settings.recentApkDir}
+          onRecentApkDirChange={(dir) => handleSaveDirChange("recentApkDir", dir)}
+        />
+      );
+    }
+    if (activeTab === "screenshot") {
+      return (
+        <Screenshot
+          deviceSerial={selectedDevice}
+          saveDir={settings.screenshotDir}
+          shortcutResult={screenshotShortcutResult}
+          onSaveDirChange={(dir) => handleSaveDirChange("screenshotDir", dir)}
+        />
+      );
+    }
+    if (activeTab === "record") {
+      return (
+        <ScreenRecord
+          deviceSerial={selectedDevice}
+          saveDir={settings.recordingDir}
+          onSaveDirChange={(dir) => handleSaveDirChange("recordingDir", dir)}
+        />
+      );
+    }
+    if (activeTab === "mirror") {
+      return <ScreenMirror deviceSerial={selectedDevice} onMirrorStateChange={setMirroringDeviceSerial} />;
+    }
+    if (activeTab === "clipboard") return <Clipboard deviceSerial={selectedDevice} />;
+    if (activeTab === "logcat") return <Logcat deviceSerial={selectedDevice} />;
+    if (activeTab === "packages") return <PackageList deviceSerial={selectedDevice} />;
+    return null;
+  };
+
   if (adbAvailable === null) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -216,104 +267,49 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      {/* Top bar */}
-      <header className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200 shadow-sm">
-        <h1 className="text-lg font-semibold text-gray-800">{t('app.title')}</h1>
-        <button
-          onClick={() => setShowSettings(true)}
-          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
-          title={t('app.settings')}
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
-      </header>
+    <>
+      <AppShellLayout
+        rail={
+          <ToolRail
+            tools={tools}
+            activeTool={activeTab}
+            settingsLabel={t("layout.openSettings")}
+            onSelectTool={setActiveTab}
+            onOpenSettings={() => setShowSettings(true)}
+          />
+        }
+        devices={
+          <DevicePanel
+            devices={devices}
+            loading={loading}
+            error={error}
+            selectedDevice={selectedDevice}
+            mirroringDeviceSerial={mirroringDeviceSerial}
+            onSelectDevice={setSelectedDevice}
+            onRefresh={refresh}
+          />
+        }
+        header={
+          <PageHeader
+            title={TAB_LABELS[activeTab]}
+            selectedDeviceLabel={selectedDevice ? t("layout.selectedDevice") : t("layout.noSelectedDevice")}
+            selectedDeviceValue={selectedDeviceLabel}
+          />
+        }
+        content={renderActiveContent()}
+        status={
+          <StatusBar
+            devices={devices}
+            adbReadyLabel={t("layout.adbReady")}
+            countLabel={t("layout.deviceCount", {
+              online: devices.filter((device) => device.state === "device").length,
+              total: devices.length,
+            })}
+            autoRefreshLabel={t("app.autoRefresh")}
+          />
+        }
+      />
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <DeviceList
-          devices={devices}
-          loading={loading}
-          error={error}
-          selectedDevice={selectedDevice}
-          mirroringDeviceSerial={mirroringDeviceSerial}
-          onSelectDevice={setSelectedDevice}
-          onRefresh={refresh}
-        />
-
-        {/* Main content */}
-        <main className="min-w-0 flex-1 flex flex-col overflow-hidden">
-          {/* Tab bar */}
-          <nav className="flex overflow-x-auto whitespace-nowrap border-b border-gray-200 bg-white px-2">
-            {(Object.keys(TAB_LABELS) as TabKey[]).map((key) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={`flex-none px-3 py-2.5 text-sm font-medium border-b-2 transition-colors sm:px-4 ${
-                  activeTab === key
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                {TAB_LABELS[key]}
-              </button>
-            ))}
-          </nav>
-
-          {/* Tab content */}
-          <div className="flex-1 overflow-auto p-4">
-            {activeTab === "pair" && <PairConnect devices={devices} onConnected={refresh} />}
-            {activeTab === "workbench" && <AdbWorkbench deviceSerial={selectedDevice} />}
-            {activeTab === "install" && (
-              <ApkInstall
-                deviceSerial={selectedDevice}
-                recentApkDir={settings.recentApkDir}
-                onRecentApkDirChange={(dir) => handleSaveDirChange("recentApkDir", dir)}
-              />
-            )}
-            {activeTab === "screenshot" && (
-              <Screenshot
-                deviceSerial={selectedDevice}
-                saveDir={settings.screenshotDir}
-                shortcutResult={screenshotShortcutResult}
-                onSaveDirChange={(dir) => handleSaveDirChange("screenshotDir", dir)}
-              />
-            )}
-            {activeTab === "record" && (
-              <ScreenRecord
-                deviceSerial={selectedDevice}
-                saveDir={settings.recordingDir}
-                onSaveDirChange={(dir) => handleSaveDirChange("recordingDir", dir)}
-              />
-            )}
-            {activeTab === "mirror" && (
-              <ScreenMirror
-                deviceSerial={selectedDevice}
-                onMirrorStateChange={setMirroringDeviceSerial}
-              />
-            )}
-            {activeTab === "clipboard" && <Clipboard deviceSerial={selectedDevice} />}
-            {activeTab === "logcat" && <Logcat deviceSerial={selectedDevice} />}
-            {activeTab === "packages" && <PackageList deviceSerial={selectedDevice} />}
-          </div>
-        </main>
-      </div>
-
-      {/* Status bar */}
-      <footer className="flex items-center justify-between px-4 py-1.5 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
-        <span>
-          {devices.length > 0
-            ? t('app.devicesOnline', { count: devices.filter((d) => d.state === "device").length })
-            : t('app.noDevice')}
-        </span>
-        <span>{t('app.autoRefresh')}</span>
-      </footer>
-
-      {/* Settings modal */}
       {showSettings && (
         <Settings
           settings={settings}
@@ -321,6 +317,6 @@ export default function App() {
           onClose={() => setShowSettings(false)}
         />
       )}
-    </div>
+    </>
   );
 }
