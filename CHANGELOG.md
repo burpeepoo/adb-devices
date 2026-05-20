@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.3] - 2026-05-20
+
+### Added
+
+- Added a Mantine-based double-sidebar desktop shell with tool rail, searchable device panel, page header, workspace, and status bar.
+- Added shared UI components for result alerts, command output, and path selection.
+
+### Changed
+
+- Refreshed Settings, Pair & Connect, Screenshot, and Screen Record screens with Mantine components.
+- Updated tool rail icons so Screen Record uses the video icon and Screen Mirror uses a phone-and-computer device icon.
+
 ## [1.0.2] - 2026-05-20
 
 ### Added

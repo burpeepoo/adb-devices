@@ -1,7 +1,7 @@
 {
   "/Users/kaizhang/Documents/Cozyla/adb_project/package.json": {
-    "mtime": 1779270877.9207563,
-    "ast_hash": "46d49385450e06d7240d8d9bf4c7632f",
+    "mtime": 1779271654.119274,
+    "ast_hash": "9a876091afc8790a6561c6a2c92c7517",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/tsconfig.json": {
@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/tauri.conf.json": {
-    "mtime": 1779246489.441984,
-    "ast_hash": "8d062f747cf5bf5f9d93b4c34d6c5311",
+    "mtime": 1779271654.1211433,
+    "ast_hash": "aa6c746194244c43eeb991efb9ca0b32",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/build.rs": {
@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/ToolRail.tsx": {
-    "mtime": 1779270877.9279897,
-    "ast_hash": "0cf6159d3533119edc817489a8858325",
+    "mtime": 1779271306.6454403,
+    "ast_hash": "7fdceec2d1f5b4f74eba986bdb4cad08",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/PageHeader.tsx": {
@@ -320,8 +320,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/CHANGELOG.md": {
-    "mtime": 1779244990.52467,
-    "ast_hash": "4941b00c077da46b686dfb5489492362",
+    "mtime": 1779271662.6135845,
+    "ast_hash": "14fdbfc8f53cc9c82b5b3ee8bcd16e08",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/README.md": {
