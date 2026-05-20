@@ -8,6 +8,18 @@
     "noDevice": "无设备连接",
     "autoRefresh": "每5分钟自动刷新"
   },
+  "layout": {
+    "tools": "工具",
+    "settings": "设置",
+    "selectedDevice": "当前设备",
+    "noSelectedDevice": "未选择设备",
+    "defaultDevice": "默认 ADB 设备",
+    "adbReady": "ADB 可用",
+    "deviceCount": "{{online}} 在线 / {{total}} 总计",
+    "searchDevices": "搜索设备或备注...",
+    "quickConnect": "快速连接",
+    "openSettings": "打开设置"
+  },
   "tabs": {
     "pairConnect": "配对连接",
     "workbench": "ADB 工作台",

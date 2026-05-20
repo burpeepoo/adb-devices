@@ -1,571 +1,601 @@
 {
-  "/Users/kaizhang/Documents/Cozyla/adb_project/package.json": {
-    "mtime": 1779244978.3426697,
-    "ast_hash": "cf033c982f27447890ec1492a9af863b",
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/package.json": {
+    "mtime": 1779268835.8159964,
+    "ast_hash": "46d49385450e06d7240d8d9bf4c7632f",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/tsconfig.json": {
-    "mtime": 1777294933.108876,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/tsconfig.json": {
+    "mtime": 1779268403.640558,
     "ast_hash": "46a2df1ae61059923a1201cd3a77e176",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/vite.config.ts": {
-    "mtime": 1777294933.1091945,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/vite.config.ts": {
+    "mtime": 1779268403.6406684,
     "ast_hash": "5a9a0d4bb5f7bc107554a1ecbd7805d0",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/scripts/prepare-scrcpy.sh": {
-    "mtime": 1778843113.0746286,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/scripts/prepare-scrcpy.sh": {
+    "mtime": 1779268403.469049,
     "ast_hash": "d6d772cd0d240c463d233ef1f38d9c1e",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/scripts/release-macos.sh": {
-    "mtime": 1779165791.6371553,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/scripts/release-macos.sh": {
+    "mtime": 1779268403.46942,
     "ast_hash": "895ae3e12ba69f269f2e5bce41bcf54f",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/scripts/set-version.sh": {
-    "mtime": 1779165791.5883875,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/scripts/set-version.sh": {
+    "mtime": 1779268403.470208,
     "ast_hash": "f7bd762a12eae88de091c76eaa5e113d",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/scripts/build-dmg.sh": {
-    "mtime": 1779170999.7944176,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/scripts/build-dmg.sh": {
+    "mtime": 1779268403.4664552,
     "ast_hash": "40a11f529cf78e288dea8f431fe88ad6",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/scripts/send-lark-release.mjs": {
-    "mtime": 1777366987.4449666,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/scripts/send-lark-release.mjs": {
+    "mtime": 1779268403.4699912,
     "ast_hash": "e70b13edf7d4f0c390646fcbe93834c6",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/tauri.conf.json": {
-    "mtime": 1779244978.344208,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/tauri.conf.json": {
+    "mtime": 1779268403.6267364,
     "ast_hash": "8d062f747cf5bf5f9d93b4c34d6c5311",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/build.rs": {
-    "mtime": 1777294933.0314114,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/build.rs": {
+    "mtime": 1779268403.4721467,
     "ast_hash": "1be34a5c61c2c35365de3dab14298f0b",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/capabilities/default.json": {
-    "mtime": 1777341686.5818996,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/capabilities/default.json": {
+    "mtime": 1779268403.4725242,
     "ast_hash": "36fa40459017cc51c7fe89199c5961f7",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/gen/schemas/capabilities.json": {
-    "mtime": 1777341831.619943,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/gen/schemas/capabilities.json": {
+    "mtime": 1779268403.473215,
     "ast_hash": "6b606133d786d6f109688d7fa28f9069",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/gen/schemas/acl-manifests.json": {
-    "mtime": 1778495605.9191844,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/gen/schemas/acl-manifests.json": {
+    "mtime": 1779268403.473052,
     "ast_hash": "51396ef8c2eb44abe7c25bf728685047",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/gen/schemas/macOS-schema.json": {
-    "mtime": 1778495605.9230857,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/gen/schemas/macOS-schema.json": {
+    "mtime": 1779268403.4736905,
     "ast_hash": "d7d54ca20be8d18aa7545667b9f34d38",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/gen/schemas/desktop-schema.json": {
-    "mtime": 1778495605.9230857,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/gen/schemas/desktop-schema.json": {
+    "mtime": 1779268403.4735231,
     "ast_hash": "d7d54ca20be8d18aa7545667b9f34d38",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/lib.rs": {
-    "mtime": 1779191763.835655,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/lib.rs": {
+    "mtime": 1779268403.6244457,
     "ast_hash": "ac86992423ab8d7cc1132eccff873d40",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/adb.rs": {
-    "mtime": 1779068223.7054305,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/adb.rs": {
+    "mtime": 1779268403.617871,
     "ast_hash": "8a8160ccca7fcbc2a0599337d8a2db3f",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/state.rs": {
-    "mtime": 1777430336.2837107,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/state.rs": {
+    "mtime": 1779268403.6264513,
     "ast_hash": "2e629e2ae5e242a9a9923d56d87d302e",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/main.rs": {
-    "mtime": 1777294933.1058772,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/main.rs": {
+    "mtime": 1779268403.6250358,
     "ast_hash": "e52f1152a846d420c74073145c276300",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/device.rs": {
-    "mtime": 1778134752.4800043,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/device.rs": {
+    "mtime": 1779268403.619286,
     "ast_hash": "6c9a4653fe2543d8fc87d237971cd173",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/mirror.rs": {
-    "mtime": 1778844192.1760402,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/mirror.rs": {
+    "mtime": 1779268403.6201267,
     "ast_hash": "4d065aabdc949de5f1149f7e1a3ad7fd",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/package.rs": {
-    "mtime": 1778751824.5023017,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/package.rs": {
+    "mtime": 1779268403.6215672,
     "ast_hash": "8e5498709f68308ba8f1541f39c395ba",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/logcat.rs": {
-    "mtime": 1778124924.6681838,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/logcat.rs": {
+    "mtime": 1779268403.619791,
     "ast_hash": "1cb3f0fcd022aa73dea2e853f4c9d356",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/mod.rs": {
-    "mtime": 1779184096.9295583,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/mod.rs": {
+    "mtime": 1779268403.6209798,
     "ast_hash": "1ae878f910d8937f5ea43778f7d6462a",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/screenshot.rs": {
-    "mtime": 1778124924.6690266,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/screenshot.rs": {
+    "mtime": 1779268403.6224277,
     "ast_hash": "dac7d0976ee465c7aae8d6da4dc94897",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/install.rs": {
-    "mtime": 1779243651.9022472,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/install.rs": {
+    "mtime": 1779268403.6195486,
     "ast_hash": "3c5c085294c3df44dffa9372a9c25921",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/clipboard.rs": {
-    "mtime": 1778124924.6673043,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/clipboard.rs": {
+    "mtime": 1779268403.618933,
     "ast_hash": "d08d1a2dbe1556c0d081b128a78b04a4",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/settings.rs": {
-    "mtime": 1778136420.5690937,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/settings.rs": {
+    "mtime": 1779268403.6236408,
     "ast_hash": "56a34ce929f4385d9dda797fe7c3a4ce",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/record.rs": {
-    "mtime": 1778124924.668856,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/record.rs": {
+    "mtime": 1779268403.6221144,
     "ast_hash": "17026b3755d656911545b761585a95e5",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/workbench.rs": {
-    "mtime": 1779191406.0040946,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/src/commands/workbench.rs": {
+    "mtime": 1779268403.6241806,
     "ast_hash": "5d5f2bc4ce81b4845d53deeddf0df45c",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/App.tsx": {
-    "mtime": 1779189130.9049187,
-    "ast_hash": "2e248d369ecf94c8f2feb79289a87d49",
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/App.tsx": {
+    "mtime": 1779269144.3828692,
+    "ast_hash": "e2e61fb115a6739f5ba075b399260e1f",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/main.tsx": {
-    "mtime": 1778124924.6733246,
-    "ast_hash": "a443989afc3f84fb6d17b77ee0097a18",
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/main.tsx": {
+    "mtime": 1779268852.3711007,
+    "ast_hash": "a6d5d65855a69e691fdda636f09f4020",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/i18n.ts": {
-    "mtime": 1779189109.203511,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/i18n.ts": {
+    "mtime": 1779268403.6347916,
     "ast_hash": "eba0351c1d64161347a3c80b3677ed11",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/storage.ts": {
-    "mtime": 1779184376.0065434,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/storage.ts": {
+    "mtime": 1779268403.6384249,
     "ast_hash": "903b97986da22621e569d15b1896b2a7",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/vite-env.d.ts": {
-    "mtime": 1777294933.1087549,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/vite-env.d.ts": {
+    "mtime": 1779268403.6400032,
     "ast_hash": "0352474ba2918efe13895edbc3780d94",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/types/index.ts": {
-    "mtime": 1779189098.2320728,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/types/index.ts": {
+    "mtime": 1779268403.6386702,
     "ast_hash": "89d880f3719d849b0d6aa378a5458b0b",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/locales/zh-CN.json": {
-    "mtime": 1779244712.4496188,
-    "ast_hash": "ab496f7e4127d92428796d3580439eca",
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/locales/zh-CN.json": {
+    "mtime": 1779268954.9665475,
+    "ast_hash": "45a720003f88d9d9f16df669ee9308dd",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/locales/en-US.json": {
-    "mtime": 1779244720.6778839,
-    "ast_hash": "9c4dca05b32724eb6c245613211ccc6b",
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/locales/en-US.json": {
+    "mtime": 1779268955.0187366,
+    "ast_hash": "5a0a2f7d7c8dac875c7259fa442002e5",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/utils/packageSearch.ts": {
-    "mtime": 1779188222.6389275,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/utils/packageSearch.ts": {
+    "mtime": 1779268403.6397593,
     "ast_hash": "2e3d80ee0d159ea5a6a179ecde47ffd1",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/utils/format.ts": {
-    "mtime": 1777294933.108626,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/utils/format.ts": {
+    "mtime": 1779268403.6396444,
     "ast_hash": "1a1cd47828dd9b478141bdb8466af5c6",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Settings.tsx": {
-    "mtime": 1779189140.866392,
-    "ast_hash": "c69d5035c2d896ff30052a5d5cde9b57",
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/Settings.tsx": {
+    "mtime": 1779269188.6473994,
+    "ast_hash": "47015ac1052b995e199f3bca31c5a7a8",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Clipboard.tsx": {
-    "mtime": 1778124924.6705294,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/Clipboard.tsx": {
+    "mtime": 1779268403.629912,
     "ast_hash": "2278a4afefb26c8795ead0c00a7b2868",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/PairConnect.tsx": {
-    "mtime": 1778644686.3827739,
-    "ast_hash": "54d6f672db5b93125b88960010eb6c10",
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/PairConnect.tsx": {
+    "mtime": 1779269384.9188082,
+    "ast_hash": "eef5bba26adb4a1ec2bc347ac181f996",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ScreenMirror.tsx": {
-    "mtime": 1778238459.827988,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/ScreenMirror.tsx": {
+    "mtime": 1779268403.6327126,
     "ast_hash": "fd599e257192db4fc0d1809eb1991f7f",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/AdbWorkbench.tsx": {
-    "mtime": 1779244727.0597196,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/AdbWorkbench.tsx": {
+    "mtime": 1779268403.6287355,
     "ast_hash": "ea29f2f1f437b1573a1449d2acec6a9c",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Screenshot.tsx": {
-    "mtime": 1778495536.6806107,
-    "ast_hash": "9f303c7502cc0b88d61c08c544ff12f7",
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/Screenshot.tsx": {
+    "mtime": 1779269271.4843411,
+    "ast_hash": "233a9bb1b40cd49beb4e5da0a5d9bcf7",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ApkInstall.tsx": {
-    "mtime": 1779244114.7092733,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/ApkInstall.tsx": {
+    "mtime": 1779268403.6289947,
     "ast_hash": "52f33c1c3386d5be5108924518743924",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/PackageList.tsx": {
-    "mtime": 1778751780.4358015,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/PackageList.tsx": {
+    "mtime": 1779268403.6310375,
     "ast_hash": "c3ad92b3cdf0617925ec1087d6c69d79",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/DeviceList.tsx": {
-    "mtime": 1778124924.6707158,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/DeviceList.tsx": {
+    "mtime": 1779268403.630217,
     "ast_hash": "bde1be4c787c09a488f6de977cbb9eba",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/PackageNameInput.tsx": {
-    "mtime": 1779188233.3893752,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/PackageNameInput.tsx": {
+    "mtime": 1779268403.6312914,
     "ast_hash": "78bde0da00c49cca4965ed835cbc862c",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Logcat.tsx": {
-    "mtime": 1778124924.6709435,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/Logcat.tsx": {
+    "mtime": 1779268403.63052,
     "ast_hash": "3cff64aa526bc7c9d41729eacb47936f",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ScreenRecord.tsx": {
-    "mtime": 1778124924.6719482,
-    "ast_hash": "322ba06cc0a5353eec39f3fb9756b6ea",
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/ScreenRecord.tsx": {
+    "mtime": 1779269271.6032352,
+    "ast_hash": "321c765fdb149ef371ae8cabf3a17e7f",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/AdbSetup.tsx": {
-    "mtime": 1778124924.6701083,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/AdbSetup.tsx": {
+    "mtime": 1779268403.6281772,
     "ast_hash": "0f77ab2dffb6cad0b4bf7e155fab9419",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/hooks/useDevices.ts": {
-    "mtime": 1777531678.9315596,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/layout/AppShellLayout.tsx": {
+    "mtime": 1779268998.907312,
+    "ast_hash": "174fe4bcc5dece8b7540dfefbb0ab0db",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/layout/ToolRail.tsx": {
+    "mtime": 1779270108.9206295,
+    "ast_hash": "0cf6159d3533119edc817489a8858325",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/layout/PageHeader.tsx": {
+    "mtime": 1779268999.003361,
+    "ast_hash": "0ef27cc41906aef110da0d6a5ff4090f",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/layout/StatusBar.tsx": {
+    "mtime": 1779268999.0524347,
+    "ast_hash": "56a536a2d2700b7bc70f2d2370df9968",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/layout/DevicePanel.tsx": {
+    "mtime": 1779269072.5929968,
+    "ast_hash": "08505275ce08529832ef8d59f8910386",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/common/CommandOutput.tsx": {
+    "mtime": 1779268915.1026437,
+    "ast_hash": "f14ae5bb08d5c4ccf98a6b12ca95607f",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/common/PathSelector.tsx": {
+    "mtime": 1779268915.151458,
+    "ast_hash": "b26c8cc79b5319cdcc62f292a268db88",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/components/common/ResultAlert.tsx": {
+    "mtime": 1779268915.0525866,
+    "ast_hash": "574e10eda3df8855d45edcb5dedb1970",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/hooks/useDevices.ts": {
+    "mtime": 1779268403.6345954,
     "ast_hash": "e1d982077509a85ddde6d5fbcd8d5746",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src/hooks/useAdb.ts": {
-    "mtime": 1777294933.107713,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src/hooks/useAdb.ts": {
+    "mtime": 1779268403.634331,
     "ast_hash": "957c1f7031cefc30166c6e5b6ddd670b",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/index.html": {
-    "mtime": 1778124924.6647556,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/index.html": {
+    "mtime": 1779268403.4647932,
     "ast_hash": "776c31362a32753cdc77cdce0428cc88",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/CHANGELOG.md": {
-    "mtime": 1779244990.52467,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/CHANGELOG.md": {
+    "mtime": 1779268403.4581163,
     "ast_hash": "4941b00c077da46b686dfb5489492362",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/README.md": {
-    "mtime": 1779165791.8277385,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/README.md": {
+    "mtime": 1779268403.4584515,
     "ast_hash": "c53914fbc966bb7739a2e9a089674610",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/locales/en.yml": {
-    "mtime": 1778751813.165069,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/docs/superpowers/plans/2026-05-20-adb-manager-ui-mantine-redesign.md": {
+    "mtime": 1779268425.824352,
+    "ast_hash": "af2a04a0ab0fc649295499c49a8f1a35",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/docs/superpowers/specs/2026-05-20-adb-manager-ui-mantine-redesign.md": {
+    "mtime": 1779268419.4268658,
+    "ast_hash": "e791f7c9f856ee9f66af044d29c7999f",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/locales/en.yml": {
+    "mtime": 1779268403.511805,
     "ast_hash": "9f8d048ed904d922c99094c0521b12dd",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/locales/zh-CN.yml": {
-    "mtime": 1778751807.0745559,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/locales/zh-CN.yml": {
+    "mtime": 1779268403.5120773,
     "ast_hash": "60c5974265ec9cb44fed8c3b229bce1f",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/baidu_search_screenshot.png": {
-    "mtime": 1777431749.9649577,
-    "ast_hash": "cb1e810f1adab140ec3aef53e24f3876",
-    "semantic_hash": ""
-  },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/app-icon.png": {
-    "mtime": 1777347550.1020694,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/app-icon.png": {
+    "mtime": 1779268403.460407,
     "ast_hash": "17e56b984d8c3db3aa23364c0d8b6e55",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/resources/scrcpy/macos-aarch64/icon.png": {
-    "mtime": 1743260780.0,
-    "ast_hash": "9e1ffbd6d2630c3b89be2b9c19c29e8f",
-    "semantic_hash": ""
-  },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/resources/scrcpy/macos-x86_64/icon.png": {
-    "mtime": 1743261165.0,
-    "ast_hash": "9e1ffbd6d2630c3b89be2b9c19c29e8f",
-    "semantic_hash": ""
-  },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/resources/scrcpy/windows/icon.png": {
-    "mtime": 1743260969.0,
-    "ast_hash": "9e1ffbd6d2630c3b89be2b9c19c29e8f",
-    "semantic_hash": ""
-  },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/icon-source-modern.png": {
-    "mtime": 1779174108.8061366,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/icon-source-modern.png": {
+    "mtime": 1779268403.4930382,
     "ast_hash": "ee95315cd1c96ea5e09da1e578e934f2",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/icon.png": {
-    "mtime": 1779174142.20898,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/icon.png": {
+    "mtime": 1779268403.5012035,
     "ast_hash": "dde63527314a16fceb3747ef30f656b0",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square30x30Logo.png": {
-    "mtime": 1779174138.8486493,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/Square30x30Logo.png": {
+    "mtime": 1779268403.4800713,
     "ast_hash": "2a3f4cbcbfee32f5fffe1b32773ad2da",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square150x150Logo.png": {
-    "mtime": 1779174138.9892976,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/Square150x150Logo.png": {
+    "mtime": 1779268403.478832,
     "ast_hash": "78486063ebcc6151584dbd534ce48149",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/StoreLogo.png": {
-    "mtime": 1779174138.8329403,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/StoreLogo.png": {
+    "mtime": 1779268403.4821913,
     "ast_hash": "20daf6b790c37230a6b7220d436ffd69",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square107x107Logo.png": {
-    "mtime": 1779174138.9249609,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/Square107x107Logo.png": {
+    "mtime": 1779268403.4767566,
     "ast_hash": "00ce3a4c3116349e36e07132f9fb9beb",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square89x89Logo.png": {
-    "mtime": 1779174138.9022706,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/Square89x89Logo.png": {
+    "mtime": 1779268403.48176,
     "ast_hash": "ae15e4ee87eb42098e9856baadb6f44b",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square310x310Logo.png": {
-    "mtime": 1779174139.2213974,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/Square310x310Logo.png": {
+    "mtime": 1779268403.480996,
     "ast_hash": "7439bad27bec6427a76fda7e25a26f04",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square142x142Logo.png": {
-    "mtime": 1779174138.9559083,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/Square142x142Logo.png": {
+    "mtime": 1779268403.4779246,
     "ast_hash": "180a897e138c4322009546eb3e91a462",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/128x128.png": {
-    "mtime": 1779174141.7879486,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/128x128.png": {
+    "mtime": 1779268403.4745038,
     "ast_hash": "7cabb9c6dfeb86e39f0c1eab9cda9d14",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square284x284Logo.png": {
-    "mtime": 1779174139.094771,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/Square284x284Logo.png": {
+    "mtime": 1779268403.4797223,
     "ast_hash": "4c62fc72df4cf7847e68ed04c363dfab",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/32x32.png": {
-    "mtime": 1779174141.744866,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/32x32.png": {
+    "mtime": 1779268403.4761286,
     "ast_hash": "ab70e1cfb907f923bf94e39c4d62eb5a",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square44x44Logo.png": {
-    "mtime": 1779174138.86489,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/Square44x44Logo.png": {
+    "mtime": 1779268403.4812825,
     "ast_hash": "6797432f0f7ea23ea0873f4c0546ae37",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/Square71x71Logo.png": {
-    "mtime": 1779174138.8831766,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/Square71x71Logo.png": {
+    "mtime": 1779268403.4815207,
     "ast_hash": "314ed24781238e800feead441c54f012",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/128x128@2x.png": {
-    "mtime": 1779174141.8712742,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/128x128@2x.png": {
+    "mtime": 1779268403.475771,
     "ast_hash": "f27bfb6e0b541a5a1d4479e21291db28",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/64x64.png": {
-    "mtime": 1779174141.761569,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/64x64.png": {
+    "mtime": 1779268403.4764092,
     "ast_hash": "9492e98e36cd031b0ddd06c03d1279b8",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@3x.png": {
-    "mtime": 1779174142.2736356,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-20x20@3x.png": {
+    "mtime": 1779268403.5031514,
     "ast_hash": "86bd87cae83f4a41b8d90602ad2e7072",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-512@2x.png": {
-    "mtime": 1779174143.9334283,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-512@2x.png": {
+    "mtime": 1779268403.5074224,
     "ast_hash": "00447230887d588971caac1fa0d73ead",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-83.5x83.5@2x.png": {
-    "mtime": 1779174142.5865238,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-83.5x83.5@2x.png": {
+    "mtime": 1779268403.5112424,
     "ast_hash": "ac1b8525c28510e5bbf09bcc1090dfa2",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@2x.png": {
-    "mtime": 1779174142.2546532,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-20x20@2x.png": {
+    "mtime": 1779268403.5018842,
     "ast_hash": "b3ecd462dabf152a11baaabf20472b51",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@3x.png": {
-    "mtime": 1779174142.3392248,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-29x29@3x.png": {
+    "mtime": 1779268403.504131,
     "ast_hash": "a419264d8812215f3a4a136664f7d3c6",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@2x.png": {
-    "mtime": 1779174142.3925612,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-40x40@2x.png": {
+    "mtime": 1779268403.5045397,
     "ast_hash": "c82d50e1fc7e29133411ad94e1979932",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-60x60@3x.png": {
-    "mtime": 1779174142.4947228,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-60x60@3x.png": {
+    "mtime": 1779268403.5090663,
     "ast_hash": "13e2eed1589f285c2f0e73c33124ea4f",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@2x-1.png": {
-    "mtime": 1779174142.3580744,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-40x40@2x-1.png": {
+    "mtime": 1779268403.5044565,
     "ast_hash": "c82d50e1fc7e29133411ad94e1979932",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@2x-1.png": {
-    "mtime": 1779174142.2247803,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-20x20@2x-1.png": {
+    "mtime": 1779268403.5018063,
     "ast_hash": "b3ecd462dabf152a11baaabf20472b51",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-60x60@2x.png": {
-    "mtime": 1779174142.4469757,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-60x60@2x.png": {
+    "mtime": 1779268403.5078042,
     "ast_hash": "dcccf258e44425a783dcc610cf2d4f4e",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-76x76@1x.png": {
-    "mtime": 1779174142.5128462,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-76x76@1x.png": {
+    "mtime": 1779268403.5102484,
     "ast_hash": "85840dcda4e1d67fe4bb4944c76f2d8a",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@3x.png": {
-    "mtime": 1779174142.4190536,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-40x40@3x.png": {
+    "mtime": 1779268403.5048945,
     "ast_hash": "dcccf258e44425a783dcc610cf2d4f4e",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@2x.png": {
-    "mtime": 1779174142.3200243,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-29x29@2x.png": {
+    "mtime": 1779268403.503609,
     "ast_hash": "dfeaa688b3a44e94c0e0225132ddfee0",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-76x76@2x.png": {
-    "mtime": 1779174142.546343,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-76x76@2x.png": {
+    "mtime": 1779268403.5103953,
     "ast_hash": "8ce32aab2593b2a856d55f5286d5fd4c",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@1x.png": {
-    "mtime": 1779174142.3043993,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-29x29@1x.png": {
+    "mtime": 1779268403.5032763,
     "ast_hash": "09d0545cb658a5f4651574ab2647d07e",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-40x40@1x.png": {
-    "mtime": 1779174142.373984,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-40x40@1x.png": {
+    "mtime": 1779268403.504228,
     "ast_hash": "b3ecd462dabf152a11baaabf20472b51",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-20x20@1x.png": {
-    "mtime": 1779174142.2390566,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-20x20@1x.png": {
+    "mtime": 1779268403.5015054,
     "ast_hash": "0146eea1b2c72b8bac273a7f68e3f5f3",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/ios/AppIcon-29x29@2x-1.png": {
-    "mtime": 1779174142.2895594,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/ios/AppIcon-29x29@2x-1.png": {
+    "mtime": 1779268403.5035167,
     "ast_hash": "dfeaa688b3a44e94c0e0225132ddfee0",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-mdpi/ic_launcher_foreground.png": {
-    "mtime": 1779174143.9943318,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-mdpi/ic_launcher_foreground.png": {
+    "mtime": 1779268403.4841008,
     "ast_hash": "11dfcd2220e5d03294c1d623a69b945e",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-mdpi/ic_launcher.png": {
-    "mtime": 1779174144.49458,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1779268403.4838011,
     "ast_hash": "b888f9126d9eb71acb950c1d867b2b08",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-mdpi/ic_launcher_round.png": {
-    "mtime": 1779174144.4790413,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-mdpi/ic_launcher_round.png": {
+    "mtime": 1779268403.4843073,
     "ast_hash": "b7181438d74f54f227ebc79f721e25ff",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-hdpi/ic_launcher_foreground.png": {
-    "mtime": 1779174143.9719155,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-hdpi/ic_launcher_foreground.png": {
+    "mtime": 1779268403.483117,
     "ast_hash": "9271433ca80c95eb26a20c9faa061ebb",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-hdpi/ic_launcher.png": {
-    "mtime": 1779174144.4634411,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1779268403.4827693,
     "ast_hash": "f4bdd0a1a328e2b52e1a00a1c770815c",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-hdpi/ic_launcher_round.png": {
-    "mtime": 1779174144.4476876,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-hdpi/ic_launcher_round.png": {
+    "mtime": 1779268403.4835007,
     "ast_hash": "2f79d177b344786f1030ccff757d2197",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_foreground.png": {
-    "mtime": 1779174144.4310305,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_foreground.png": {
+    "mtime": 1779268403.4892883,
     "ast_hash": "e4aad3e3dea4c2c36c07009f9937f850",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher.png": {
-    "mtime": 1779174144.66157,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1779268403.4881706,
     "ast_hash": "fb20925095fd38ba4aa552bdef014320",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_round.png": {
-    "mtime": 1779174144.6239507,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_round.png": {
+    "mtime": 1779268403.4894671,
     "ast_hash": "3e9185d322fdbb4fec5bb9764509a87d",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_foreground.png": {
-    "mtime": 1779174144.1924953,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_foreground.png": {
+    "mtime": 1779268403.4876995,
     "ast_hash": "1f6d6160e99c7d0ed0769a6f007e0131",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher.png": {
-    "mtime": 1779174144.5840192,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1779268403.4864395,
     "ast_hash": "2211b6fde9958a98287833fb783ccba6",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_round.png": {
-    "mtime": 1779174144.558233,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_round.png": {
+    "mtime": 1779268403.4878404,
     "ast_hash": "20f0173cf94db0b1d8323dad1586bfba",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_foreground.png": {
-    "mtime": 1779174144.0559459,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_foreground.png": {
+    "mtime": 1779268403.4857202,
     "ast_hash": "9a324a9373fe4b0d4f343efe25fdaf6f",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xhdpi/ic_launcher.png": {
-    "mtime": 1779174144.531338,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1779268403.4845796,
     "ast_hash": "7bb194535158664c146d3f83e0665f3e",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_round.png": {
-    "mtime": 1779174144.5133977,
+  "/Users/kaizhang/Documents/Cozyla/adb_project/.worktrees/ui-mantine-redesign/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_round.png": {
+    "mtime": 1779268403.4860659,
     "ast_hash": "971692861bcf0c0b59649b21d6ef5896",
     "semantic_hash": ""
   }

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
+import { Badge, Button, Group, Paper, Stack, Text, TextInput } from "@mantine/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import { DeviceInfo, MdnsDevice, PairConnectSettings } from "../types";
+import ResultAlert from "./common/ResultAlert";
 
 const REPAIR_ACTION_FAILURE_THRESHOLD = 2;
 
@@ -374,30 +376,31 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const adbBusy = busyAddress !== null || pairLoading || connectLoading || discovering || repairingAdb;
 
   return (
-    <div className="max-w-3xl space-y-5">
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+    <Stack maw={980} gap="md">
+      <Paper withBorder radius="md" p="md">
+        <Group justify="space-between" align="flex-start" gap="md" mb="md">
           <div>
-            <h3 className="text-base font-semibold text-gray-800">{t('pairConnect.lanDevices')}</h3>
-            <p className="text-xs text-gray-400 mt-1">{t('pairConnect.lanDevicesDesc')}</p>
+            <Text fw={700}>{t('pairConnect.lanDevices')}</Text>
+            <Text size="xs" c="dimmed" mt={2}>{t('pairConnect.lanDevicesDesc')}</Text>
           </div>
-          <div className="flex items-center gap-2">
-            <button
+          <Group gap="xs">
+            <Button
+              variant="light"
               onClick={handleScan}
+              loading={discovering}
               disabled={adbBusy}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {discovering ? t('pairConnect.scanning') : t('pairConnect.scan')}
-            </button>
-            <button
+              {t('pairConnect.scan')}
+            </Button>
+            <Button
               onClick={handleMdnsAutoConnect}
+              loading={busyAddress === "__auto__"}
               disabled={adbBusy}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {busyAddress === "__auto__" ? t('pairConnect.connecting') : t('pairConnect.autoConnect')}
-            </button>
-          </div>
-        </div>
+              {t('pairConnect.autoConnect')}
+            </Button>
+          </Group>
+        </Group>
 
         <div className="space-y-3">
           {connectableDevices.map((device) => (
@@ -449,19 +452,18 @@ export default function PairConnect({ devices, onConnected }: Props) {
         </div>
 
         {mdnsResult && (
-          <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${mdnsResult.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-            <div>{mdnsResult.msg}</div>
+          <ResultMessage result={mdnsResult}>
             {!mdnsResult.ok && pairRepairVisible && (
               <PairRepairAction
                 repairing={repairingAdb}
                 onRestartAdbAndScan={handleRestartAdbAndScan}
               />
             )}
-          </div>
+          </ResultMessage>
         )}
-      </section>
+      </Paper>
 
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
+      <Paper withBorder radius="md" p="md">
         <button
           onClick={() => setShowManual((value) => !value)}
           className="flex w-full items-center justify-between text-left"
@@ -493,13 +495,13 @@ export default function PairConnect({ devices, onConnected }: Props) {
                   autoComplete="one-time-code"
                 />
               </div>
-              <button
+              <Button
                 onClick={handlePair}
                 disabled={adbBusy || !pairIp.trim() || !pairPort.trim() || !pairCode.trim()}
-                className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                loading={pairLoading}
               >
-                {pairLoading ? t('pairConnect.pairing') : t('pairConnect.pair')}
-              </button>
+                {t('pairConnect.pair')}
+              </Button>
               {pairResult && (
                 <ResultMessage result={pairResult}>
                   {!pairResult.ok && pairRepairVisible && (
@@ -518,13 +520,13 @@ export default function PairConnect({ devices, onConnected }: Props) {
                 <Field label={t('pairConnect.ipAddress')} value={connectIp} onChange={handleConnectIpChange} placeholder={t('pairConnect.connectIpPlaceholder')} />
                 <Field label={t('pairConnect.port')} value={connectPort} onChange={handleConnectPortChange} placeholder={t('pairConnect.connectPortPlaceholder')} />
               </div>
-              <button
+              <Button
                 onClick={handleConnect}
                 disabled={adbBusy || !connectIp.trim() || !connectPort.trim()}
-                className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                loading={connectLoading}
               >
-                {connectLoading ? t('pairConnect.connecting') : t('pairConnect.connect')}
-              </button>
+                {t('pairConnect.connect')}
+              </Button>
               {connectResult && (
                 <ResultMessage result={connectResult}>
                   {!connectResult.ok && pairRepairVisible && (
@@ -538,9 +540,9 @@ export default function PairConnect({ devices, onConnected }: Props) {
             </div>
           </div>
         )}
-      </section>
+      </Paper>
 
-      <section className="bg-blue-50 rounded-lg border border-blue-200 p-5">
+      <Paper withBorder radius="md" p="md" bg="blue.0">
         <h3 className="text-base font-semibold text-blue-800 mb-2">{t('pairConnect.guide')}</h3>
         <div className="text-sm text-blue-700 space-y-3">
           <div>
@@ -562,8 +564,8 @@ export default function PairConnect({ devices, onConnected }: Props) {
           </div>
           <p className="text-xs text-blue-500">{t('pairConnect.guideTip')}</p>
         </div>
-      </section>
-    </div>
+      </Paper>
+    </Stack>
   );
 }
 
@@ -658,27 +660,29 @@ function MdnsRow({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-4 py-3">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-800 truncate">{device.service_name}</span>
-          <span className="rounded bg-green-50 px-2 py-0.5 text-xs text-green-700">{t('pairConnect.connectable')}</span>
-          <span className={`rounded px-2 py-0.5 text-xs ${connected ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
-            {connected ? t('pairConnect.connected') : t('pairConnect.notConnected')}
-          </span>
-        </div>
-        <div className="mt-1 text-xs text-gray-400">
+    <Paper withBorder radius="md" p="sm">
+      <Group justify="space-between" gap="md" wrap="nowrap">
+        <div style={{ minWidth: 0 }}>
+          <Group gap={6} wrap="nowrap">
+            <Text size="sm" fw={600} truncate>
+              {device.service_name}
+            </Text>
+            <Badge color="green" size="sm" variant="light">
+              {t('pairConnect.connectable')}
+            </Badge>
+            <Badge color={connected ? "blue" : "gray"} size="sm" variant="light">
+              {connected ? t('pairConnect.connected') : t('pairConnect.notConnected')}
+            </Badge>
+          </Group>
+          <Text size="xs" c="dimmed" mt={4} truncate>
           {device.address} · {device.service_type}
+          </Text>
         </div>
-      </div>
-      <button
-        onClick={onConnect}
-        disabled={disabled || connected}
-        className="shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
-        {connected ? t('pairConnect.connected') : busy ? t('pairConnect.connecting') : t('pairConnect.oneClickConnect')}
-      </button>
-    </div>
+        <Button size="sm" loading={busy} disabled={disabled || connected} onClick={onConnect}>
+          {connected ? t('pairConnect.connected') : t('pairConnect.oneClickConnect')}
+        </Button>
+      </Group>
+    </Paper>
   );
 }
 
@@ -725,39 +729,43 @@ function MdnsPairRow({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="rounded-lg border border-gray-200 px-4 py-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-800 truncate">{device.service_name}</span>
-            <span className="rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-700">{t('pairConnect.needPair')}</span>
-          </div>
-          <div className="mt-1 text-xs text-gray-400">
+    <Paper withBorder radius="md" p="sm">
+      <Group justify="space-between" gap="md" align="flex-end">
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <Group gap={6} wrap="nowrap">
+            <Text size="sm" fw={600} truncate>
+              {device.service_name}
+            </Text>
+            <Badge color="yellow" size="sm" variant="light">
+              {t('pairConnect.needPair')}
+            </Badge>
+          </Group>
+          <Text size="xs" c="dimmed" mt={4} truncate>
             {device.address} · {device.service_type}
-          </div>
+          </Text>
         </div>
-        <div className="flex items-center gap-2">
-          <input
+        <Group gap="xs" align="flex-end">
+          <TextInput
             value={code}
-            onChange={(event) => onCodeChange(event.target.value)}
+            onChange={(event) => onCodeChange(event.currentTarget.value)}
             onFocus={onCodeFocus}
             onBlur={onCodeBlur}
             placeholder={t('pairConnect.pairCode')}
             maxLength={8}
             inputMode="numeric"
             autoComplete="one-time-code"
-            className="w-28 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            w={116}
           />
-          <button
+          <Button
             onClick={onPair}
+            loading={busy}
             disabled={disabled || !code.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {busy ? t('pairConnect.pairing') : t('pairConnect.pair')}
-          </button>
-        </div>
-      </div>
-    </div>
+            {t('pairConnect.pair')}
+          </Button>
+        </Group>
+      </Group>
+    </Paper>
   );
 }
 
@@ -783,21 +791,17 @@ function Field({
   autoComplete?: string;
 }) {
   return (
-    <div>
-      <label className="block text-xs text-gray-500 mb-1">{label}</label>
-      <input
-        type="text"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        maxLength={maxLength}
-        inputMode={inputMode}
-        autoComplete={autoComplete}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-      />
-    </div>
+    <TextInput
+      label={label}
+      value={value}
+      onChange={(event) => onChange(event.currentTarget.value)}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      placeholder={placeholder}
+      maxLength={maxLength}
+      inputMode={inputMode}
+      autoComplete={autoComplete}
+    />
   );
 }
 
@@ -826,14 +830,15 @@ function PairRepairAction({
 }) {
   const { t } = useTranslation();
   return (
-    <button
-      type="button"
+    <Button
       onClick={onRestartAdbAndScan}
-      disabled={repairing}
-      className="mt-3 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+      loading={repairing}
+      mt="sm"
+      size="xs"
+      color="red"
     >
-      {repairing ? t('pairConnect.repairingAdb') : t('pairConnect.restartAdbAndScan')}
-    </button>
+      {t('pairConnect.restartAdbAndScan')}
+    </Button>
   );
 }
 
@@ -845,9 +850,8 @@ function ResultMessage({
   children?: ReactNode;
 }) {
   return (
-    <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${result.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-      <div>{result.msg}</div>
+    <ResultAlert result={result} className="mt-3">
       {children}
-    </div>
+    </ResultAlert>
   );
 }

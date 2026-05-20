@@ -8,6 +8,18 @@
     "noDevice": "No device connected",
     "autoRefresh": "Auto-refresh every 5 min"
   },
+  "layout": {
+    "tools": "Tools",
+    "settings": "Settings",
+    "selectedDevice": "Selected device",
+    "noSelectedDevice": "No device selected",
+    "defaultDevice": "Default ADB device",
+    "adbReady": "ADB ready",
+    "deviceCount": "{{online}} online / {{total}} total",
+    "searchDevices": "Search devices or notes...",
+    "quickConnect": "Quick connect",
+    "openSettings": "Open settings"
+  },
   "tabs": {
     "pairConnect": "Pair & Connect",
     "workbench": "ADB Workbench",

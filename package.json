@@ -14,6 +14,12 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@mantine/core": "^9.2.1",
+    "@mantine/dropzone": "^9.2.1",
+    "@mantine/hooks": "^9.2.1",
+    "@mantine/modals": "^9.2.1",
+    "@mantine/notifications": "^9.2.1",
+    "@tabler/icons-react": "^3.44.0",
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-dialog": "^2.7.0",
     "@tauri-apps/plugin-store": "^2.4.2",
