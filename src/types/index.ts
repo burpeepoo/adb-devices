@@ -47,6 +47,7 @@ export interface AppSettings {
   recordingDir: string;
   recentApkDir: string;
   languagePreference?: LanguagePreference;
+  autoCheckUpdates?: boolean;
 }
 
 export type LanguagePreference = "system" | "en-US" | "zh-CN";

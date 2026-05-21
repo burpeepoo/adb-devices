@@ -51,6 +51,8 @@
     "title": "Update available",
     "settingsTitle": "App updates",
     "settingsDesc": "Check official versions published in GitHub Releases.",
+    "autoCheck": "Automatically check for updates",
+    "autoCheckDesc": "When enabled, ADB Manager checks silently at launch and every 6 hours while open.",
     "check": "Check for updates",
     "view": "View",
     "available": "Version {{version}} is available",

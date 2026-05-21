@@ -2,6 +2,11 @@ import { isTauri } from "@tauri-apps/api/core";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type DownloadEvent, type Update } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  UPDATE_AUTO_CHECK_DELAY_MS,
+  UPDATE_AUTO_CHECK_INTERVAL_MS,
+  canRunAutomaticUpdateCheck,
+} from "../updaterPolicy";
 
 export type UpdateStatus =
   | "idle"
@@ -28,6 +33,10 @@ export interface CheckUpdateOptions {
   silent?: boolean;
 }
 
+export interface AppUpdaterOptions {
+  autoCheckEnabled?: boolean;
+}
+
 export interface AppUpdaterControls {
   status: UpdateStatus;
   updateInfo: UpdateInfo | null;
@@ -40,7 +49,6 @@ export interface AppUpdaterControls {
   openPrompt: () => void;
 }
 
-const AUTO_CHECK_DELAY_MS = 2500;
 const UPDATE_REQUEST_TIMEOUT_MS = 30000;
 
 function toUpdateInfo(update: Update): UpdateInfo {
@@ -57,8 +65,10 @@ function toErrorMessage(error: unknown): string {
   return String(error);
 }
 
-export function useAppUpdater(): AppUpdaterControls {
+export function useAppUpdater(options: AppUpdaterOptions = {}): AppUpdaterControls {
+  const autoCheckEnabled = options.autoCheckEnabled ?? true;
   const updateRef = useRef<Update | null>(null);
+  const statusRef = useRef<UpdateStatus>("idle");
   const [status, setStatus] = useState<UpdateStatus>("idle");
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [progress, setProgress] = useState<UpdateProgress>({ downloaded: 0 });
@@ -107,8 +117,6 @@ export function useAppUpdater(): AppUpdaterControls {
         setUpdateInfo(toUpdateInfo(nextUpdate));
         setStatus("available");
         if (!silent) {
-          setPromptOpen(true);
-        } else {
           setPromptOpen(true);
         }
       } catch (e) {
@@ -174,14 +182,26 @@ export function useAppUpdater(): AppUpdaterControls {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void checkForUpdate({ silent: true });
-    }, AUTO_CHECK_DELAY_MS);
+    statusRef.current = status;
+  }, [status]);
+
+  useEffect(() => {
+    if (!autoCheckEnabled) return;
+
+    const checkSilently = () => {
+      if (canRunAutomaticUpdateCheck(statusRef.current)) {
+        void checkForUpdate({ silent: true });
+      }
+    };
+
+    const startupTimer = window.setTimeout(checkSilently, UPDATE_AUTO_CHECK_DELAY_MS);
+    const intervalTimer = window.setInterval(checkSilently, UPDATE_AUTO_CHECK_INTERVAL_MS);
 
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(startupTimer);
+      window.clearInterval(intervalTimer);
     };
-  }, [checkForUpdate]);
+  }, [autoCheckEnabled, checkForUpdate]);
 
   useEffect(() => {
     return () => {

@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.3] - 2026-05-21
+
+### Added
+
+- Added a red update indicator on the Settings button when a new version is available.
+- Added an automatic update check setting, enabled by default, with silent startup checks and six-hour background checks while the app is open.
+
+### Changed
+
+- Automatic update checks now stay silent and surface available updates through the Settings indicator instead of opening the update dialog immediately.
+
 ## [1.1.2] - 2026-05-21
 
 ### Added

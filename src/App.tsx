@@ -6,6 +6,7 @@ import { TabKey, AppSettings } from "./types";
 import { applyLanguagePreference } from "./i18n";
 import { useDevices } from "./hooks/useDevices";
 import { useAppUpdater } from "./hooks/useAppUpdater";
+import { isAutoUpdateCheckEnabled } from "./updaterPolicy";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import AppShellLayout from "./components/layout/AppShellLayout";
 import DevicePanel from "./components/layout/DevicePanel";
@@ -49,7 +50,17 @@ interface RecordShortcutResult {
 export default function App() {
   const { t } = useTranslation();
   const { devices, loading, error, selectedDevice, setSelectedDevice, refresh } = useDevices();
-  const updater = useAppUpdater();
+  const [settings, setSettings] = useState<AppSettings>({
+    screenshotDir: "",
+    recordingDir: "",
+    recentApkDir: "",
+    languagePreference: "system",
+    autoCheckUpdates: true,
+  });
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const updater = useAppUpdater({
+    autoCheckEnabled: settingsLoaded && isAutoUpdateCheckEnabled(settings.autoCheckUpdates),
+  });
 
   const TAB_LABELS: Record<TabKey, string> = {
     pair: t('tabs.pairConnect'),
@@ -74,12 +85,6 @@ export default function App() {
   const [mirroringDeviceSerial, setMirroringDeviceSerial] = useState<string | null>(null);
   const [screenshotShortcutResult, setScreenshotShortcutResult] = useState<ScreenshotShortcutResult | null>(null);
   const [recordShortcutResult, setRecordShortcutResult] = useState<RecordShortcutResult | null>(null);
-  const [settings, setSettings] = useState<AppSettings>({
-    screenshotDir: "",
-    recordingDir: "",
-    recentApkDir: "",
-    languagePreference: "system",
-  });
   const selectedDeviceRef = useRef<string | null>(selectedDevice);
   const settingsRef = useRef<AppSettings>(settings);
   const screenshotShortcutRunningRef = useRef(false);
@@ -122,11 +127,14 @@ export default function App() {
         recordingDir: saved?.recordingDir || dir,
         recentApkDir: saved?.recentApkDir || "",
         languagePreference: saved?.languagePreference || "system",
+        autoCheckUpdates: saved?.autoCheckUpdates ?? true,
       };
       setSettings(nextSettings);
       await applyLanguagePreference(nextSettings.languagePreference);
     } catch {
       // ignore
+    } finally {
+      setSettingsLoaded(true);
     }
   }, []);
 
@@ -409,6 +417,7 @@ export default function App() {
             tools={tools}
             activeTool={activeTab}
             settingsLabel={t("layout.openSettings")}
+            hasUpdate={updater.status === "available"}
             onSelectTool={setActiveTab}
             onOpenSettings={() => setShowSettings(true)}
           />

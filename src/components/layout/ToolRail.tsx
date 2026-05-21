@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Stack, Tooltip } from "@mantine/core";
+import { ActionIcon, Box, Indicator, Stack, Tooltip } from "@mantine/core";
 import {
   IconAdjustmentsHorizontal,
   IconApps,
@@ -25,6 +25,7 @@ interface Props {
   tools: ToolConfig[];
   activeTool: TabKey;
   settingsLabel: string;
+  hasUpdate?: boolean;
   onSelectTool: (tool: TabKey) => void;
   onOpenSettings: () => void;
 }
@@ -42,7 +43,7 @@ export const toolIcons: Record<TabKey, ToolConfig["icon"]> = {
   packages: IconDeviceMobileCode,
 };
 
-export default function ToolRail({ tools, activeTool, settingsLabel, onSelectTool, onOpenSettings }: Props) {
+export default function ToolRail({ tools, activeTool, settingsLabel, hasUpdate = false, onSelectTool, onOpenSettings }: Props) {
   return (
     <Stack h="100%" align="center" gap={8} p={8}>
       {tools.map((tool) => {
@@ -70,21 +71,23 @@ export default function ToolRail({ tools, activeTool, settingsLabel, onSelectToo
       })}
       <div style={{ flex: 1 }} />
       <Tooltip label={settingsLabel} position="right" withArrow openDelay={250}>
-        <ActionIcon
-          aria-label={settingsLabel}
-          variant="subtle"
-          color="gray"
-          size={40}
-          radius="md"
-          onClick={onOpenSettings}
-          styles={{
-            root: {
-              color: "var(--mantine-color-gray-4)",
-            },
-          }}
-        >
-          <IconSettings size={21} />
-        </ActionIcon>
+        <Indicator color="red" size={8} offset={7} disabled={!hasUpdate} position="top-end">
+          <ActionIcon
+            aria-label={settingsLabel}
+            variant="subtle"
+            color="gray"
+            size={40}
+            radius="md"
+            onClick={onOpenSettings}
+            styles={{
+              root: {
+                color: "var(--mantine-color-gray-4)",
+              },
+            }}
+          >
+            <IconSettings size={21} />
+          </ActionIcon>
+        </Indicator>
       </Tooltip>
       <Box
         aria-hidden="true"

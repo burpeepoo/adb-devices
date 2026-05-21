@@ -1,4 +1,4 @@
-import { Button, Divider, Group, Modal, Progress, Select, Stack, Text, TextInput } from "@mantine/core";
+import { Button, Divider, Group, Modal, Progress, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
 import { IconFolder, IconRefresh } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,6 +6,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { AppSettings, LanguagePreference } from "../types";
 import type { AppUpdaterControls } from "../hooks/useAppUpdater";
+import { isAutoUpdateCheckEnabled } from "../updaterPolicy";
 
 interface Props {
   settings: AppSettings;
@@ -113,6 +114,18 @@ export default function Settings({ settings, updater, onSettingsChange, onClose 
               {t("updates.check")}
             </Button>
           </Group>
+
+          <Switch
+            label={t("updates.autoCheck")}
+            description={t("updates.autoCheckDesc")}
+            checked={isAutoUpdateCheckEnabled(local.autoCheckUpdates)}
+            onChange={(event) =>
+              setLocal((current) => ({
+                ...current,
+                autoCheckUpdates: event.currentTarget.checked,
+              }))
+            }
+          />
 
           {updater.status === "not-available" && (
             <Text size="sm" c="dimmed">

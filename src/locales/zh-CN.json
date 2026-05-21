@@ -51,6 +51,8 @@
     "title": "发现新版本",
     "settingsTitle": "应用更新",
     "settingsDesc": "检查 GitHub Releases 中发布的正式版本。",
+    "autoCheck": "自动检查更新",
+    "autoCheckDesc": "开启后，启动时静默检查一次，并在应用打开期间每 6 小时检查一次。",
     "check": "检查更新",
     "view": "查看",
     "available": "新版本 {{version}} 已发布",
