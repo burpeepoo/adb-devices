@@ -44,7 +44,24 @@
     "changeDir": "Change",
     "select": "Select",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "version": "ADB Manager v{{version}}"
+  },
+  "updates": {
+    "title": "Update available",
+    "settingsTitle": "App updates",
+    "settingsDesc": "Check official versions published in GitHub Releases.",
+    "check": "Check for updates",
+    "view": "View",
+    "available": "Version {{version}} is available",
+    "currentVersion": "Current version {{version}}",
+    "noUpdate": "You are on the latest version",
+    "later": "Later",
+    "downloadAndInstall": "Download and install",
+    "downloading": "Downloading update...",
+    "progressWithTotal": "{{downloaded}} / {{total}}",
+    "relaunching": "Update installed. Relaunching...",
+    "failed": "Update failed: {{error}}"
   },
   "pairConnect": {
     "lanDevices": "LAN Devices",

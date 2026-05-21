@@ -1,6 +1,6 @@
 {
   "name": "adb-manager",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "ADB Manager for Cozyla PMs",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,7 @@
     "build:dmg:intel": "./scripts/build-dmg.sh x64",
     "build:dmg:all": "./scripts/build-dmg.sh all",
     "set-version": "./scripts/set-version.sh",
+    "generate:updater-json": "node scripts/generate-updater-json.mjs",
     "release:macos": "./scripts/release-macos.sh",
     "tauri": "tauri"
   },
@@ -22,7 +23,9 @@
     "@tabler/icons-react": "^3.44.0",
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-dialog": "^2.7.0",
+    "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-store": "^2.4.2",
+    "@tauri-apps/plugin-updater": "^2.10.1",
     "i18next": "^26.0.8",
     "i18next-browser-languagedetector": "^8.2.1",
     "react": "^19.2.5",

@@ -6,6 +6,26 @@ cd "$(dirname "$0")/.."
 
 VERSION=$(grep '"version"' src-tauri/tauri.conf.json | head -1 | sed 's/.*"\(.*\)".*/\1/')
 DMG_DIR="src-tauri/target/release/bundle/dmg"
+UPDATER_DIR="src-tauri/target/release/bundle/updater"
+
+if [[ -n "${TAURI_SIGNING_PRIVATE_KEY:-}" && -f "$TAURI_SIGNING_PRIVATE_KEY" ]]; then
+    TAURI_SIGNING_PRIVATE_KEY="$(cat "$TAURI_SIGNING_PRIVATE_KEY")"
+    export TAURI_SIGNING_PRIVATE_KEY
+fi
+
+if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
+    if [[ -f "$HOME/.tauri/adb-manager-updater.key" ]]; then
+        TAURI_SIGNING_PRIVATE_KEY="$(cat "$HOME/.tauri/adb-manager-updater.key")"
+        export TAURI_SIGNING_PRIVATE_KEY
+    else
+        echo "Error: missing Tauri updater signing key." >&2
+        echo "Set TAURI_SIGNING_PRIVATE_KEY to the private key content or a readable private key file path before building updater-enabled bundles." >&2
+        exit 1
+    fi
+fi
+
+: "${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:=}"
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD
 
 normalize_arch() {
     case "${1:-}" in
@@ -43,6 +63,23 @@ target_for_arch() {
     esac
 }
 
+copy_updater_artifacts() {
+    local arch="$1"
+    local target="$2"
+    local app_archive="src-tauri/target/${target}/release/bundle/macos/ADB Manager.app.tar.gz"
+    local app_signature="${app_archive}.sig"
+    local updater_name="ADB_Manager_${VERSION}_${arch}.app.tar.gz"
+
+    if [[ ! -f "$app_archive" || ! -f "$app_signature" ]]; then
+        echo "Error: missing updater artifact for ${arch}: $app_archive or $app_signature" >&2
+        exit 1
+    fi
+
+    mkdir -p "$UPDATER_DIR"
+    cp "$app_archive" "$UPDATER_DIR/$updater_name"
+    cp "$app_signature" "$UPDATER_DIR/$updater_name.sig"
+}
+
 build_one() {
     local arch="$1"
     local target
@@ -73,6 +110,8 @@ build_one() {
         echo "Error: app bundle was not generated: $app_src" >&2
         exit 1
     fi
+    copy_updater_artifacts "$arch" "$target"
+
     local scrcpy_resource
     scrcpy_resource=$(scrcpy_path_for_arch "$arch")
     if [[ ! -x "$scrcpy_resource" ]]; then
@@ -103,6 +142,7 @@ build_one() {
 if [[ "${1:-native}" == "all" ]]; then
     mkdir -p "$DMG_DIR"
     rm -f "$DMG_DIR"/ADB_Manager_"${VERSION}"_*.dmg
+    rm -f "$UPDATER_DIR"/ADB_Manager_"${VERSION}"_*.app.tar.gz "$UPDATER_DIR"/ADB_Manager_"${VERSION}"_*.app.tar.gz.sig 2>/dev/null || true
     build_one "aarch64"
     build_one "x64"
 else

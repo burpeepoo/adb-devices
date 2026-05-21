@@ -5,6 +5,7 @@ import { listen } from "@tauri-apps/api/event";
 import { TabKey, AppSettings } from "./types";
 import { applyLanguagePreference } from "./i18n";
 import { useDevices } from "./hooks/useDevices";
+import { useAppUpdater } from "./hooks/useAppUpdater";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import AppShellLayout from "./components/layout/AppShellLayout";
 import DevicePanel from "./components/layout/DevicePanel";
@@ -23,6 +24,7 @@ import Clipboard from "./components/Clipboard";
 import Logcat from "./components/Logcat";
 import PackageList from "./components/PackageList";
 import Settings from "./components/Settings";
+import AppUpdatePrompt from "./components/AppUpdatePrompt";
 
 interface ScreenMirrorState {
   running: boolean;
@@ -47,6 +49,7 @@ interface RecordShortcutResult {
 export default function App() {
   const { t } = useTranslation();
   const { devices, loading, error, selectedDevice, setSelectedDevice, refresh } = useDevices();
+  const updater = useAppUpdater();
 
   const TAB_LABELS: Record<TabKey, string> = {
     pair: t('tabs.pairConnect'),
@@ -390,7 +393,12 @@ export default function App() {
   }
 
   if (!adbAvailable) {
-    return <AdbSetup onInstalled={handleAdbInstalled} />;
+    return (
+      <>
+        <AdbSetup onInstalled={handleAdbInstalled} />
+        <AppUpdatePrompt updater={updater} />
+      </>
+    );
   }
 
   return (
@@ -440,10 +448,12 @@ export default function App() {
       {showSettings && (
         <Settings
           settings={settings}
+          updater={updater}
           onSettingsChange={handleSettingsChange}
           onClose={() => setShowSettings(false)}
         />
       )}
+      <AppUpdatePrompt updater={updater} />
     </>
   );
 }

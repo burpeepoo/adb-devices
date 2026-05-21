@@ -112,11 +112,35 @@ npm run tauri build
 
 ### macOS Release
 
-Developer ID releases are built by a repeatable script that updates versions, signs bundled binaries, builds Apple Silicon and Intel DMGs, notarizes them, staples tickets, and runs Gatekeeper checks.
+Developer ID releases are built by a repeatable script that updates versions, signs bundled binaries, builds Apple Silicon and Intel DMGs, creates Tauri updater artifacts, notarizes DMGs, staples tickets, and runs Gatekeeper checks.
 
 1. Copy `.env.release.example` to `.env.release`.
 2. Fill in the local Apple Developer values. Keep the `.p8` key outside this repo.
-3. Run:
+3. Make sure the Tauri updater private key exists outside the repo. The default local path is:
+
+```text
+~/.tauri/adb-manager-updater.key
+```
+
+For GitHub Actions Windows release builds, set this repository secret:
+
+```text
+TAURI_SIGNING_PRIVATE_KEY
+```
+
+Use the private key content for GitHub Secrets. For local builds, `.env.release` can use the private key file path; the release script will read the file before calling Tauri:
+
+```text
+TAURI_SIGNING_PRIVATE_KEY="/Users/you/.tauri/adb-manager-updater.key"
+```
+
+If the key was generated with a password, also set:
+
+```text
+TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+```
+
+4. Run:
 
 ```bash
 npm run release:macos -- 1.0.0
@@ -127,6 +151,48 @@ The final `.dmg` files are generated under:
 ```text
 src-tauri/target/release/bundle/dmg/
 ```
+
+macOS updater artifacts are generated under:
+
+```text
+src-tauri/target/release/bundle/updater/
+```
+
+After Windows release artifacts and `.sig` files are available, generate updater metadata:
+
+```bash
+npm run generate:updater-json -- 1.0.0
+```
+
+Upload these updater assets to the same GitHub Release:
+
+```text
+ADB_Manager_X.Y.Z_aarch64.app.tar.gz
+ADB_Manager_X.Y.Z_aarch64.app.tar.gz.sig
+ADB_Manager_X.Y.Z_x64.app.tar.gz
+ADB_Manager_X.Y.Z_x64.app.tar.gz.sig
+ADB.Manager_X.Y.Z_x64-setup.exe
+ADB.Manager_X.Y.Z_x64-setup.exe.sig
+latest.json
+```
+
+The `.dmg`, `.exe`, and `.msi` assets remain the first-install downloads. `latest.json` points the installed app to the signed updater assets.
+
+### Local Updater Test
+
+To test the updater flow before publishing a real release, run:
+
+```bash
+./scripts/test-updater-local.sh
+```
+
+The script temporarily builds two local debug versions, restores the source files, opens the older test app, and serves a local `latest.json` from:
+
+```text
+http://127.0.0.1:18765/latest.json
+```
+
+Keep the terminal open, then use **Settings > Check for updates** in the opened test app.
 
 ## Release Notes
 

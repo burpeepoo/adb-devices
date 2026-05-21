@@ -38,6 +38,25 @@ require_env "APPLE_API_ISSUER"
 require_env "APPLE_API_KEY"
 require_env "APPLE_API_KEY_PATH"
 
+if [[ -n "${TAURI_SIGNING_PRIVATE_KEY:-}" && -f "$TAURI_SIGNING_PRIVATE_KEY" ]]; then
+    TAURI_SIGNING_PRIVATE_KEY="$(cat "$TAURI_SIGNING_PRIVATE_KEY")"
+    export TAURI_SIGNING_PRIVATE_KEY
+fi
+
+if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
+    if [[ -f "$HOME/.tauri/adb-manager-updater.key" ]]; then
+        TAURI_SIGNING_PRIVATE_KEY="$(cat "$HOME/.tauri/adb-manager-updater.key")"
+        export TAURI_SIGNING_PRIVATE_KEY
+    else
+        echo "Error: missing Tauri updater signing key." >&2
+        echo "Set TAURI_SIGNING_PRIVATE_KEY to the private key content or a readable private key file path before running the release." >&2
+        exit 1
+    fi
+fi
+
+: "${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:=}"
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+
 if [[ ! -f "$APPLE_API_KEY_PATH" ]]; then
     echo "Error: APPLE_API_KEY_PATH does not exist: $APPLE_API_KEY_PATH" >&2
     exit 1
@@ -116,3 +135,9 @@ echo "=== Release artifacts ==="
 for dmg in "${DMGS[@]}"; do
     ls -lh "$dmg"
 done
+
+echo "=== macOS updater artifacts ==="
+ls -lh "src-tauri/target/release/bundle/updater/ADB_Manager_${VERSION}_aarch64.app.tar.gz" \
+    "src-tauri/target/release/bundle/updater/ADB_Manager_${VERSION}_aarch64.app.tar.gz.sig" \
+    "src-tauri/target/release/bundle/updater/ADB_Manager_${VERSION}_x64.app.tar.gz" \
+    "src-tauri/target/release/bundle/updater/ADB_Manager_${VERSION}_x64.app.tar.gz.sig"

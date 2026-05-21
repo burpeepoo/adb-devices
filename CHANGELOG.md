@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.2] - 2026-05-21
+
+### Added
+
+- Added Tauri updater configuration, signing key workflow, startup update prompts, Settings-based manual update checks, and GitHub Release `latest.json` generation.
+- Added a muted app version label at the bottom of Settings.
+
+### Changed
+
+- Release packaging now prepares updater artifacts and requires a Tauri updater signing key in addition to existing Apple notarization credentials.
+
 ## [1.1.1] - 2026-05-21
 
 ### Added
