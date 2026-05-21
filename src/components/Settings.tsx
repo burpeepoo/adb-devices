@@ -1,5 +1,5 @@
 import { Button, Divider, Group, Modal, Progress, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
-import { IconBrandGithub, IconFolder, IconRefresh } from "@tabler/icons-react";
+import { IconFolder, IconRefresh } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getVersion } from "@tauri-apps/api/app";
@@ -7,8 +7,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { AppSettings, LanguagePreference } from "../types";
 import type { AppUpdaterControls } from "../hooks/useAppUpdater";
 import { isAutoUpdateCheckEnabled } from "../updaterPolicy";
-
-const GITHUB_REPOSITORY_URL = "https://github.com/burpeepoo/adb-devices";
 
 interface Props {
   settings: AppSettings;
@@ -53,14 +51,6 @@ export default function Settings({ settings, updater, onSettingsChange, onClose 
   const handleSave = () => {
     onSettingsChange(local);
     onClose();
-  };
-
-  const handleOpenGithub = async () => {
-    try {
-      await invoke("open_external_url", { url: GITHUB_REPOSITORY_URL });
-    } catch {
-      // External link failures are handled by the OS/Tauri command path.
-    }
   };
 
   const isChecking = updater.status === "checking";
@@ -188,12 +178,6 @@ export default function Settings({ settings, updater, onSettingsChange, onClose 
             {t("settings.version", { version: appVersion })}
           </Text>
         )}
-
-        <Group justify="center">
-          <Button variant="subtle" color="gray" size="xs" leftSection={<IconBrandGithub size={16} />} onClick={handleOpenGithub}>
-            {t("settings.githubRepository")}
-          </Button>
-        </Group>
 
         <Group justify="flex-end" mt="sm">
           <Button variant="subtle" color="gray" onClick={onClose}>

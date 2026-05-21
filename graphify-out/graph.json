@@ -1748,7 +1748,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_permissions_allow_app_hide",
-      "community": 141,
+      "community": 72,
       "norm_label": "allow-app-hide"
     },
     {
@@ -1757,7 +1757,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_app_hide_identifier",
-      "community": 141,
+      "community": 72,
       "norm_label": "identifier"
     },
     {
@@ -1766,7 +1766,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_app_hide_description",
-      "community": 141,
+      "community": 72,
       "norm_label": "description"
     },
     {
@@ -1775,7 +1775,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_app_hide_commands",
-      "community": 141,
+      "community": 72,
       "norm_label": "commands"
     },
     {
@@ -1784,7 +1784,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_commands_allow",
-      "community": 141,
+      "community": 72,
       "norm_label": "allow"
     },
     {
@@ -1793,7 +1793,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_commands_deny",
-      "community": 307,
+      "community": 141,
       "norm_label": "deny"
     },
     {
@@ -1802,7 +1802,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_permissions_allow_app_show",
-      "community": 307,
+      "community": 141,
       "norm_label": "allow-app-show"
     },
     {
@@ -1811,7 +1811,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_app_show_identifier",
-      "community": 307,
+      "community": 141,
       "norm_label": "identifier"
     },
     {
@@ -1820,7 +1820,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_app_show_description",
-      "community": 307,
+      "community": 141,
       "norm_label": "description"
     },
     {
@@ -1829,7 +1829,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_app_show_commands",
-      "community": 307,
+      "community": 141,
       "norm_label": "commands"
     },
     {
@@ -2018,7 +2018,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_permissions_allow_register_listener",
-      "community": 71,
+      "community": 41,
       "norm_label": "allow-register-listener"
     },
     {
@@ -2027,7 +2027,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_register_listener_identifier",
-      "community": 71,
+      "community": 41,
       "norm_label": "identifier"
     },
     {
@@ -2036,7 +2036,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_register_listener_description",
-      "community": 71,
+      "community": 41,
       "norm_label": "description"
     },
     {
@@ -2045,7 +2045,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_register_listener_commands",
-      "community": 71,
+      "community": 41,
       "norm_label": "commands"
     },
     {
@@ -2090,7 +2090,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_permissions_allow_remove_listener",
-      "community": 41,
+      "community": 307,
       "norm_label": "allow-remove-listener"
     },
     {
@@ -2099,7 +2099,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_remove_listener_identifier",
-      "community": 41,
+      "community": 307,
       "norm_label": "identifier"
     },
     {
@@ -2108,7 +2108,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_remove_listener_description",
-      "community": 41,
+      "community": 307,
       "norm_label": "description"
     },
     {
@@ -2117,7 +2117,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_remove_listener_commands",
-      "community": 41,
+      "community": 307,
       "norm_label": "commands"
     },
     {
@@ -3557,7 +3557,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_permissions_allow_append",
-      "community": 307,
+      "community": 9,
       "norm_label": "allow-append"
     },
     {
@@ -3566,7 +3566,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_append_identifier",
-      "community": 307,
+      "community": 9,
       "norm_label": "identifier"
     },
     {
@@ -3575,7 +3575,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_append_description",
-      "community": 307,
+      "community": 9,
       "norm_label": "description"
     },
     {
@@ -3584,7 +3584,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_append_commands",
-      "community": 307,
+      "community": 9,
       "norm_label": "commands"
     },
     {
@@ -3701,7 +3701,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_permissions_allow_is_checked",
-      "community": 303,
+      "community": 9,
       "norm_label": "allow-is-checked"
     },
     {
@@ -3710,7 +3710,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_is_checked_identifier",
-      "community": 303,
+      "community": 9,
       "norm_label": "identifier"
     },
     {
@@ -3719,7 +3719,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_is_checked_description",
-      "community": 303,
+      "community": 9,
       "norm_label": "description"
     },
     {
@@ -3728,7 +3728,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_is_checked_commands",
-      "community": 303,
+      "community": 9,
       "norm_label": "commands"
     },
     {
@@ -3881,7 +3881,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_permissions_allow_remove",
-      "community": 307,
+      "community": 9,
       "norm_label": "allow-remove"
     },
     {
@@ -3890,7 +3890,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_remove_identifier",
-      "community": 307,
+      "community": 9,
       "norm_label": "identifier"
     },
     {
@@ -3899,7 +3899,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_remove_description",
-      "community": 307,
+      "community": 9,
       "norm_label": "description"
     },
     {
@@ -3908,7 +3908,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_remove_commands",
-      "community": 307,
+      "community": 9,
       "norm_label": "commands"
     },
     {
@@ -3917,7 +3917,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_permissions_allow_remove_at",
-      "community": 9,
+      "community": 303,
       "norm_label": "allow-remove-at"
     },
     {
@@ -3926,7 +3926,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_remove_at_identifier",
-      "community": 9,
+      "community": 303,
       "norm_label": "identifier"
     },
     {
@@ -3935,7 +3935,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_remove_at_description",
-      "community": 9,
+      "community": 303,
       "norm_label": "description"
     },
     {
@@ -3944,7 +3944,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_remove_at_commands",
-      "community": 9,
+      "community": 303,
       "norm_label": "commands"
     },
     {
@@ -4025,7 +4025,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_permissions_allow_set_as_help_menu_for_nsapp",
-      "community": 9,
+      "community": 72,
       "norm_label": "allow-set-as-help-menu-for-nsapp"
     },
     {
@@ -4034,7 +4034,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_set_as_help_menu_for_nsapp_identifier",
-      "community": 9,
+      "community": 72,
       "norm_label": "identifier"
     },
     {
@@ -4043,7 +4043,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_set_as_help_menu_for_nsapp_description",
-      "community": 9,
+      "community": 72,
       "norm_label": "description"
     },
     {
@@ -4052,7 +4052,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_allow_set_as_help_menu_for_nsapp_commands",
-      "community": 9,
+      "community": 72,
       "norm_label": "commands"
     },
     {
@@ -4565,7 +4565,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_permissions_deny_popup",
-      "community": 9,
+      "community": 72,
       "norm_label": "deny-popup"
     },
     {
@@ -4574,7 +4574,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_deny_popup_identifier",
-      "community": 9,
+      "community": 72,
       "norm_label": "identifier"
     },
     {
@@ -4583,7 +4583,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_deny_popup_description",
-      "community": 9,
+      "community": 72,
       "norm_label": "description"
     },
     {
@@ -4592,7 +4592,7 @@
       "source_file": "src-tauri/gen/schemas/acl-manifests.json",
       "source_location": "L1",
       "id": "schemas_acl_manifests_deny_popup_commands",
-      "community": 9,
+      "community": 72,
       "norm_label": "commands"
     },
     {
@@ -4655,7 +4655,7 @@
       "source_file": "src-tauri/gen/schemas/macOS-schema.json",
       "source_location": "L39",
       "id": "schemas_macos_schema_definitions_capability",
-      "community": 61,
+      "community": 316,
       "norm_label": "capability"
     },
     {
@@ -4664,7 +4664,7 @@
       "source_file": "src-tauri/gen/schemas/macOS-schema.json",
       "source_location": "L40",
       "id": "schemas_macos_schema_capability_description",
-      "community": 61,
+      "community": 316,
       "norm_label": "description"
     },
     {
@@ -4673,7 +4673,7 @@
       "source_file": "src-tauri/gen/schemas/macOS-schema.json",
       "source_location": "L41",
       "id": "schemas_macos_schema_capability_type",
-      "community": 61,
+      "community": 316,
       "norm_label": "type"
     },
     {
@@ -4682,7 +4682,7 @@
       "source_file": "src-tauri/gen/schemas/macOS-schema.json",
       "source_location": "L42",
       "id": "schemas_macos_schema_capability_required",
-      "community": 61,
+      "community": 316,
       "norm_label": "required"
     },
     {
@@ -5105,7 +5105,7 @@
       "source_file": "src-tauri/gen/schemas/macOS-schema.json",
       "source_location": "L176",
       "id": "schemas_macos_schema_definitions_identifier",
-      "community": 56,
+      "community": 61,
       "norm_label": "identifier"
     },
     {
@@ -5114,7 +5114,7 @@
       "source_file": "src-tauri/gen/schemas/macOS-schema.json",
       "source_location": "L178",
       "id": "schemas_macos_schema_identifier_oneof",
-      "community": 56,
+      "community": 61,
       "norm_label": "oneof"
     },
     {
@@ -5852,7 +5852,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L8",
       "id": "src_adb_adberror",
-      "community": 300,
+      "community": 8,
       "norm_label": "adberror"
     },
     {
@@ -5861,7 +5861,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L19",
       "id": "src_adb_adberror_fmt",
-      "community": 300,
+      "community": 8,
       "norm_label": ".fmt()"
     },
     {
@@ -5870,7 +5870,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L45",
       "id": "src_adb_adberror_source",
-      "community": 300,
+      "community": 8,
       "norm_label": ".source()"
     },
     {
@@ -5888,7 +5888,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L60",
       "id": "src_adb_adberror_serialize",
-      "community": 300,
+      "community": 8,
       "norm_label": ".serialize()"
     },
     {
@@ -5942,7 +5942,7 @@
       "source_file": "src-tauri/src/adb.rs",
       "source_location": "L163",
       "id": "src_adb_run_adb",
-      "community": 298,
+      "community": 154,
       "norm_label": "run_adb()"
     },
     {
@@ -6122,7 +6122,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L57",
       "id": "device_adb_mdns_discover",
-      "community": 8,
+      "community": 80,
       "norm_label": "adb_mdns_discover()"
     },
     {
@@ -6194,7 +6194,7 @@
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L213",
       "id": "device_adb_pair",
-      "community": 3,
+      "community": 80,
       "norm_label": "adb_pair()"
     },
     {
@@ -6671,7 +6671,7 @@
       "source_file": "src-tauri/src/commands/package.rs",
       "source_location": "L25",
       "id": "package_adb_list_packages",
-      "community": 8,
+      "community": 154,
       "norm_label": "adb_list_packages()"
     },
     {
@@ -6716,7 +6716,7 @@
       "source_file": "src-tauri/src/commands/package.rs",
       "source_location": "L199",
       "id": "package_package_export_dir",
-      "community": 154,
+      "community": 8,
       "norm_label": "package_export_dir()"
     },
     {
@@ -7067,7 +7067,7 @@
       "source_file": "src-tauri/src/commands/screenshot.rs",
       "source_location": "L1",
       "id": "src_tauri_src_commands_screenshot_rs",
-      "community": 298,
+      "community": 8,
       "norm_label": "screenshot.rs"
     },
     {
@@ -7076,7 +7076,7 @@
       "source_file": "src-tauri/src/commands/screenshot.rs",
       "source_location": "L9",
       "id": "screenshot_adb_screenshot",
-      "community": 298,
+      "community": 8,
       "norm_label": "adb_screenshot()"
     },
     {
@@ -7623,7 +7623,7 @@
       "label": "ScreenMirrorState",
       "file_type": "code",
       "source_file": "src/App.tsx",
-      "source_location": "L30",
+      "source_location": "L32",
       "id": "src_app_screenmirrorstate",
       "community": 17,
       "norm_label": "screenmirrorstate"
@@ -7632,7 +7632,7 @@
       "label": "ScreenshotShortcutResult",
       "file_type": "code",
       "source_file": "src/App.tsx",
-      "source_location": "L35",
+      "source_location": "L37",
       "id": "src_app_screenshotshortcutresult",
       "community": 17,
       "norm_label": "screenshotshortcutresult"
@@ -7641,7 +7641,7 @@
       "label": "RecordShortcutResult",
       "file_type": "code",
       "source_file": "src/App.tsx",
-      "source_location": "L42",
+      "source_location": "L44",
       "id": "src_app_recordshortcutresult",
       "community": 17,
       "norm_label": "recordshortcutresult"
@@ -7650,7 +7650,7 @@
       "label": "App()",
       "file_type": "code",
       "source_file": "src/App.tsx",
-      "source_location": "L50",
+      "source_location": "L52",
       "id": "src_app_app",
       "community": 17,
       "norm_label": "app()"
@@ -8169,10 +8169,19 @@
       "norm_label": "opensettings"
     },
     {
+      "label": "openGithub",
+      "file_type": "code",
+      "source_file": "src/locales/zh-CN.json",
+      "source_location": "L22",
+      "id": "locales_zh_cn_layout_opengithub",
+      "community": 269,
+      "norm_label": "opengithub"
+    },
+    {
       "label": "tabs",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L23",
+      "source_location": "L24",
       "id": "locales_zh_cn_tabs",
       "community": 69,
       "norm_label": "tabs"
@@ -8181,7 +8190,7 @@
       "label": "pairConnect",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L24",
+      "source_location": "L25",
       "id": "locales_zh_cn_tabs_pairconnect",
       "community": 69,
       "norm_label": "pairconnect"
@@ -8190,7 +8199,7 @@
       "label": "workbench",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L25",
+      "source_location": "L26",
       "id": "locales_zh_cn_tabs_workbench",
       "community": 69,
       "norm_label": "workbench"
@@ -8199,7 +8208,7 @@
       "label": "apkInstall",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L26",
+      "source_location": "L27",
       "id": "locales_zh_cn_tabs_apkinstall",
       "community": 69,
       "norm_label": "apkinstall"
@@ -8208,7 +8217,7 @@
       "label": "screenshot",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L27",
+      "source_location": "L28",
       "id": "locales_zh_cn_tabs_screenshot",
       "community": 69,
       "norm_label": "screenshot"
@@ -8217,7 +8226,7 @@
       "label": "screenRecord",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L28",
+      "source_location": "L29",
       "id": "locales_zh_cn_tabs_screenrecord",
       "community": 69,
       "norm_label": "screenrecord"
@@ -8226,7 +8235,7 @@
       "label": "screenMirror",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L29",
+      "source_location": "L30",
       "id": "locales_zh_cn_tabs_screenmirror",
       "community": 69,
       "norm_label": "screenmirror"
@@ -8235,7 +8244,7 @@
       "label": "imageCast",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L30",
+      "source_location": "L31",
       "id": "locales_zh_cn_tabs_imagecast",
       "community": 69,
       "norm_label": "imagecast"
@@ -8244,7 +8253,7 @@
       "label": "clipboard",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L31",
+      "source_location": "L32",
       "id": "locales_zh_cn_tabs_clipboard",
       "community": 69,
       "norm_label": "clipboard"
@@ -8253,7 +8262,7 @@
       "label": "logcat",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L32",
+      "source_location": "L33",
       "id": "locales_zh_cn_tabs_logcat",
       "community": 69,
       "norm_label": "logcat"
@@ -8262,7 +8271,7 @@
       "label": "packageList",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L33",
+      "source_location": "L34",
       "id": "locales_zh_cn_tabs_packagelist",
       "community": 69,
       "norm_label": "packagelist"
@@ -8271,7 +8280,7 @@
       "label": "settings",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L35",
+      "source_location": "L36",
       "id": "locales_zh_cn_settings",
       "community": 68,
       "norm_label": "settings"
@@ -8280,7 +8289,7 @@
       "label": "title",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L36",
+      "source_location": "L37",
       "id": "locales_zh_cn_settings_title",
       "community": 68,
       "norm_label": "title"
@@ -8289,7 +8298,7 @@
       "label": "language",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L37",
+      "source_location": "L38",
       "id": "locales_zh_cn_settings_language",
       "community": 68,
       "norm_label": "language"
@@ -8298,7 +8307,7 @@
       "label": "languageSystem",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L38",
+      "source_location": "L39",
       "id": "locales_zh_cn_settings_languagesystem",
       "community": 68,
       "norm_label": "languagesystem"
@@ -8307,7 +8316,7 @@
       "label": "languageEnglish",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L39",
+      "source_location": "L40",
       "id": "locales_zh_cn_settings_languageenglish",
       "community": 68,
       "norm_label": "languageenglish"
@@ -8316,7 +8325,7 @@
       "label": "languageChinese",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L40",
+      "source_location": "L41",
       "id": "locales_zh_cn_settings_languagechinese",
       "community": 68,
       "norm_label": "languagechinese"
@@ -8325,7 +8334,7 @@
       "label": "screenshotDir",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L41",
+      "source_location": "L42",
       "id": "locales_zh_cn_settings_screenshotdir",
       "community": 68,
       "norm_label": "screenshotdir"
@@ -8334,7 +8343,7 @@
       "label": "recordingDir",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L42",
+      "source_location": "L43",
       "id": "locales_zh_cn_settings_recordingdir",
       "community": 68,
       "norm_label": "recordingdir"
@@ -8343,7 +8352,7 @@
       "label": "notSet",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L43",
+      "source_location": "L44",
       "id": "locales_zh_cn_settings_notset",
       "community": 68,
       "norm_label": "notset"
@@ -8352,7 +8361,7 @@
       "label": "changeDir",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L44",
+      "source_location": "L45",
       "id": "locales_zh_cn_settings_changedir",
       "community": 68,
       "norm_label": "changedir"
@@ -8361,7 +8370,7 @@
       "label": "select",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L45",
+      "source_location": "L46",
       "id": "locales_zh_cn_settings_select",
       "community": 68,
       "norm_label": "select"
@@ -8370,7 +8379,7 @@
       "label": "cancel",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L46",
+      "source_location": "L47",
       "id": "locales_zh_cn_settings_cancel",
       "community": 68,
       "norm_label": "cancel"
@@ -8379,19 +8388,10 @@
       "label": "save",
       "file_type": "code",
       "source_file": "src/locales/zh-CN.json",
-      "source_location": "L47",
+      "source_location": "L48",
       "id": "locales_zh_cn_settings_save",
       "community": 68,
       "norm_label": "save"
-    },
-    {
-      "label": "githubRepository",
-      "file_type": "code",
-      "source_file": "src/locales/zh-CN.json",
-      "source_location": "L48",
-      "id": "locales_zh_cn_settings_githubrepository",
-      "community": 68,
-      "norm_label": "githubrepository"
     },
     {
       "label": "version",
@@ -12485,7 +12485,7 @@
       "source_file": "src/locales/en-US.json",
       "source_location": "L1",
       "id": "src_locales_en_us_json",
-      "community": 70,
+      "community": 300,
       "norm_label": "en-us.json"
     },
     {
@@ -12660,10 +12660,19 @@
       "norm_label": "opensettings"
     },
     {
+      "label": "openGithub",
+      "file_type": "code",
+      "source_file": "src/locales/en-US.json",
+      "source_location": "L22",
+      "id": "locales_en_us_layout_opengithub",
+      "community": 268,
+      "norm_label": "opengithub"
+    },
+    {
       "label": "tabs",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L23",
+      "source_location": "L24",
       "id": "locales_en_us_tabs",
       "community": 67,
       "norm_label": "tabs"
@@ -12672,7 +12681,7 @@
       "label": "pairConnect",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L24",
+      "source_location": "L25",
       "id": "locales_en_us_tabs_pairconnect",
       "community": 67,
       "norm_label": "pairconnect"
@@ -12681,7 +12690,7 @@
       "label": "workbench",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L25",
+      "source_location": "L26",
       "id": "locales_en_us_tabs_workbench",
       "community": 67,
       "norm_label": "workbench"
@@ -12690,7 +12699,7 @@
       "label": "apkInstall",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L26",
+      "source_location": "L27",
       "id": "locales_en_us_tabs_apkinstall",
       "community": 67,
       "norm_label": "apkinstall"
@@ -12699,7 +12708,7 @@
       "label": "screenshot",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L27",
+      "source_location": "L28",
       "id": "locales_en_us_tabs_screenshot",
       "community": 67,
       "norm_label": "screenshot"
@@ -12708,7 +12717,7 @@
       "label": "screenRecord",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L28",
+      "source_location": "L29",
       "id": "locales_en_us_tabs_screenrecord",
       "community": 67,
       "norm_label": "screenrecord"
@@ -12717,7 +12726,7 @@
       "label": "screenMirror",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L29",
+      "source_location": "L30",
       "id": "locales_en_us_tabs_screenmirror",
       "community": 67,
       "norm_label": "screenmirror"
@@ -12726,7 +12735,7 @@
       "label": "imageCast",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L30",
+      "source_location": "L31",
       "id": "locales_en_us_tabs_imagecast",
       "community": 67,
       "norm_label": "imagecast"
@@ -12735,7 +12744,7 @@
       "label": "clipboard",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L31",
+      "source_location": "L32",
       "id": "locales_en_us_tabs_clipboard",
       "community": 67,
       "norm_label": "clipboard"
@@ -12744,7 +12753,7 @@
       "label": "logcat",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L32",
+      "source_location": "L33",
       "id": "locales_en_us_tabs_logcat",
       "community": 67,
       "norm_label": "logcat"
@@ -12753,7 +12762,7 @@
       "label": "packageList",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L33",
+      "source_location": "L34",
       "id": "locales_en_us_tabs_packagelist",
       "community": 67,
       "norm_label": "packagelist"
@@ -12762,7 +12771,7 @@
       "label": "settings",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L35",
+      "source_location": "L36",
       "id": "locales_en_us_settings",
       "community": 66,
       "norm_label": "settings"
@@ -12771,7 +12780,7 @@
       "label": "title",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L36",
+      "source_location": "L37",
       "id": "locales_en_us_settings_title",
       "community": 66,
       "norm_label": "title"
@@ -12780,7 +12789,7 @@
       "label": "language",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L37",
+      "source_location": "L38",
       "id": "locales_en_us_settings_language",
       "community": 66,
       "norm_label": "language"
@@ -12789,7 +12798,7 @@
       "label": "languageSystem",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L38",
+      "source_location": "L39",
       "id": "locales_en_us_settings_languagesystem",
       "community": 66,
       "norm_label": "languagesystem"
@@ -12798,7 +12807,7 @@
       "label": "languageEnglish",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L39",
+      "source_location": "L40",
       "id": "locales_en_us_settings_languageenglish",
       "community": 66,
       "norm_label": "languageenglish"
@@ -12807,7 +12816,7 @@
       "label": "languageChinese",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L40",
+      "source_location": "L41",
       "id": "locales_en_us_settings_languagechinese",
       "community": 66,
       "norm_label": "languagechinese"
@@ -12816,7 +12825,7 @@
       "label": "screenshotDir",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L41",
+      "source_location": "L42",
       "id": "locales_en_us_settings_screenshotdir",
       "community": 66,
       "norm_label": "screenshotdir"
@@ -12825,7 +12834,7 @@
       "label": "recordingDir",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L42",
+      "source_location": "L43",
       "id": "locales_en_us_settings_recordingdir",
       "community": 66,
       "norm_label": "recordingdir"
@@ -12834,7 +12843,7 @@
       "label": "notSet",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L43",
+      "source_location": "L44",
       "id": "locales_en_us_settings_notset",
       "community": 66,
       "norm_label": "notset"
@@ -12843,7 +12852,7 @@
       "label": "changeDir",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L44",
+      "source_location": "L45",
       "id": "locales_en_us_settings_changedir",
       "community": 66,
       "norm_label": "changedir"
@@ -12852,7 +12861,7 @@
       "label": "select",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L45",
+      "source_location": "L46",
       "id": "locales_en_us_settings_select",
       "community": 66,
       "norm_label": "select"
@@ -12861,7 +12870,7 @@
       "label": "cancel",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L46",
+      "source_location": "L47",
       "id": "locales_en_us_settings_cancel",
       "community": 66,
       "norm_label": "cancel"
@@ -12870,19 +12879,10 @@
       "label": "save",
       "file_type": "code",
       "source_file": "src/locales/en-US.json",
-      "source_location": "L47",
+      "source_location": "L48",
       "id": "locales_en_us_settings_save",
       "community": 66,
       "norm_label": "save"
-    },
-    {
-      "label": "githubRepository",
-      "file_type": "code",
-      "source_file": "src/locales/en-US.json",
-      "source_location": "L48",
-      "id": "locales_en_us_settings_githubrepository",
-      "community": 66,
-      "norm_label": "githubrepository"
     },
     {
       "label": "version",
@@ -14483,7 +14483,7 @@
       "source_file": "src/locales/en-US.json",
       "source_location": "L233",
       "id": "locales_en_us_clipboard",
-      "community": 70,
+      "community": 300,
       "norm_label": "clipboard"
     },
     {
@@ -14492,7 +14492,7 @@
       "source_file": "src/locales/en-US.json",
       "source_location": "L234",
       "id": "locales_en_us_clipboard_title",
-      "community": 70,
+      "community": 300,
       "norm_label": "title"
     },
     {
@@ -14501,7 +14501,7 @@
       "source_file": "src/locales/en-US.json",
       "source_location": "L235",
       "id": "locales_en_us_clipboard_placeholder",
-      "community": 70,
+      "community": 300,
       "norm_label": "placeholder"
     },
     {
@@ -14510,7 +14510,7 @@
       "source_file": "src/locales/en-US.json",
       "source_location": "L236",
       "id": "locales_en_us_clipboard_sending",
-      "community": 70,
+      "community": 300,
       "norm_label": "sending"
     },
     {
@@ -14519,7 +14519,7 @@
       "source_file": "src/locales/en-US.json",
       "source_location": "L237",
       "id": "locales_en_us_clipboard_pastetodevice",
-      "community": 70,
+      "community": 300,
       "norm_label": "pastetodevice"
     },
     {
@@ -14528,7 +14528,7 @@
       "source_file": "src/locales/en-US.json",
       "source_location": "L238",
       "id": "locales_en_us_clipboard_clear",
-      "community": 70,
+      "community": 300,
       "norm_label": "clear"
     },
     {
@@ -14537,7 +14537,7 @@
       "source_file": "src/locales/en-US.json",
       "source_location": "L239",
       "id": "locales_en_us_clipboard_nodevice",
-      "community": 70,
+      "community": 300,
       "norm_label": "nodevice"
     },
     {
@@ -17064,7 +17064,7 @@
       "label": "Props",
       "file_type": "code",
       "source_file": "src/components/Settings.tsx",
-      "source_location": "L13",
+      "source_location": "L11",
       "id": "components_settings_props",
       "community": 103,
       "norm_label": "props"
@@ -17073,7 +17073,7 @@
       "label": "formatBytes()",
       "file_type": "code",
       "source_file": "src/components/Settings.tsx",
-      "source_location": "L20",
+      "source_location": "L18",
       "id": "components_settings_formatbytes",
       "community": 103,
       "norm_label": "formatbytes()"
@@ -17082,7 +17082,7 @@
       "label": "Settings()",
       "file_type": "code",
       "source_file": "src/components/Settings.tsx",
-      "source_location": "L25",
+      "source_location": "L23",
       "id": "components_settings_settings",
       "community": 103,
       "norm_label": "settings()"
@@ -18054,7 +18054,7 @@
       "label": "toolIcons",
       "file_type": "code",
       "source_file": "src/components/layout/ToolRail.tsx",
-      "source_location": "L33",
+      "source_location": "L35",
       "id": "layout_toolrail_toolicons",
       "community": 17,
       "norm_label": "toolicons"
@@ -18063,7 +18063,7 @@
       "label": "ToolRail()",
       "file_type": "code",
       "source_file": "src/components/layout/ToolRail.tsx",
-      "source_location": "L46",
+      "source_location": "L48",
       "id": "layout_toolrail_toolrail",
       "community": 17,
       "norm_label": "toolrail()"
@@ -18456,10 +18456,19 @@
       "norm_label": "[unreleased]"
     },
     {
-      "label": "Added",
+      "label": "[1.1.4] - 2026-05-21",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L5",
+      "id": "adb_project_changelog_1_1_4_2026_05_21",
+      "community": 87,
+      "norm_label": "[1.1.4] - 2026-05-21"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L7",
       "id": "adb_project_changelog_added",
       "community": 87,
       "norm_label": "added"
@@ -18468,7 +18477,7 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L12",
+      "source_location": "L14",
       "id": "adb_project_changelog_changed",
       "community": 87,
       "norm_label": "changed"
@@ -18477,7 +18486,7 @@
       "label": "[1.1.3] - 2026-05-21",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L17",
+      "source_location": "L20",
       "id": "adb_project_changelog_1_1_3_2026_05_21",
       "community": 87,
       "norm_label": "[1.1.3] - 2026-05-21"
@@ -18486,8 +18495,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L19",
-      "id": "adb_project_changelog_added_19",
+      "source_location": "L22",
+      "id": "adb_project_changelog_added_22",
       "community": 87,
       "norm_label": "added"
     },
@@ -18495,8 +18504,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L24",
-      "id": "adb_project_changelog_changed_24",
+      "source_location": "L27",
+      "id": "adb_project_changelog_changed_27",
       "community": 87,
       "norm_label": "changed"
     },
@@ -18504,7 +18513,7 @@
       "label": "[1.1.2] - 2026-05-21",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L28",
+      "source_location": "L31",
       "id": "adb_project_changelog_1_1_2_2026_05_21",
       "community": 87,
       "norm_label": "[1.1.2] - 2026-05-21"
@@ -18513,8 +18522,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L30",
-      "id": "adb_project_changelog_added_30",
+      "source_location": "L33",
+      "id": "adb_project_changelog_added_33",
       "community": 87,
       "norm_label": "added"
     },
@@ -18522,8 +18531,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L35",
-      "id": "adb_project_changelog_changed_35",
+      "source_location": "L38",
+      "id": "adb_project_changelog_changed_38",
       "community": 87,
       "norm_label": "changed"
     },
@@ -18531,7 +18540,7 @@
       "label": "[1.1.1] - 2026-05-21",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L39",
+      "source_location": "L42",
       "id": "adb_project_changelog_1_1_1_2026_05_21",
       "community": 87,
       "norm_label": "[1.1.1] - 2026-05-21"
@@ -18540,8 +18549,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L41",
-      "id": "adb_project_changelog_added_41",
+      "source_location": "L44",
+      "id": "adb_project_changelog_added_44",
       "community": 87,
       "norm_label": "added"
     },
@@ -18549,8 +18558,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L46",
-      "id": "adb_project_changelog_changed_46",
+      "source_location": "L49",
+      "id": "adb_project_changelog_changed_49",
       "community": 87,
       "norm_label": "changed"
     },
@@ -18558,7 +18567,7 @@
       "label": "[1.1.0] - 2026-05-20",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L51",
+      "source_location": "L54",
       "id": "adb_project_changelog_1_1_0_2026_05_20",
       "community": 87,
       "norm_label": "[1.1.0] - 2026-05-20"
@@ -18567,8 +18576,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L53",
-      "id": "adb_project_changelog_added_53",
+      "source_location": "L56",
+      "id": "adb_project_changelog_added_56",
       "community": 87,
       "norm_label": "added"
     },
@@ -18576,8 +18585,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L58",
-      "id": "adb_project_changelog_changed_58",
+      "source_location": "L61",
+      "id": "adb_project_changelog_changed_61",
       "community": 87,
       "norm_label": "changed"
     },
@@ -18585,7 +18594,7 @@
       "label": "[1.0.3] - 2026-05-20",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L63",
+      "source_location": "L66",
       "id": "adb_project_changelog_1_0_3_2026_05_20",
       "community": 87,
       "norm_label": "[1.0.3] - 2026-05-20"
@@ -18594,8 +18603,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L65",
-      "id": "adb_project_changelog_added_65",
+      "source_location": "L68",
+      "id": "adb_project_changelog_added_68",
       "community": 87,
       "norm_label": "added"
     },
@@ -18603,8 +18612,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L70",
-      "id": "adb_project_changelog_changed_70",
+      "source_location": "L73",
+      "id": "adb_project_changelog_changed_73",
       "community": 87,
       "norm_label": "changed"
     },
@@ -18612,7 +18621,7 @@
       "label": "[1.0.2] - 2026-05-20",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L75",
+      "source_location": "L78",
       "id": "adb_project_changelog_1_0_2_2026_05_20",
       "community": 87,
       "norm_label": "[1.0.2] - 2026-05-20"
@@ -18621,8 +18630,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L77",
-      "id": "adb_project_changelog_added_77",
+      "source_location": "L80",
+      "id": "adb_project_changelog_added_80",
       "community": 87,
       "norm_label": "added"
     },
@@ -18630,8 +18639,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L82",
-      "id": "adb_project_changelog_changed_82",
+      "source_location": "L85",
+      "id": "adb_project_changelog_changed_85",
       "community": 87,
       "norm_label": "changed"
     },
@@ -18639,7 +18648,7 @@
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L87",
+      "source_location": "L90",
       "id": "adb_project_changelog_fixed",
       "community": 87,
       "norm_label": "fixed"
@@ -18648,43 +18657,43 @@
       "label": "[1.0.1] - 2026-05-19",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L91",
+      "source_location": "L94",
       "id": "adb_project_changelog_1_0_1_2026_05_19",
-      "community": 72,
+      "community": 88,
       "norm_label": "[1.0.1] - 2026-05-19"
     },
     {
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L93",
-      "id": "adb_project_changelog_added_93",
-      "community": 72,
+      "source_location": "L96",
+      "id": "adb_project_changelog_added_96",
+      "community": 88,
       "norm_label": "added"
     },
     {
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L101",
-      "id": "adb_project_changelog_changed_101",
-      "community": 72,
+      "source_location": "L104",
+      "id": "adb_project_changelog_changed_104",
+      "community": 88,
       "norm_label": "changed"
     },
     {
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L107",
-      "id": "adb_project_changelog_fixed_107",
-      "community": 72,
+      "source_location": "L110",
+      "id": "adb_project_changelog_fixed_110",
+      "community": 88,
       "norm_label": "fixed"
     },
     {
       "label": "[1.0.0] - 2026-05-19",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L112",
+      "source_location": "L115",
       "id": "adb_project_changelog_1_0_0_2026_05_19",
       "community": 82,
       "norm_label": "[1.0.0] - 2026-05-19"
@@ -18693,8 +18702,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L114",
-      "id": "adb_project_changelog_added_114",
+      "source_location": "L117",
+      "id": "adb_project_changelog_added_117",
       "community": 82,
       "norm_label": "added"
     },
@@ -18702,8 +18711,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L119",
-      "id": "adb_project_changelog_changed_119",
+      "source_location": "L122",
+      "id": "adb_project_changelog_changed_122",
       "community": 82,
       "norm_label": "changed"
     },
@@ -18711,7 +18720,7 @@
       "label": "[0.1.11] - 2026-05-15",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L125",
+      "source_location": "L128",
       "id": "adb_project_changelog_0_1_11_2026_05_15",
       "community": 216,
       "norm_label": "[0.1.11] - 2026-05-15"
@@ -18720,8 +18729,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L127",
-      "id": "adb_project_changelog_added_127",
+      "source_location": "L130",
+      "id": "adb_project_changelog_added_130",
       "community": 216,
       "norm_label": "added"
     },
@@ -18729,8 +18738,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L132",
-      "id": "adb_project_changelog_changed_132",
+      "source_location": "L135",
+      "id": "adb_project_changelog_changed_135",
       "community": 216,
       "norm_label": "changed"
     },
@@ -18738,7 +18747,7 @@
       "label": "[0.1.10] - 2026-05-15",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L137",
+      "source_location": "L140",
       "id": "adb_project_changelog_0_1_10_2026_05_15",
       "community": 216,
       "norm_label": "[0.1.10] - 2026-05-15"
@@ -18747,8 +18756,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L139",
-      "id": "adb_project_changelog_added_139",
+      "source_location": "L142",
+      "id": "adb_project_changelog_added_142",
       "community": 216,
       "norm_label": "added"
     },
@@ -18756,8 +18765,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L144",
-      "id": "adb_project_changelog_changed_144",
+      "source_location": "L147",
+      "id": "adb_project_changelog_changed_147",
       "community": 216,
       "norm_label": "changed"
     },
@@ -18765,7 +18774,7 @@
       "label": "[0.1.9] - 2026-05-13",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L149",
+      "source_location": "L152",
       "id": "adb_project_changelog_0_1_9_2026_05_13",
       "community": 216,
       "norm_label": "[0.1.9] - 2026-05-13"
@@ -18774,8 +18783,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L151",
-      "id": "adb_project_changelog_added_151",
+      "source_location": "L154",
+      "id": "adb_project_changelog_added_154",
       "community": 216,
       "norm_label": "added"
     },
@@ -18783,8 +18792,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L156",
-      "id": "adb_project_changelog_changed_156",
+      "source_location": "L159",
+      "id": "adb_project_changelog_changed_159",
       "community": 216,
       "norm_label": "changed"
     },
@@ -18792,8 +18801,8 @@
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L160",
-      "id": "adb_project_changelog_fixed_160",
+      "source_location": "L163",
+      "id": "adb_project_changelog_fixed_163",
       "community": 216,
       "norm_label": "fixed"
     },
@@ -18801,7 +18810,7 @@
       "label": "[0.1.8] - 2026-05-08",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L164",
+      "source_location": "L167",
       "id": "adb_project_changelog_0_1_8_2026_05_08",
       "community": 86,
       "norm_label": "[0.1.8] - 2026-05-08"
@@ -18810,8 +18819,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L166",
-      "id": "adb_project_changelog_added_166",
+      "source_location": "L169",
+      "id": "adb_project_changelog_added_169",
       "community": 86,
       "norm_label": "added"
     },
@@ -18819,8 +18828,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L171",
-      "id": "adb_project_changelog_changed_171",
+      "source_location": "L174",
+      "id": "adb_project_changelog_changed_174",
       "community": 86,
       "norm_label": "changed"
     },
@@ -18828,8 +18837,8 @@
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L177",
-      "id": "adb_project_changelog_fixed_177",
+      "source_location": "L180",
+      "id": "adb_project_changelog_fixed_180",
       "community": 86,
       "norm_label": "fixed"
     },
@@ -18837,7 +18846,7 @@
       "label": "[0.1.7] - 2026-05-08",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L182",
+      "source_location": "L185",
       "id": "adb_project_changelog_0_1_7_2026_05_08",
       "community": 89,
       "norm_label": "[0.1.7] - 2026-05-08"
@@ -18846,8 +18855,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L184",
-      "id": "adb_project_changelog_added_184",
+      "source_location": "L187",
+      "id": "adb_project_changelog_added_187",
       "community": 89,
       "norm_label": "added"
     },
@@ -18855,25 +18864,25 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L191",
-      "id": "adb_project_changelog_changed_191",
-      "community": 89,
+      "source_location": "L194",
+      "id": "adb_project_changelog_changed_194",
+      "community": 71,
       "norm_label": "changed"
     },
     {
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L196",
-      "id": "adb_project_changelog_fixed_196",
-      "community": 89,
+      "source_location": "L199",
+      "id": "adb_project_changelog_fixed_199",
+      "community": 93,
       "norm_label": "fixed"
     },
     {
       "label": "[0.1.6] - 2026-05-07",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L201",
+      "source_location": "L204",
       "id": "adb_project_changelog_0_1_6_2026_05_07",
       "community": 88,
       "norm_label": "[0.1.6] - 2026-05-07"
@@ -18882,8 +18891,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L203",
-      "id": "adb_project_changelog_added_203",
+      "source_location": "L206",
+      "id": "adb_project_changelog_added_206",
       "community": 88,
       "norm_label": "added"
     },
@@ -18891,8 +18900,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L209",
-      "id": "adb_project_changelog_changed_209",
+      "source_location": "L212",
+      "id": "adb_project_changelog_changed_212",
       "community": 88,
       "norm_label": "changed"
     },
@@ -18900,7 +18909,7 @@
       "label": "[0.1.5] - 2026-04-30",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L215",
+      "source_location": "L218",
       "id": "adb_project_changelog_0_1_5_2026_04_30",
       "community": 83,
       "norm_label": "[0.1.5] - 2026-04-30"
@@ -18909,8 +18918,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L217",
-      "id": "adb_project_changelog_added_217",
+      "source_location": "L220",
+      "id": "adb_project_changelog_added_220",
       "community": 83,
       "norm_label": "added"
     },
@@ -18918,8 +18927,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L224",
-      "id": "adb_project_changelog_changed_224",
+      "source_location": "L227",
+      "id": "adb_project_changelog_changed_227",
       "community": 83,
       "norm_label": "changed"
     },
@@ -18927,8 +18936,8 @@
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L229",
-      "id": "adb_project_changelog_fixed_229",
+      "source_location": "L232",
+      "id": "adb_project_changelog_fixed_232",
       "community": 83,
       "norm_label": "fixed"
     },
@@ -18936,34 +18945,34 @@
       "label": "[0.1.4] - 2026-04-29",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L235",
+      "source_location": "L238",
       "id": "adb_project_changelog_0_1_4_2026_04_29",
-      "community": 88,
+      "community": 71,
       "norm_label": "[0.1.4] - 2026-04-29"
     },
     {
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L237",
-      "id": "adb_project_changelog_added_237",
-      "community": 88,
+      "source_location": "L240",
+      "id": "adb_project_changelog_added_240",
+      "community": 71,
       "norm_label": "added"
     },
     {
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L242",
-      "id": "adb_project_changelog_changed_242",
-      "community": 88,
+      "source_location": "L245",
+      "id": "adb_project_changelog_changed_245",
+      "community": 71,
       "norm_label": "changed"
     },
     {
       "label": "[0.1.3] - 2026-04-29",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L246",
+      "source_location": "L249",
       "id": "adb_project_changelog_0_1_3_2026_04_29",
       "community": 81,
       "norm_label": "[0.1.3] - 2026-04-29"
@@ -18972,8 +18981,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L248",
-      "id": "adb_project_changelog_added_248",
+      "source_location": "L251",
+      "id": "adb_project_changelog_added_251",
       "community": 81,
       "norm_label": "added"
     },
@@ -18981,8 +18990,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L255",
-      "id": "adb_project_changelog_changed_255",
+      "source_location": "L258",
+      "id": "adb_project_changelog_changed_258",
       "community": 81,
       "norm_label": "changed"
     },
@@ -18990,8 +18999,8 @@
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L260",
-      "id": "adb_project_changelog_fixed_260",
+      "source_location": "L263",
+      "id": "adb_project_changelog_fixed_263",
       "community": 81,
       "norm_label": "fixed"
     },
@@ -18999,7 +19008,7 @@
       "label": "[0.1.1] - 2026-04-28",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L264",
+      "source_location": "L267",
       "id": "adb_project_changelog_0_1_1_2026_04_28",
       "community": 93,
       "norm_label": "[0.1.1] - 2026-04-28"
@@ -19008,8 +19017,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L266",
-      "id": "adb_project_changelog_changed_266",
+      "source_location": "L269",
+      "id": "adb_project_changelog_changed_269",
       "community": 93,
       "norm_label": "changed"
     },
@@ -19017,8 +19026,8 @@
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L271",
-      "id": "adb_project_changelog_fixed_271",
+      "source_location": "L274",
+      "id": "adb_project_changelog_fixed_274",
       "community": 93,
       "norm_label": "fixed"
     },
@@ -19026,7 +19035,7 @@
       "label": "[0.1.0] - 2026-04-28",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L276",
+      "source_location": "L279",
       "id": "adb_project_changelog_0_1_0_2026_04_28",
       "community": 77,
       "norm_label": "[0.1.0] - 2026-04-28"
@@ -19035,8 +19044,8 @@
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L278",
-      "id": "adb_project_changelog_added_278",
+      "source_location": "L281",
+      "id": "adb_project_changelog_added_281",
       "community": 77,
       "norm_label": "added"
     },
@@ -19044,8 +19053,8 @@
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L293",
-      "id": "adb_project_changelog_changed_293",
+      "source_location": "L296",
+      "id": "adb_project_changelog_changed_296",
       "community": 77,
       "norm_label": "changed"
     },
@@ -19053,8 +19062,8 @@
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
-      "source_location": "L299",
-      "id": "adb_project_changelog_fixed_299",
+      "source_location": "L302",
+      "id": "adb_project_changelog_fixed_302",
       "community": 77,
       "norm_label": "fixed"
     },
@@ -20787,6 +20796,429 @@
       "norm_label": "code:bash (npm run build)"
     },
     {
+      "label": "githubRepository",
+      "file_type": "code",
+      "source_file": "src/locales/zh-CN.json",
+      "source_location": "L48",
+      "community": 68,
+      "norm_label": "githubrepository",
+      "id": "locales_zh_cn_settings_githubrepository"
+    },
+    {
+      "label": "githubRepository",
+      "file_type": "code",
+      "source_file": "src/locales/en-US.json",
+      "source_location": "L48",
+      "community": 66,
+      "norm_label": "githubrepository",
+      "id": "locales_en_us_settings_githubrepository"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L19",
+      "community": 87,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_19"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L24",
+      "community": 87,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_24"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L30",
+      "community": 87,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_30"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L35",
+      "community": 87,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_35"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L41",
+      "community": 87,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_41"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L46",
+      "community": 87,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_46"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L53",
+      "community": 87,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_53"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L58",
+      "community": 87,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_58"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L65",
+      "community": 87,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_65"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L70",
+      "community": 87,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_70"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L77",
+      "community": 87,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_77"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L82",
+      "community": 87,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_82"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L93",
+      "community": 88,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_93"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L101",
+      "community": 88,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_101"
+    },
+    {
+      "label": "Fixed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L107",
+      "community": 88,
+      "norm_label": "fixed",
+      "id": "adb_project_changelog_fixed_107"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L114",
+      "community": 82,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_114"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L119",
+      "community": 82,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_119"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L127",
+      "community": 216,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_127"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L132",
+      "community": 216,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_132"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L139",
+      "community": 216,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_139"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L144",
+      "community": 216,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_144"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L151",
+      "community": 216,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_151"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L156",
+      "community": 93,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_156"
+    },
+    {
+      "label": "Fixed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L160",
+      "community": 216,
+      "norm_label": "fixed",
+      "id": "adb_project_changelog_fixed_160"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L166",
+      "community": 86,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_166"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L171",
+      "community": 86,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_171"
+    },
+    {
+      "label": "Fixed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L177",
+      "community": 86,
+      "norm_label": "fixed",
+      "id": "adb_project_changelog_fixed_177"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L184",
+      "community": 89,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_184"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L191",
+      "community": 89,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_191"
+    },
+    {
+      "label": "Fixed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L196",
+      "community": 89,
+      "norm_label": "fixed",
+      "id": "adb_project_changelog_fixed_196"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L203",
+      "community": 88,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_203"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L209",
+      "community": 88,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_209"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L217",
+      "community": 83,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_217"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L224",
+      "community": 83,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_224"
+    },
+    {
+      "label": "Fixed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L229",
+      "community": 83,
+      "norm_label": "fixed",
+      "id": "adb_project_changelog_fixed_229"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L237",
+      "community": 71,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_237"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L242",
+      "community": 71,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_242"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L248",
+      "community": 81,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_248"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L255",
+      "community": 81,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_255"
+    },
+    {
+      "label": "Fixed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L260",
+      "community": 81,
+      "norm_label": "fixed",
+      "id": "adb_project_changelog_fixed_260"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L266",
+      "community": 93,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_266"
+    },
+    {
+      "label": "Fixed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L271",
+      "community": 93,
+      "norm_label": "fixed",
+      "id": "adb_project_changelog_fixed_271"
+    },
+    {
+      "label": "Added",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L278",
+      "community": 77,
+      "norm_label": "added",
+      "id": "adb_project_changelog_added_278"
+    },
+    {
+      "label": "Changed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L293",
+      "community": 77,
+      "norm_label": "changed",
+      "id": "adb_project_changelog_changed_293"
+    },
+    {
+      "label": "Fixed",
+      "file_type": "document",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L299",
+      "community": 77,
+      "norm_label": "fixed",
+      "id": "adb_project_changelog_fixed_299"
+    },
+    {
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
@@ -20899,7 +21331,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L92",
-      "community": 72,
+      "community": 88,
       "norm_label": "added",
       "id": "adb_project_changelog_added_92"
     },
@@ -20908,7 +21340,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L100",
-      "community": 72,
+      "community": 88,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_100"
     },
@@ -20917,7 +21349,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L106",
-      "community": 72,
+      "community": 88,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_106"
     },
@@ -21007,7 +21439,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L165",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_165"
     },
@@ -21016,7 +21448,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L170",
-      "community": 88,
+      "community": 71,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_170"
     },
@@ -21106,7 +21538,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L236",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_236"
     },
@@ -21115,7 +21547,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L241",
-      "community": 88,
+      "community": 71,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_241"
     },
@@ -21421,7 +21853,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L99",
-      "community": 72,
+      "community": 88,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_99"
     },
@@ -21430,7 +21862,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L105",
-      "community": 72,
+      "community": 88,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_105"
     },
@@ -21493,7 +21925,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L149",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_149"
     },
@@ -21574,7 +22006,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L201",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_201"
     },
@@ -21610,7 +22042,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L227",
-      "community": 83,
+      "community": 77,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_227"
     },
@@ -21619,7 +22051,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L235",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_235"
     },
@@ -21628,7 +22060,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L240",
-      "community": 93,
+      "community": 71,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_240"
     },
@@ -21808,7 +22240,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L93",
-      "community": 72,
+      "community": 88,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_93"
     },
@@ -21858,15 +22290,6 @@
       "id": "adb_project_changelog_changed_157"
     },
     {
-      "label": "Fixed",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L163",
-      "community": 86,
-      "norm_label": "fixed",
-      "id": "adb_project_changelog_fixed_163"
-    },
-    {
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
@@ -21898,7 +22321,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L189",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_189"
     },
@@ -21934,7 +22357,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L223",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_223"
     },
@@ -21943,7 +22366,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L228",
-      "community": 88,
+      "community": 71,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_228"
     },
@@ -22047,20 +22470,11 @@
       "id": "locales_en_us_catalog_home"
     },
     {
-      "label": "Added",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L68",
-      "community": 72,
-      "norm_label": "added",
-      "id": "adb_project_changelog_added_68"
-    },
-    {
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L76",
-      "community": 72,
+      "community": 88,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_76"
     },
@@ -22069,7 +22483,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L82",
-      "community": 72,
+      "community": 88,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_82"
     },
@@ -22150,7 +22564,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L159",
-      "community": 81,
+      "community": 89,
       "norm_label": "added",
       "id": "adb_project_changelog_added_159"
     },
@@ -22222,7 +22636,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L212",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_212"
     },
@@ -22231,7 +22645,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L217",
-      "community": 88,
+      "community": 71,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_217"
     },
@@ -22270,15 +22684,6 @@
       "community": 77,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_268"
-    },
-    {
-      "label": "Fixed",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L274",
-      "community": 77,
-      "norm_label": "fixed",
-      "id": "adb_project_changelog_fixed_274"
     },
     {
       "label": "title",
@@ -22330,7 +22735,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L75",
-      "community": 72,
+      "community": 88,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_75"
     },
@@ -22339,7 +22744,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L81",
-      "community": 72,
+      "community": 88,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_81"
     },
@@ -22402,7 +22807,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L145",
-      "community": 81,
+      "community": 86,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_145"
     },
@@ -22492,7 +22897,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L211",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_211"
     },
@@ -22501,7 +22906,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L216",
-      "community": 88,
+      "community": 71,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_216"
     },
@@ -22843,7 +23248,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L57",
-      "community": 72,
+      "community": 88,
       "norm_label": "added",
       "id": "adb_project_changelog_added_57"
     },
@@ -22852,7 +23257,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L65",
-      "community": 72,
+      "community": 88,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_65"
     },
@@ -22861,7 +23266,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L71",
-      "community": 72,
+      "community": 88,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_71"
     },
@@ -22938,24 +23343,6 @@
       "id": "adb_project_changelog_fixed_124"
     },
     {
-      "label": "Added",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L130",
-      "community": 86,
-      "norm_label": "added",
-      "id": "adb_project_changelog_added_130"
-    },
-    {
-      "label": "Changed",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L135",
-      "community": 86,
-      "norm_label": "changed",
-      "id": "adb_project_changelog_changed_135"
-    },
-    {
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
@@ -22969,7 +23356,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L148",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_148"
     },
@@ -23064,20 +23451,11 @@
       "id": "adb_project_changelog_changed_257"
     },
     {
-      "label": "Fixed",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L263",
-      "community": 77,
-      "norm_label": "fixed",
-      "id": "adb_project_changelog_fixed_263"
-    },
-    {
       "label": "Added",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L45",
-      "community": 72,
+      "community": 88,
       "norm_label": "added",
       "id": "adb_project_changelog_added_45"
     },
@@ -23086,7 +23464,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L53",
-      "community": 72,
+      "community": 88,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_53"
     },
@@ -23095,7 +23473,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L59",
-      "community": 72,
+      "community": 88,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_59"
     },
@@ -23199,15 +23577,6 @@
       "id": "adb_project_changelog_changed_161"
     },
     {
-      "label": "Added",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L169",
-      "community": 77,
-      "norm_label": "added",
-      "id": "adb_project_changelog_added_169"
-    },
-    {
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
@@ -23224,15 +23593,6 @@
       "community": 83,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_181"
-    },
-    {
-      "label": "Changed",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L194",
-      "community": 93,
-      "norm_label": "changed",
-      "id": "adb_project_changelog_changed_194"
     },
     {
       "label": "Added",
@@ -23278,15 +23638,6 @@
       "community": 77,
       "norm_label": "added",
       "id": "adb_project_changelog_added_230"
-    },
-    {
-      "label": "Changed",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L245",
-      "community": 77,
-      "norm_label": "changed",
-      "id": "adb_project_changelog_changed_245"
     },
     {
       "label": "Fixed",
@@ -23424,20 +23775,11 @@
       "id": "locales_en_us_logcat_clear"
     },
     {
-      "label": "Added",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L33",
-      "community": 72,
-      "norm_label": "added",
-      "id": "adb_project_changelog_added_33"
-    },
-    {
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L41",
-      "community": 72,
+      "community": 88,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_41"
     },
@@ -23446,7 +23788,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L47",
-      "community": 72,
+      "community": 88,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_47"
     },
@@ -23581,7 +23923,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L182",
-      "community": 88,
+      "community": 71,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_182"
     },
@@ -24130,7 +24472,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L21",
-      "community": 72,
+      "community": 88,
       "norm_label": "added",
       "id": "adb_project_changelog_added_21"
     },
@@ -24139,7 +24481,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L29",
-      "community": 72,
+      "community": 88,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_29"
     },
@@ -24148,7 +24490,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L35",
-      "community": 72,
+      "community": 88,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_35"
     },
@@ -24268,24 +24610,6 @@
       "community": 81,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_188"
-    },
-    {
-      "label": "Fixed",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L199",
-      "community": 93,
-      "norm_label": "fixed",
-      "id": "adb_project_changelog_fixed_199"
-    },
-    {
-      "label": "Added",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L206",
-      "community": 77,
-      "norm_label": "added",
-      "id": "adb_project_changelog_added_206"
     },
     {
       "label": "Changed",
@@ -25048,7 +25372,7 @@
       "file_type": "code",
       "source_file": "src-tauri/src/commands/device.rs",
       "source_location": "L213",
-      "community": 3,
+      "community": 80,
       "norm_label": "adb_pair()",
       "id": "commands_device_adb_pair"
     },
@@ -25408,7 +25732,7 @@
       "file_type": "code",
       "source_file": "src-tauri/src/commands/screenshot.rs",
       "source_location": "L9",
-      "community": 298,
+      "community": 8,
       "norm_label": "adb_screenshot()",
       "id": "commands_screenshot_adb_screenshot"
     },
@@ -26385,15 +26709,6 @@
       "id": "adb_project_changelog_fixed_89"
     },
     {
-      "label": "Added",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L96",
-      "community": 89,
-      "norm_label": "added",
-      "id": "adb_project_changelog_added_96"
-    },
-    {
       "label": "Changed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
@@ -26875,7 +27190,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L128",
-      "community": 88,
+      "community": 71,
       "norm_label": "added",
       "id": "adb_project_changelog_added_128"
     },
@@ -26893,7 +27208,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L153",
-      "community": 88,
+      "community": 71,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_153"
     },
@@ -27784,7 +28099,7 @@
       "file_type": "document",
       "source_file": "CHANGELOG.md",
       "source_location": "L133",
-      "community": 88,
+      "community": 71,
       "norm_label": "changed",
       "id": "adb_project_changelog_changed_133"
     },
@@ -28185,24 +28500,6 @@
       "id": "storage_savestorevalue"
     },
     {
-      "label": "Added",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L56",
-      "community": 86,
-      "norm_label": "added",
-      "id": "adb_project_changelog_added_56"
-    },
-    {
-      "label": "Changed",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L61",
-      "community": 86,
-      "norm_label": "changed",
-      "id": "adb_project_changelog_changed_61"
-    },
-    {
       "label": "Fixed",
       "file_type": "document",
       "source_file": "CHANGELOG.md",
@@ -28291,24 +28588,6 @@
       "community": 77,
       "norm_label": "fixed",
       "id": "adb_project_changelog_fixed_189"
-    },
-    {
-      "label": "Added",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L44",
-      "community": 86,
-      "norm_label": "added",
-      "id": "adb_project_changelog_added_44"
-    },
-    {
-      "label": "Changed",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L49",
-      "community": 86,
-      "norm_label": "changed",
-      "id": "adb_project_changelog_changed_49"
     },
     {
       "label": "Fixed",
@@ -28630,7 +28909,7 @@
       "file_type": "code",
       "source_file": "src-tauri/src/commands/mirror.rs",
       "source_location": "L205",
-      "community": 0,
+      "community": 8,
       "norm_label": "send_navigation_key()",
       "id": "mirror_send_navigation_key"
     },
@@ -28912,15 +29191,6 @@
       "community": 77,
       "norm_label": "added",
       "id": "adb_project_changelog_added_144"
-    },
-    {
-      "label": "Changed",
-      "file_type": "document",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L159",
-      "community": 77,
-      "norm_label": "changed",
-      "id": "adb_project_changelog_changed_159"
     },
     {
       "label": "Fixed",
@@ -29413,7 +29683,7 @@
       "file_type": "code",
       "source_file": "src-tauri/src/commands/screenshot.rs",
       "source_location": "L1",
-      "community": 298,
+      "community": 8,
       "norm_label": "screenshot.rs",
       "id": "users_kaizhang_documents_cozyla_adb_project_src_tauri_src_commands_screenshot_rs"
     },
@@ -46955,6 +47225,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/locales/zh-CN.json",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "locales_zh_cn_layout",
+      "target": "locales_zh_cn_layout_opengithub",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/locales/zh-CN.json",
       "source_location": "L12",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -47179,7 +47459,7 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "locales_zh_cn_settings",
-      "target": "locales_zh_cn_settings_githubrepository"
+      "target": "locales_zh_cn_settings_version"
     },
     {
       "relation": "contains",
@@ -47189,7 +47469,7 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "locales_zh_cn_settings",
-      "target": "locales_zh_cn_settings_version"
+      "target": "locales_zh_cn_settings_githubrepository"
     },
     {
       "relation": "contains",
@@ -52065,6 +52345,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/locales/en-US.json",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "locales_en_us_layout",
+      "target": "locales_en_us_layout_opengithub",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/locales/en-US.json",
       "source_location": "L12",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -52289,7 +52579,7 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "locales_en_us_settings",
-      "target": "locales_en_us_settings_githubrepository"
+      "target": "locales_en_us_settings_version"
     },
     {
       "relation": "contains",
@@ -52299,7 +52589,7 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "locales_en_us_settings",
-      "target": "locales_en_us_settings_version"
+      "target": "locales_en_us_settings_githubrepository"
     },
     {
       "relation": "contains",
@@ -59154,6 +59444,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "adb_project_changelog_changelog",
+      "target": "adb_project_changelog_1_1_4_2026_05_21",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
       "source_location": "L3",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -59364,6 +59664,26 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "adb_project_changelog_1_1_4_2026_05_21",
+      "target": "adb_project_changelog_added",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "adb_project_changelog_1_1_4_2026_05_21",
+      "target": "adb_project_changelog_changed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
       "source_location": "L5",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -59564,11 +59884,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L19",
+      "source_location": "L22",
       "weight": 1.0,
       "source": "adb_project_changelog_1_1_3_2026_05_21",
-      "target": "adb_project_changelog_added_19",
+      "target": "adb_project_changelog_added_22",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "adb_project_changelog_1_1_3_2026_05_21",
+      "target": "adb_project_changelog_changed_27",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_1_1_3_2026_05_21",
+      "target": "adb_project_changelog_added_19"
     },
     {
       "relation": "contains",
@@ -59576,9 +59916,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_1_3_2026_05_21",
-      "target": "adb_project_changelog_changed_24",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_24"
     },
     {
       "relation": "contains",
@@ -59624,11 +59964,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L30",
+      "source_location": "L33",
       "weight": 1.0,
       "source": "adb_project_changelog_1_1_2_2026_05_21",
-      "target": "adb_project_changelog_added_30",
+      "target": "adb_project_changelog_added_33",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "adb_project_changelog_1_1_2_2026_05_21",
+      "target": "adb_project_changelog_changed_38",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_1_1_2_2026_05_21",
+      "target": "adb_project_changelog_added_30"
     },
     {
       "relation": "contains",
@@ -59636,9 +59996,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L35",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_1_2_2026_05_21",
-      "target": "adb_project_changelog_changed_35",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_35"
     },
     {
       "relation": "contains",
@@ -59704,21 +60064,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L30",
+      "source_location": "L33",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_10_2026_05_15",
-      "target": "adb_project_changelog_added_30"
+      "source": "adb_project_changelog_1_0_1_2026_05_19",
+      "target": "adb_project_changelog_added_33"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L35",
+      "source_location": "L44",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_10_2026_05_15",
-      "target": "adb_project_changelog_changed_35"
+      "source": "adb_project_changelog_1_1_1_2026_05_21",
+      "target": "adb_project_changelog_added_44",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "adb_project_changelog_1_1_1_2026_05_21",
+      "target": "adb_project_changelog_changed_49",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -59726,9 +60096,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L41",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_1_1_2026_05_21",
-      "target": "adb_project_changelog_added_41",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_added_41"
     },
     {
       "relation": "contains",
@@ -59736,9 +60106,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L46",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_1_1_2026_05_21",
-      "target": "adb_project_changelog_changed_46",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_46"
     },
     {
       "relation": "contains",
@@ -59844,41 +60214,41 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L41",
+      "source_location": "L44",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "adb_project_changelog_1_0_2_2026_05_20",
-      "target": "adb_project_changelog_added_41"
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_added_44"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L41",
+      "source_location": "L49",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_9_2026_05_13",
-      "target": "adb_project_changelog_added_41"
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_changed_49"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L46",
+      "source_location": "L56",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_1_0_2_2026_05_20",
-      "target": "adb_project_changelog_changed_46"
+      "source": "adb_project_changelog_1_1_0_2026_05_20",
+      "target": "adb_project_changelog_added_56",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L46",
+      "source_location": "L61",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_9_2026_05_13",
-      "target": "adb_project_changelog_changed_46"
+      "source": "adb_project_changelog_1_1_0_2026_05_20",
+      "target": "adb_project_changelog_changed_61",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -59886,9 +60256,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L53",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_1_0_2026_05_20",
-      "target": "adb_project_changelog_added_53",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_added_53"
     },
     {
       "relation": "contains",
@@ -59896,9 +60266,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L58",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_1_0_2026_05_20",
-      "target": "adb_project_changelog_changed_58",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_58"
     },
     {
       "relation": "contains",
@@ -60024,11 +60394,51 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L65",
+      "source_location": "L56",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_added_56"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_changed_61"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L68",
       "weight": 1.0,
       "source": "adb_project_changelog_1_0_3_2026_05_20",
-      "target": "adb_project_changelog_added_65",
+      "target": "adb_project_changelog_added_68",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L73",
+      "weight": 1.0,
+      "source": "adb_project_changelog_1_0_3_2026_05_20",
+      "target": "adb_project_changelog_changed_73",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L65",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_1_0_3_2026_05_20",
+      "target": "adb_project_changelog_added_65"
     },
     {
       "relation": "contains",
@@ -60036,9 +60446,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L70",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_0_3_2026_05_20",
-      "target": "adb_project_changelog_changed_70",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_70"
     },
     {
       "relation": "contains",
@@ -60184,20 +60594,30 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L77",
+      "source_location": "L68",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_1_0_1_2026_05_19",
+      "target": "adb_project_changelog_added_68"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L80",
       "weight": 1.0,
       "source": "adb_project_changelog_1_0_2_2026_05_20",
-      "target": "adb_project_changelog_added_77",
+      "target": "adb_project_changelog_added_80",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L82",
+      "source_location": "L85",
       "weight": 1.0,
       "source": "adb_project_changelog_1_0_2_2026_05_20",
-      "target": "adb_project_changelog_changed_82",
+      "target": "adb_project_changelog_changed_85",
       "confidence_score": 1.0
     },
     {
@@ -60209,6 +60629,46 @@
       "confidence_score": 1.0,
       "source": "adb_project_changelog_1_0_2_2026_05_20",
       "target": "adb_project_changelog_fixed"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_1_0_2_2026_05_20",
+      "target": "adb_project_changelog_added_41"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_1_0_2_2026_05_20",
+      "target": "adb_project_changelog_changed_46"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L77",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_1_0_2_2026_05_20",
+      "target": "adb_project_changelog_added_77"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L82",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_1_0_2_2026_05_20",
+      "target": "adb_project_changelog_changed_82"
     },
     {
       "relation": "contains",
@@ -60354,36 +60814,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L77",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_added_77"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L82",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_changed_82"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L82",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_7_2026_05_08",
-      "target": "adb_project_changelog_changed_82"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
       "source_location": "L18",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -60404,11 +60834,41 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L93",
+      "source_location": "L96",
       "weight": 1.0,
       "source": "adb_project_changelog_1_0_1_2026_05_19",
-      "target": "adb_project_changelog_added_93",
+      "target": "adb_project_changelog_added_96",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L104",
+      "weight": 1.0,
+      "source": "adb_project_changelog_1_0_1_2026_05_19",
+      "target": "adb_project_changelog_changed_104",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L110",
+      "weight": 1.0,
+      "source": "adb_project_changelog_1_0_1_2026_05_19",
+      "target": "adb_project_changelog_fixed_110",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L93",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_1_0_1_2026_05_19",
+      "target": "adb_project_changelog_added_93"
     },
     {
       "relation": "contains",
@@ -60416,9 +60876,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L101",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_0_1_2026_05_19",
-      "target": "adb_project_changelog_changed_101",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_101"
     },
     {
       "relation": "contains",
@@ -60426,9 +60886,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L107",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_0_1_2026_05_19",
-      "target": "adb_project_changelog_fixed_107",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_fixed_107"
     },
     {
       "relation": "contains",
@@ -60519,16 +60979,6 @@
       "confidence_score": 1.0,
       "source": "adb_project_changelog_1_0_1_2026_05_19",
       "target": "adb_project_changelog_fixed_93"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L68",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_1_0_1_2026_05_19",
-      "target": "adb_project_changelog_added_68"
     },
     {
       "relation": "contains",
@@ -60644,16 +61094,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L33",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_1_0_1_2026_05_19",
-      "target": "adb_project_changelog_added_33"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
       "source_location": "L41",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -60704,31 +61144,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L93",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_6_2026_05_07",
-      "target": "adb_project_changelog_added_93"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L107",
+      "source_location": "L96",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_7_2026_05_08",
-      "target": "adb_project_changelog_fixed_107"
+      "target": "adb_project_changelog_added_96"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L107",
+      "source_location": "L117",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_5_2026_04_30",
-      "target": "adb_project_changelog_fixed_107"
+      "source": "adb_project_changelog_1_0_0_2026_05_19",
+      "target": "adb_project_changelog_added_117",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L122",
+      "weight": 1.0,
+      "source": "adb_project_changelog_1_0_0_2026_05_19",
+      "target": "adb_project_changelog_changed_122",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -60736,9 +61176,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L114",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_0_0_2026_05_19",
-      "target": "adb_project_changelog_added_114",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_added_114"
     },
     {
       "relation": "contains",
@@ -60746,9 +61186,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L119",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_1_0_0_2026_05_19",
-      "target": "adb_project_changelog_changed_119",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_119"
     },
     {
       "relation": "contains",
@@ -60974,51 +61414,21 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L114",
+      "source_location": "L130",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_10_2026_05_15",
-      "target": "adb_project_changelog_added_114"
+      "source": "adb_project_changelog_0_1_11_2026_05_15",
+      "target": "adb_project_changelog_added_130",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L114",
+      "source_location": "L135",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_6_2026_05_07",
-      "target": "adb_project_changelog_added_114"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L114",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_3_2026_04_29",
-      "target": "adb_project_changelog_added_114"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L119",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_10_2026_05_15",
-      "target": "adb_project_changelog_changed_119"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L119",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_7_2026_05_08",
-      "target": "adb_project_changelog_changed_119"
+      "source": "adb_project_changelog_0_1_11_2026_05_15",
+      "target": "adb_project_changelog_changed_135",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -61026,9 +61436,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L127",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_11_2026_05_15",
-      "target": "adb_project_changelog_added_127",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_added_127"
     },
     {
       "relation": "contains",
@@ -61036,9 +61446,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L132",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_11_2026_05_15",
-      "target": "adb_project_changelog_changed_132",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_132"
     },
     {
       "relation": "contains",
@@ -61304,31 +61714,91 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L127",
+      "source_location": "L130",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_4_2026_04_29",
-      "target": "adb_project_changelog_added_127"
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_added_130"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L132",
+      "source_location": "L135",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_4_2026_04_29",
-      "target": "adb_project_changelog_changed_132"
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_changed_135"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L132",
+      "source_location": "L135",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_1_2026_04_28",
-      "target": "adb_project_changelog_changed_132"
+      "source": "adb_project_changelog_0_1_5_2026_04_30",
+      "target": "adb_project_changelog_changed_135"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L142",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_10_2026_05_15",
+      "target": "adb_project_changelog_added_142",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L147",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_10_2026_05_15",
+      "target": "adb_project_changelog_changed_147",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_10_2026_05_15",
+      "target": "adb_project_changelog_added_30"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_10_2026_05_15",
+      "target": "adb_project_changelog_changed_35"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L114",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_10_2026_05_15",
+      "target": "adb_project_changelog_added_114"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L119",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_10_2026_05_15",
+      "target": "adb_project_changelog_changed_119"
     },
     {
       "relation": "contains",
@@ -61336,9 +61806,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L139",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_10_2026_05_15",
-      "target": "adb_project_changelog_added_139",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_added_139"
     },
     {
       "relation": "contains",
@@ -61346,9 +61816,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L144",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_10_2026_05_15",
-      "target": "adb_project_changelog_changed_144",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_144"
     },
     {
       "relation": "contains",
@@ -61594,21 +62064,51 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L139",
+      "source_location": "L154",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_3_2026_04_29",
-      "target": "adb_project_changelog_added_139"
+      "source": "adb_project_changelog_0_1_9_2026_05_13",
+      "target": "adb_project_changelog_added_154",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L144",
+      "source_location": "L159",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_9_2026_05_13",
+      "target": "adb_project_changelog_changed_159",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L163",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_9_2026_05_13",
+      "target": "adb_project_changelog_fixed_163",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L41",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_1_2026_04_28",
-      "target": "adb_project_changelog_changed_144"
+      "source": "adb_project_changelog_0_1_9_2026_05_13",
+      "target": "adb_project_changelog_added_41"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_9_2026_05_13",
+      "target": "adb_project_changelog_changed_46"
     },
     {
       "relation": "contains",
@@ -61616,9 +62116,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L151",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_9_2026_05_13",
-      "target": "adb_project_changelog_added_151",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_added_151"
     },
     {
       "relation": "contains",
@@ -61626,9 +62126,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L156",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_9_2026_05_13",
-      "target": "adb_project_changelog_changed_156",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_156"
     },
     {
       "relation": "contains",
@@ -61636,9 +62136,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L160",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_9_2026_05_13",
-      "target": "adb_project_changelog_fixed_160",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_fixed_160"
     },
     {
       "relation": "contains",
@@ -62034,21 +62534,71 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L156",
+      "source_location": "L159",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_1_2026_04_28",
-      "target": "adb_project_changelog_changed_156"
+      "source": "adb_project_changelog_0_1_0_2026_04_28",
+      "target": "adb_project_changelog_changed_159"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L160",
+      "source_location": "L163",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_7_2026_05_08",
-      "target": "adb_project_changelog_fixed_160"
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_fixed_163"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L169",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_added_169",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L174",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_changed_174",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L180",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_fixed_180",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L77",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_added_77"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L82",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_8_2026_05_08",
+      "target": "adb_project_changelog_changed_82"
     },
     {
       "relation": "contains",
@@ -62056,9 +62606,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L166",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_added_166",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_added_166"
     },
     {
       "relation": "contains",
@@ -62066,9 +62616,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L171",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_changed_171",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_171"
     },
     {
       "relation": "contains",
@@ -62076,9 +62626,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L177",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_fixed_177",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_fixed_177"
     },
     {
       "relation": "contains",
@@ -62184,16 +62734,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L163",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_fixed_163"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
       "source_location": "L141",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -62279,26 +62819,6 @@
       "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_8_2026_05_08",
       "target": "adb_project_changelog_changed_83"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L130",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_added_130"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L135",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_changed_135"
     },
     {
       "relation": "contains",
@@ -62424,51 +62944,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L56",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_added_56"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L61",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_changed_61"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
       "source_location": "L67",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_8_2026_05_08",
       "target": "adb_project_changelog_fixed_67"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L44",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_added_44"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L49",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_8_2026_05_08",
-      "target": "adb_project_changelog_changed_49"
     },
     {
       "relation": "contains",
@@ -62514,21 +62994,91 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L171",
+      "source_location": "L169",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_changed_171"
+      "source": "adb_project_changelog_0_1_5_2026_04_30",
+      "target": "adb_project_changelog_added_169"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L177",
+      "source_location": "L169",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_fixed_177"
+      "target": "adb_project_changelog_added_169"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L187",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_7_2026_05_08",
+      "target": "adb_project_changelog_added_187",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L194",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_7_2026_05_08",
+      "target": "adb_project_changelog_changed_194",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L199",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_7_2026_05_08",
+      "target": "adb_project_changelog_fixed_199",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L82",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_7_2026_05_08",
+      "target": "adb_project_changelog_changed_82"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L107",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_7_2026_05_08",
+      "target": "adb_project_changelog_fixed_107"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L119",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_7_2026_05_08",
+      "target": "adb_project_changelog_changed_119"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L160",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_7_2026_05_08",
+      "target": "adb_project_changelog_fixed_160"
     },
     {
       "relation": "contains",
@@ -62536,9 +63086,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L184",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_7_2026_05_08",
-      "target": "adb_project_changelog_added_184",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_added_184"
     },
     {
       "relation": "contains",
@@ -62546,9 +63096,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L191",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_7_2026_05_08",
-      "target": "adb_project_changelog_changed_191",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_191"
     },
     {
       "relation": "contains",
@@ -62556,9 +63106,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L196",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_7_2026_05_08",
-      "target": "adb_project_changelog_fixed_196",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_fixed_196"
     },
     {
       "relation": "contains",
@@ -62854,16 +63404,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L96",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_7_2026_05_08",
-      "target": "adb_project_changelog_added_96"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
       "source_location": "L103",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -62974,11 +63514,81 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L203",
+      "source_location": "L194",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_4_2026_04_29",
+      "target": "adb_project_changelog_changed_194"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L194",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_1_2026_04_28",
+      "target": "adb_project_changelog_changed_194"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L199",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_1_2026_04_28",
+      "target": "adb_project_changelog_fixed_199"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L206",
       "weight": 1.0,
       "source": "adb_project_changelog_0_1_6_2026_05_07",
-      "target": "adb_project_changelog_added_203",
+      "target": "adb_project_changelog_added_206",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L212",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_6_2026_05_07",
+      "target": "adb_project_changelog_changed_212",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L93",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_6_2026_05_07",
+      "target": "adb_project_changelog_added_93"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L114",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_6_2026_05_07",
+      "target": "adb_project_changelog_added_114"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L203",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_6_2026_05_07",
+      "target": "adb_project_changelog_added_203"
     },
     {
       "relation": "contains",
@@ -62986,9 +63596,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L209",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_6_2026_05_07",
-      "target": "adb_project_changelog_changed_209",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_209"
     },
     {
       "relation": "contains",
@@ -63274,6 +63884,56 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
+      "source_location": "L206",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_0_2026_04_28",
+      "target": "adb_project_changelog_added_206"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L220",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_5_2026_04_30",
+      "target": "adb_project_changelog_added_220",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L227",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_5_2026_04_30",
+      "target": "adb_project_changelog_changed_227",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L232",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_5_2026_04_30",
+      "target": "adb_project_changelog_fixed_232",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L107",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_5_2026_04_30",
+      "target": "adb_project_changelog_fixed_107"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
       "source_location": "L203",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -63286,9 +63946,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L217",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_5_2026_04_30",
-      "target": "adb_project_changelog_added_217",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_added_217"
     },
     {
       "relation": "contains",
@@ -63296,9 +63956,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L224",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_5_2026_04_30",
-      "target": "adb_project_changelog_changed_224",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_224"
     },
     {
       "relation": "contains",
@@ -63306,9 +63966,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L229",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_5_2026_04_30",
-      "target": "adb_project_changelog_fixed_229",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_fixed_229"
     },
     {
       "relation": "contains",
@@ -63454,16 +64114,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L135",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_5_2026_04_30",
-      "target": "adb_project_changelog_changed_135"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
       "source_location": "L141",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -63499,16 +64149,6 @@
       "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_5_2026_04_30",
       "target": "adb_project_changelog_fixed_193"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L169",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_5_2026_04_30",
-      "target": "adb_project_changelog_added_169"
     },
     {
       "relation": "contains",
@@ -63744,11 +64384,51 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L237",
+      "source_location": "L240",
       "weight": 1.0,
       "source": "adb_project_changelog_0_1_4_2026_04_29",
-      "target": "adb_project_changelog_added_237",
+      "target": "adb_project_changelog_added_240",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L245",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_4_2026_04_29",
+      "target": "adb_project_changelog_changed_245",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L127",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_4_2026_04_29",
+      "target": "adb_project_changelog_added_127"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L132",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_4_2026_04_29",
+      "target": "adb_project_changelog_changed_132"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L237",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_4_2026_04_29",
+      "target": "adb_project_changelog_added_237"
     },
     {
       "relation": "contains",
@@ -63756,9 +64436,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L242",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_4_2026_04_29",
-      "target": "adb_project_changelog_changed_242",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_242"
     },
     {
       "relation": "contains",
@@ -63994,16 +64674,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L194",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_4_2026_04_29",
-      "target": "adb_project_changelog_changed_194"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
       "source_location": "L182",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -64044,11 +64714,71 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L248",
+      "source_location": "L245",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_0_2026_04_28",
+      "target": "adb_project_changelog_changed_245"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L251",
       "weight": 1.0,
       "source": "adb_project_changelog_0_1_3_2026_04_29",
-      "target": "adb_project_changelog_added_248",
+      "target": "adb_project_changelog_added_251",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L258",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_3_2026_04_29",
+      "target": "adb_project_changelog_changed_258",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L263",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_3_2026_04_29",
+      "target": "adb_project_changelog_fixed_263",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L114",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_3_2026_04_29",
+      "target": "adb_project_changelog_added_114"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L139",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_3_2026_04_29",
+      "target": "adb_project_changelog_added_139"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L248",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_3_2026_04_29",
+      "target": "adb_project_changelog_added_248"
     },
     {
       "relation": "contains",
@@ -64056,9 +64786,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L255",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_3_2026_04_29",
-      "target": "adb_project_changelog_changed_255",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_255"
     },
     {
       "relation": "contains",
@@ -64066,9 +64796,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L260",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_3_2026_04_29",
-      "target": "adb_project_changelog_fixed_260",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_fixed_260"
     },
     {
       "relation": "contains",
@@ -64504,11 +65234,71 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L266",
+      "source_location": "L263",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_0_2026_04_28",
+      "target": "adb_project_changelog_fixed_263"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L269",
       "weight": 1.0,
       "source": "adb_project_changelog_0_1_1_2026_04_28",
-      "target": "adb_project_changelog_changed_266",
+      "target": "adb_project_changelog_changed_269",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L274",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_1_2026_04_28",
+      "target": "adb_project_changelog_fixed_274",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L132",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_1_2026_04_28",
+      "target": "adb_project_changelog_changed_132"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L144",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_1_2026_04_28",
+      "target": "adb_project_changelog_changed_144"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L156",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_1_2026_04_28",
+      "target": "adb_project_changelog_changed_156"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L266",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_1_2026_04_28",
+      "target": "adb_project_changelog_changed_266"
     },
     {
       "relation": "contains",
@@ -64516,9 +65306,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L271",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_1_2026_04_28",
-      "target": "adb_project_changelog_fixed_271",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_fixed_271"
     },
     {
       "relation": "contains",
@@ -64684,16 +65474,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L194",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_1_2026_04_28",
-      "target": "adb_project_changelog_changed_194"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
       "source_location": "L218",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -64719,16 +65499,6 @@
       "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_1_2026_04_28",
       "target": "adb_project_changelog_fixed_211"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L199",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_1_2026_04_28",
-      "target": "adb_project_changelog_fixed_199"
     },
     {
       "relation": "contains",
@@ -64794,11 +65564,71 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L278",
+      "source_location": "L274",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_0_2026_04_28",
+      "target": "adb_project_changelog_fixed_274"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L281",
       "weight": 1.0,
       "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_added_278",
+      "target": "adb_project_changelog_added_281",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L296",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_0_2026_04_28",
+      "target": "adb_project_changelog_changed_296",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L302",
+      "weight": 1.0,
+      "source": "adb_project_changelog_0_1_0_2026_04_28",
+      "target": "adb_project_changelog_fixed_302",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L171",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_0_2026_04_28",
+      "target": "adb_project_changelog_changed_171"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L177",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_0_2026_04_28",
+      "target": "adb_project_changelog_fixed_177"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CHANGELOG.md",
+      "source_location": "L278",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "adb_project_changelog_0_1_0_2026_04_28",
+      "target": "adb_project_changelog_added_278"
     },
     {
       "relation": "contains",
@@ -64806,9 +65636,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L293",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_changed_293",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_changed_293"
     },
     {
       "relation": "contains",
@@ -64816,9 +65646,9 @@
       "source_file": "CHANGELOG.md",
       "source_location": "L299",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_fixed_299",
-      "confidence_score": 1.0
+      "target": "adb_project_changelog_fixed_299"
     },
     {
       "relation": "contains",
@@ -64964,16 +65794,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L274",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_fixed_274"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
       "source_location": "L183",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -65034,41 +65854,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CHANGELOG.md",
-      "source_location": "L263",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_fixed_263"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L169",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_added_169"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
       "source_location": "L230",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_0_2026_04_28",
       "target": "adb_project_changelog_added_230"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L245",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_changed_245"
     },
     {
       "relation": "contains",
@@ -65119,16 +65909,6 @@
       "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_0_2026_04_28",
       "target": "adb_project_changelog_fixed_239"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L206",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_added_206"
     },
     {
       "relation": "contains",
@@ -65229,16 +66009,6 @@
       "confidence_score": 1.0,
       "source": "adb_project_changelog_0_1_0_2026_04_28",
       "target": "adb_project_changelog_added_144"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "CHANGELOG.md",
-      "source_location": "L159",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "adb_project_changelog_0_1_0_2026_04_28",
-      "target": "adb_project_changelog_changed_159"
     },
     {
       "relation": "contains",
@@ -73621,5 +74391,5 @@
       "source_file": "src-tauri/src/commands/install.rs"
     }
   ],
-  "built_at_commit": "be0a19dd374b229fd6a638b6876306897b7f4c33"
+  "built_at_commit": "b50ec2b477585746cc95ab2010d44a0098d1a5c1"
 }

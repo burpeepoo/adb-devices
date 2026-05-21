@@ -27,6 +27,8 @@ import PackageList from "./components/PackageList";
 import Settings from "./components/Settings";
 import AppUpdatePrompt from "./components/AppUpdatePrompt";
 
+const GITHUB_REPOSITORY_URL = "https://github.com/burpeepoo/adb-devices";
+
 interface ScreenMirrorState {
   running: boolean;
   device_serial: string | null;
@@ -332,6 +334,14 @@ export default function App() {
     });
   }, []);
 
+  const handleOpenGithub = useCallback(async () => {
+    try {
+      await invoke("open_external_url", { url: GITHUB_REPOSITORY_URL });
+    } catch {
+      // Keep navigation non-blocking; the command enforces the URL allowlist.
+    }
+  }, []);
+
   const handleSaveDirChange = useCallback(
     (type: keyof AppSettings, dir: string) => {
       const nextSettings = {
@@ -417,9 +427,11 @@ export default function App() {
             tools={tools}
             activeTool={activeTab}
             settingsLabel={t("layout.openSettings")}
+            githubLabel={t("layout.openGithub")}
             hasUpdate={updater.status === "available"}
             onSelectTool={setActiveTab}
             onOpenSettings={() => setShowSettings(true)}
+            onOpenGithub={handleOpenGithub}
           />
         }
         devices={

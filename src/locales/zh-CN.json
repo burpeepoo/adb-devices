@@ -18,7 +18,8 @@
     "deviceCount": "{{online}} 在线 / {{total}} 总计",
     "searchDevices": "搜索设备或备注...",
     "quickConnect": "快速连接",
-    "openSettings": "打开设置"
+    "openSettings": "打开设置",
+    "openGithub": "打开 GitHub 仓库"
   },
   "tabs": {
     "pairConnect": "配对连接",
@@ -45,7 +46,6 @@
     "select": "选择",
     "cancel": "取消",
     "save": "保存",
-    "githubRepository": "GitHub 仓库",
     "version": "ADB Manager v{{version}}"
   },
   "updates": {

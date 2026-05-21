@@ -1,0 +1,2 @@
+en-US: Moved the GitHub link to the bottom of the side toolbar and simplified update notes.
+zh-CN: 将 GitHub 入口移到左侧工具栏底部，并简化更新说明。

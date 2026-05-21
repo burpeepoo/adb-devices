@@ -18,7 +18,8 @@
     "deviceCount": "{{online}} online / {{total}} total",
     "searchDevices": "Search devices or notes...",
     "quickConnect": "Quick connect",
-    "openSettings": "Open settings"
+    "openSettings": "Open settings",
+    "openGithub": "Open GitHub repository"
   },
   "tabs": {
     "pairConnect": "Pair & Connect",
@@ -45,7 +46,6 @@
     "select": "Select",
     "cancel": "Cancel",
     "save": "Save",
-    "githubRepository": "GitHub repository",
     "version": "ADB Manager v{{version}}"
   },
   "updates": {

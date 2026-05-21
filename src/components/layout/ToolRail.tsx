@@ -1,7 +1,7 @@
-import { ActionIcon, Box, Indicator, Stack, Tooltip } from "@mantine/core";
+import { ActionIcon, Indicator, Stack, Tooltip } from "@mantine/core";
 import {
-  IconAdjustmentsHorizontal,
   IconApps,
+  IconBrandGithub,
   IconCamera,
   IconClipboard,
   IconDeviceMobileCode,
@@ -25,9 +25,11 @@ interface Props {
   tools: ToolConfig[];
   activeTool: TabKey;
   settingsLabel: string;
+  githubLabel: string;
   hasUpdate?: boolean;
   onSelectTool: (tool: TabKey) => void;
   onOpenSettings: () => void;
+  onOpenGithub: () => void;
 }
 
 export const toolIcons: Record<TabKey, ToolConfig["icon"]> = {
@@ -43,7 +45,16 @@ export const toolIcons: Record<TabKey, ToolConfig["icon"]> = {
   packages: IconDeviceMobileCode,
 };
 
-export default function ToolRail({ tools, activeTool, settingsLabel, hasUpdate = false, onSelectTool, onOpenSettings }: Props) {
+export default function ToolRail({
+  tools,
+  activeTool,
+  settingsLabel,
+  githubLabel,
+  hasUpdate = false,
+  onSelectTool,
+  onOpenSettings,
+  onOpenGithub,
+}: Props) {
   return (
     <Stack h="100%" align="center" gap={8} p={8}>
       {tools.map((tool) => {
@@ -89,18 +100,23 @@ export default function ToolRail({ tools, activeTool, settingsLabel, hasUpdate =
           </ActionIcon>
         </Indicator>
       </Tooltip>
-      <Box
-        aria-hidden="true"
-        style={{
-          width: 40,
-          height: 40,
-          display: "grid",
-          placeItems: "center",
-          color: "rgba(209, 213, 219, 0.6)",
-        }}
-      >
-        <IconAdjustmentsHorizontal size={21} />
-      </Box>
+      <Tooltip label={githubLabel} position="right" withArrow openDelay={250}>
+        <ActionIcon
+          aria-label={githubLabel}
+          variant="subtle"
+          color="gray"
+          size={40}
+          radius="md"
+          onClick={onOpenGithub}
+          styles={{
+            root: {
+              color: "var(--mantine-color-gray-4)",
+            },
+          }}
+        >
+          <IconBrandGithub size={21} />
+        </ActionIcon>
+      </Tooltip>
     </Stack>
   );
 }
