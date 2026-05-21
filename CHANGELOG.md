@@ -7,6 +7,7 @@
 - Added plain bilingual release note files as the source for in-app updater notes.
 - Added release note extraction tests for updater metadata generation.
 - Added app-language selection for updater notes in the update prompt.
+- Added a GitHub repository link in Settings.
 
 ### Changed
 

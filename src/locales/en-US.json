@@ -45,6 +45,7 @@
     "select": "Select",
     "cancel": "Cancel",
     "save": "Save",
+    "githubRepository": "GitHub repository",
     "version": "ADB Manager v{{version}}"
   },
   "updates": {

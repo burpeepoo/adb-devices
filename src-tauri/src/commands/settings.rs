@@ -5,6 +5,16 @@ use tauri::{AppHandle, Emitter, Manager};
 
 use crate::adb::{self, AdbError};
 
+const ALLOWED_EXTERNAL_URLS: &[&str] = &[
+    "https://brew.sh/",
+    "https://github.com/Genymobile/scrcpy",
+    "https://github.com/burpeepoo/adb-devices",
+];
+
+fn is_allowed_external_url(url: &str) -> bool {
+    ALLOWED_EXTERNAL_URLS.contains(&url)
+}
+
 #[tauri::command]
 pub async fn select_directory(app: AppHandle) -> Result<Option<String>, String> {
     use tauri_plugin_dialog::DialogExt;
@@ -267,8 +277,7 @@ pub fn open_file(path: String) -> Result<(), AdbError> {
 
 #[tauri::command(async)]
 pub fn open_external_url(url: String) -> Result<(), AdbError> {
-    let allowed = ["https://brew.sh/", "https://github.com/Genymobile/scrcpy"];
-    if !allowed.contains(&url.as_str()) {
+    if !is_allowed_external_url(url.as_str()) {
         return Err(AdbError::CommandFailed(
             t!("settings.url_not_allowed").into_owned(),
         ));
@@ -297,6 +306,18 @@ pub fn open_external_url(url: String) -> Result<(), AdbError> {
 
     let output = command.output()?;
     adb::ensure_success(&output, &t!("settings.open_url_failed"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_allowed_external_url;
+
+    #[test]
+    fn allows_adb_manager_github_repository() {
+        assert!(is_allowed_external_url(
+            "https://github.com/burpeepoo/adb-devices"
+        ));
+    }
 }
 
 #[tauri::command(async)]

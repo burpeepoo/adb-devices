@@ -45,6 +45,7 @@
     "select": "选择",
     "cancel": "取消",
     "save": "保存",
+    "githubRepository": "GitHub 仓库",
     "version": "ADB Manager v{{version}}"
   },
   "updates": {
