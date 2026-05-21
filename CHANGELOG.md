@@ -4,12 +4,13 @@
 
 ### Added
 
-- Added bilingual release note files as the source for in-app updater notes.
+- Added plain bilingual release note files as the source for in-app updater notes.
 - Added release note extraction tests for updater metadata generation.
+- Added app-language selection for updater notes in the update prompt.
 
 ### Changed
 
-- Updater metadata now embeds `release-notes/vX.Y.Z.md` content instead of a generic version string.
+- Updater metadata now embeds `release-notes/vX.Y.Z.txt` content instead of a generic version string.
 - The update prompt now labels the release notes section explicitly.
 
 ## [1.1.3] - 2026-05-21

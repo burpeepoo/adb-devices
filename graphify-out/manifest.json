@@ -1,7 +1,7 @@
 {
   "/Users/kaizhang/Documents/Cozyla/adb_project/package.json": {
-    "mtime": 1779360387.1988733,
-    "ast_hash": "bb3709c343fb7d2b10ff1136942e09c9",
+    "mtime": 1779360744.622948,
+    "ast_hash": "e9f32dda7c60fcacb870b0c86c5c1548",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/tsconfig.json": {
@@ -15,8 +15,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/tests/releaseNotes.test.mjs": {
-    "mtime": 1779360318.7280927,
-    "ast_hash": "5810a09a60966993729a804ad8003f84",
+    "mtime": 1779360735.129631,
+    "ast_hash": "6e4e847d00a2f76401d9e3b48b498f2a",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/scripts/generate-updater-json.mjs": {
@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/scripts/lib/release-notes.mjs": {
-    "mtime": 1779360337.8039217,
-    "ast_hash": "bbf60bdd92039c3e6aa7ef211dc359c1",
+    "mtime": 1779360724.6570172,
+    "ast_hash": "bbefa7a98828b102a1eb10b460cf7040",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/tauri.conf.json": {
@@ -209,19 +209,24 @@
     "ast_hash": "0352474ba2918efe13895edbc3780d94",
     "semantic_hash": ""
   },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/updateNotes.ts": {
+    "mtime": 1779360690.3027716,
+    "ast_hash": "652b5e4f0b3bc6363bb70f74e5696d4f",
+    "semantic_hash": ""
+  },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/types/index.ts": {
     "mtime": 1779358451.2570467,
     "ast_hash": "ca952f0a2120268e6e880b12e48e1a2b",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/locales/zh-CN.json": {
-    "mtime": 1779360360.6860852,
-    "ast_hash": "371ba3ec29b54d490727d53087f3d77e",
+    "mtime": 1779360753.5554104,
+    "ast_hash": "b77ee6b548da5091191943a245d57627",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/locales/en-US.json": {
-    "mtime": 1779360356.7916594,
-    "ast_hash": "e288a6e50b9291eadcab4b6f772e0bf5",
+    "mtime": 1779360749.967111,
+    "ast_hash": "55216473599e879d7b0f48e91666e8b4",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/utils/packageSearch.ts": {
@@ -305,8 +310,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/AppUpdatePrompt.tsx": {
-    "mtime": 1779360353.2371275,
-    "ast_hash": "ce1820149d40e21327c9f19225b705e1",
+    "mtime": 1779360712.0595617,
+    "ast_hash": "4b2dc67e21ae3e5f5312deebef29b3e4",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/AppShellLayout.tsx": {
@@ -370,13 +375,13 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/CHANGELOG.md": {
-    "mtime": 1779360418.6381876,
-    "ast_hash": "1f723482299b0ae89fd042b0e30d0bc1",
+    "mtime": 1779360766.5959685,
+    "ast_hash": "5f1bc4c275945a4569eda3be3e69764e",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/README.md": {
-    "mtime": 1779360375.3932984,
-    "ast_hash": "4ef688d16db2eb8b02477271319824e0",
+    "mtime": 1779360760.7488244,
+    "ast_hash": "7b8eff7f822093c62bbf072906d1f802",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/docs/superpowers/plans/2026-05-20-adb-manager-image-cast.md": {
@@ -404,9 +409,9 @@
     "ast_hash": "fdfae3a1233f2bf9dacdbc3912790f23",
     "semantic_hash": ""
   },
-  "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v1.1.3.md": {
-    "mtime": 1779360369.140607,
-    "ast_hash": "1b8d82d7a8a7570ba1fa881f69254c2d",
+  "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v1.1.3.txt": {
+    "mtime": 1779360740.1426976,
+    "ast_hash": "77eca9eca23917e80e6f9c36abdde0be",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/locales/en.yml": {

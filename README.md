@@ -164,22 +164,17 @@ After Windows release artifacts and `.sig` files are available, generate updater
 npm run generate:updater-json -- 1.0.0
 ```
 
-The updater prompt uses the release notes embedded in `latest.json`. Add bilingual notes before generating the metadata:
+The updater prompt uses the release notes embedded in `latest.json`. Add simple bilingual notes before generating the metadata:
 
 ```text
-release-notes/vX.Y.Z.md
+release-notes/vX.Y.Z.txt
 ```
 
-Use the same file as the GitHub Release notes and include both sections:
+Use short plain text. Newer app versions display only the current UI language; older versions still show both lines without Markdown:
 
-```markdown
-## English
-
-- ...
-
-## 中文
-
-- ...
+```text
+en-US: Added update checks.
+zh-CN: 新增更新检查。
 ```
 
 Upload these updater assets to the same GitHub Release:
@@ -214,4 +209,4 @@ Keep the terminal open, then use **Settings > Check for updates** in the opened 
 
 ## Release Notes
 
-Notable changes are tracked in `CHANGELOG.md`. User-facing release notes live in `release-notes/vX.Y.Z.md` so GitHub Releases and in-app updater prompts share the same bilingual content.
+Notable changes are tracked in `CHANGELOG.md`. User-facing updater notes live in `release-notes/vX.Y.Z.txt` as short plain text with `en-US:` and `zh-CN:` lines.

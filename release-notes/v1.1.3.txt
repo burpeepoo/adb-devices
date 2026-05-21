@@ -1,0 +1,2 @@
+en-US: Added a small update dot and automatic update checks.
+zh-CN: 新增更新提示红点和自动检查更新开关。

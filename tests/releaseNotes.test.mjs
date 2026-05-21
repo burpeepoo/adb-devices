@@ -14,19 +14,18 @@ function withTempProject(run) {
   }
 }
 
-test("reads bilingual release notes file for updater notes", () => {
+test("reads plain bilingual release notes file for updater notes", () => {
   withTempProject((root) => {
     fs.mkdirSync(path.join(root, "release-notes"));
     fs.writeFileSync(
-      path.join(root, "release-notes", "v1.2.3.md"),
-      "## English\n\n- Added update dots.\n\n## 中文\n\n- 增加更新红点。\n"
+      path.join(root, "release-notes", "v1.2.3.txt"),
+      "en-US: New update dot and automatic checks.\nzh-CN: 新增更新红点和自动检查。\n"
     );
 
     const result = readReleaseNotes({ root, version: "1.2.3" });
 
-    assert.equal(result.source, "release-notes/v1.2.3.md");
-    assert.match(result.notes, /## English/);
-    assert.match(result.notes, /## 中文/);
+    assert.equal(result.source, "release-notes/v1.2.3.txt");
+    assert.equal(result.notes, "en-US: New update dot and automatic checks.\nzh-CN: 新增更新红点和自动检查。");
   });
 });
 
@@ -40,8 +39,8 @@ test("falls back to the matching changelog section", () => {
     const result = readReleaseNotes({ root, version: "1.2.3" });
 
     assert.equal(result.source, "CHANGELOG.md");
-    assert.match(result.notes, /### Added/);
     assert.match(result.notes, /Added updater notes/);
+    assert.doesNotMatch(result.notes, /### Added/);
     assert.doesNotMatch(result.notes, /Old entry/);
   });
 });

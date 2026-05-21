@@ -27,11 +27,22 @@ function extractChangelogSection(changelog, version) {
   return lines.slice(start + 1, next === -1 ? lines.length : next).join("\n").trim() || null;
 }
 
+function cleanMarkdown(text) {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^#+\s+/, "").replace(/^\s*[-*]\s+/, "").trimEnd())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export function readReleaseNotes({ root = process.cwd(), version, explicitPath }) {
   const normalized = normalizeVersion(version);
   const candidates = [
     explicitPath,
     process.env.UPDATER_RELEASE_NOTES_FILE,
+    path.join(root, "release-notes", `v${normalized}.txt`),
+    path.join(root, "release-notes", `${normalized}.txt`),
     path.join(root, "release-notes", `v${normalized}.md`),
     path.join(root, "release-notes", `${normalized}.md`),
   ].filter(Boolean);
@@ -41,7 +52,7 @@ export function readReleaseNotes({ root = process.cwd(), version, explicitPath }
     const notes = readIfExists(filePath);
     if (notes) {
       return {
-        notes,
+        notes: filePath.endsWith(".md") ? cleanMarkdown(notes) : notes,
         source: relative(root, filePath),
       };
     }
@@ -53,7 +64,7 @@ export function readReleaseNotes({ root = process.cwd(), version, explicitPath }
     const notes = extractChangelogSection(changelog, normalized);
     if (notes) {
       return {
-        notes,
+        notes: cleanMarkdown(notes),
         source: "CHANGELOG.md",
       };
     }

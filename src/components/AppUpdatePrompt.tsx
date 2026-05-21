@@ -3,6 +3,7 @@ import { IconDownload, IconRocket } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { AppUpdaterControls } from "../hooks/useAppUpdater";
+import { selectUpdateNoteBody } from "../updateNotes";
 
 interface Props {
   updater: AppUpdaterControls;
@@ -14,11 +15,15 @@ function formatBytes(bytes: number): string {
 }
 
 export default function AppUpdatePrompt({ updater }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const progressValue = useMemo(() => {
     if (!updater.progress.total) return 0;
     return Math.min(100, Math.round((updater.progress.downloaded / updater.progress.total) * 100));
   }, [updater.progress.downloaded, updater.progress.total]);
+  const updateNoteBody = useMemo(
+    () => selectUpdateNoteBody(updater.updateInfo?.body, i18n.language),
+    [i18n.language, updater.updateInfo?.body]
+  );
 
   const isDownloading = updater.status === "downloading";
   const isReady = updater.status === "ready";
@@ -51,14 +56,14 @@ export default function AppUpdatePrompt({ updater }: Props) {
           </Stack>
         </Group>
 
-        {updater.updateInfo?.body && (
+        {updateNoteBody && (
           <Stack gap={6}>
             <Text size="sm" fw={600}>
               {t("updates.releaseNotes")}
             </Text>
             <ScrollArea.Autosize mah={180} type="auto">
               <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
-                {updater.updateInfo.body}
+                {updateNoteBody}
               </Text>
             </ScrollArea.Autosize>
           </Stack>
