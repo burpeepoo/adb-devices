@@ -57,6 +57,7 @@
     "view": "View",
     "available": "Version {{version}} is available",
     "currentVersion": "Current version {{version}}",
+    "releaseNotes": "Release notes / 更新说明",
     "noUpdate": "You are on the latest version",
     "later": "Later",
     "downloadAndInstall": "Download and install",

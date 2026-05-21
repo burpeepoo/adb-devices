@@ -57,6 +57,7 @@
     "view": "查看",
     "available": "新版本 {{version}} 已发布",
     "currentVersion": "当前版本 {{version}}",
+    "releaseNotes": "Release notes / 更新说明",
     "noUpdate": "当前已经是最新版本",
     "later": "稍后",
     "downloadAndInstall": "下载并安装",

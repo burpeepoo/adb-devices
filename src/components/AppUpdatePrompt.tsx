@@ -52,11 +52,16 @@ export default function AppUpdatePrompt({ updater }: Props) {
         </Group>
 
         {updater.updateInfo?.body && (
-          <ScrollArea.Autosize mah={160} type="auto">
-            <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
-              {updater.updateInfo.body}
+          <Stack gap={6}>
+            <Text size="sm" fw={600}>
+              {t("updates.releaseNotes")}
             </Text>
-          </ScrollArea.Autosize>
+            <ScrollArea.Autosize mah={180} type="auto">
+              <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
+                {updater.updateInfo.body}
+              </Text>
+            </ScrollArea.Autosize>
+          </Stack>
         )}
 
         {isDownloading && (

@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
+import { readReleaseNotes } from "./lib/release-notes.mjs";
 
 const REPO = process.env.GITHUB_REPOSITORY || "burpeepoo/adb-devices";
 const ROOT = process.cwd();
 const VERSION = (process.argv[2] || "").replace(/^v/, "");
+const RELEASE_NOTES_FILE = process.argv[3];
 const OUTPUT_DIR = path.join(ROOT, "src-tauri/target/release/bundle/updater");
 
 if (!/^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$/.test(VERSION)) {
@@ -87,6 +89,7 @@ const assets = {
 
 assets["darwin-aarch64"].source = macSource("aarch64-apple-darwin", assets["darwin-aarch64"].assetName);
 assets["darwin-x86_64"].source = macSource("x86_64-apple-darwin", assets["darwin-x86_64"].assetName);
+const releaseNotes = readReleaseNotes({ root: ROOT, version: VERSION, explicitPath: RELEASE_NOTES_FILE });
 
 const platforms = Object.fromEntries(
   Object.entries(assets).map(([platform, asset]) => {
@@ -109,7 +112,7 @@ const platforms = Object.fromEntries(
 
 const latest = {
   version: VERSION,
-  notes: `ADB Manager v${VERSION}`,
+  notes: releaseNotes.notes,
   pub_date: new Date().toISOString(),
   platforms,
 };
@@ -118,6 +121,7 @@ const outputPath = path.join(OUTPUT_DIR, "latest.json");
 fs.writeFileSync(outputPath, `${JSON.stringify(latest, null, 2)}\n`);
 
 console.log(`Wrote ${outputPath}`);
+console.log(`Release notes: ${releaseNotes.source}`);
 Object.values(assets).forEach((asset) => {
   console.log(`Prepared ${path.join(OUTPUT_DIR, asset.assetName)}`);
   console.log(`Prepared ${path.join(OUTPUT_DIR, `${asset.assetName}.sig`)}`);
