@@ -263,33 +263,36 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
           <div className="mb-2 text-xs font-medium text-gray-500">{t('screenMirror.navControl')}</div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleNavigationKey("back")}
-                disabled={!deviceSerial || Boolean(navigationLoading)}
-                className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {navigationLoading === "back" ? t('screenMirror.sending') : t('screenMirror.back')}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleNavigationKey("home")}
-                disabled={!deviceSerial || Boolean(navigationLoading)}
-                className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {navigationLoading === "home" ? t('screenMirror.sending') : t('screenMirror.home')}
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
-                <div className="font-medium text-blue-800">{t('screenMirror.scrcpyRightClick')}</div>
-                <div className="mt-0.5 text-blue-600">{t('screenMirror.equalsBack')}</div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleNavigationKey("back")}
+              disabled={!deviceSerial || Boolean(navigationLoading)}
+              className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {navigationLoading === "back" ? t('screenMirror.sending') : t('screenMirror.back')}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleNavigationKey("home")}
+              disabled={!deviceSerial || Boolean(navigationLoading)}
+              className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {navigationLoading === "home" ? t('screenMirror.sending') : t('screenMirror.home')}
+            </button>
+          </div>
+          <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs">
+            <div className="font-medium text-blue-800">{t('screenMirror.mouseShortcutTitle')}</div>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-md bg-white px-3 py-2">
+                <span className="font-medium text-blue-800">{t('screenMirror.scrcpyRightClick')}</span>
+                <span className="mx-1 text-blue-400">=</span>
+                <span className="text-blue-700">{t('screenMirror.back')}</span>
               </div>
-              <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
-                <div className="font-medium text-blue-800">{t('screenMirror.scrcpyMiddleClick')}</div>
-                <div className="mt-0.5 text-blue-600">{t('screenMirror.equalsHome')}</div>
+              <div className="rounded-md bg-white px-3 py-2">
+                <span className="font-medium text-blue-800">{t('screenMirror.scrcpyMiddleClick')}</span>
+                <span className="mx-1 text-blue-400">=</span>
+                <span className="text-blue-700">{t('screenMirror.home')}</span>
               </div>
             </div>
           </div>

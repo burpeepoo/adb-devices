@@ -2,13 +2,16 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { LogcatEntry } from "../types";
 import { useTranslation } from "react-i18next";
+import { Button as MantineButton, Checkbox, Menu } from "@mantine/core";
+import { IconChevronDown } from "@tabler/icons-react";
 
 interface Props {
   deviceSerial: string | null;
 }
 
-const LEVELS = ["ALL", "V", "D", "I", "W", "E", "F"] as const;
+const LEVELS = ["V", "D", "I", "W", "E", "F"] as const;
 const AUTO_REFRESH_MS = 60000;
+type LogcatLevel = (typeof LEVELS)[number];
 
 export default function Logcat({ deviceSerial }: Props) {
   const { t } = useTranslation();
@@ -17,7 +20,7 @@ export default function Logcat({ deviceSerial }: Props) {
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(null);
-  const [level, setLevel] = useState<(typeof LEVELS)[number]>("ALL");
+  const [selectedLevels, setSelectedLevels] = useState<LogcatLevel[]>([...LEVELS]);
   const [tagFilter, setTagFilter] = useState("");
   const [pidFilter, setPidFilter] = useState("");
   const [query, setQuery] = useState("");
@@ -62,9 +65,11 @@ export default function Logcat({ deviceSerial }: Props) {
     const normalizedTag = tagFilter.trim().toLowerCase();
     const normalizedPid = pidFilter.trim();
     const normalizedQuery = query.trim().toLowerCase();
+    const selectedLevelSet = new Set(selectedLevels);
+    const allLevelsSelected = selectedLevelSet.size === LEVELS.length;
 
     return entries.filter((entry) => {
-      if (level !== "ALL" && entry.level !== level) return false;
+      if (!allLevelsSelected && !selectedLevelSet.has(entry.level as LogcatLevel)) return false;
       if (normalizedTag && !entry.tag.toLowerCase().includes(normalizedTag)) return false;
       if (normalizedPid && !entry.pid.includes(normalizedPid)) return false;
       if (!normalizedQuery) return true;
@@ -74,7 +79,23 @@ export default function Logcat({ deviceSerial }: Props) {
         .toLowerCase()
         .includes(normalizedQuery);
     });
-  }, [entries, level, tagFilter, pidFilter, query]);
+  }, [entries, selectedLevels, tagFilter, pidFilter, query]);
+
+  const toggleLevel = (nextLevel: LogcatLevel) => {
+    setSelectedLevels((current) => {
+      if (current.includes(nextLevel)) {
+        return current.filter((item) => item !== nextLevel);
+      }
+      return [...current, nextLevel];
+    });
+  };
+
+  const allLevelsSelected = selectedLevels.length === LEVELS.length;
+  const selectedLevelSummary = allLevelsSelected
+    ? t('logcat.all')
+    : selectedLevels.length
+      ? selectedLevels.join(", ")
+      : t('logcat.none');
 
   const exportText = useMemo(
     () =>
@@ -162,20 +183,46 @@ export default function Logcat({ deviceSerial }: Props) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
-          <label className="space-y-1">
+          <div className="space-y-1">
             <span className="text-xs text-gray-500">{t('logcat.level')}</span>
-            <select
-              value={level}
-              onChange={(event) => setLevel(event.target.value as (typeof LEVELS)[number])}
-              className="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none"
-            >
-              {LEVELS.map((item) => (
-                <option key={item} value={item}>
-                  {item === "ALL" ? t('logcat.all') : item}
-                </option>
-              ))}
-            </select>
-          </label>
+            <Menu closeOnItemClick={false} position="bottom-start" width={220} shadow="md" withinPortal>
+              <Menu.Target>
+                <MantineButton
+                  variant="default"
+                  fullWidth
+                  h={40}
+                  rightSection={<IconChevronDown size={14} />}
+                  styles={{
+                    inner: { justifyContent: "space-between" },
+                    label: { minWidth: 0 },
+                  }}
+                >
+                  <span className="truncate">
+                    {t('logcat.level')}: {selectedLevelSummary}
+                  </span>
+                </MantineButton>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>{t('logcat.level')}</Menu.Label>
+                <div className="space-y-2 px-3 py-2">
+                  <Checkbox
+                    checked={allLevelsSelected}
+                    indeterminate={selectedLevels.length > 0 && !allLevelsSelected}
+                    label={t('logcat.allLevels')}
+                    onChange={() => setSelectedLevels([...LEVELS])}
+                  />
+                  {LEVELS.map((item) => (
+                    <Checkbox
+                      key={item}
+                      checked={selectedLevels.includes(item)}
+                      label={item}
+                      onChange={() => toggleLevel(item)}
+                    />
+                  ))}
+                </div>
+              </Menu.Dropdown>
+            </Menu>
+          </div>
           <label className="space-y-1">
             <span className="text-xs text-gray-500">Tag</span>
             <input

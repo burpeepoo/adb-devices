@@ -802,7 +802,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedId, setSelectedId] = useState(CATALOG[0].id);
   const [values, setValues] = useState<Record<string, string>>(() => valueMapForItem(CATALOG[0]));
-  const [customCommand, setCustomCommand] = useState("shell getprop ro.product.model");
+  const [customCommand, setCustomCommand] = useState("");
   const [templateName, setTemplateName] = useState("");
   const [savedTemplates, setSavedTemplates] = useState<SavedTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
@@ -1289,7 +1289,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
                 setHighRiskConfirmed(false);
               }}
               rows={4}
-              placeholder="shell setprop example.feature.flag enabled"
+              placeholder={t("workbench.customPlaceholder")}
               className="mt-4 w-full resize-y rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
             />
           </div>

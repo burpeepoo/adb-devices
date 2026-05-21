@@ -10,10 +10,18 @@ import ResultAlert from "./common/ResultAlert";
 interface Props {
   deviceSerial: string | null;
   saveDir: string;
+  shortcutResult?: {
+    id: number;
+    ok: boolean;
+    msg: string;
+    recording: boolean;
+    path?: string | null;
+  } | null;
   onSaveDirChange: (dir: string) => void;
+  onRecordingStateChange: (recording: boolean) => void;
 }
 
-export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }: Props) {
+export default function ScreenRecord({ deviceSerial, saveDir, shortcutResult, onSaveDirChange, onRecordingStateChange }: Props) {
   const { t } = useTranslation();
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -48,12 +56,13 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
         deviceSerial: deviceSerial || null,
       });
       setRecording(true);
+      onRecordingStateChange(true);
       setElapsed(0);
       setResult(null);
     } catch (e) {
       setResult({ ok: false, msg: String(e) });
     }
-  }, [deviceSerial, t]);
+  }, [deviceSerial, onRecordingStateChange, t]);
 
   const handleStop = useCallback(async () => {
     if (!saveDir) {
@@ -72,9 +81,26 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
       setResult({ ok: false, msg: String(e) });
     } finally {
       setRecording(false);
+      onRecordingStateChange(false);
       setStopping(false);
     }
-  }, [saveDir, deviceSerial, t]);
+  }, [saveDir, deviceSerial, onRecordingStateChange, t]);
+
+  useEffect(() => {
+    if (!shortcutResult) {
+      return;
+    }
+
+    setResult({ ok: shortcutResult.ok, msg: shortcutResult.msg });
+    setRecording(shortcutResult.recording);
+    onRecordingStateChange(shortcutResult.recording);
+    if (shortcutResult.recording) {
+      setElapsed(0);
+      setLastPath(null);
+    } else if (shortcutResult.path) {
+      setLastPath(shortcutResult.path);
+    }
+  }, [onRecordingStateChange, shortcutResult]);
 
   const handleSelectSaveDir = useCallback(async () => {
     try {
@@ -133,6 +159,23 @@ export default function ScreenRecord({ deviceSerial, saveDir, onSaveDirChange }:
               {t("screenRecord.stopRecord")}
             </Button>
           )}
+
+          <Paper withBorder radius="md" p="sm" bg="red.0">
+            <Text size="xs" fw={700} c="red.8">
+              {t("screenRecord.shortcutTitle")}
+            </Text>
+            <Text size="xs" c="red.8" mt={4}>
+              {t("screenRecord.shortcutHint")}
+            </Text>
+            <Group gap="xs" mt="xs">
+              <Text size="xs" px={8} py={4} bg="white" style={{ borderRadius: "var(--mantine-radius-sm)" }}>
+                {t("screenRecord.shortcutMac")}
+              </Text>
+              <Text size="xs" px={8} py={4} bg="white" style={{ borderRadius: "var(--mantine-radius-sm)" }}>
+                {t("screenRecord.shortcutWindows")}
+              </Text>
+            </Group>
+          </Paper>
 
           <ResultAlert result={result} />
 

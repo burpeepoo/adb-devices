@@ -367,6 +367,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const connectedDevices = devices.filter((device) => device.state === "device");
   const connectableDevices = mdnsDevices.filter((device) => device.connectable);
   const connectedDeviceKeys = new Set(connectedDevices.flatMap(deviceConnectionKeys));
+  const mdnsDeviceKeys = new Set(
+    mdnsDevices.map(mdnsDeviceKey).filter((key): key is string => Boolean(key))
+  );
+  const connectedLanDevices = connectedDevices
+    .filter(isLanConnectedDevice)
+    .filter((device) => !deviceConnectionKeys(device).some((key) => mdnsDeviceKeys.has(key)));
   const connectableDeviceKeys = new Set(connectableDevices.map(mdnsDeviceKey).filter(Boolean));
   const pairingDevices = mdnsDevices.filter((device) => {
     if (device.connectable) return false;
@@ -403,6 +409,13 @@ export default function PairConnect({ devices, onConnected }: Props) {
         </Group>
 
         <div className="space-y-3">
+          {connectedLanDevices.map((device) => (
+            <ConnectedAdbDeviceRow
+              key={device.serial}
+              device={device}
+            />
+          ))}
+
           {connectableDevices.map((device) => (
             <MdnsRow
               key={`${device.service_name}-${device.address}`}
@@ -437,7 +450,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
             />
           ))}
 
-          {mdnsDevices.length === 0 && (
+          {mdnsDevices.length === 0 && connectedLanDevices.length === 0 && (
             <ManualConnectHint
               lastConnect={lastConnect}
               localIps={localIps}
@@ -686,6 +699,37 @@ function MdnsRow({
   );
 }
 
+function ConnectedAdbDeviceRow({ device }: { device: DeviceInfo }) {
+  const { t } = useTranslation();
+  const title = device.device_sn || device.model || device.serial;
+  const subtitle = [device.serial, device.model && device.model !== title ? device.model : "", device.product]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <Paper withBorder radius="md" p="sm">
+      <Group justify="space-between" gap="md" wrap="nowrap">
+        <div style={{ minWidth: 0 }}>
+          <Group gap={6} wrap="nowrap">
+            <Text size="sm" fw={600} truncate>
+              {title}
+            </Text>
+            <Badge color="blue" size="sm" variant="light">
+              {t('pairConnect.connected')}
+            </Badge>
+            <Badge color="gray" size="sm" variant="light">
+              {t('pairConnect.adbConnected')}
+            </Badge>
+          </Group>
+          <Text size="xs" c="dimmed" mt={4} truncate>
+            {subtitle}
+          </Text>
+        </div>
+      </Group>
+    </Paper>
+  );
+}
+
 function isMdnsDeviceConnected(device: MdnsDevice, connectedDevices: DeviceInfo[]) {
   const key = mdnsDeviceKey(device);
   return connectedDevices.some((connectedDevice) => {
@@ -698,6 +742,10 @@ function isMdnsDeviceConnected(device: MdnsDevice, connectedDevices: DeviceInfo[
       serial.includes(device.address)
     );
   });
+}
+
+function isLanConnectedDevice(device: DeviceInfo) {
+  return device.connection_type === "wireless" || /^\d{1,3}(?:\.\d{1,3}){3}:\d{1,5}$/.test(device.serial);
 }
 
 function mdnsDeviceKey(device: MdnsDevice) {

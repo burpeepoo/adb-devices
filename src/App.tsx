@@ -36,6 +36,14 @@ interface ScreenshotShortcutResult {
   path?: string | null;
 }
 
+interface RecordShortcutResult {
+  id: number;
+  ok: boolean;
+  msg: string;
+  recording: boolean;
+  path?: string | null;
+}
+
 export default function App() {
   const { t } = useTranslation();
   const { devices, loading, error, selectedDevice, setSelectedDevice, refresh } = useDevices();
@@ -62,6 +70,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [mirroringDeviceSerial, setMirroringDeviceSerial] = useState<string | null>(null);
   const [screenshotShortcutResult, setScreenshotShortcutResult] = useState<ScreenshotShortcutResult | null>(null);
+  const [recordShortcutResult, setRecordShortcutResult] = useState<RecordShortcutResult | null>(null);
   const [settings, setSettings] = useState<AppSettings>({
     screenshotDir: "",
     recordingDir: "",
@@ -71,6 +80,8 @@ export default function App() {
   const selectedDeviceRef = useRef<string | null>(selectedDevice);
   const settingsRef = useRef<AppSettings>(settings);
   const screenshotShortcutRunningRef = useRef(false);
+  const recordShortcutRunningRef = useRef(false);
+  const recordingActiveRef = useRef(false);
 
   useEffect(() => {
     selectedDeviceRef.current = selectedDevice;
@@ -188,6 +199,113 @@ export default function App() {
     };
   }, [t]);
 
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let cancelled = false;
+
+    listen("global-record-shortcut", async () => {
+      if (recordShortcutRunningRef.current) {
+        return;
+      }
+
+      const saveDir = settingsRef.current.recordingDir;
+      const deviceSerial = selectedDeviceRef.current;
+
+      if (!deviceSerial) {
+        setRecordShortcutResult({
+          id: Date.now(),
+          ok: false,
+          msg: t('screenRecord.selectDevice'),
+          recording: recordingActiveRef.current,
+        });
+        return;
+      }
+
+      if (recordingActiveRef.current && !saveDir) {
+        setRecordShortcutResult({
+          id: Date.now(),
+          ok: false,
+          msg: t('screenRecord.noSaveDir'),
+          recording: true,
+        });
+        return;
+      }
+
+      if (!recordingActiveRef.current && !saveDir) {
+        setRecordShortcutResult({
+          id: Date.now(),
+          ok: false,
+          msg: t('screenRecord.noSaveDir'),
+          recording: false,
+        });
+        return;
+      }
+
+      recordShortcutRunningRef.current = true;
+      try {
+        if (recordingActiveRef.current) {
+          const path = await invoke<string>("adb_stop_recording", {
+            saveDir,
+            deviceSerial,
+          });
+          recordingActiveRef.current = false;
+          setRecordShortcutResult({
+            id: Date.now(),
+            ok: true,
+            msg: t('screenRecord.saved', { path }),
+            recording: false,
+            path,
+          });
+        } else {
+          const msg = await invoke<string>("adb_start_recording", {
+            deviceSerial,
+          });
+          recordingActiveRef.current = true;
+          setRecordShortcutResult({
+            id: Date.now(),
+            ok: true,
+            msg,
+            recording: true,
+          });
+        }
+      } catch (e) {
+        if (recordingActiveRef.current) {
+          recordingActiveRef.current = false;
+        }
+        setRecordShortcutResult({
+          id: Date.now(),
+          ok: false,
+          msg: String(e),
+          recording: recordingActiveRef.current,
+        });
+      } finally {
+        recordShortcutRunningRef.current = false;
+      }
+    })
+      .then((cleanup) => {
+        if (cancelled) {
+          cleanup();
+        } else {
+          unlisten = cleanup;
+        }
+      })
+      .catch((e) => {
+        setRecordShortcutResult({
+          id: Date.now(),
+          ok: false,
+          msg: String(e),
+          recording: recordingActiveRef.current,
+        });
+      });
+
+    return () => {
+      cancelled = true;
+      if (unlisten) {
+        unlisten();
+      }
+    };
+  }, [t]);
+
   const handleAdbInstalled = useCallback(() => {
     setAdbAvailable(true);
     refresh();
@@ -213,6 +331,10 @@ export default function App() {
     },
     [handleSettingsChange, settings]
   );
+
+  const handleRecordingStateChange = useCallback((recording: boolean) => {
+    recordingActiveRef.current = recording;
+  }, []);
 
   const selectedDeviceLabel = selectedDevice || t("layout.defaultDevice");
 
@@ -243,7 +365,9 @@ export default function App() {
         <ScreenRecord
           deviceSerial={selectedDevice}
           saveDir={settings.recordingDir}
+          shortcutResult={recordShortcutResult}
           onSaveDirChange={(dir) => handleSaveDirChange("recordingDir", dir)}
+          onRecordingStateChange={handleRecordingStateChange}
         />
       );
     }

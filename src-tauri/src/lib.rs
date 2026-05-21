@@ -9,9 +9,14 @@ use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut,
 rust_i18n::i18n!("locales", fallback = "en");
 
 const GLOBAL_SCREENSHOT_SHORTCUT_EVENT: &str = "global-screenshot-shortcut";
+const GLOBAL_RECORD_SHORTCUT_EVENT: &str = "global-record-shortcut";
 
 fn screenshot_shortcut() -> Shortcut {
     Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::Digit0)
+}
+
+fn record_shortcut() -> Shortcut {
+    Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::Minus)
 }
 
 pub fn run() {
@@ -30,6 +35,18 @@ pub fn run() {
                     })
             {
                 eprintln!("failed to register global screenshot shortcut: {error}");
+            }
+
+            let shortcut = record_shortcut();
+            if let Err(error) =
+                app.global_shortcut()
+                    .on_shortcut(shortcut, |app, _shortcut, event| {
+                        if event.state == ShortcutState::Pressed {
+                            let _ = app.emit(GLOBAL_RECORD_SHORTCUT_EVENT, ());
+                        }
+                    })
+            {
+                eprintln!("failed to register global recording shortcut: {error}");
             }
             Ok(())
         })

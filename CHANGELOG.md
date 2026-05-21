@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.1] - 2026-05-21
+
+### Added
+
+- Added a global screen recording shortcut, Control + Shift + -, to start or stop recording while ADB Manager is running.
+- Added a connected ADB device row for wireless LAN devices that are already connected but not present in the current mDNS results.
+
+### Changed
+
+- Changed Logcat level filtering from a single level selector to a multi-select level menu.
+- Updated Remote Control mouse shortcut guidance and moved the Workbench custom command example into a localized placeholder.
+
 ## [1.1.0] - 2026-05-20
 
 ### Added
