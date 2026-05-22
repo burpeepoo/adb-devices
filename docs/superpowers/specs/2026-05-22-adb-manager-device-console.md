@@ -60,6 +60,7 @@ Include:
 - Show selected-device identity and lightweight summary fields.
 - Add shortcut actions that switch to existing tool tabs.
 - Update the left tool rail so the active tab expands to show icon plus label while inactive tabs stay icon-only.
+- Standardize local file and folder path handling across the app.
 - Keep Settings and GitHub rail actions icon-only.
 
 Do not include in Phase 1:
@@ -139,6 +140,20 @@ In Phase 1, shortcuts switch to the existing tool tabs:
 Shortcuts should preserve the current selected device context. They should not launch actions directly in Phase 1.
 
 This keeps the first implementation low risk and lets the team test whether the console improves flow before deciding which actions deserve inline panels.
+
+## Local Path Handling
+
+Local file and folder interactions should preserve complete paths across the app.
+
+Rule:
+
+- If a user pastes a copied local file or folder, the target input should receive the full local path, not only the file or folder name.
+- If the app copies a selected file or folder value for reuse, it should copy the full local path.
+- If a UI element displays a path in a compact area, it may visually truncate or show the basename first, but the underlying value and copy behavior should remain the full path.
+
+This is especially important in ADB Workbench because file and folder values are often copied into command parameters. The same behavior should also apply to APK install, screenshot and recording directories, image cast, file push/pull workflows, and any future command inputs that accept local paths.
+
+Do not normalize local paths into filenames for editable fields. Filename-only display is acceptable only as secondary visual text when the full path remains available through tooltip, copy, or expansion.
 
 ## Diagnostic Details
 
@@ -221,6 +236,8 @@ Manual checks:
 - No selected device state still supports scan, pair, manual connect, and recent connect.
 - Selecting a device changes the console into selected-device mode.
 - Shortcut actions switch to the expected existing tabs.
+- Pasting copied local files or folders into path-capable inputs inserts full paths.
+- Copying path values from path-capable UI copies full paths, even when the UI visually truncates them.
 - Existing tool tabs still preserve state when switching.
 - Settings and GitHub actions remain icon-only and functional.
 
