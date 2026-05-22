@@ -22,7 +22,7 @@
     "openGithub": "打开 GitHub 仓库"
   },
   "tabs": {
-    "pairConnect": "配对连接",
+    "pairConnect": "设备控制台",
     "workbench": "ADB 工作台",
     "apkInstall": "安装应用",
     "screenshot": "截图",
@@ -118,6 +118,24 @@
     "needPair": "需要配对",
     "noDevice": "暂无设备",
     "pleasePair": "请先配对连接"
+  },
+  "deviceConsole": {
+    "title": "设备控制台",
+    "connectTitle": "连接设备",
+    "connectDesc": "扫描、配对或手动连接 Android 无线调试设备。",
+    "selectedTitle": "设备概览",
+    "identity": "设备身份",
+    "status": "状态",
+    "shortcuts": "快捷操作",
+    "diagnostics": "诊断详情",
+    "unknown": "未知",
+    "adbSerial": "ADB serial",
+    "deviceSn": "设备 SN",
+    "model": "型号",
+    "product": "产品",
+    "connection": "连接方式",
+    "state": "设备状态",
+    "summaryPending": "更详细的设备状态会在下一步补充。"
   },
   "screenMirror": {
     "title": "远程控制",

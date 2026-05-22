@@ -22,7 +22,7 @@
     "openGithub": "Open GitHub repository"
   },
   "tabs": {
-    "pairConnect": "Pair & Connect",
+    "pairConnect": "Device Console",
     "workbench": "ADB Workbench",
     "apkInstall": "Install APK",
     "screenshot": "Screenshot",
@@ -118,6 +118,24 @@
     "needPair": "Needs pairing",
     "noDevice": "No devices",
     "pleasePair": "Pair a device first"
+  },
+  "deviceConsole": {
+    "title": "Device Console",
+    "connectTitle": "Connect a device",
+    "connectDesc": "Scan, pair, or manually connect Android wireless debugging devices.",
+    "selectedTitle": "Device overview",
+    "identity": "Identity",
+    "status": "Status",
+    "shortcuts": "Quick actions",
+    "diagnostics": "Diagnostics",
+    "unknown": "Unknown",
+    "adbSerial": "ADB serial",
+    "deviceSn": "Device SN",
+    "model": "Model",
+    "product": "Product",
+    "connection": "Connection",
+    "state": "State",
+    "summaryPending": "Detailed status will be added in the next pass."
   },
   "screenMirror": {
     "title": "Remote Control",

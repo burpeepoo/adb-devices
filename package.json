@@ -8,6 +8,8 @@
     "test:updater-policy": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/updaterPolicy.test.mts",
     "test:release-notes": "node --test tests/releaseNotes.test.mjs",
     "test:update-notes": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/updateNotes.test.mts",
+    "test:tab-state": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/tabState.test.mts",
+    "test:path-clipboard": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/pathClipboard.test.mts",
     "build:dmg": "./scripts/build-dmg.sh",
     "build:dmg:apple": "./scripts/build-dmg.sh aarch64",
     "build:dmg:intel": "./scripts/build-dmg.sh x64",

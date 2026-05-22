@@ -10,7 +10,7 @@
 .app-shell-layout__body {
   min-height: 0;
   display: grid;
-  grid-template-columns: 64px 292px minmax(0, 1fr);
+  grid-template-columns: 144px 292px minmax(0, 1fr);
 }
 
 .app-shell-layout__rail {
@@ -43,7 +43,7 @@
 
 @media (max-width: 940px) {
   .app-shell-layout__body {
-    grid-template-columns: 56px 240px minmax(0, 1fr);
+    grid-template-columns: 128px 240px minmax(0, 1fr);
   }
 
   .app-shell-layout__content {

@@ -35,6 +35,7 @@ export default function AppUpdatePrompt({ updater }: Props) {
       title={t("updates.title")}
       centered
       size="md"
+      zIndex={1000}
       closeOnClickOutside={!isDownloading}
       closeOnEscape={!isDownloading}
       withCloseButton={!isDownloading}

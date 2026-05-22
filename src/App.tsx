@@ -7,6 +7,7 @@ import { applyLanguagePreference } from "./i18n";
 import { useDevices } from "./hooks/useDevices";
 import { useAppUpdater } from "./hooks/useAppUpdater";
 import { isAutoUpdateCheckEnabled } from "./updaterPolicy";
+import { markTabVisited, TAB_KEYS } from "./tabState";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import AppShellLayout from "./components/layout/AppShellLayout";
 import DevicePanel from "./components/layout/DevicePanel";
@@ -14,7 +15,7 @@ import PageHeader from "./components/layout/PageHeader";
 import StatusBar from "./components/layout/StatusBar";
 import ToolRail, { toolIcons } from "./components/layout/ToolRail";
 import AdbSetup from "./components/AdbSetup";
-import PairConnect from "./components/PairConnect";
+import DeviceConsole from "./components/DeviceConsole";
 import AdbWorkbench from "./components/AdbWorkbench";
 import ApkInstall from "./components/ApkInstall";
 import Screenshot from "./components/Screenshot";
@@ -76,12 +77,13 @@ export default function App() {
     logcat: t('tabs.logcat'),
     packages: t('tabs.packageList'),
   };
-  const tools = (Object.keys(TAB_LABELS) as TabKey[]).map((key) => ({
+  const tools = TAB_KEYS.map((key) => ({
     key,
     label: TAB_LABELS[key],
     icon: toolIcons[key],
   }));
   const [activeTab, setActiveTab] = useState<TabKey>("pair");
+  const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set(["pair"]));
   const [adbAvailable, setAdbAvailable] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [mirroringDeviceSerial, setMirroringDeviceSerial] = useState<string | null>(null);
@@ -357,21 +359,36 @@ export default function App() {
     recordingActiveRef.current = recording;
   }, []);
 
+  const handleSelectTab = useCallback((tab: TabKey) => {
+    setVisitedTabs((current) => markTabVisited(current, tab));
+    setActiveTab(tab);
+  }, []);
+
   const selectedDeviceLabel = selectedDevice || t("layout.defaultDevice");
 
-  const renderActiveContent = () => {
-    if (activeTab === "pair") return <PairConnect devices={devices} onConnected={refresh} />;
-    if (activeTab === "workbench") return <AdbWorkbench deviceSerial={selectedDevice} />;
-    if (activeTab === "install") {
+  const renderTabContent = (tab: TabKey) => {
+    if (tab === "pair") {
+      return (
+        <DeviceConsole
+          devices={devices}
+          selectedDeviceSerial={selectedDevice}
+          onConnected={refresh}
+          onSelectTool={handleSelectTab}
+        />
+      );
+    }
+    if (tab === "workbench") return <AdbWorkbench deviceSerial={selectedDevice} />;
+    if (tab === "install") {
       return (
         <ApkInstall
           deviceSerial={selectedDevice}
           recentApkDir={settings.recentApkDir}
           onRecentApkDirChange={(dir) => handleSaveDirChange("recentApkDir", dir)}
+          active={activeTab === "install"}
         />
       );
     }
-    if (activeTab === "screenshot") {
+    if (tab === "screenshot") {
       return (
         <Screenshot
           deviceSerial={selectedDevice}
@@ -381,7 +398,7 @@ export default function App() {
         />
       );
     }
-    if (activeTab === "record") {
+    if (tab === "record") {
       return (
         <ScreenRecord
           deviceSerial={selectedDevice}
@@ -392,15 +409,31 @@ export default function App() {
         />
       );
     }
-    if (activeTab === "mirror") {
+    if (tab === "mirror") {
       return <ScreenMirror deviceSerial={selectedDevice} onMirrorStateChange={setMirroringDeviceSerial} />;
     }
-    if (activeTab === "imageCast") return <ImageCast deviceSerial={selectedDevice} />;
-    if (activeTab === "clipboard") return <Clipboard deviceSerial={selectedDevice} />;
-    if (activeTab === "logcat") return <Logcat deviceSerial={selectedDevice} />;
-    if (activeTab === "packages") return <PackageList deviceSerial={selectedDevice} />;
+    if (tab === "imageCast") return <ImageCast deviceSerial={selectedDevice} active={activeTab === "imageCast"} />;
+    if (tab === "clipboard") return <Clipboard deviceSerial={selectedDevice} />;
+    if (tab === "logcat") return <Logcat deviceSerial={selectedDevice} />;
+    if (tab === "packages") return <PackageList deviceSerial={selectedDevice} />;
     return null;
   };
+
+  const renderWorkspaceContent = () => (
+    <>
+      {TAB_KEYS.map((tab) =>
+        visitedTabs.has(tab) ? (
+          <div
+            key={tab}
+            aria-hidden={activeTab !== tab}
+            style={{ display: activeTab === tab ? "contents" : "none" }}
+          >
+            {renderTabContent(tab)}
+          </div>
+        ) : null,
+      )}
+    </>
+  );
 
   if (adbAvailable === null) {
     return (
@@ -429,7 +462,7 @@ export default function App() {
             settingsLabel={t("layout.openSettings")}
             githubLabel={t("layout.openGithub")}
             hasUpdate={updater.status === "available"}
-            onSelectTool={setActiveTab}
+            onSelectTool={handleSelectTab}
             onOpenSettings={() => setShowSettings(true)}
             onOpenGithub={handleOpenGithub}
           />
@@ -452,7 +485,7 @@ export default function App() {
             selectedDeviceValue={selectedDeviceLabel}
           />
         }
-        content={renderActiveContent()}
+        content={renderWorkspaceContent()}
         status={
           <StatusBar
             devices={devices}

@@ -22,6 +22,7 @@ interface Props {
   deviceSerial: string | null;
   recentApkDir: string;
   onRecentApkDirChange: (dir: string) => void;
+  active: boolean;
 }
 
 const fileName = (path: string) => path.split(/[\\/]/).pop() || path;
@@ -69,7 +70,7 @@ const bestPackageMatch = (item: ApkInstallItem, packages: string[]) => {
   return best && best.score >= 240 ? best.pkg : null;
 };
 
-export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirChange }: Props) {
+export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirChange, active }: Props) {
   const { t } = useTranslation();
   const [apkItems, setApkItems] = useState<ApkInstallItem[]>([]);
   const [force, setForce] = useState(false);
@@ -193,6 +194,11 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
   }, [handlePasteApks, loadApkPaths]);
 
   useEffect(() => {
+    if (!active) {
+      setDragging(false);
+      return;
+    }
+
     let unlisten: (() => void) | null = null;
     let disposed = false;
 
@@ -227,7 +233,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
       disposed = true;
       unlisten?.();
     };
-  }, [loadApkPaths]);
+  }, [active, loadApkPaths]);
 
   const handleSelectApk = async () => {
     const selected = await open({

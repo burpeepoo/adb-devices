@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added a first-pass Device Console with selected-device overview and shortcut navigation.
+- Added active tab labels in the left tool rail.
+
+### Fixed
+
+- Kept visited tool tabs mounted so selected files and form inputs survive tab switches until the app closes.
+- Raised the update prompt above Settings when opening update details from Settings.
+- Preserved full local paths when pasting file or folder values into path-capable Workbench controls.
+
 ## [1.1.5] - 2026-05-22
 
 ### Changed

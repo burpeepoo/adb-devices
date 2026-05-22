@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ClipboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
+import { extractClipboardPaths, isLikelyLocalPath } from "../pathClipboard";
 import PackageNameInput from "./PackageNameInput";
 
 type WorkbenchMode = "library" | "templates" | "custom";
@@ -15,6 +16,7 @@ interface ParamDef {
   required?: boolean;
   defaultValue?: string;
   placeholderKey?: string;
+  acceptsLocalPath?: boolean;
   options?: { value: string; labelKey: string }[];
 }
 
@@ -77,8 +79,8 @@ const PARAMS = {
   propValue: { name: "value", labelKey: "workbench.params.value", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.value" },
   activity: { name: "activity", labelKey: "workbench.params.activity", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.activity" },
   permission: { name: "permission", labelKey: "workbench.params.permission", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.permission" },
-  apkPath: { name: "apkPath", labelKey: "workbench.params.apkPath", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.apkPath" },
-  localPath: { name: "localPath", labelKey: "workbench.params.localPath", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.localPath" },
+  apkPath: { name: "apkPath", labelKey: "workbench.params.apkPath", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.apkPath", acceptsLocalPath: true },
+  localPath: { name: "localPath", labelKey: "workbench.params.localPath", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.localPath", acceptsLocalPath: true },
   remotePath: { name: "remotePath", labelKey: "workbench.params.remotePath", type: "text" as const, required: true, placeholderKey: "workbench.placeholders.remotePath" },
   directoryPath: { name: "remotePath", labelKey: "workbench.params.remotePath", type: "text" as const, required: true, defaultValue: "/sdcard/Download", placeholderKey: "workbench.placeholders.directoryPath" },
   screenshotPath: { name: "remotePath", labelKey: "workbench.params.remotePath", type: "text" as const, required: true, defaultValue: "/sdcard/Download/screenshot.png", placeholderKey: "workbench.placeholders.screenshotPath" },
@@ -795,6 +797,11 @@ const riskOrder: Record<WorkbenchRisk, number> = {
 const stripAdbPrefix = (command: string) =>
   command.replace(/^adb(?:\s+-s\s+(?:'[^']*'|"[^"]*"|\S+))?\s+/, "");
 
+const pastedFilePaths = (event: ClipboardEvent<HTMLInputElement>) =>
+  Array.from(event.clipboardData.files)
+    .map((file) => (file as File & { path?: string }).path)
+    .filter((path): path is string => Boolean(path));
+
 export default function AdbWorkbench({ deviceSerial }: Props) {
   const { t } = useTranslation();
   const [mode, setMode] = useState<WorkbenchMode>("library");
@@ -953,6 +960,23 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
   const switchMode = (nextMode: WorkbenchMode) => {
     setMode(nextMode);
     setTemplateStatus(null);
+  };
+
+  const handleParamPaste = (event: ClipboardEvent<HTMLInputElement>, param: ParamDef) => {
+    if (!param.acceptsLocalPath) return;
+
+    const filePaths = pastedFilePaths(event);
+    const text =
+      event.clipboardData.getData("text/uri-list") ||
+      event.clipboardData.getData("text/plain") ||
+      event.clipboardData.getData("text");
+    const textPaths = extractClipboardPaths(text).filter(isLikelyLocalPath);
+    const path = filePaths[0] || textPaths[0];
+
+    if (!path) return;
+
+    event.preventDefault();
+    setValues((prev) => ({ ...prev, [param.name]: path }));
   };
 
   const persistHistory = async (nextHistory: WorkbenchHistoryItem[]) => {
@@ -1218,6 +1242,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
                       <input
                         value={values[param.name] ?? ""}
                         onChange={(event) => setValues((prev) => ({ ...prev, [param.name]: event.target.value }))}
+                        onPaste={(event) => handleParamPaste(event, param)}
                         placeholder={param.placeholderKey ? t(param.placeholderKey) : ""}
                         className="w-full rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                       />

@@ -11,6 +11,7 @@ import ResultAlert from "./common/ResultAlert";
 
 interface Props {
   deviceSerial: string | null;
+  active: boolean;
 }
 
 interface ImageCastResult {
@@ -34,7 +35,7 @@ const imageExtension = (path: string) => {
 
 const isSupportedImage = (path: string) => SUPPORTED_EXTENSIONS.includes(imageExtension(path));
 
-export default function ImageCast({ deviceSerial }: Props) {
+export default function ImageCast({ deviceSerial, active }: Props) {
   const { t } = useTranslation();
   const [selectedPath, setSelectedPath] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -61,6 +62,11 @@ export default function ImageCast({ deviceSerial }: Props) {
   }, [t]);
 
   useEffect(() => {
+    if (!active) {
+      setDragging(false);
+      return;
+    }
+
     let unlisten: (() => void) | null = null;
     let disposed = false;
 
@@ -100,7 +106,7 @@ export default function ImageCast({ deviceSerial }: Props) {
       disposed = true;
       unlisten?.();
     };
-  }, [loadImagePath, t]);
+  }, [active, loadImagePath, t]);
 
   const handleSelectImage = async () => {
     const selected = await open({

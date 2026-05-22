@@ -62,21 +62,43 @@ export default function ToolRail({
         const active = tool.key === activeTool;
         return (
           <Tooltip key={tool.key} label={tool.label} position="right" withArrow openDelay={250}>
-            <ActionIcon
+            <button
+              type="button"
               aria-label={tool.label}
-              variant={active ? "filled" : "subtle"}
-              color={active ? "blue" : "gray"}
-              size={44}
-              radius="md"
               onClick={() => onSelectTool(tool.key)}
-              styles={{
-                root: {
-                  color: active ? "white" : "var(--mantine-color-gray-4)",
-                },
+              style={{
+                width: active ? "100%" : 44,
+                height: 44,
+                alignSelf: active ? "stretch" : "center",
+                border: 0,
+                borderRadius: "var(--mantine-radius-md)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: active ? "flex-start" : "center",
+                gap: 8,
+                padding: active ? "0 12px" : 0,
+                color: active ? "white" : "var(--mantine-color-gray-4)",
+                background: active ? "var(--mantine-color-blue-6)" : "transparent",
+                cursor: "pointer",
+                transition: "background 120ms ease, color 120ms ease",
               }}
             >
-              <Icon size={22} />
-            </ActionIcon>
+              <Icon size={22} style={{ flex: "0 0 auto" }} />
+              {active && (
+                <span
+                  style={{
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    fontSize: 13,
+                    fontWeight: 700,
+                  }}
+                >
+                  {tool.label}
+                </span>
+              )}
+            </button>
           </Tooltip>
         );
       })}
