@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.1.7] - 2026-05-22
+
+### Added
+
+- Added recent wireless ADB endpoint probing and reconnect fallback when LAN scanning finds no devices.
+
 ## [1.1.6] - 2026-05-22
 
 ### Added

@@ -3,10 +3,14 @@ import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Badge, Button, Group, Paper, Stack, Text, TextInput } from "@mantine/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
-import { DeviceInfo, MdnsDevice, PairConnectSettings } from "../types";
+import { DeviceInfo, MdnsDevice, PairConnectSettings, RecentConnectEndpoint } from "../types";
 import ResultAlert from "./common/ResultAlert";
 
 const REPAIR_ACTION_FAILURE_THRESHOLD = 2;
+const RECENT_CONNECT_LIMIT = 5;
+
+type EndpointProbeStatus = "idle" | "checking" | "reachable" | "unreachable";
+type EndpointProbeStates = Record<string, EndpointProbeStatus>;
 
 interface Props {
   devices: DeviceInfo[];
@@ -28,6 +32,8 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const [connectIp, setConnectIp] = useState("");
   const [connectPort, setConnectPort] = useState("");
   const [lastConnect, setLastConnect] = useState<{ ip: string; port: string } | null>(null);
+  const [recentConnects, setRecentConnects] = useState<RecentConnectEndpoint[]>([]);
+  const [endpointProbeStates, setEndpointProbeStates] = useState<EndpointProbeStates>({});
   const [connectLoading, setConnectLoading] = useState(false);
   const [connectResult, setConnectResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
@@ -71,8 +77,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
         setPairPort(saved.pairPort || "");
         setConnectIp(saved.connectIp || "");
         setConnectPort(saved.connectPort || "");
+        const recent = normalizeRecentConnects(saved.recentConnects, saved.connectIp, saved.connectPort);
+        setRecentConnects(recent);
         if (saved.connectIp && saved.connectPort) {
           setLastConnect({ ip: saved.connectIp, port: saved.connectPort });
+        } else if (recent[0]) {
+          setLastConnect({ ip: recent[0].ip, port: recent[0].port });
         }
       })
       .catch(() => {
@@ -88,18 +98,26 @@ export default function PairConnect({ devices, onConnected }: Props) {
     return () => window.clearInterval(timer);
   }, [refreshLocalIps]);
 
-  const savePairConnect = (next: Partial<PairConnectSettings>) => {
+  const savePairConnect = useCallback((next: Partial<PairConnectSettings>, recentOverride = recentConnects) => {
     const value: PairConnectSettings = {
       pairIp,
       pairPort,
       connectIp,
       connectPort,
+      recentConnects: recentOverride,
       ...next,
     };
     saveStoreValue(STORE_KEYS.pairConnect, value).catch(() => {
       // Cache failure should not block ADB actions.
     });
-  };
+  }, [connectIp, connectPort, pairIp, pairPort, recentConnects]);
+
+  const rememberRecentConnect = useCallback((ip: string, port: string) => {
+    const nextRecent = mergeRecentConnects(recentConnects, { ip, port, lastConnectedAt: Date.now() });
+    setRecentConnects(nextRecent);
+    setLastConnect({ ip, port });
+    savePairConnect({ connectIp: ip, connectPort: port, recentConnects: nextRecent }, nextRecent);
+  }, [recentConnects, savePairConnect]);
 
   const fillConnectEndpoint = (ip: string, port: string) => {
     setConnectIp(ip);
@@ -147,6 +165,29 @@ export default function PairConnect({ devices, onConnected }: Props) {
     }
   }, []);
 
+  const probeRecentEndpoint = useCallback(async (endpoint: RecentConnectEndpoint) => {
+    const key = endpointKey(endpoint);
+    setEndpointProbeStates((current) => ({ ...current, [key]: "checking" }));
+    try {
+      const reachable = await invoke<boolean>("tcp_probe_endpoint", {
+        ip: endpoint.ip,
+        port: endpoint.port,
+      });
+      setEndpointProbeStates((current) => ({
+        ...current,
+        [key]: reachable ? "reachable" : "unreachable",
+      }));
+      return reachable;
+    } catch {
+      setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
+      return false;
+    }
+  }, []);
+
+  const probeRecentConnects = useCallback(async () => {
+    await Promise.all(recentConnects.map((endpoint) => probeRecentEndpoint(endpoint)));
+  }, [probeRecentEndpoint, recentConnects]);
+
   const discoverMdns = useCallback(async (silent = false, force = false) => {
     if (!force && (discoveringRef.current || adbOperationRef.current || (silent && pairCodeInputFocusedRef.current))) {
       return;
@@ -165,6 +206,9 @@ export default function PairConnect({ devices, onConnected }: Props) {
       if (!silent) {
         setMdnsResult({ ok: true, msg: visibleDevices.length ? t('pairConnect.discovered', { count: visibleDevices.length }) : t('pairConnect.notDiscovered') });
       }
+      if (visibleDevices.length === 0 && recentConnects.length > 0) {
+        void probeRecentConnects();
+      }
     } catch (e) {
       if (!silent) {
         setMdnsResult({ ok: false, msg: String(e) });
@@ -173,7 +217,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       discoveringRef.current = false;
       if (!silent) setDiscovering(false);
     }
-  }, [refreshLocalIps, t]);
+  }, [probeRecentConnects, recentConnects.length, refreshLocalIps, t]);
 
   useEffect(() => {
     discoverMdns(true);
@@ -194,8 +238,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
         });
         setMdnsResult({ ok: true, msg: result });
         clearPairConnectFailures();
-        savePairConnect({ connectIp: device.ip, connectPort: device.port });
-        setLastConnect({ ip: device.ip, port: device.port });
+        rememberRecentConnect(device.ip, device.port);
         await onConnected();
       } catch (e) {
         recordPairConnectFailure();
@@ -256,6 +299,38 @@ export default function PairConnect({ devices, onConnected }: Props) {
       } catch (e) {
         recordPairConnectFailure();
         setMdnsResult({ ok: false, msg: String(e) });
+        setShowManual(true);
+      } finally {
+        setBusyAddress(null);
+      }
+    });
+  };
+
+  const handleRecentReconnect = async (endpoint: RecentConnectEndpoint, restartAdb = false) => {
+    await runAdbOperation(async () => {
+      const key = endpointKey(endpoint);
+      setBusyAddress(restartAdb ? `__recent_repair__:${key}` : `__recent__:${key}`);
+      setMdnsResult(null);
+      setPairRepairVisible(false);
+      try {
+        const result = await invoke<string>("adb_reconnect_endpoint", {
+          ip: endpoint.ip,
+          port: endpoint.port,
+          restartAdb,
+        });
+        setMdnsResult({ ok: true, msg: result });
+        setEndpointProbeStates((current) => ({ ...current, [key]: "reachable" }));
+        clearPairConnectFailures();
+        rememberRecentConnect(endpoint.ip, endpoint.port);
+        await onConnected();
+        await discoverMdns(true, true);
+      } catch (e) {
+        recordPairConnectFailure();
+        setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
+        setMdnsResult({
+          ok: false,
+          msg: restartAdb ? String(e) : `${String(e)}。${t('pairConnect.tryRestartReconnect')}`,
+        });
         setShowManual(true);
       } finally {
         setBusyAddress(null);
@@ -352,8 +427,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
         });
         setConnectResult({ ok: true, msg: result });
         clearPairConnectFailures();
-        savePairConnect({ connectIp: ip, connectPort: port });
-        setLastConnect({ ip, port });
+        rememberRecentConnect(ip, port);
         await onConnected();
       } catch (e) {
         recordPairConnectFailure();
@@ -451,16 +525,31 @@ export default function PairConnect({ devices, onConnected }: Props) {
           ))}
 
           {mdnsDevices.length === 0 && connectedLanDevices.length === 0 && (
-            <ManualConnectHint
-              lastConnect={lastConnect}
-              localIps={localIps}
-              repairing={repairingAdb}
-              onFillLastConnect={() => {
-                if (lastConnect) fillConnectEndpoint(lastConnect.ip, lastConnect.port);
-              }}
-              onRestartAdbAndScan={handleRestartAdbAndScan}
-              onShowManual={() => setShowManual(true)}
-            />
+            <>
+              {recentConnects.length > 0 && (
+                <RecentConnectFallback
+                  endpoints={recentConnects}
+                  probeStates={endpointProbeStates}
+                  busyAddress={busyAddress}
+                  disabled={adbBusy}
+                  onProbe={probeRecentEndpoint}
+                  onProbeAll={probeRecentConnects}
+                  onReconnect={(endpoint) => handleRecentReconnect(endpoint, false)}
+                  onRestartAndReconnect={(endpoint) => handleRecentReconnect(endpoint, true)}
+                  onFill={(endpoint) => fillConnectEndpoint(endpoint.ip, endpoint.port)}
+                />
+              )}
+              <ManualConnectHint
+                lastConnect={lastConnect}
+                localIps={localIps}
+                repairing={repairingAdb}
+                onFillLastConnect={() => {
+                  if (lastConnect) fillConnectEndpoint(lastConnect.ip, lastConnect.port);
+                }}
+                onRestartAdbAndScan={handleRestartAdbAndScan}
+                onShowManual={() => setShowManual(true)}
+              />
+            </>
           )}
         </div>
 
@@ -642,6 +731,110 @@ function ManualConnectHint({
       </div>
     </div>
   );
+}
+
+function RecentConnectFallback({
+  endpoints,
+  probeStates,
+  busyAddress,
+  disabled,
+  onProbe,
+  onProbeAll,
+  onReconnect,
+  onRestartAndReconnect,
+  onFill,
+}: {
+  endpoints: RecentConnectEndpoint[];
+  probeStates: EndpointProbeStates;
+  busyAddress: string | null;
+  disabled: boolean;
+  onProbe: (endpoint: RecentConnectEndpoint) => void;
+  onProbeAll: () => void;
+  onReconnect: (endpoint: RecentConnectEndpoint) => void;
+  onRestartAndReconnect: (endpoint: RecentConnectEndpoint) => void;
+  onFill: (endpoint: RecentConnectEndpoint) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+      <Group justify="space-between" gap="md" align="flex-start" mb="sm">
+        <div>
+          <div className="text-sm font-medium text-blue-950">{t('pairConnect.recentConnectionsTitle')}</div>
+          <div className="mt-1 text-xs leading-5 text-blue-800">{t('pairConnect.recentConnectionsDesc')}</div>
+        </div>
+        <Button variant="light" size="xs" disabled={disabled} onClick={onProbeAll}>
+          {t('pairConnect.probeAllRecent')}
+        </Button>
+      </Group>
+
+      <div className="space-y-2">
+        {endpoints.map((endpoint) => {
+          const key = endpointKey(endpoint);
+          const status = probeStates[key] || "idle";
+          const reconnectBusy = busyAddress === `__recent__:${key}`;
+          const repairBusy = busyAddress === `__recent_repair__:${key}`;
+          return (
+            <div key={key} className="rounded-md border border-blue-100 bg-white px-3 py-2">
+              <Group justify="space-between" gap="md" align="center" wrap="wrap">
+                <div style={{ minWidth: 180, flex: "1 1 240px" }}>
+                  <Group gap={6} wrap="nowrap">
+                    <Text size="sm" fw={700} truncate>
+                      {key}
+                    </Text>
+                    <Badge color={probeBadgeColor(status)} size="sm" variant="light">
+                      {t(`pairConnect.probeStatus.${status}`)}
+                    </Badge>
+                  </Group>
+                  <Text size="xs" c="dimmed" mt={4}>
+                    {t('pairConnect.lastConnectedAt', { time: formatEndpointTime(endpoint.lastConnectedAt) })}
+                  </Text>
+                </div>
+                <Group gap="xs" justify="flex-end" wrap="wrap" style={{ flex: "1 1 320px" }}>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    loading={status === "checking"}
+                    disabled={disabled}
+                    onClick={() => onProbe(endpoint)}
+                  >
+                    {t('pairConnect.probeRecent')}
+                  </Button>
+                  <Button
+                    size="xs"
+                    loading={reconnectBusy}
+                    disabled={disabled}
+                    onClick={() => onReconnect(endpoint)}
+                  >
+                    {t('pairConnect.reconnectRecent')}
+                  </Button>
+                  <Button
+                    size="xs"
+                    color="red"
+                    variant="light"
+                    loading={repairBusy}
+                    disabled={disabled}
+                    onClick={() => onRestartAndReconnect(endpoint)}
+                  >
+                    {t('pairConnect.restartAdbAndReconnect')}
+                  </Button>
+                  <Button size="xs" variant="subtle" disabled={disabled} onClick={() => onFill(endpoint)}>
+                    {t('pairConnect.fill')}
+                  </Button>
+                </Group>
+              </Group>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function probeBadgeColor(status: EndpointProbeStatus) {
+  if (status === "reachable") return "green";
+  if (status === "unreachable") return "red";
+  if (status === "checking") return "blue";
+  return "gray";
 }
 
 function ipv4NetworkPrefix(ip: string) {
@@ -867,6 +1060,57 @@ function parseConnectEndpoint(value: string) {
     return null;
   }
   return { ip, port };
+}
+
+function endpointKey(endpoint: Pick<RecentConnectEndpoint, "ip" | "port">) {
+  return `${endpoint.ip}:${endpoint.port}`;
+}
+
+function normalizeRecentConnects(
+  endpoints: RecentConnectEndpoint[] | undefined,
+  legacyIp?: string,
+  legacyPort?: string
+) {
+  const now = Date.now();
+  const normalized = (endpoints || [])
+    .map((endpoint) => ({
+      ip: endpoint.ip.trim(),
+      port: endpoint.port.trim(),
+      lastConnectedAt: Number(endpoint.lastConnectedAt) || now,
+    }))
+    .filter((endpoint) => parseConnectEndpoint(endpointKey(endpoint)));
+
+  if (legacyIp && legacyPort && parseConnectEndpoint(`${legacyIp}:${legacyPort}`)) {
+    normalized.push({
+      ip: legacyIp.trim(),
+      port: legacyPort.trim(),
+      lastConnectedAt: now,
+    });
+  }
+
+  return dedupeRecentConnects(normalized);
+}
+
+function mergeRecentConnects(current: RecentConnectEndpoint[], endpoint: RecentConnectEndpoint) {
+  return dedupeRecentConnects([endpoint, ...current]);
+}
+
+function dedupeRecentConnects(endpoints: RecentConnectEndpoint[]) {
+  const seen = new Set<string>();
+  return endpoints
+    .sort((a, b) => b.lastConnectedAt - a.lastConnectedAt)
+    .filter((endpoint) => {
+      const key = endpointKey(endpoint);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, RECENT_CONNECT_LIMIT);
+}
+
+function formatEndpointTime(timestamp: number) {
+  if (!timestamp) return "-";
+  return new Date(timestamp).toLocaleString();
 }
 
 function PairRepairAction({

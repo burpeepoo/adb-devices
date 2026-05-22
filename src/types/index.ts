@@ -78,6 +78,13 @@ export interface PairConnectSettings {
   pairPort: string;
   connectIp: string;
   connectPort: string;
+  recentConnects?: RecentConnectEndpoint[];
+}
+
+export interface RecentConnectEndpoint {
+  ip: string;
+  port: string;
+  lastConnectedAt: number;
 }
 
 export type TabKey =

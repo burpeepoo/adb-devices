@@ -1,0 +1,2 @@
+en-US: Added recent wireless ADB reconnect fallback when scanning finds no devices.
+zh-CN: 扫描不到设备时，新增最近无线 ADB 地址检测和重连兜底。

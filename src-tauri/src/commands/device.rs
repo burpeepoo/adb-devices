@@ -1,6 +1,12 @@
 use rust_i18n::t;
 use serde::Serialize;
-use std::{collections::HashMap, process::Command, sync::Mutex, time::Duration};
+use std::{
+    collections::HashMap,
+    net::{TcpStream, ToSocketAddrs},
+    process::Command,
+    sync::Mutex,
+    time::Duration,
+};
 use tauri::{AppHandle, State};
 
 use crate::adb::{self, AdbError};
@@ -58,6 +64,18 @@ pub fn adb_restart_server(app: AppHandle) -> Result<String, AdbError> {
 #[tauri::command(async)]
 pub fn get_local_ipv4_addresses() -> Vec<String> {
     local_ipv4_addresses()
+}
+
+#[tauri::command(async)]
+pub fn tcp_probe_endpoint(ip: String, port: String) -> bool {
+    let address = format!("{}:{}", ip.trim(), port.trim());
+    let Ok(mut addrs) = address.to_socket_addrs() else {
+        return false;
+    };
+    let Some(socket_addr) = addrs.next() else {
+        return false;
+    };
+    TcpStream::connect_timeout(&socket_addr, Duration::from_secs(2)).is_ok()
 }
 
 #[tauri::command(async)]
@@ -409,6 +427,29 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
             t!("device.connect_refused_wifi", "message" => stdout.trim()).into_owned(),
         ))
     }
+}
+
+#[tauri::command(async)]
+pub fn adb_reconnect_endpoint(
+    app: AppHandle,
+    ip: String,
+    port: String,
+    restart_adb: bool,
+) -> Result<String, AdbError> {
+    let addr = format!("{}:{}", ip.trim(), port.trim());
+    let _ = adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(5));
+
+    if restart_adb {
+        let _ = adb::run_adb_with_timeout(&app, &["kill-server"], None, Duration::from_secs(5));
+        start_adb_server(&app)?;
+    }
+
+    let output = connect_address(&app, &addr)?;
+    if let Some(message) = connect_success_message(&output, &addr, restart_adb) {
+        return Ok(message);
+    }
+
+    Err(connect_failed_error(&output))
 }
 
 fn start_adb_server(app: &AppHandle) -> Result<(), AdbError> {
