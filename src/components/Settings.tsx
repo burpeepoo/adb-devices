@@ -95,21 +95,27 @@ export default function Settings({ settings, updater, onSettingsChange, onClose 
         <Divider />
 
         <Stack gap="xs">
-          <Group justify="space-between" align="flex-start" gap="sm" wrap="nowrap">
+          <Group justify="space-between" align="center" gap="sm" wrap="nowrap">
             <Stack gap={2} style={{ minWidth: 0 }}>
               <Text size="sm" fw={600}>
                 {t("updates.settingsTitle")}
               </Text>
-              <Text size="xs" c="dimmed">
-                {t("updates.settingsDesc")}
-              </Text>
             </Stack>
             <Button
               variant="light"
+              size="xs"
               leftSection={<IconRefresh size={15} />}
               loading={isChecking}
               disabled={isDownloading}
               onClick={() => updater.checkForUpdate({ silent: false })}
+              style={{ flexShrink: 0, maxWidth: 132 }}
+              styles={{
+                label: {
+                  lineHeight: 1.15,
+                  textAlign: "center",
+                  whiteSpace: "normal",
+                },
+              }}
             >
               {t("updates.check")}
             </Button>
@@ -117,7 +123,6 @@ export default function Settings({ settings, updater, onSettingsChange, onClose 
 
           <Switch
             label={t("updates.autoCheck")}
-            description={t("updates.autoCheckDesc")}
             checked={isAutoUpdateCheckEnabled(local.autoCheckUpdates)}
             onChange={(event) =>
               setLocal((current) => ({

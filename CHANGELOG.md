@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.1.5] - 2026-05-22
+
+### Changed
+
+- Simplified the Settings update controls by removing explanatory subtitles and shortening the English manual update button label.
+
 ## [1.1.4] - 2026-05-21
 
 ### Added

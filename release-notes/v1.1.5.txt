@@ -1,0 +1,2 @@
+en-US: Simplified the App updates settings and shortened the update check button.
+zh-CN: 简化应用更新设置，并缩短检查更新按钮文案。

@@ -205,7 +205,7 @@ The script temporarily builds two local debug versions, restores the source file
 http://127.0.0.1:18765/latest.json
 ```
 
-Keep the terminal open, then use **Settings > Check for updates** in the opened test app.
+Keep the terminal open, then use **Settings > Check now** in the opened test app.
 
 ## Release Notes
 
