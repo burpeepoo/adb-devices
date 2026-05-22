@@ -5,6 +5,7 @@ import { Button, Group, Paper, Stack, Text } from "@mantine/core";
 import { IconCamera, IconExternalLink, IconPhoto } from "@tabler/icons-react";
 import PathSelector from "./common/PathSelector";
 import ResultAlert from "./common/ResultAlert";
+import SectionTitle from "./common/SectionTitle";
 
 interface Props {
   deviceSerial: string | null;
@@ -92,7 +93,7 @@ export default function Screenshot({ deviceSerial, saveDir, shortcutResult, onSa
     <Stack maw={680} gap="md">
       <Paper withBorder radius="md" p="md">
         <Stack gap="md">
-          <Text fw={700}>{t("screenshot.title")}</Text>
+          <SectionTitle icon={<IconCamera size={17} />} label={t("screenshot.title")} />
 
           <PathSelector
             label={t("screenshot.saveDir")}

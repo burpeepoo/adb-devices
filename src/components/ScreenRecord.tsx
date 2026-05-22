@@ -3,9 +3,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { formatDuration } from "../utils/format";
 import { useTranslation } from "react-i18next";
 import { Button, Group, Paper, Stack, Text, ThemeIcon } from "@mantine/core";
-import { IconExternalLink, IconPlayerRecord, IconPlayerStop } from "@tabler/icons-react";
+import { IconExternalLink, IconPlayerRecord, IconPlayerStop, IconVideo } from "@tabler/icons-react";
 import PathSelector from "./common/PathSelector";
 import ResultAlert from "./common/ResultAlert";
+import SectionTitle from "./common/SectionTitle";
 
 interface Props {
   deviceSerial: string | null;
@@ -121,7 +122,7 @@ export default function ScreenRecord({ deviceSerial, saveDir, shortcutResult, on
     <Stack maw={680} gap="md">
       <Paper withBorder radius="md" p="md">
         <Stack gap="md">
-          <Text fw={700}>{t("screenRecord.title")}</Text>
+          <SectionTitle icon={<IconVideo size={17} />} label={t("screenRecord.title")} />
 
           <PathSelector
             label={t("screenRecord.saveDir")}

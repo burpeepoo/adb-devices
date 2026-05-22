@@ -1,4 +1,4 @@
-import { ActionIcon, Indicator, Stack, Tooltip } from "@mantine/core";
+import { Indicator, Stack, Tooltip } from "@mantine/core";
 import {
   IconApps,
   IconBrandGithub,
@@ -14,6 +14,7 @@ import {
   IconVideo,
 } from "@tabler/icons-react";
 import type { TabKey } from "../../types";
+import "./ToolRail.css";
 
 interface ToolConfig {
   key: TabKey;
@@ -56,7 +57,7 @@ export default function ToolRail({
   onOpenGithub,
 }: Props) {
   return (
-    <Stack h="100%" align="center" gap={8} p={8}>
+    <Stack h="100%" align="stretch" gap={6} p={8}>
       {tools.map((tool) => {
         const Icon = tool.icon;
         const active = tool.key === activeTool;
@@ -65,80 +66,37 @@ export default function ToolRail({
             <button
               type="button"
               aria-label={tool.label}
+              className="tool-rail__button"
+              data-active={active ? "true" : "false"}
               onClick={() => onSelectTool(tool.key)}
-              style={{
-                width: active ? "100%" : 44,
-                height: 44,
-                alignSelf: active ? "stretch" : "center",
-                border: 0,
-                borderRadius: "var(--mantine-radius-md)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: active ? "flex-start" : "center",
-                gap: 8,
-                padding: active ? "0 12px" : 0,
-                color: active ? "white" : "var(--mantine-color-gray-4)",
-                background: active ? "var(--mantine-color-blue-6)" : "transparent",
-                cursor: "pointer",
-                transition: "background 120ms ease, color 120ms ease",
-              }}
             >
-              <Icon size={22} style={{ flex: "0 0 auto" }} />
-              {active && (
-                <span
-                  style={{
-                    minWidth: 0,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    fontSize: 13,
-                    fontWeight: 700,
-                  }}
-                >
-                  {tool.label}
-                </span>
-              )}
+              <Icon size={21} style={{ flex: "0 0 auto" }} />
+              <span className="tool-rail__label">{tool.label}</span>
             </button>
           </Tooltip>
         );
       })}
       <div style={{ flex: 1 }} />
-      <Tooltip label={settingsLabel} position="right" withArrow openDelay={250}>
-        <Indicator color="red" size={8} offset={7} disabled={!hasUpdate} position="top-end">
-          <ActionIcon
-            aria-label={settingsLabel}
-            variant="subtle"
-            color="gray"
-            size={40}
-            radius="md"
-            onClick={onOpenSettings}
-            styles={{
-              root: {
-                color: "var(--mantine-color-gray-4)",
-              },
-            }}
-          >
-            <IconSettings size={21} />
-          </ActionIcon>
-        </Indicator>
-      </Tooltip>
-      <Tooltip label={githubLabel} position="right" withArrow openDelay={250}>
-        <ActionIcon
-          aria-label={githubLabel}
-          variant="subtle"
-          color="gray"
-          size={40}
-          radius="md"
-          onClick={onOpenGithub}
-          styles={{
-            root: {
-              color: "var(--mantine-color-gray-4)",
-            },
-          }}
+      <Indicator color="red" size={8} offset={8} disabled={!hasUpdate} position="top-end" style={{ width: "100%" }}>
+        <button
+          type="button"
+          aria-label={settingsLabel}
+          className="tool-rail__button tool-rail__button--utility"
+          onClick={onOpenSettings}
         >
-          <IconBrandGithub size={21} />
-        </ActionIcon>
-      </Tooltip>
+          <IconSettings size={21} style={{ flex: "0 0 auto" }} />
+          <span className="tool-rail__label">{settingsLabel}</span>
+        </button>
+      </Indicator>
+      <button
+        type="button"
+        aria-label={githubLabel}
+        className="tool-rail__button tool-rail__button--utility"
+        onClick={onOpenGithub}
+      >
+        <IconBrandGithub size={21} style={{ flex: "0 0 auto" }} />
+        <span className="tool-rail__label">{githubLabel}</span>
+      </button>
     </Stack>
   );
 }

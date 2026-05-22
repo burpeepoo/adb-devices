@@ -1,0 +1,2 @@
+en-US: Added the Device Console and polished workspace tab layout.
+zh-CN: 新增设备控制台，并优化工作区标签页布局。

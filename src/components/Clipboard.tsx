@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
+import { IconClipboard } from "@tabler/icons-react";
+import SectionTitle from "./common/SectionTitle";
 
 interface Props {
   deviceSerial: string | null;
@@ -33,9 +35,9 @@ export default function Clipboard({ deviceSerial }: Props) {
 
   return (
     <div className="max-w-2xl space-y-4">
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
+      <section className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-gray-800">{t('clipboard.title')}</h3>
+          <SectionTitle icon={<IconClipboard size={17} />} label={t('clipboard.title')} />
           <span className={`text-xs ${text.length >= MAX_LENGTH ? "text-red-500" : "text-gray-400"}`}>
             {text.length}/{MAX_LENGTH}
           </span>

@@ -55,6 +55,7 @@ pub fn run() {
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
             commands::device::adb_devices,
+            commands::device::adb_device_summary,
             commands::device::adb_restart_server,
             commands::device::get_local_ipv4_addresses,
             commands::device::adb_mdns_discover,

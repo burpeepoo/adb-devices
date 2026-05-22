@@ -1,8 +1,8 @@
 import { ActionIcon, Badge, Box, Group, ScrollArea, Stack, Text, TextInput, Tooltip } from "@mantine/core";
 import { IconRefresh, IconSearch } from "@tabler/icons-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getStore, saveStoreValue, STORE_KEYS } from "../../storage";
+import { deviceIdentityKey, type DeviceNotes } from "../../deviceNotes";
 import type { DeviceInfo } from "../../types";
 
 interface Props {
@@ -11,11 +11,11 @@ interface Props {
   error: string | null;
   selectedDevice: string | null;
   mirroringDeviceSerial: string | null;
+  deviceNotes: DeviceNotes;
   onSelectDevice: (serial: string) => void;
+  onDeviceNoteChange: (device: DeviceInfo, note: string) => void;
   onRefresh: () => void;
 }
-
-type DeviceNotes = Record<string, string>;
 
 export default function DevicePanel({
   devices,
@@ -23,19 +23,13 @@ export default function DevicePanel({
   error,
   selectedDevice,
   mirroringDeviceSerial,
+  deviceNotes,
   onSelectDevice,
+  onDeviceNoteChange,
   onRefresh,
 }: Props) {
   const { t } = useTranslation();
-  const [deviceNotes, setDeviceNotes] = useState<DeviceNotes>({});
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    getStore()
-      .then((store) => store.get<DeviceNotes>(STORE_KEYS.deviceNotes))
-      .then((saved) => setDeviceNotes(saved || {}))
-      .catch(() => undefined);
-  }, []);
 
   const filteredDevices = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -50,15 +44,6 @@ export default function DevicePanel({
 
   const onlineDevices = filteredDevices.filter((device) => device.state === "device");
   const offlineDevices = filteredDevices.filter((device) => device.state !== "device");
-
-  const handleNoteChange = (device: DeviceInfo, note: string) => {
-    const key = deviceIdentityKey(device);
-    setDeviceNotes((prev) => {
-      const next = { ...prev, [key]: note };
-      saveStoreValue(STORE_KEYS.deviceNotes, next).catch(() => undefined);
-      return next;
-    });
-  };
 
   return (
     <Stack h="100%" gap={0}>
@@ -101,7 +86,7 @@ export default function DevicePanel({
               mirroring={mirroringDeviceSerial === device.serial}
               online
               onSelect={() => onSelectDevice(device.serial)}
-              onNoteChange={(note) => handleNoteChange(device, note)}
+              onNoteChange={(note) => onDeviceNoteChange(device, note)}
             />
           ))}
 
@@ -114,7 +99,7 @@ export default function DevicePanel({
               selected={false}
               mirroring={false}
               online={false}
-              onNoteChange={(note) => handleNoteChange(device, note)}
+              onNoteChange={(note) => onDeviceNoteChange(device, note)}
             />
           ))}
 
@@ -287,8 +272,4 @@ function ConnectionBadge({ type }: { type: DeviceInfo["connection_type"] }) {
       {t("deviceList.unknown")}
     </Badge>
   );
-}
-
-function deviceIdentityKey(device: Pick<DeviceInfo, "serial" | "device_sn">) {
-  return device.device_sn || device.serial;
 }

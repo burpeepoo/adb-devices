@@ -26,6 +26,28 @@ pub struct MdnsDevice {
     pub connectable: bool,
 }
 
+#[derive(Debug, Serialize, Clone, Default)]
+pub struct DeviceSummary {
+    pub android_version: String,
+    pub api_level: String,
+    pub build_tags: String,
+    pub verified_boot_state: String,
+    pub vbmeta_device_state: String,
+    pub bootloader_state: String,
+    pub battery_level: String,
+    pub battery_status: String,
+    pub display_size: String,
+    pub display_density: String,
+    pub display_physical_size_mm: String,
+    pub storage: String,
+    pub foreground_app: String,
+    pub security_patch: String,
+    pub selinux: String,
+    pub uptime: String,
+    pub cpu_abi: String,
+    pub build_fingerprint: String,
+}
+
 #[tauri::command(async)]
 pub fn adb_restart_server(app: AppHandle) -> Result<String, AdbError> {
     let _ = adb::run_adb_with_timeout(&app, &["kill-server"], None, Duration::from_secs(5));
@@ -51,6 +73,78 @@ pub fn adb_devices(
         &state.device_sn_cache,
         devices,
     ))
+}
+
+#[tauri::command(async)]
+pub fn adb_device_summary(
+    app: AppHandle,
+    device_serial: String,
+) -> Result<DeviceSummary, AdbError> {
+    let props_output = adb_shell_text(
+        &app,
+        &device_serial,
+        "getprop ro.build.version.release; getprop ro.build.version.sdk; getprop ro.build.tags; getprop ro.boot.verifiedbootstate; getprop ro.boot.vbmeta.device_state; getprop ro.boot.flash.locked; getprop ro.build.version.security_patch; getprop ro.product.cpu.abi; getprop ro.build.fingerprint",
+        Duration::from_secs(4),
+    );
+    let props = props_output
+        .lines()
+        .map(|line| line.trim().to_string())
+        .collect::<Vec<_>>();
+    let prop = |index: usize| props.get(index).cloned().unwrap_or_default();
+
+    let battery_output = adb_shell_text(
+        &app,
+        &device_serial,
+        "dumpsys battery",
+        Duration::from_secs(4),
+    );
+    let display_size_output =
+        adb_shell_text(&app, &device_serial, "wm size", Duration::from_secs(3));
+    let display_density_output =
+        adb_shell_text(&app, &device_serial, "wm density", Duration::from_secs(3));
+    let display_physical_size_output = adb_shell_text(
+        &app,
+        &device_serial,
+        r#"for p in /sys/class/graphics/fb0 /sys/class/drm/card0-*; do if [ -r "$p/width" ] && [ -r "$p/height" ]; then cat "$p/width"; cat "$p/height"; exit; fi; done"#,
+        Duration::from_secs(3),
+    );
+    let storage_output =
+        adb_shell_text(&app, &device_serial, "df -h /data", Duration::from_secs(4));
+    let foreground_output = adb_shell_text(
+        &app,
+        &device_serial,
+        "dumpsys window | grep -E 'mCurrentFocus|mFocusedApp' | head -n 1",
+        Duration::from_secs(5),
+    );
+    let selinux = adb_shell_text(&app, &device_serial, "getenforce", Duration::from_secs(3));
+    let uptime_output = adb_shell_text(
+        &app,
+        &device_serial,
+        "cat /proc/uptime",
+        Duration::from_secs(3),
+    );
+    let (battery_level, battery_status) = parse_battery_summary(&battery_output);
+
+    Ok(DeviceSummary {
+        android_version: prop(0),
+        api_level: prop(1),
+        build_tags: prop(2),
+        verified_boot_state: prop(3),
+        vbmeta_device_state: prop(4),
+        bootloader_state: parse_bootloader_state(&prop(5)),
+        battery_level,
+        battery_status,
+        display_size: parse_display_size(&display_size_output),
+        display_density: parse_display_density(&display_density_output),
+        display_physical_size_mm: parse_physical_size_mm(&display_physical_size_output),
+        storage: parse_storage_summary(&storage_output),
+        foreground_app: parse_foreground_app(&foreground_output),
+        security_patch: prop(6),
+        selinux,
+        uptime: parse_uptime_summary(&uptime_output),
+        cpu_abi: prop(7),
+        build_fingerprint: prop(8),
+    })
 }
 
 #[tauri::command(async)]
@@ -190,6 +284,19 @@ fn read_device_sn(app: &AppHandle, adb_serial: &str) -> String {
         Some(adb_serial),
         Duration::from_secs(3),
     ) else {
+        return String::new();
+    };
+
+    if !output.status.success() {
+        return String::new();
+    }
+
+    String::from_utf8_lossy(&output.stdout).trim().to_string()
+}
+
+fn adb_shell_text(app: &AppHandle, adb_serial: &str, command: &str, timeout: Duration) -> String {
+    let Ok(output) = adb::run_adb_with_timeout(app, &["shell", command], Some(adb_serial), timeout)
+    else {
         return String::new();
     };
 
@@ -464,6 +571,143 @@ fn is_private_ipv4(value: &str) -> bool {
         || (parts[0] == 192 && parts[1] == 168)
 }
 
+fn parse_battery_summary(stdout: &str) -> (String, String) {
+    let mut level = String::new();
+    let mut status = String::new();
+
+    for line in stdout.lines() {
+        let line = line.trim();
+        if let Some(value) = line.strip_prefix("level:") {
+            let value = value.trim();
+            if !value.is_empty() {
+                level = format!("{value}%");
+            }
+        } else if let Some(value) = line.strip_prefix("status:") {
+            status = match value.trim() {
+                "2" => "Charging",
+                "3" => "Discharging",
+                "4" => "Not charging",
+                "5" => "Full",
+                _ => "",
+            }
+            .to_string();
+        }
+    }
+
+    (level, status)
+}
+
+fn parse_display_size(stdout: &str) -> String {
+    parse_prefixed_line(stdout, "Physical size:")
+        .or_else(|| parse_prefixed_line(stdout, "Override size:"))
+        .unwrap_or_default()
+}
+
+fn parse_display_density(stdout: &str) -> String {
+    let value = parse_prefixed_line(stdout, "Physical density:")
+        .or_else(|| parse_prefixed_line(stdout, "Override density:"))
+        .unwrap_or_default();
+    if value.is_empty() {
+        String::new()
+    } else if value.ends_with("dpi") {
+        value
+    } else {
+        format!("{value} dpi")
+    }
+}
+
+fn parse_prefixed_line(stdout: &str, prefix: &str) -> Option<String> {
+    stdout.lines().find_map(|line| {
+        line.trim()
+            .strip_prefix(prefix)
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty())
+    })
+}
+
+fn parse_storage_summary(stdout: &str) -> String {
+    for line in stdout.lines() {
+        let parts = line.split_whitespace().collect::<Vec<_>>();
+        if parts.len() < 6 {
+            continue;
+        }
+        let mounted = parts[parts.len() - 1];
+        if mounted != "/data" && !mounted.ends_with("/data") {
+            continue;
+        }
+
+        return format!("{} free / {} total ({} used)", parts[3], parts[1], parts[4]);
+    }
+
+    String::new()
+}
+
+fn parse_physical_size_mm(stdout: &str) -> String {
+    let values = stdout
+        .split(|character: char| !character.is_ascii_digit() && character != '.')
+        .filter_map(|part| part.parse::<f64>().ok())
+        .filter(|value| value.is_finite() && *value > 0.0)
+        .collect::<Vec<_>>();
+
+    if values.len() < 2 {
+        return String::new();
+    }
+
+    let width = values[0];
+    let height = values[1];
+    let longest_edge = width.max(height);
+    if longest_edge > 1500.0 {
+        return String::new();
+    }
+
+    format!("{:.0}x{:.0} mm", width, height)
+}
+
+fn parse_foreground_app(stdout: &str) -> String {
+    for line in stdout.lines() {
+        let line = line.trim();
+        if let Some((_, rest)) = line.split_once(" u0 ") {
+            return rest
+                .split_whitespace()
+                .next()
+                .unwrap_or_default()
+                .trim_end_matches('}')
+                .to_string();
+        }
+    }
+
+    String::new()
+}
+
+fn parse_bootloader_state(stdout: &str) -> String {
+    match stdout.trim() {
+        "1" | "true" => "locked".to_string(),
+        "0" | "false" => "unlocked".to_string(),
+        value => value.to_string(),
+    }
+}
+
+fn parse_uptime_summary(stdout: &str) -> String {
+    let Some(first) = stdout.split_whitespace().next() else {
+        return String::new();
+    };
+    let Ok(seconds) = first.parse::<f64>() else {
+        return String::new();
+    };
+    let total_minutes = (seconds as u64) / 60;
+    let days = total_minutes / 1440;
+    let hours = (total_minutes % 1440) / 60;
+    let minutes = total_minutes % 60;
+
+    if days > 0 {
+        format!("{days}d {hours}h {minutes}m")
+    } else if hours > 0 {
+        format!("{hours}h {minutes}m")
+    } else {
+        format!("{minutes}m")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -518,5 +762,46 @@ Windows IP Configuration
             addresses,
             vec!["192.168.1.19", "192.168.110.252", "10.0.0.12"]
         );
+    }
+
+    #[test]
+    fn parses_device_status_summary_fields() {
+        let battery = "\
+Current Battery Service state:
+  AC powered: false
+  USB powered: true
+  status: 2
+  level: 84
+";
+        let storage = "\
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/block/dm-6 114G   76G   38G  67% /data
+";
+        let foreground = "mCurrentFocus=Window{abc u0 com.cozyla.launcher/.MainActivity}";
+
+        assert_eq!(
+            parse_battery_summary(battery),
+            ("84%".to_string(), "Charging".to_string())
+        );
+        assert_eq!(parse_display_size("Physical size: 1080x1920"), "1080x1920");
+        assert_eq!(parse_display_density("Physical density: 420"), "420 dpi");
+        assert_eq!(
+            parse_storage_summary(storage),
+            "38G free / 114G total (67% used)"
+        );
+        assert_eq!(
+            parse_foreground_app(foreground),
+            "com.cozyla.launcher/.MainActivity"
+        );
+        assert_eq!(parse_physical_size_mm("531\n299"), "531x299 mm");
+        assert_eq!(parse_physical_size_mm("1920\n1080"), "");
+    }
+
+    #[test]
+    fn parses_device_integrity_diagnostics() {
+        assert_eq!(parse_bootloader_state("1"), "locked");
+        assert_eq!(parse_bootloader_state("0"), "unlocked");
+        assert_eq!(parse_bootloader_state(""), "");
+        assert_eq!(parse_uptime_summary("93784.52 123456.78"), "1d 2h 3m");
     }
 }

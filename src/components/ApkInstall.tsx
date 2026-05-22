@@ -4,7 +4,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useTranslation } from "react-i18next";
+import { IconApps } from "@tabler/icons-react";
 import PackageNameInput from "./PackageNameInput";
+import SectionTitle from "./common/SectionTitle";
 import { packageMatchScore } from "../utils/packageSearch";
 
 type InstallStatus = "pending" | "installing" | "success" | "failed";
@@ -370,8 +372,10 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
       onPasteCapture={handlePaste}
       className={`flex h-full min-h-0 w-full min-w-0 max-w-full flex-col gap-4 overflow-hidden rounded-lg transition-colors ${dragging ? "bg-blue-50/60" : ""}`}
     >
-      <section className="flex min-h-0 flex-1 flex-col rounded-lg border border-gray-200 bg-white p-5">
-        <h3 className="mb-4 shrink-0 text-base font-semibold text-gray-800">{t('apkInstall.title')}</h3>
+      <section className="flex min-h-0 flex-1 flex-col rounded-lg border border-gray-200 bg-white p-4">
+        <div className="shrink-0">
+          <SectionTitle icon={<IconApps size={17} />} label={t('apkInstall.title')} mb="md" />
+        </div>
 
         {/* APK selection */}
         <div className="mb-4 shrink-0">

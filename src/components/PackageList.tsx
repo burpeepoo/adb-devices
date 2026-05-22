@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { ExportedApk, PackageInfo } from "../types";
 import { useTranslation } from "react-i18next";
+import { IconDeviceMobileCode } from "@tabler/icons-react";
+import SectionTitle from "./common/SectionTitle";
 
 interface Props {
   deviceSerial: string | null;
@@ -102,7 +104,8 @@ export default function PackageList({ deviceSerial }: Props) {
 
   return (
     <div className="h-full bg-white rounded-lg border border-gray-200 flex flex-col">
-      <div className="p-3 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200">
+        <SectionTitle icon={<IconDeviceMobileCode size={17} />} label={t('tabs.packageList')} mb="sm" />
         <div className="flex gap-2 mb-2">
           <button
             onClick={handleList}

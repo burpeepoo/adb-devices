@@ -3,7 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { LogcatEntry } from "../types";
 import { useTranslation } from "react-i18next";
 import { Button as MantineButton, Checkbox, Menu } from "@mantine/core";
-import { IconChevronDown } from "@tabler/icons-react";
+import { IconChevronDown, IconListDetails } from "@tabler/icons-react";
+import SectionTitle from "./common/SectionTitle";
 
 interface Props {
   deviceSerial: string | null;
@@ -139,14 +140,13 @@ export default function Logcat({ deviceSerial }: Props) {
 
   return (
     <div className="space-y-4">
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
+      <section className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-          <div>
-            <h3 className="text-base font-semibold text-gray-800">{t('logcat.title')}</h3>
-            <p className="text-xs text-gray-400 mt-1">
-              {active ? t('logcat.autoRefresh') : t('logcat.clickToView')}
-            </p>
-          </div>
+          <SectionTitle
+            icon={<IconListDetails size={17} />}
+            label={t('logcat.title')}
+            description={active ? t('logcat.autoRefresh') : t('logcat.clickToView')}
+          />
           <div className="flex items-center gap-2">
             <button
               onClick={refreshLogcat}

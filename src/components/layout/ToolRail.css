@@ -1,0 +1,41 @@
+.tool-rail__button {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: var(--mantine-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  padding: 0 10px;
+  color: var(--mantine-color-gray-4);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.tool-rail__button:hover {
+  color: var(--mantine-color-white);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tool-rail__button[data-active="true"] {
+  color: var(--mantine-color-white);
+  background: var(--mantine-color-blue-6);
+}
+
+.tool-rail__button--utility {
+  min-height: 40px;
+}
+
+.tool-rail__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+}

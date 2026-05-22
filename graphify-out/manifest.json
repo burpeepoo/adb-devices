@@ -1,7 +1,7 @@
 {
   "/Users/kaizhang/Documents/Cozyla/adb_project/package.json": {
-    "mtime": 1779419294.9214823,
-    "ast_hash": "1b3ad4f214a36bcf5c5431c6dbfbf5ca",
+    "mtime": 1779431377.5232692,
+    "ast_hash": "fe99769a9a65a805d7e3cfa9f54bc7a5",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/tsconfig.json": {
@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/tauri.conf.json": {
-    "mtime": 1779415718.2251964,
-    "ast_hash": "9c4b812e66d5692f23edc8130d60124a",
+    "mtime": 1779431377.5248876,
+    "ast_hash": "c3e3002e95ced87bd0713adc4d90c7a7",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/build.rs": {
@@ -100,8 +100,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/lib.rs": {
-    "mtime": 1779351710.867802,
-    "ast_hash": "78968827c0a2789b3c77652eb2432700",
+    "mtime": 1779420227.59357,
+    "ast_hash": "324d7155096c044e3883fe97c33826d2",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/adb.rs": {
@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/device.rs": {
-    "mtime": 1778134752.4800043,
-    "ast_hash": "6c9a4653fe2543d8fc87d237971cd173",
+    "mtime": 1779422187.5898418,
+    "ast_hash": "2ec53d51965a12073ba036a3ae225aac",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/mirror.rs": {
@@ -179,9 +179,14 @@
     "ast_hash": "5d5f2bc4ce81b4845d53deeddf0df45c",
     "semantic_hash": ""
   },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/deviceFormFactor.ts": {
+    "mtime": 1779422182.0770905,
+    "ast_hash": "c23a036d9d0f448b14a101bcb89c4661",
+    "semantic_hash": ""
+  },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/App.tsx": {
-    "mtime": 1779419138.024985,
-    "ast_hash": "4c09160cfd60a6f3b1d2ee4812fe4a81",
+    "mtime": 1779426402.31556,
+    "ast_hash": "c8f488e09070e1122ffc050af0864aac",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/updaterPolicy.ts": {
@@ -214,6 +219,11 @@
     "ast_hash": "0352474ba2918efe13895edbc3780d94",
     "semantic_hash": ""
   },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/deviceNotes.ts": {
+    "mtime": 1779420011.0182538,
+    "ast_hash": "bdd006dcab6acfddc60ee000a123bd52",
+    "semantic_hash": ""
+  },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/updateNotes.ts": {
     "mtime": 1779360690.3027716,
     "ast_hash": "652b5e4f0b3bc6363bb70f74e5696d4f",
@@ -225,18 +235,18 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/types/index.ts": {
-    "mtime": 1779358451.2570467,
-    "ast_hash": "ca952f0a2120268e6e880b12e48e1a2b",
+    "mtime": 1779422182.0778508,
+    "ast_hash": "e50402ab63840c8ada55b79b790ec7dc",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/locales/zh-CN.json": {
-    "mtime": 1779419138.0266726,
-    "ast_hash": "b72ad8fea87f86ef6b12b2cbc8b236f3",
+    "mtime": 1779422182.0805545,
+    "ast_hash": "2db9c7c3e0a4b8b4ebd49d0ee46e2365",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/locales/en-US.json": {
-    "mtime": 1779419138.025423,
-    "ast_hash": "0ae5e10ff727d58c9e1e96a8d755a7bb",
+    "mtime": 1779422182.0787466,
+    "ast_hash": "0d55d530ee2b81b4ca60a1a3c84f9dfc",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/utils/packageSearch.ts": {
@@ -255,13 +265,13 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Clipboard.tsx": {
-    "mtime": 1778124924.6705294,
-    "ast_hash": "2278a4afefb26c8795ead0c00a7b2868",
+    "mtime": 1779431093.7651405,
+    "ast_hash": "dc2a1d2be4e4a70d4b10cd74c6b976ee",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ImageCast.tsx": {
-    "mtime": 1779417567.7185688,
-    "ast_hash": "f20cc29a6b7687b802d78afde8b20aba",
+    "mtime": 1779426570.6448598,
+    "ast_hash": "5f13514694bd3b96644b9e001b0f3d81",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/PairConnect.tsx": {
@@ -270,28 +280,28 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ScreenMirror.tsx": {
-    "mtime": 1779328675.276722,
-    "ast_hash": "3f1ab978ce5b0bf529186345d5d35dec",
+    "mtime": 1779431093.76591,
+    "ast_hash": "38ce524a9dfd4f8612911e07e417ffb4",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/AdbWorkbench.tsx": {
-    "mtime": 1779419294.9210513,
-    "ast_hash": "6861295f7813fd0068fd712330625b44",
+    "mtime": 1779426613.7795591,
+    "ast_hash": "9a7eb98aa5b54afd487ef3c38458f879",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Screenshot.tsx": {
-    "mtime": 1779270877.925464,
-    "ast_hash": "233a9bb1b40cd49beb4e5da0a5d9bcf7",
+    "mtime": 1779426570.6442947,
+    "ast_hash": "b0a678ee3f954eb5d56bce147987fe88",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ApkInstall.tsx": {
-    "mtime": 1779417567.718214,
-    "ast_hash": "49007ae8242ee933335d7f1924a12b67",
+    "mtime": 1779431093.7660704,
+    "ast_hash": "68478dbad130c13f923ec438501a76a4",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/PackageList.tsx": {
-    "mtime": 1778751780.4358015,
-    "ast_hash": "c3ad92b3cdf0617925ec1087d6c69d79",
+    "mtime": 1779431093.7664251,
+    "ast_hash": "7a6576e5a74e6dad05bc024b387aa6c4",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/DeviceList.tsx": {
@@ -310,18 +320,18 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Logcat.tsx": {
-    "mtime": 1779329808.9046245,
-    "ast_hash": "8a56d37ac07b12da28c8b9affe139e49",
+    "mtime": 1779431093.7656455,
+    "ast_hash": "b5de7da8e6dff193b659b5d23da55732",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/DeviceConsole.tsx": {
-    "mtime": 1779419191.4086993,
-    "ast_hash": "a92ab4293dae10565f2d97d8fc492710",
+    "mtime": 1779426570.64504,
+    "ast_hash": "726ed6c9310bbd76523d1f151b4d3e45",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ScreenRecord.tsx": {
-    "mtime": 1779328636.060454,
-    "ast_hash": "ba8372b054591800ec6d06510b85314d",
+    "mtime": 1779426570.644599,
+    "ast_hash": "146cdac5394c7a2d233f8c69c86fca02",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/AdbSetup.tsx": {
@@ -340,13 +350,13 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/ToolRail.tsx": {
-    "mtime": 1779419044.9054544,
-    "ast_hash": "b1ef595985498a03381e62f2c2213e2e",
+    "mtime": 1779420798.060612,
+    "ast_hash": "83db60b4efded0c39e441cec43aafd4d",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/PageHeader.tsx": {
-    "mtime": 1779270877.927618,
-    "ast_hash": "0ef27cc41906aef110da0d6a5ff4090f",
+    "mtime": 1779426402.315164,
+    "ast_hash": "9c4c76ae648053fe4c1d506346caa993",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/StatusBar.tsx": {
@@ -355,8 +365,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/DevicePanel.tsx": {
-    "mtime": 1779270877.9274094,
-    "ast_hash": "08505275ce08529832ef8d59f8910386",
+    "mtime": 1779420096.642571,
+    "ast_hash": "4e481d07161f6dd6b56f629a25c9117f",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/common/CommandOutput.tsx": {
@@ -372,6 +382,11 @@
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/common/ResultAlert.tsx": {
     "mtime": 1779270877.9266,
     "ast_hash": "574e10eda3df8855d45edcb5dedb1970",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/common/SectionTitle.tsx": {
+    "mtime": 1779426570.6441455,
+    "ast_hash": "a5cdf91d6687683a6f9bc2ada305daa7",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/hooks/useDevices.ts": {
@@ -395,8 +410,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/CHANGELOG.md": {
-    "mtime": 1779419349.358126,
-    "ast_hash": "8459926a725a36edefcb8f88d8756a87",
+    "mtime": 1779431392.4336543,
+    "ast_hash": "e133ce8119ce974e47b54a8423a41c2f",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/README.md": {
@@ -437,6 +452,11 @@
   "/Users/kaizhang/Documents/Cozyla/adb_project/docs/superpowers/specs/2026-05-22-adb-manager-device-console.md": {
     "mtime": 1779418721.2559712,
     "ast_hash": "c3b96391170f3311b371a27cd611d968",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v1.1.6.txt": {
+    "mtime": 1779431392.4338822,
+    "ast_hash": "4ac626806622dec129ee89f5d90ebed2",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v1.1.5.txt": {

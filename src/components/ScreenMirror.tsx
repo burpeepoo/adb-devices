@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { IconDevicesPc } from "@tabler/icons-react";
+import SectionTitle from "./common/SectionTitle";
 
 interface Props {
   deviceSerial: string | null;
@@ -149,8 +151,8 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
   if (scrcpyAvailable === null) {
     return (
       <div className="max-w-3xl space-y-4">
-        <section className="bg-white rounded-lg border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-800">{t('screenMirror.title')}</h3>
+        <section className="bg-white rounded-lg border border-gray-200 p-4">
+          <SectionTitle icon={<IconDevicesPc size={17} />} label={t('screenMirror.title')} />
           <div className="mt-3 text-sm text-gray-500">{t('screenMirror.detectingScrcpy')}</div>
         </section>
       </div>
@@ -160,8 +162,8 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
   if (!scrcpyAvailable) {
     return (
       <div className="max-w-3xl space-y-4">
-        <section className="bg-white rounded-lg border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-800">{t('screenMirror.title')}</h3>
+        <section className="bg-white rounded-lg border border-gray-200 p-4">
+          <SectionTitle icon={<IconDevicesPc size={17} />} label={t('screenMirror.title')} />
           <p className="text-sm text-gray-500 mt-2">
             {t('screenMirror.scrcpyRequired')}
           </p>
@@ -223,12 +225,13 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
 
   return (
     <div className="max-w-3xl space-y-4">
-      <section className="bg-white rounded-lg border border-gray-200 p-5">
+      <section className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-          <div>
-            <h3 className="text-base font-semibold text-gray-800">{t('screenMirror.title')}</h3>
-            <p className="text-xs text-gray-400 mt-1">{t('screenMirror.openInteractive')}</p>
-          </div>
+          <SectionTitle
+            icon={<IconDevicesPc size={17} />}
+            label={t('screenMirror.title')}
+            description={t('screenMirror.openInteractive')}
+          />
           <div className="flex items-center gap-2">
             <button
               onClick={handleStartMirror}

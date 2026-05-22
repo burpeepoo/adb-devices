@@ -7,6 +7,27 @@ export interface DeviceInfo {
   connection_type: "usb" | "wireless" | "unknown";
 }
 
+export interface DeviceSummary {
+  android_version: string;
+  api_level: string;
+  build_tags: string;
+  verified_boot_state: string;
+  vbmeta_device_state: string;
+  bootloader_state: string;
+  battery_level: string;
+  battery_status: string;
+  display_size: string;
+  display_density: string;
+  display_physical_size_mm: string;
+  storage: string;
+  foreground_app: string;
+  security_patch: string;
+  selinux: string;
+  uptime: string;
+  cpu_abi: string;
+  build_fingerprint: string;
+}
+
 export interface DeviceHistoryItem extends DeviceInfo {
   lastSeen: number;
 }

@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { TabKey, AppSettings } from "./types";
+import { TabKey, AppSettings, DeviceInfo } from "./types";
 import { applyLanguagePreference } from "./i18n";
 import { useDevices } from "./hooks/useDevices";
 import { useAppUpdater } from "./hooks/useAppUpdater";
 import { isAutoUpdateCheckEnabled } from "./updaterPolicy";
 import { markTabVisited, TAB_KEYS } from "./tabState";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
+import { deviceIdentityKey, setDeviceNote, type DeviceNotes } from "./deviceNotes";
 import AppShellLayout from "./components/layout/AppShellLayout";
 import DevicePanel from "./components/layout/DevicePanel";
 import PageHeader from "./components/layout/PageHeader";
@@ -61,6 +62,7 @@ export default function App() {
     autoCheckUpdates: true,
   });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [deviceNotes, setDeviceNotes] = useState<DeviceNotes>({});
   const updater = useAppUpdater({
     autoCheckEnabled: settingsLoaded && isAutoUpdateCheckEnabled(settings.autoCheckUpdates),
   });
@@ -149,6 +151,13 @@ export default function App() {
     const mirrorStateTimer = setInterval(syncMirrorState, 2500);
     return () => clearInterval(mirrorStateTimer);
   }, [checkAdb, loadSettings, syncMirrorState]);
+
+  useEffect(() => {
+    getStore()
+      .then((store) => store.get<DeviceNotes>(STORE_KEYS.deviceNotes))
+      .then((saved) => setDeviceNotes(saved || {}))
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -336,6 +345,14 @@ export default function App() {
     });
   }, []);
 
+  const handleDeviceNoteChange = useCallback((device: DeviceInfo, note: string) => {
+    setDeviceNotes((current) => {
+      const next = setDeviceNote(current, device, note);
+      saveStoreValue(STORE_KEYS.deviceNotes, next).catch(() => undefined);
+      return next;
+    });
+  }, []);
+
   const handleOpenGithub = useCallback(async () => {
     try {
       await invoke("open_external_url", { url: GITHUB_REPOSITORY_URL });
@@ -364,7 +381,10 @@ export default function App() {
     setActiveTab(tab);
   }, []);
 
-  const selectedDeviceLabel = selectedDevice || t("layout.defaultDevice");
+  const selectedDeviceInfo = devices.find((device) => device.serial === selectedDevice) || null;
+  const selectedDeviceLabel = selectedDeviceInfo
+    ? deviceNotes[deviceIdentityKey(selectedDeviceInfo)] || deviceIdentityKey(selectedDeviceInfo)
+    : selectedDevice || t("layout.defaultDevice");
 
   const renderTabContent = (tab: TabKey) => {
     if (tab === "pair") {
@@ -372,8 +392,10 @@ export default function App() {
         <DeviceConsole
           devices={devices}
           selectedDeviceSerial={selectedDevice}
+          deviceNotes={deviceNotes}
           onConnected={refresh}
           onSelectTool={handleSelectTab}
+          onDeviceNoteChange={handleDeviceNoteChange}
         />
       );
     }
@@ -459,8 +481,8 @@ export default function App() {
           <ToolRail
             tools={tools}
             activeTool={activeTab}
-            settingsLabel={t("layout.openSettings")}
-            githubLabel={t("layout.openGithub")}
+            settingsLabel={t("layout.settings")}
+            githubLabel={t("layout.github")}
             hasUpdate={updater.status === "available"}
             onSelectTool={handleSelectTab}
             onOpenSettings={() => setShowSettings(true)}
@@ -474,13 +496,14 @@ export default function App() {
             error={error}
             selectedDevice={selectedDevice}
             mirroringDeviceSerial={mirroringDeviceSerial}
+            deviceNotes={deviceNotes}
             onSelectDevice={setSelectedDevice}
+            onDeviceNoteChange={handleDeviceNoteChange}
             onRefresh={refresh}
           />
         }
         header={
           <PageHeader
-            title={TAB_LABELS[activeTab]}
             selectedDeviceLabel={selectedDevice ? t("layout.selectedDevice") : t("layout.noSelectedDevice")}
             selectedDeviceValue={selectedDeviceLabel}
           />

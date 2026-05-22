@@ -2,13 +2,26 @@
 
 ## [Unreleased]
 
+## [1.1.6] - 2026-05-22
+
 ### Added
 
 - Added a first-pass Device Console with selected-device overview and shortcut navigation.
-- Added active tab labels in the left tool rail.
+- Added editable device notes and live device status summaries to the Device Console.
+- Added full tab labels in the left tool rail.
+- Added device signing, verified boot, and build diagnostics to the Device Console.
+- Added Device Console icons for status, diagnostics, and inferred device form factor.
+- Added icons to the main functional area headers and Device Console section headers.
+
+### Changed
+
+- Merged Device Console status and diagnostics into collapsible sections inside the main device information card.
+- Simplified the workspace header to show only the current device.
 
 ### Fixed
 
+- Made long Device Console values reveal their full content faster on hover.
+- Aligned functional area title spacing across workspace tabs.
 - Kept visited tool tabs mounted so selected files and form inputs survive tab switches until the app closes.
 - Raised the update prompt above Settings when opening update details from Settings.
 - Preserved full local paths when pasting file or folder values into path-capable Workbench controls.

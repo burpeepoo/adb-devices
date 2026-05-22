@@ -8,6 +8,7 @@ import { Badge, Box, Button, Group, Paper, Stack, Switch, Text, TextInput } from
 import { IconFolder, IconPhotoUp, IconPlayerPlay, IconUpload } from "@tabler/icons-react";
 import CommandOutput from "./common/CommandOutput";
 import ResultAlert from "./common/ResultAlert";
+import SectionTitle from "./common/SectionTitle";
 
 interface Props {
   deviceSerial: string | null;
@@ -190,12 +191,11 @@ export default function ImageCast({ deviceSerial, active }: Props) {
       <Paper withBorder radius="md" p="md">
         <Stack gap="md">
           <Group justify="space-between" align="start">
-            <div>
-              <Text fw={700}>{t("imageCast.title")}</Text>
-              <Text size="xs" c="dimmed" mt={4}>
-                {t("imageCast.description")}
-              </Text>
-            </div>
+            <SectionTitle
+              icon={<IconPhotoUp size={17} />}
+              label={t("imageCast.title")}
+              description={t("imageCast.description")}
+            />
             <Badge variant="light" color={deviceSerial ? "green" : "yellow"}>
               {deviceSerial ? t("imageCast.deviceReady") : t("imageCast.noDeviceShort")}
             </Badge>

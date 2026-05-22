@@ -3,7 +3,9 @@ import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import { extractClipboardPaths, isLikelyLocalPath } from "../pathClipboard";
+import { IconTerminal2 } from "@tabler/icons-react";
 import PackageNameInput from "./PackageNameInput";
+import SectionTitle from "./common/SectionTitle";
 
 type WorkbenchMode = "library" | "templates" | "custom";
 type WorkbenchRisk = "low" | "medium" | "high";
@@ -1121,8 +1123,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
       <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)] gap-4">
       <section className="flex min-h-0 flex-col rounded-lg border border-gray-200 bg-white">
         <div className="border-b border-gray-200 p-4">
-          <h3 className="text-base font-semibold text-gray-800">{t("workbench.title")}</h3>
-          <p className="mt-1 text-xs leading-5 text-gray-500">{t("workbench.subtitle")}</p>
+          <SectionTitle icon={<IconTerminal2 size={17} />} label={t("workbench.title")} description={t("workbench.subtitle")} />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
