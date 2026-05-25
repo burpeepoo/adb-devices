@@ -34,6 +34,7 @@ require_env() {
 }
 
 require_env "APPLE_SIGNING_IDENTITY"
+require_env "APPLE_INSTALLER_SIGNING_IDENTITY"
 require_env "APPLE_API_ISSUER"
 require_env "APPLE_API_KEY"
 require_env "APPLE_API_KEY_PATH"
@@ -68,6 +69,12 @@ if ! security find-identity -v -p codesigning | grep -Fq "$APPLE_SIGNING_IDENTIT
     exit 1
 fi
 
+if ! security find-identity -v -p basic | grep -Fq "$APPLE_INSTALLER_SIGNING_IDENTITY"; then
+    echo "Error: installer signing identity is not visible in this shell/keychain: $APPLE_INSTALLER_SIGNING_IDENTITY" >&2
+    echo "Run: security find-identity -v -p basic" >&2
+    exit 1
+fi
+
 echo "=== Release ADB Manager v${VERSION} ==="
 ./scripts/set-version.sh "$VERSION"
 
@@ -90,10 +97,18 @@ done
 echo "=== Building app bundles and custom DMGs ==="
 npm run build:dmg:all
 
+echo "=== Building signed PKG installers ==="
+npm run build:pkg:all
+
 DMG_DIR="src-tauri/target/release/bundle/dmg"
 DMGS=(
     "$DMG_DIR/ADB_Manager_${VERSION}_aarch64.dmg"
     "$DMG_DIR/ADB_Manager_${VERSION}_x64.dmg"
+)
+PKG_DIR="src-tauri/target/release/bundle/pkg"
+PKGS=(
+    "$PKG_DIR/ADB_Manager_${VERSION}_aarch64.pkg"
+    "$PKG_DIR/ADB_Manager_${VERSION}_x64.pkg"
 )
 
 echo "=== Signing and notarizing final DMGs ==="
@@ -116,6 +131,25 @@ for dmg in "${DMGS[@]}"; do
     spctl -a -vvv -t open --context context:primary-signature "$dmg"
 done
 
+echo "=== Notarizing final PKGs ==="
+for pkg in "${PKGS[@]}"; do
+    if [[ ! -f "$pkg" ]]; then
+        echo "Error: expected PKG was not generated: $pkg" >&2
+        exit 1
+    fi
+
+    pkgutil --check-signature "$pkg"
+
+    xcrun notarytool submit "$pkg" \
+        --key "$APPLE_API_KEY_PATH" \
+        --key-id "$APPLE_API_KEY" \
+        --issuer "$APPLE_API_ISSUER" \
+        --wait
+
+    xcrun stapler staple "$pkg"
+    spctl -a -vvv -t install "$pkg"
+done
+
 echo "=== Verifying notarized app bundles ==="
 APP_BUNDLES=(
     "src-tauri/target/aarch64-apple-darwin/release/bundle/macos/ADB Manager.app"
@@ -134,6 +168,9 @@ done
 echo "=== Release artifacts ==="
 for dmg in "${DMGS[@]}"; do
     ls -lh "$dmg"
+done
+for pkg in "${PKGS[@]}"; do
+    ls -lh "$pkg"
 done
 
 echo "=== macOS updater artifacts ==="

@@ -1,0 +1,2 @@
+en-US: Added signed macOS PKG installers for first-time installation.
+zh-CN: 新增已签名的 macOS PKG 安装器，用于首次安装。

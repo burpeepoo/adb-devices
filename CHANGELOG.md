@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.1.8] - 2026-05-25
+
+### Added
+
+- Added signed and notarized macOS PKG installers to the release workflow.
+
 ## [1.1.7] - 2026-05-22
 
 ### Added

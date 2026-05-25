@@ -112,10 +112,10 @@ npm run tauri build
 
 ### macOS Release
 
-Developer ID releases are built by a repeatable script that updates versions, signs bundled binaries, builds Apple Silicon and Intel DMGs, creates Tauri updater artifacts, notarizes DMGs, staples tickets, and runs Gatekeeper checks.
+Developer ID releases are built by a repeatable script that updates versions, signs bundled binaries, builds Apple Silicon and Intel DMGs, builds signed PKG installers, creates Tauri updater artifacts, notarizes DMGs and PKGs, staples tickets, and runs Gatekeeper checks.
 
 1. Copy `.env.release.example` to `.env.release`.
-2. Fill in the local Apple Developer values. Keep the `.p8` key outside this repo.
+2. Fill in the local Apple Developer values. Keep the `.p8` key outside this repo. PKG installers require a `Developer ID Installer` certificate in addition to the `Developer ID Application` certificate used for the app and DMGs.
 3. Make sure the Tauri updater private key exists outside the repo. The default local path is:
 
 ```text
@@ -150,6 +150,12 @@ The final `.dmg` files are generated under:
 
 ```text
 src-tauri/target/release/bundle/dmg/
+```
+
+The final `.pkg` installers are generated under:
+
+```text
+src-tauri/target/release/bundle/pkg/
 ```
 
 macOS updater artifacts are generated under:
@@ -189,7 +195,16 @@ ADB.Manager_X.Y.Z_x64-setup.exe.sig
 latest.json
 ```
 
-The `.dmg`, `.exe`, and `.msi` assets remain the first-install downloads. `latest.json` points the installed app to the signed updater assets.
+Upload these first-install macOS assets to the same GitHub Release:
+
+```text
+ADB_Manager_X.Y.Z_aarch64.dmg
+ADB_Manager_X.Y.Z_x64.dmg
+ADB_Manager_X.Y.Z_aarch64.pkg
+ADB_Manager_X.Y.Z_x64.pkg
+```
+
+The `.dmg`, `.pkg`, `.exe`, and `.msi` assets remain the first-install downloads. `latest.json` points the installed app to the signed updater assets.
 
 ### Local Updater Test
 

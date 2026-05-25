@@ -1,6 +1,6 @@
 {
   "name": "adb-manager",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "ADB Manager for Cozyla PMs",
   "scripts": {
     "dev": "vite",
@@ -16,6 +16,10 @@
     "build:dmg:apple": "./scripts/build-dmg.sh aarch64",
     "build:dmg:intel": "./scripts/build-dmg.sh x64",
     "build:dmg:all": "./scripts/build-dmg.sh all",
+    "build:pkg": "./scripts/build-pkg.sh",
+    "build:pkg:apple": "./scripts/build-pkg.sh aarch64",
+    "build:pkg:intel": "./scripts/build-pkg.sh x64",
+    "build:pkg:all": "./scripts/build-pkg.sh all",
     "set-version": "./scripts/set-version.sh",
     "generate:updater-json": "node scripts/generate-updater-json.mjs",
     "release:macos": "./scripts/release-macos.sh",
