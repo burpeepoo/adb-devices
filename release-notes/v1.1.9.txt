@@ -1,0 +1,2 @@
+en-US: Update checks now show the latest-version state when remote metadata is temporarily invalid.
+zh-CN: 远端更新元数据临时异常时，检查更新将显示已是最新版本。

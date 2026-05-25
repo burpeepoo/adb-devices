@@ -17,3 +17,8 @@ export function isAutoUpdateCheckEnabled(value?: boolean): boolean {
 export function canRunAutomaticUpdateCheck(status: AutoCheckUpdateStatus): boolean {
   return status === "idle" || status === "not-available" || status === "error";
 }
+
+export function shouldTreatUpdateCheckErrorAsNoUpdate(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.toLowerCase().includes("could not fetch a valid release json from the remote");
+}

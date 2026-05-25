@@ -1,7 +1,7 @@
 {
   "/Users/kaizhang/Documents/Cozyla/adb_project/package.json": {
-    "mtime": 1779674594.478178,
-    "ast_hash": "2c45927d63112edf3fdd923c802480af",
+    "mtime": 1779679575.2327394,
+    "ast_hash": "b6070da05c59bb65f05979e7fa092ee1",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/tsconfig.json": {
@@ -65,8 +65,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/tauri.conf.json": {
-    "mtime": 1779674594.479957,
-    "ast_hash": "3fbf3b0b2b45db04146ab3adcae4edcc",
+    "mtime": 1779679575.2347615,
+    "ast_hash": "a2a1ddfad9ca93f0bff441aedd703262",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/build.rs": {
@@ -195,8 +195,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/updaterPolicy.ts": {
-    "mtime": 1779358414.097703,
-    "ast_hash": "8cf43b5bd3e072ac3d74801277e9a995",
+    "mtime": 1779679326.1341789,
+    "ast_hash": "d13683237e7cda8e964dfa613468d722",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/main.tsx": {
@@ -400,8 +400,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/hooks/useAppUpdater.ts": {
-    "mtime": 1779358432.482412,
-    "ast_hash": "711cce7b93c5d4ca083a30465cd7597b",
+    "mtime": 1779679334.2232041,
+    "ast_hash": "fdad4c06ae8054b1ee5e3fe7607383a1",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/hooks/useAdb.ts": {
@@ -415,8 +415,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/CHANGELOG.md": {
-    "mtime": 1779674604.7393394,
-    "ast_hash": "1b758322f7c7a6a4491ca67aab141fba",
+    "mtime": 1779679581.7382731,
+    "ast_hash": "aaa1828175dad266fa5f01d85e2372e3",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/README.md": {
@@ -457,6 +457,11 @@
   "/Users/kaizhang/Documents/Cozyla/adb_project/docs/superpowers/specs/2026-05-22-adb-manager-device-console.md": {
     "mtime": 1779418721.2559712,
     "ast_hash": "c3b96391170f3311b371a27cd611d968",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v1.1.9.txt": {
+    "mtime": 1779679581.7387245,
+    "ast_hash": "d5824ad25a49057df1b784231918d4ac",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v1.1.8.txt": {

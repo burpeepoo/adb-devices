@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.1.9] - 2026-05-25
+
+### Fixed
+
+- Treated invalid remote updater metadata as no available update so manual checks show the latest-version state instead of a raw release JSON error.
+
 ## [1.1.8] - 2026-05-25
 
 ### Added

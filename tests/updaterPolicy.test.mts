@@ -4,6 +4,7 @@ import {
   UPDATE_AUTO_CHECK_INTERVAL_MS,
   canRunAutomaticUpdateCheck,
   isAutoUpdateCheckEnabled,
+  shouldTreatUpdateCheckErrorAsNoUpdate,
 } from "../src/updaterPolicy.ts";
 
 test("auto update checks default to enabled", () => {
@@ -27,4 +28,12 @@ test("automatic checks avoid active update states", () => {
   assert.equal(canRunAutomaticUpdateCheck("available"), false);
   assert.equal(canRunAutomaticUpdateCheck("downloading"), false);
   assert.equal(canRunAutomaticUpdateCheck("ready"), false);
+});
+
+test("invalid release JSON update check errors are treated as no update", () => {
+  assert.equal(
+    shouldTreatUpdateCheckErrorAsNoUpdate(new Error("Could not fetch a valid release JSON from the remote")),
+    true
+  );
+  assert.equal(shouldTreatUpdateCheckErrorAsNoUpdate(new Error("Failed to download update")), false);
 });

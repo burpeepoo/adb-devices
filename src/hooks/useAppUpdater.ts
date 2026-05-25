@@ -6,6 +6,7 @@ import {
   UPDATE_AUTO_CHECK_DELAY_MS,
   UPDATE_AUTO_CHECK_INTERVAL_MS,
   canRunAutomaticUpdateCheck,
+  shouldTreatUpdateCheckErrorAsNoUpdate,
 } from "../updaterPolicy";
 
 export type UpdateStatus =
@@ -121,6 +122,12 @@ export function useAppUpdater(options: AppUpdaterOptions = {}): AppUpdaterContro
         }
       } catch (e) {
         setUpdateInfo(null);
+        if (shouldTreatUpdateCheckErrorAsNoUpdate(e)) {
+          setStatus(silent ? "idle" : "not-available");
+          setError(null);
+          return;
+        }
+
         setStatus(silent ? "idle" : "error");
         if (!silent) {
           setError(toErrorMessage(e));
