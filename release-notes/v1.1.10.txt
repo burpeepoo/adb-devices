@@ -1,0 +1,2 @@
+en-US: ADB restart and manual wireless reconnect are more reliable, including current mDNS ports after Android changes the wireless debugging port.
+zh-CN: ADB 重启修复和手动无线重连更可靠，Android 无线调试端口变化后也会优先使用当前 mDNS 端口。
