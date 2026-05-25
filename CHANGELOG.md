@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [1.1.10] - 2026-05-25
+
+### Fixed
+
+- Made ADB restart repair reconnect recent wireless endpoints automatically, including current mDNS ports when the Android wireless debugging port changes.
+- Hardened manual wireless ADB connection retry by fully restarting the ADB server before retrying a failed connect attempt.
+- Kept the selected device stable when the same physical device appears through both IP and mDNS ADB transports.
+
 ## [1.1.9] - 2026-05-25
 
 ### Fixed

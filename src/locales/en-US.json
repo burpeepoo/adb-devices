@@ -123,6 +123,7 @@
       "unreachable": "Unreachable"
     },
     "repairingAdb": "Repairing...",
+    "repairReconnected": "{{message}} and reconnected {{count}} recent device(s).",
     "repairFound": "{{message}}. Rescan found {{count}} LAN ADB service(s).",
     "repairNoDevice": "{{message}}, but no devices were found. Check the current IP and port shown on Android's wireless debugging page, then try manual connection.",
     "multiNetworkHint": "This computer has multiple LAN addresses: {{ips}}. Make sure the Android device is on the same subnet. If the device shows 192.168.110.x, use the current port from that page for manual connection.",

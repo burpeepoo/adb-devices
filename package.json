@@ -1,6 +1,6 @@
 {
   "name": "adb-manager",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "ADB Manager for Cozyla PMs",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,9 @@
     "test:tab-state": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/tabState.test.mts",
     "test:path-clipboard": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/pathClipboard.test.mts",
     "test:device-notes": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/deviceNotes.test.mts",
+    "test:device-selection": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/deviceSelection.test.mts",
     "test:device-form-factor": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/deviceFormFactor.test.mts",
+    "test:pair-connect-endpoints": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/pairConnectEndpoints.test.mts",
     "build:dmg": "./scripts/build-dmg.sh",
     "build:dmg:apple": "./scripts/build-dmg.sh aarch64",
     "build:dmg:intel": "./scripts/build-dmg.sh x64",

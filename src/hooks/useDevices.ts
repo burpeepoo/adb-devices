@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { DeviceHistoryItem, DeviceInfo } from "../types";
 import { getStore, STORE_KEYS } from "../storage";
+import { deviceIdentityKey } from "../deviceNotes";
+import { resolveVisibleSelectedDevice } from "../deviceSelection";
 
 export function useDevices(refreshInterval = 300000) {
   const [devices, setDevices] = useState<DeviceInfo[]>([]);
@@ -52,16 +54,8 @@ export function useDevices(refreshInterval = 300000) {
       await store.set(STORE_KEYS.deviceHistory, Array.from(historyByDeviceKey.values()));
       await store.save();
 
-      const firstOnline = result.find((d) => d.state === "device");
-      const selectedOnline = selectedDevice
-        ? result.some((d) => d.state === "device" && d.serial === selectedDevice)
-        : false;
-
-      if (!selectedDevice && firstOnline) {
-        setSelectedDevice(firstOnline.serial);
-      } else if (selectedDevice && !selectedOnline) {
-        setSelectedDevice(firstOnline?.serial || null);
-      }
+      const nextSelectedDevice = resolveVisibleSelectedDevice(selectedDevice, result, merged);
+      if (nextSelectedDevice !== selectedDevice) setSelectedDevice(nextSelectedDevice);
     } catch (e) {
       setError(String(e));
     } finally {
@@ -76,10 +70,6 @@ export function useDevices(refreshInterval = 300000) {
   }, [refresh, refreshInterval]);
 
   return { devices, loading, error, selectedDevice, setSelectedDevice, refresh };
-}
-
-function deviceIdentityKey(device: Pick<DeviceInfo, "serial" | "device_sn">) {
-  return device.device_sn || device.serial;
 }
 
 function deviceDisplayTitle(device: Pick<DeviceInfo, "serial" | "device_sn">) {

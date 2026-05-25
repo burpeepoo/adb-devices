@@ -56,8 +56,7 @@ pub struct DeviceSummary {
 
 #[tauri::command(async)]
 pub fn adb_restart_server(app: AppHandle) -> Result<String, AdbError> {
-    let _ = adb::run_adb_with_timeout(&app, &["kill-server"], None, Duration::from_secs(5));
-    start_adb_server(&app)?;
+    restart_adb_server(&app)?;
     Ok(t!("device.adb_restarted").to_string())
 }
 
@@ -385,14 +384,15 @@ pub fn adb_pair(
 
 #[tauri::command(async)]
 pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, AdbError> {
-    let addr = format!("{}:{}", ip, port);
+    let addr = endpoint_address(&ip, &port);
     let output = connect_address(&app, &addr)?;
 
     if let Some(message) = connect_success_message(&output, &addr, false) {
         return Ok(message);
     }
 
-    start_adb_server(&app)?;
+    let _ = adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(5));
+    restart_adb_server(&app)?;
     let retry_output = connect_address(&app, &addr)?;
     if let Some(message) = connect_success_message(&retry_output, &addr, true) {
         return Ok(message);
@@ -436,12 +436,11 @@ pub fn adb_reconnect_endpoint(
     port: String,
     restart_adb: bool,
 ) -> Result<String, AdbError> {
-    let addr = format!("{}:{}", ip.trim(), port.trim());
+    let addr = endpoint_address(&ip, &port);
     let _ = adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(5));
 
     if restart_adb {
-        let _ = adb::run_adb_with_timeout(&app, &["kill-server"], None, Duration::from_secs(5));
-        start_adb_server(&app)?;
+        restart_adb_server(&app)?;
     }
 
     let output = connect_address(&app, &addr)?;
@@ -456,6 +455,15 @@ fn start_adb_server(app: &AppHandle) -> Result<(), AdbError> {
     let output = adb::run_adb_with_timeout(app, &["start-server"], None, Duration::from_secs(8))?;
     adb::ensure_success(&output, &t!("device.adb_start_failed"))?;
     Ok(())
+}
+
+fn restart_adb_server(app: &AppHandle) -> Result<(), AdbError> {
+    let _ = adb::run_adb_with_timeout(app, &["kill-server"], None, Duration::from_secs(5));
+    start_adb_server(app)
+}
+
+fn endpoint_address(ip: &str, port: &str) -> String {
+    format!("{}:{}", ip.trim(), port.trim())
 }
 
 fn connect_address(app: &AppHandle, address: &str) -> Result<std::process::Output, AdbError> {
@@ -494,7 +502,7 @@ fn connect_failed_error(output: &std::process::Output) -> AdbError {
 
 #[tauri::command(async)]
 pub fn adb_disconnect(app: AppHandle, ip: String, port: String) -> Result<String, AdbError> {
-    let addr = format!("{}:{}", ip, port);
+    let addr = endpoint_address(&ip, &port);
     let output =
         adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(8))?;
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -783,6 +791,14 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
         assert_eq!(
             parse_mdns_adb_serial("adb-NCRC10008CC-rYbViz._adb-tls-pairing._tcp"),
             None
+        );
+    }
+
+    #[test]
+    fn trims_endpoint_address_parts() {
+        assert_eq!(
+            endpoint_address(" 192.168.110.111 ", " 36887 "),
+            "192.168.110.111:36887"
         );
     }
 

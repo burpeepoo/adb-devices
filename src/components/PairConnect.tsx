@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Badge, Button, Group, Paper, Stack, Text, TextInput } from "@mantine/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import { DeviceInfo, MdnsDevice, PairConnectSettings, RecentConnectEndpoint } from "../types";
+import { reconnectEndpointsAfterAdbRestart } from "../pairConnectEndpoints";
 import ResultAlert from "./common/ResultAlert";
 
 const REPAIR_ACTION_FAILURE_THRESHOLD = 2;
@@ -351,13 +352,39 @@ export default function PairConnect({ devices, onConnected }: Props) {
         const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
         const visibleDevices = filterMdnsDevicesForLocalNetworks(devices, currentLocalIps);
         setMdnsDevices(visibleDevices);
+        const reconnectEndpoints = reconnectEndpointsAfterAdbRestart(recentConnects, visibleDevices);
+        const reconnectedEndpoints: RecentConnectEndpoint[] = [];
+        for (const endpoint of reconnectEndpoints) {
+          const key = endpointKey(endpoint);
+          try {
+            await invoke<string>("adb_reconnect_endpoint", {
+              ip: endpoint.ip,
+              port: endpoint.port,
+              restartAdb: false,
+            });
+            setEndpointProbeStates((current) => ({ ...current, [key]: "reachable" }));
+            reconnectedEndpoints.push({ ...endpoint, lastConnectedAt: Date.now() });
+          } catch {
+            setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
+          }
+        }
+        if (reconnectedEndpoints.length > 0) {
+          const nextRecent = dedupeRecentConnects([...reconnectedEndpoints, ...recentConnects]);
+          const latest = reconnectedEndpoints[0];
+          setRecentConnects(nextRecent);
+          setLastConnect({ ip: latest.ip, port: latest.port });
+          savePairConnect({ connectIp: latest.ip, connectPort: latest.port, recentConnects: nextRecent }, nextRecent);
+        }
+        const message = reconnectedEndpoints.length
+          ? t('pairConnect.repairReconnected', { message: restartMessage, count: reconnectedEndpoints.length })
+          : visibleDevices.length
+            ? t('pairConnect.repairFound', { message: restartMessage, count: visibleDevices.length })
+            : t('pairConnect.repairNoDevice', { message: restartMessage });
         setMdnsResult({
           ok: true,
-          msg: visibleDevices.length
-            ? t('pairConnect.repairFound', { message: restartMessage, count: visibleDevices.length })
-            : t('pairConnect.repairNoDevice', { message: restartMessage }),
+          msg: message,
         });
-        if (visibleDevices.length === 0) setShowManual(true);
+        if (visibleDevices.length === 0 && reconnectedEndpoints.length === 0) setShowManual(true);
         clearPairConnectFailures();
         await onConnected();
       } catch (e) {
