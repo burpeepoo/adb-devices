@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.1.13] - 2026-05-26
+
+### Added
+
+- Added a separate local ADB identity reset action for wireless pairing failures that still persist after repair.
+
+### Changed
+
+- Changed ADB restart recovery to repair wireless pairing state first by clearing saved wireless pairing hosts while preserving the local ADB host key.
+- Updated wireless reconnect recovery copy so the destructive identity reset is only presented after repair and reconnect attempts still fail.
+
 ## [1.1.12] - 2026-05-26
 
 ### Added

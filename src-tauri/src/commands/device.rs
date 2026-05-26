@@ -2,7 +2,9 @@ use rust_i18n::t;
 use serde::Serialize;
 use std::{
     collections::HashMap,
+    fs,
     net::{TcpStream, ToSocketAddrs},
+    path::{Path, PathBuf},
     process::Command,
     sync::Mutex,
     time::Duration,
@@ -56,8 +58,14 @@ pub struct DeviceSummary {
 
 #[tauri::command(async)]
 pub fn adb_restart_server(app: AppHandle) -> Result<String, AdbError> {
-    restart_adb_server(&app)?;
-    Ok(t!("device.adb_restarted").to_string())
+    repair_wireless_pairing(&app)?;
+    Ok(t!("device.wireless_pairing_repaired").to_string())
+}
+
+#[tauri::command(async)]
+pub fn adb_reset_host_identity(app: AppHandle) -> Result<String, AdbError> {
+    reset_adb_host_identity(&app)?;
+    Ok(t!("device.adb_identity_reset").to_string())
 }
 
 #[tauri::command(async)]
@@ -392,7 +400,7 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
     }
 
     let _ = adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(5));
-    restart_adb_server(&app)?;
+    repair_wireless_pairing(&app)?;
     let retry_output = connect_address(&app, &addr)?;
     if let Some(message) = connect_success_message(&retry_output, &addr, true) {
         return Ok(message);
@@ -426,7 +434,7 @@ pub fn adb_reconnect_endpoint(
     let _ = adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(5));
 
     if restart_adb {
-        restart_adb_server(&app)?;
+        repair_wireless_pairing(&app)?;
     }
 
     let output = connect_address(&app, &addr)?;
@@ -447,9 +455,85 @@ fn start_adb_server(app: &AppHandle) -> Result<(), AdbError> {
     Ok(())
 }
 
-fn restart_adb_server(app: &AppHandle) -> Result<(), AdbError> {
+fn repair_wireless_pairing(app: &AppHandle) -> Result<(), AdbError> {
+    let _ = adb::run_adb_with_timeout(app, &["disconnect"], None, Duration::from_secs(5));
     let _ = adb::run_adb_with_timeout(app, &["kill-server"], None, Duration::from_secs(5));
+    let android_dir = android_config_dir()?;
+    clear_wireless_pairing_state(&android_dir)?;
     start_adb_server(app)
+}
+
+fn reset_adb_host_identity(app: &AppHandle) -> Result<(), AdbError> {
+    let _ = adb::run_adb_with_timeout(app, &["disconnect"], None, Duration::from_secs(5));
+    let _ = adb::run_adb_with_timeout(app, &["kill-server"], None, Duration::from_secs(5));
+    let android_dir = android_config_dir()?;
+    reset_adb_host_identity_state(&android_dir)?;
+    start_adb_server(app)
+}
+
+fn android_config_dir() -> Result<PathBuf, AdbError> {
+    if let Ok(android_user_home) = std::env::var("ANDROID_USER_HOME") {
+        return Ok(PathBuf::from(android_user_home));
+    }
+
+    if let Ok(home) = std::env::var("HOME") {
+        return Ok(PathBuf::from(home).join(".android"));
+    }
+
+    if let Ok(user_profile) = std::env::var("USERPROFILE") {
+        return Ok(PathBuf::from(user_profile).join(".android"));
+    }
+
+    Err(AdbError::Io(std::io::Error::new(
+        std::io::ErrorKind::NotFound,
+        "cannot locate Android config directory",
+    )))
+}
+
+fn clear_wireless_pairing_state(android_dir: &Path) -> Result<usize, AdbError> {
+    backup_and_remove_android_files(android_dir, &["adb_known_hosts.pb"], "adb-wireless-backup")
+}
+
+fn reset_adb_host_identity_state(android_dir: &Path) -> Result<usize, AdbError> {
+    backup_and_remove_android_files(
+        android_dir,
+        &["adb_known_hosts.pb", "adbkey", "adbkey.pub"],
+        "adb-identity-backup",
+    )
+}
+
+fn backup_and_remove_android_files(
+    android_dir: &Path,
+    file_names: &[&str],
+    backup_prefix: &str,
+) -> Result<usize, AdbError> {
+    let existing_files = file_names
+        .iter()
+        .map(|file_name| android_dir.join(file_name))
+        .filter(|path| path.exists())
+        .collect::<Vec<_>>();
+
+    if existing_files.is_empty() {
+        return Ok(0);
+    }
+
+    fs::create_dir_all(android_dir)?;
+    let backup_dir = android_dir.join(format!(
+        "{}-{}",
+        backup_prefix,
+        chrono::Local::now().format("%Y%m%d-%H%M%S-%3f")
+    ));
+    fs::create_dir_all(&backup_dir)?;
+
+    for file_path in &existing_files {
+        let Some(file_name) = file_path.file_name() else {
+            continue;
+        };
+        fs::copy(file_path, backup_dir.join(file_name))?;
+        fs::remove_file(file_path)?;
+    }
+
+    Ok(existing_files.len())
 }
 
 fn endpoint_address(ip: &str, port: &str) -> String {
@@ -771,6 +855,11 @@ fn parse_uptime_summary(stdout: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::{
+        fs,
+        path::PathBuf,
+        time::{SystemTime, UNIX_EPOCH},
+    };
 
     #[test]
     fn parses_mdns_services() {
@@ -814,6 +903,48 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
     }
 
     #[test]
+    fn wireless_pairing_repair_removes_known_hosts_but_preserves_host_key() {
+        let android_dir = temp_android_dir("wireless-pairing-repair");
+        fs::write(android_dir.join("adb_known_hosts.pb"), "known hosts").unwrap();
+        fs::write(android_dir.join("adbkey"), "private key").unwrap();
+        fs::write(android_dir.join("adbkey.pub"), "public key").unwrap();
+
+        clear_wireless_pairing_state(&android_dir).unwrap();
+
+        assert!(!android_dir.join("adb_known_hosts.pb").exists());
+        assert_eq!(
+            fs::read_to_string(android_dir.join("adbkey")).unwrap(),
+            "private key"
+        );
+        assert_eq!(
+            fs::read_to_string(android_dir.join("adbkey.pub")).unwrap(),
+            "public key"
+        );
+        assert!(backup_contains(&android_dir, "adb_known_hosts.pb"));
+
+        fs::remove_dir_all(android_dir).unwrap();
+    }
+
+    #[test]
+    fn adb_host_identity_reset_removes_host_keys_and_known_hosts() {
+        let android_dir = temp_android_dir("adb-host-identity-reset");
+        fs::write(android_dir.join("adb_known_hosts.pb"), "known hosts").unwrap();
+        fs::write(android_dir.join("adbkey"), "private key").unwrap();
+        fs::write(android_dir.join("adbkey.pub"), "public key").unwrap();
+
+        reset_adb_host_identity_state(&android_dir).unwrap();
+
+        assert!(!android_dir.join("adb_known_hosts.pb").exists());
+        assert!(!android_dir.join("adbkey").exists());
+        assert!(!android_dir.join("adbkey.pub").exists());
+        assert!(backup_contains(&android_dir, "adb_known_hosts.pb"));
+        assert!(backup_contains(&android_dir, "adbkey"));
+        assert!(backup_contains(&android_dir, "adbkey.pub"));
+
+        fs::remove_dir_all(android_dir).unwrap();
+    }
+
+    #[test]
     fn parses_local_ipv4_addresses() {
         let output = "\
 en0: flags=8863<UP,BROADCAST,RUNNING> mtu 1500
@@ -830,6 +961,29 @@ Windows IP Configuration
             addresses,
             vec!["192.168.1.19", "192.168.110.252", "10.0.0.12"]
         );
+    }
+
+    fn temp_android_dir(name: &str) -> PathBuf {
+        let suffix = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("adb-manager-{name}-{suffix}"));
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn backup_contains(android_dir: &std::path::Path, file_name: &str) -> bool {
+        fs::read_dir(android_dir)
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                entry
+                    .file_type()
+                    .map(|file_type| file_type.is_dir())
+                    .unwrap_or(false)
+            })
+            .any(|entry| entry.path().join(file_name).exists())
     }
 
     #[test]

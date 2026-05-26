@@ -50,8 +50,10 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const [busyAddress, setBusyAddress] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
   const [repairingAdb, setRepairingAdb] = useState(false);
+  const [resettingHostIdentity, setResettingHostIdentity] = useState(false);
   const [localIps, setLocalIps] = useState<string[]>([]);
   const [pairRepairVisible, setPairRepairVisible] = useState(false);
+  const [hostIdentityResetVisible, setHostIdentityResetVisible] = useState(false);
   const localIpsRef = useRef<string[]>([]);
 
   const updateLocalIps = useCallback((ips: string[]) => {
@@ -195,6 +197,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const clearPairConnectFailures = useCallback(() => {
     pairConnectFailureCountRef.current = 0;
     setPairRepairVisible(false);
+    setHostIdentityResetVisible(false);
   }, []);
 
   const recordPairConnectFailure = useCallback(() => {
@@ -236,6 +239,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setDiscovering(true);
       setMdnsResult(null);
       setPairRepairVisible(false);
+      setHostIdentityResetVisible(false);
     }
     try {
       const currentLocalIps = await refreshLocalIps();
@@ -271,6 +275,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setBusyAddress(device.address);
       setMdnsResult(null);
       setPairRepairVisible(false);
+      setHostIdentityResetVisible(false);
       try {
         const result = await invoke<string>("adb_auto_connect", {
           address: device.address,
@@ -295,6 +300,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setBusyAddress(device.address);
       setMdnsResult(null);
       setPairRepairVisible(false);
+      setHostIdentityResetVisible(false);
       try {
         const result = await invoke<string>("adb_pair", {
           ip: device.ip,
@@ -326,6 +332,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setBusyAddress("__auto__");
       setMdnsResult(null);
       setPairRepairVisible(false);
+      setHostIdentityResetVisible(false);
       try {
         const devices = await invoke<DeviceInfo[]>("adb_mdns_auto_connect");
         const onlineDevices = devices.filter((device) => device.state === "device");
@@ -353,6 +360,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setBusyAddress(restartAdb ? `__recent_repair__:${key}` : `__recent__:${key}`);
       setMdnsResult(null);
       setPairRepairVisible(false);
+      setHostIdentityResetVisible(false);
       try {
         const result = await invoke<string>("adb_reconnect_endpoint", {
           ip: currentEndpoint.ip,
@@ -371,6 +379,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
         await discoverMdns(true, true);
       } catch (e) {
         recordPairConnectFailure();
+        if (restartAdb) setHostIdentityResetVisible(true);
         setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
         setMdnsResult({
           ok: false,
@@ -390,6 +399,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setDiscovering(true);
       setMdnsResult(null);
       setPairRepairVisible(false);
+      setHostIdentityResetVisible(false);
       try {
         const restartMessage = await invoke<string>("adb_restart_server");
         const currentLocalIps = await refreshLocalIps();
@@ -424,15 +434,23 @@ export default function PairConnect({ devices, onConnected }: Props) {
           : visibleDevices.length
             ? t('pairConnect.repairFound', { message: restartMessage, count: visibleDevices.length })
             : t('pairConnect.repairNoDevice', { message: restartMessage });
+        const recovered = visibleDevices.length > 0 || reconnectedEndpoints.length > 0;
+        if (recovered) {
+          clearPairConnectFailures();
+        } else {
+          pairConnectFailureCountRef.current = 0;
+          setPairRepairVisible(false);
+          setHostIdentityResetVisible(true);
+        }
         setMdnsResult({
           ok: true,
           msg: message,
         });
         if (visibleDevices.length === 0 && reconnectedEndpoints.length === 0) setShowManual(true);
-        clearPairConnectFailures();
         await onConnected();
       } catch (e) {
         setPairRepairVisible(true);
+        setHostIdentityResetVisible(true);
         setMdnsResult({ ok: false, msg: String(e) });
         setShowManual(true);
       } finally {
@@ -443,9 +461,43 @@ export default function PairConnect({ devices, onConnected }: Props) {
     });
   };
 
+  const handleResetHostIdentity = async () => {
+    await runAdbOperation(async () => {
+      setBusyAddress("__reset_identity__");
+      setResettingHostIdentity(true);
+      setDiscovering(true);
+      setMdnsResult(null);
+      try {
+        const resetMessage = await invoke<string>("adb_reset_host_identity");
+        const currentLocalIps = await refreshLocalIps();
+        const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
+        const visibleDevices = filterMdnsDevicesForLocalNetworks(devices, currentLocalIps);
+        setMdnsDevices(visibleDevices);
+        setMdnsResult({
+          ok: true,
+          msg: visibleDevices.length
+            ? t('pairConnect.identityResetFound', { message: resetMessage, count: visibleDevices.length })
+            : t('pairConnect.identityResetNoDevice', { message: resetMessage }),
+        });
+        clearPairConnectFailures();
+        setShowManual(true);
+        await onConnected();
+      } catch (e) {
+        setHostIdentityResetVisible(true);
+        setMdnsResult({ ok: false, msg: String(e) });
+        setShowManual(true);
+      } finally {
+        setResettingHostIdentity(false);
+        setDiscovering(false);
+        setBusyAddress(null);
+      }
+    });
+  };
+
   const handleScan = async () => {
     await runAdbOperation(async () => {
       setBusyAddress("__scan__");
+      setHostIdentityResetVisible(false);
       try {
         await discoverMdns(false, true);
         await onConnected();
@@ -464,6 +516,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setPairLoading(true);
       setPairResult(null);
       setPairRepairVisible(false);
+      setHostIdentityResetVisible(false);
       try {
         const result = await invoke<string>("adb_pair", {
           ip,
@@ -491,6 +544,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setConnectLoading(true);
       setConnectResult(null);
       setPairRepairVisible(false);
+      setHostIdentityResetVisible(false);
       try {
         const result = await invoke<string>("adb_connect", {
           ip,
@@ -524,7 +578,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
     const key = mdnsDeviceKey(device);
     return !key || (!connectableDeviceKeys.has(key) && !connectedDeviceKeys.has(key));
   });
-  const adbBusy = busyAddress !== null || pairLoading || connectLoading || discovering || repairingAdb;
+  const adbBusy = busyAddress !== null || pairLoading || connectLoading || discovering || repairingAdb || resettingHostIdentity;
 
   return (
     <Stack maw={980} gap="md">
@@ -626,10 +680,14 @@ export default function PairConnect({ devices, onConnected }: Props) {
 
         {mdnsResult && (
           <ResultMessage result={mdnsResult}>
-            {!mdnsResult.ok && pairRepairVisible && (
+            {(pairRepairVisible || hostIdentityResetVisible) && (
               <PairRepairAction
                 repairing={repairingAdb}
-                onRestartAdbAndScan={handleRestartAdbAndScan}
+                resettingHostIdentity={resettingHostIdentity}
+                showRepair={pairRepairVisible}
+                showResetHostIdentity={hostIdentityResetVisible}
+                onRepairWirelessPairing={handleRestartAdbAndScan}
+                onResetHostIdentity={handleResetHostIdentity}
               />
             )}
           </ResultMessage>
@@ -677,10 +735,14 @@ export default function PairConnect({ devices, onConnected }: Props) {
               </Button>
               {pairResult && (
                 <ResultMessage result={pairResult}>
-                  {!pairResult.ok && pairRepairVisible && (
+                  {!pairResult.ok && (pairRepairVisible || hostIdentityResetVisible) && (
                     <PairRepairAction
                       repairing={repairingAdb}
-                      onRestartAdbAndScan={handleRestartAdbAndScan}
+                      resettingHostIdentity={resettingHostIdentity}
+                      showRepair={pairRepairVisible}
+                      showResetHostIdentity={hostIdentityResetVisible}
+                      onRepairWirelessPairing={handleRestartAdbAndScan}
+                      onResetHostIdentity={handleResetHostIdentity}
                     />
                   )}
                 </ResultMessage>
@@ -702,10 +764,14 @@ export default function PairConnect({ devices, onConnected }: Props) {
               </Button>
               {connectResult && (
                 <ResultMessage result={connectResult}>
-                  {!connectResult.ok && pairRepairVisible && (
+                  {!connectResult.ok && (pairRepairVisible || hostIdentityResetVisible) && (
                     <PairRepairAction
                       repairing={repairingAdb}
-                      onRestartAdbAndScan={handleRestartAdbAndScan}
+                      resettingHostIdentity={resettingHostIdentity}
+                      showRepair={pairRepairVisible}
+                      showResetHostIdentity={hostIdentityResetVisible}
+                      onRepairWirelessPairing={handleRestartAdbAndScan}
+                      onResetHostIdentity={handleResetHostIdentity}
                     />
                   )}
                 </ResultMessage>
@@ -1194,22 +1260,49 @@ function formatEndpointTime(timestamp: number) {
 
 function PairRepairAction({
   repairing,
-  onRestartAdbAndScan,
+  resettingHostIdentity,
+  showRepair,
+  showResetHostIdentity,
+  onRepairWirelessPairing,
+  onResetHostIdentity,
 }: {
   repairing: boolean;
-  onRestartAdbAndScan: () => void;
+  resettingHostIdentity: boolean;
+  showRepair: boolean;
+  showResetHostIdentity: boolean;
+  onRepairWirelessPairing: () => void;
+  onResetHostIdentity: () => void;
 }) {
   const { t } = useTranslation();
   return (
-    <Button
-      onClick={onRestartAdbAndScan}
-      loading={repairing}
-      mt="sm"
-      size="xs"
-      color="red"
-    >
-      {t('pairConnect.restartAdbAndScan')}
-    </Button>
+    <Stack gap={6} mt="sm" align="flex-start">
+      {showRepair && (
+        <Button
+          onClick={onRepairWirelessPairing}
+          loading={repairing}
+          size="xs"
+          color="orange"
+        >
+          {t('pairConnect.repairWirelessPairing')}
+        </Button>
+      )}
+      {showResetHostIdentity && (
+        <>
+          <Text size="xs" c="dimmed">
+            {t('pairConnect.resetHostIdentityDesc')}
+          </Text>
+          <Button
+            onClick={onResetHostIdentity}
+            loading={resettingHostIdentity}
+            size="xs"
+            color="red"
+            variant="light"
+          >
+            {t('pairConnect.resetHostIdentity')}
+          </Button>
+        </>
+      )}
+    </Stack>
   );
 }
 

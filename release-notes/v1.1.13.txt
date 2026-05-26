@@ -1,0 +1,7 @@
+zh-CN:
+无线调试连接失败时，“重启 ADB”现已升级为“修复无线配对”，会清理本机保存的无线配对记录并保留 ADB 身份密钥。
+如果修复后仍无法重新发现或连接设备，界面才会显示单独的“重置本机 ADB 身份”按钮，并提示所有 Android 设备都需要重新授权或配对。
+
+en-US:
+When wireless debugging recovery is needed, Restart ADB now repairs wireless pairing state by clearing saved wireless pairing hosts while preserving the local ADB identity key.
+If repair still cannot rediscover or reconnect the device, the UI now shows a separate Reset local ADB identity action with a warning that Android devices will need re-authorization or pairing.
