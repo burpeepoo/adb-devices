@@ -1,0 +1,7 @@
+zh-CN:
+新增自定义指令的“解析重写”按钮，可把多行 adb shell 命令合并为适配当前选择设备的一条命令。
+重写后的合并 shell 命令仍会触发高风险/中风险识别，避免危险操作漏过确认。
+
+en-US:
+Added a Parse & rewrite button for custom Workbench commands, turning multi-line adb shell batches into one command for the selected device.
+Rewritten shell batches still go through medium/high risk detection so dangerous operations continue to require confirmation.

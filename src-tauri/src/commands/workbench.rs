@@ -161,11 +161,10 @@ fn classify_risk(args: &[String]) -> WorkbenchRisk {
         .map(|arg| arg.to_lowercase())
         .collect::<Vec<_>>();
     let joined = lower.join(" ");
+    let risk_text = joined.replace(';', " ").replace('&', " ").replace('|', " ");
 
-    if joined.contains(" rm ")
-        || joined.starts_with("shell rm ")
-        || joined.contains(" dd ")
-        || joined.starts_with("shell dd ")
+    if contains_command_phrase(&risk_text, "rm")
+        || contains_command_phrase(&risk_text, "dd")
         || lower
             .iter()
             .any(|arg| arg == "reboot" || arg == "uninstall")
@@ -173,16 +172,17 @@ fn classify_risk(args: &[String]) -> WorkbenchRisk {
             .windows(3)
             .any(|window| window == ["shell", "pm", "clear"])
         || lower.windows(2).any(|window| window == ["pm", "clear"])
+        || contains_command_phrase(&risk_text, "pm clear")
     {
         return WorkbenchRisk::High;
     }
 
-    if lower
-        .windows(2)
-        .any(|window| window == ["shell", "setprop"])
+    if contains_command_phrase(&risk_text, "setprop")
+        || contains_command_phrase(&risk_text, "settings put")
+        || contains_command_phrase(&risk_text, "am force-stop")
         || lower
-            .windows(3)
-            .any(|window| window[0] == "shell" && window[1] == "settings" && window[2] == "put")
+            .windows(2)
+            .any(|window| window == ["shell", "setprop"])
         || lower
             .windows(2)
             .any(|window| window == ["am", "force-stop"])
@@ -197,6 +197,11 @@ fn classify_risk(args: &[String]) -> WorkbenchRisk {
     }
 
     WorkbenchRisk::Low
+}
+
+fn contains_command_phrase(text: &str, phrase: &str) -> bool {
+    let normalized = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    format!(" {normalized} ").contains(&format!(" {phrase} "))
 }
 
 fn build_command_preview(args: &[String], device_serial: Option<&str>) -> String {
@@ -252,6 +257,14 @@ mod tests {
     }
 
     #[test]
+    fn flags_destructive_quoted_shell_batches_as_high_risk() {
+        let args =
+            parse_adb_subcommand("shell 'getprop ro.serialno; pm clear com.example.app'").unwrap();
+
+        assert_eq!(classify_risk(&args), WorkbenchRisk::High);
+    }
+
+    #[test]
     fn flags_install_and_push_as_medium_risk() {
         let install_args = parse_adb_subcommand("install -r /tmp/app.apk").unwrap();
         let push_args =
@@ -259,6 +272,15 @@ mod tests {
 
         assert_eq!(classify_risk(&install_args), WorkbenchRisk::Medium);
         assert_eq!(classify_risk(&push_args), WorkbenchRisk::Medium);
+    }
+
+    #[test]
+    fn flags_quoted_settings_batches_as_medium_risk() {
+        let args =
+            parse_adb_subcommand("shell 'getprop ro.serialno; settings put global adb_enabled 1'")
+                .unwrap();
+
+        assert_eq!(classify_risk(&args), WorkbenchRisk::Medium);
     }
 
     #[test]

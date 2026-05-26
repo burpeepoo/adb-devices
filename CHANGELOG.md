@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [1.1.12] - 2026-05-26
+
+### Added
+
+- Added a one-click parser in custom Workbench commands that rewrites multi-line `adb shell` batches for the currently selected device.
+
+### Changed
+
+- Kept Workbench risk detection active for rewritten quoted shell batches, including destructive `pm clear` commands and settings writes.
+
 ## [1.1.11] - 2026-05-26
 
 ### Changed

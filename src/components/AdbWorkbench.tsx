@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import { extractClipboardPaths, isLikelyLocalPath } from "../pathClipboard";
-import { IconTerminal2 } from "@tabler/icons-react";
+import { rewriteAdbShellBatch } from "../workbenchCommandRewrite";
+import { IconTerminal2, IconWand } from "@tabler/icons-react";
 import PackageNameInput from "./PackageNameInput";
 import SectionTitle from "./common/SectionTitle";
 
@@ -823,6 +824,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<{ ok: boolean; msg: string } | null>(null);
   const [templateStatus, setTemplateStatus] = useState<string | null>(null);
+  const [rewriteStatus, setRewriteStatus] = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -962,6 +964,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
   const switchMode = (nextMode: WorkbenchMode) => {
     setMode(nextMode);
     setTemplateStatus(null);
+    setRewriteStatus(null);
   };
 
   const handleParamPaste = (event: ClipboardEvent<HTMLInputElement>, param: ParamDef) => {
@@ -1075,6 +1078,29 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
     }
     setTemplateStatus(t("workbench.templateRemoved"));
     await saveStoreValue(STORE_KEYS.workbenchTemplates, nextTemplates).catch(() => {});
+  };
+
+  const rewriteCustomCommand = () => {
+    const rewrite = rewriteAdbShellBatch(customCommand);
+    if (rewrite.ok) {
+      setCustomCommand(rewrite.command);
+      setHighRiskConfirmed(false);
+      setResult(null);
+      setError(null);
+      setExportStatus(null);
+      setRewriteStatus({ ok: true, msg: t("workbench.rewriteSuccess", { count: rewrite.count }) });
+      return;
+    }
+
+    if (rewrite.reason === "empty") {
+      setRewriteStatus({ ok: false, msg: t("workbench.rewriteEmpty") });
+      return;
+    }
+
+    setRewriteStatus({
+      ok: false,
+      msg: t("workbench.rewriteUnsupported", { line: rewrite.line, command: rewrite.command }),
+    });
   };
 
   const loadFromHistory = (item: WorkbenchHistoryItem) => {
@@ -1306,18 +1332,39 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
           </div>
         ) : (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{t("workbench.customTitle")}</h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-lg font-semibold text-gray-900">{t("workbench.customTitle")}</h3>
+              <button
+                type="button"
+                onClick={rewriteCustomCommand}
+                disabled={!customCommand.trim()}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <IconWand className="h-4 w-4" />
+                {t("workbench.rewriteShellBatch")}
+              </button>
+            </div>
             <p className="mt-1 text-sm leading-6 text-gray-500">{t("workbench.customDesc")}</p>
             <textarea
               value={customCommand}
               onChange={(event) => {
                 setCustomCommand(event.target.value);
                 setHighRiskConfirmed(false);
+                setRewriteStatus(null);
               }}
               rows={4}
               placeholder={t("workbench.customPlaceholder")}
               className="mt-4 w-full resize-y rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
             />
+            {rewriteStatus && (
+              <div
+                className={`mt-2 rounded-lg px-3 py-2 text-sm ${
+                  rewriteStatus.ok ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+                }`}
+              >
+                {rewriteStatus.msg}
+              </div>
+            )}
           </div>
         )}
 
