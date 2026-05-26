@@ -1,18 +1,25 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { DeviceHistoryItem, DeviceInfo } from "../types";
 import { getStore, STORE_KEYS } from "../storage";
 import { deviceIdentityKey } from "../deviceNotes";
 import { resolveVisibleSelectedDevice } from "../deviceSelection";
 
-export function useDevices(refreshInterval = 300000) {
+interface RefreshOptions {
+  silent?: boolean;
+}
+
+export function useDevices(refreshInterval = 3000) {
   const [devices, setDevices] = useState<DeviceInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
+  const refreshingRef = useRef(false);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
+  const refresh = useCallback(async (options: RefreshOptions = {}) => {
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
+    if (!options.silent) setLoading(true);
     setError(null);
     try {
       const result = await invoke<DeviceInfo[]>("adb_devices");
@@ -59,14 +66,29 @@ export function useDevices(refreshInterval = 300000) {
     } catch (e) {
       setError(String(e));
     } finally {
-      setLoading(false);
+      refreshingRef.current = false;
+      if (!options.silent) setLoading(false);
     }
   }, [selectedDevice]);
 
   useEffect(() => {
     refresh();
-    const interval = setInterval(refresh, refreshInterval);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      void refresh({ silent: true });
+    }, refreshInterval);
+    const refreshWhenVisible = () => {
+      if (!document.hidden) void refresh({ silent: true });
+    };
+    const refreshOnFocus = () => {
+      void refresh({ silent: true });
+    };
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("focus", refreshOnFocus);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("focus", refreshOnFocus);
+    };
   }, [refresh, refreshInterval]);
 
   return { devices, loading, error, selectedDevice, setSelectedDevice, refresh };

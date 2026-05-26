@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.1.11] - 2026-05-26
+
+### Changed
+
+- Made the device list refresh every few seconds and refresh immediately when the app regains focus, so externally connected ADB devices appear quickly.
+- Updated recent wireless reconnects to learn the current online ADB port from connected devices and prefer the latest port for the same IP address.
+
+### Fixed
+
+- Added an mDNS auto-connect fallback to single endpoint reconnects when Android changes the wireless debugging port.
+
 ## [1.1.10] - 2026-05-25
 
 ### Fixed

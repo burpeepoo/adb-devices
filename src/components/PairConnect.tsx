@@ -4,7 +4,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { Badge, Button, Group, Paper, Stack, Text, TextInput } from "@mantine/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import { DeviceInfo, MdnsDevice, PairConnectSettings, RecentConnectEndpoint } from "../types";
-import { reconnectEndpointsAfterAdbRestart } from "../pairConnectEndpoints";
+import {
+  endpointKey,
+  recentConnectEndpointsFromDevices,
+  reconnectEndpointWithCurrentPort,
+  reconnectEndpointsAfterAdbRestart,
+} from "../pairConnectEndpoints";
 import ResultAlert from "./common/ResultAlert";
 
 const REPAIR_ACTION_FAILURE_THRESHOLD = 2;
@@ -119,6 +124,39 @@ export default function PairConnect({ devices, onConnected }: Props) {
     setLastConnect({ ip, port });
     savePairConnect({ connectIp: ip, connectPort: port, recentConnects: nextRecent }, nextRecent);
   }, [recentConnects, savePairConnect]);
+
+  useEffect(() => {
+    const learnedEndpoints = recentConnectEndpointsFromDevices(devices, recentConnects);
+    if (learnedEndpoints.length === 0) return;
+
+    const primaryEndpoint = learnedEndpoints[0];
+    const primaryKey = endpointKey(primaryEndpoint);
+    const lastConnectKey = lastConnect ? endpointKey(lastConnect) : "";
+    const knownKeys = new Set(recentConnects.map(endpointKey));
+    const hasNewEndpoint = learnedEndpoints.some((endpoint) => !knownKeys.has(endpointKey(endpoint)));
+
+    if (!hasNewEndpoint && lastConnectKey === primaryKey) return;
+
+    const now = Date.now();
+    let nextRecent = recentConnects;
+    for (const [index, endpoint] of learnedEndpoints.entries()) {
+      nextRecent = mergeRecentConnects(nextRecent, {
+        ...endpoint,
+        lastConnectedAt: hasNewEndpoint || lastConnectKey !== primaryKey
+          ? now - index
+          : endpoint.lastConnectedAt,
+      });
+    }
+
+    if (recentConnectsEqual(nextRecent, recentConnects) && lastConnectKey === primaryKey) return;
+
+    setRecentConnects(nextRecent);
+    setLastConnect({ ip: primaryEndpoint.ip, port: primaryEndpoint.port });
+    savePairConnect(
+      { connectIp: primaryEndpoint.ip, connectPort: primaryEndpoint.port, recentConnects: nextRecent },
+      nextRecent,
+    );
+  }, [devices, lastConnect, recentConnects, savePairConnect]);
 
   const fillConnectEndpoint = (ip: string, port: string) => {
     setConnectIp(ip);
@@ -310,19 +348,25 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const handleRecentReconnect = async (endpoint: RecentConnectEndpoint, restartAdb = false) => {
     await runAdbOperation(async () => {
       const key = endpointKey(endpoint);
+      const currentEndpoint = reconnectEndpointWithCurrentPort(endpoint, mdnsDevices, devices);
+      const currentKey = endpointKey(currentEndpoint);
       setBusyAddress(restartAdb ? `__recent_repair__:${key}` : `__recent__:${key}`);
       setMdnsResult(null);
       setPairRepairVisible(false);
       try {
         const result = await invoke<string>("adb_reconnect_endpoint", {
-          ip: endpoint.ip,
-          port: endpoint.port,
+          ip: currentEndpoint.ip,
+          port: currentEndpoint.port,
           restartAdb,
         });
         setMdnsResult({ ok: true, msg: result });
-        setEndpointProbeStates((current) => ({ ...current, [key]: "reachable" }));
+        setEndpointProbeStates((current) => ({
+          ...current,
+          [key]: currentKey === key ? "reachable" : "unreachable",
+          [currentKey]: "reachable",
+        }));
         clearPairConnectFailures();
-        rememberRecentConnect(endpoint.ip, endpoint.port);
+        rememberRecentConnect(currentEndpoint.ip, currentEndpoint.port);
         await onConnected();
         await discoverMdns(true, true);
       } catch (e) {
@@ -1089,10 +1133,6 @@ function parseConnectEndpoint(value: string) {
   return { ip, port };
 }
 
-function endpointKey(endpoint: Pick<RecentConnectEndpoint, "ip" | "port">) {
-  return `${endpoint.ip}:${endpoint.port}`;
-}
-
 function normalizeRecentConnects(
   endpoints: RecentConnectEndpoint[] | undefined,
   legacyIp?: string,
@@ -1119,7 +1159,11 @@ function normalizeRecentConnects(
 }
 
 function mergeRecentConnects(current: RecentConnectEndpoint[], endpoint: RecentConnectEndpoint) {
-  return dedupeRecentConnects([endpoint, ...current]);
+  const endpointIp = endpoint.ip.trim();
+  return dedupeRecentConnects([
+    endpoint,
+    ...current.filter((item) => item.ip.trim() !== endpointIp || item.port.trim() === endpoint.port.trim()),
+  ]);
 }
 
 function dedupeRecentConnects(endpoints: RecentConnectEndpoint[]) {
@@ -1133,6 +1177,14 @@ function dedupeRecentConnects(endpoints: RecentConnectEndpoint[]) {
       return true;
     })
     .slice(0, RECENT_CONNECT_LIMIT);
+}
+
+function recentConnectsEqual(a: RecentConnectEndpoint[], b: RecentConnectEndpoint[]) {
+  if (a.length !== b.length) return false;
+  return a.every((endpoint, index) => {
+    const other = b[index];
+    return other && endpointKey(endpoint) === endpointKey(other) && endpoint.lastConnectedAt === other.lastConnectedAt;
+  });
 }
 
 function formatEndpointTime(timestamp: number) {

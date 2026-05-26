@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { reconnectEndpointsAfterAdbRestart } from "../src/pairConnectEndpoints.ts";
-import type { MdnsDevice, RecentConnectEndpoint } from "../src/types/index.ts";
+import {
+  recentConnectEndpointsFromDevices,
+  reconnectEndpointWithCurrentPort,
+  reconnectEndpointsAfterAdbRestart,
+} from "../src/pairConnectEndpoints.ts";
+import type { DeviceInfo, MdnsDevice, RecentConnectEndpoint } from "../src/types/index.ts";
 
 test("uses the current mDNS port for a recent endpoint on the same IP", () => {
   const endpoints = reconnectEndpointsAfterAdbRestart(
@@ -30,8 +34,52 @@ test("deduplicates endpoints after mDNS port replacement", () => {
   assert.deepEqual(endpoints, [recent("192.168.110.111", "36887")]);
 });
 
-function recent(ip: string, port: string): RecentConnectEndpoint {
-  return { ip, port, lastConnectedAt: 1000 };
+test("single reconnect uses the currently connected port for the same IP", () => {
+  const endpoint = reconnectEndpointWithCurrentPort(
+    recent("192.168.110.131", "38733"),
+    [],
+    [device("192.168.110.131:42933", "device")],
+  );
+
+  assert.deepEqual(endpoint, recent("192.168.110.131", "42933"));
+});
+
+test("single reconnect falls back to the current mDNS port for the same IP", () => {
+  const endpoint = reconnectEndpointWithCurrentPort(
+    recent("192.168.110.111", "38733"),
+    [mdns("adb-LCVC100003C-TRxUr5", "192.168.110.111", "36887")],
+    [],
+  );
+
+  assert.deepEqual(endpoint, recent("192.168.110.111", "36887"));
+});
+
+test("learns recent endpoints from connected wireless devices", () => {
+  const endpoints = recentConnectEndpointsFromDevices(
+    [
+      device("192.168.110.131:42933", "device"),
+      device("192.168.110.131:38733", "offline"),
+      device("USB123", "device"),
+    ],
+    [],
+    2000,
+  );
+
+  assert.deepEqual(endpoints, [recent("192.168.110.131", "42933", 2000)]);
+});
+
+test("keeps existing timestamps when learning an already-known connected endpoint", () => {
+  const endpoints = recentConnectEndpointsFromDevices(
+    [device("192.168.110.131:42933", "device")],
+    [recent("192.168.110.131", "42933", 1000)],
+    2000,
+  );
+
+  assert.deepEqual(endpoints, [recent("192.168.110.131", "42933", 1000)]);
+});
+
+function recent(ip: string, port: string, lastConnectedAt = 1000): RecentConnectEndpoint {
+  return { ip, port, lastConnectedAt };
 }
 
 function mdns(serviceName: string, ip: string, port: string): MdnsDevice {
@@ -42,5 +90,16 @@ function mdns(serviceName: string, ip: string, port: string): MdnsDevice {
     port,
     address: `${ip}:${port}`,
     connectable: true,
+  };
+}
+
+function device(serial: string, state: DeviceInfo["state"]): DeviceInfo {
+  return {
+    serial,
+    device_sn: "",
+    state,
+    model: "",
+    product: "",
+    connection_type: serial.includes(":") ? "wireless" : "usb",
   };
 }

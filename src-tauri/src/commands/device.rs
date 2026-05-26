@@ -398,22 +398,8 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
         return Ok(message);
     }
 
-    // 直接连接失败——设备端口可能已变化，回退到 mDNS 自动发现
-    let fallback_output = adb::run_adb_with_env_timeout(
-        &app,
-        &["devices", "-l"],
-        None,
-        &[("ADB_MDNS_AUTO_CONNECT", "adb-tls-connect")],
-        Duration::from_secs(15),
-    )?;
-    let fallback_stdout = String::from_utf8_lossy(&fallback_output.stdout);
-
-    // 检查 mDNS 自动发现是否成功连接了目标设备
-    for line in fallback_stdout.lines().skip(1) {
-        let line = line.trim();
-        if line.contains(&ip) && line.contains("device") {
-            return Ok(t!("device.connected_via_mdns", ip = ip).to_string());
-        }
+    if let Some(message) = connect_via_mdns_autoconnect(&app, &ip)? {
+        return Ok(message);
     }
 
     // 两种方式都失败，返回原始错误
@@ -448,6 +434,10 @@ pub fn adb_reconnect_endpoint(
         return Ok(message);
     }
 
+    if let Some(message) = connect_via_mdns_autoconnect(&app, &ip)? {
+        return Ok(message);
+    }
+
     Err(connect_failed_error(&output))
 }
 
@@ -468,6 +458,27 @@ fn endpoint_address(ip: &str, port: &str) -> String {
 
 fn connect_address(app: &AppHandle, address: &str) -> Result<std::process::Output, AdbError> {
     adb::run_adb_with_timeout(app, &["connect", address], None, Duration::from_secs(15))
+}
+
+fn connect_via_mdns_autoconnect(app: &AppHandle, ip: &str) -> Result<Option<String>, AdbError> {
+    // 直接连接失败时，设备的无线调试连接端口可能已经变化。
+    let fallback_output = adb::run_adb_with_env_timeout(
+        app,
+        &["devices", "-l"],
+        None,
+        &[("ADB_MDNS_AUTO_CONNECT", "adb-tls-connect")],
+        Duration::from_secs(15),
+    )?;
+    let fallback_stdout = String::from_utf8_lossy(&fallback_output.stdout);
+
+    for line in fallback_stdout.lines().skip(1) {
+        let line = line.trim();
+        if line.contains(ip) && line.contains("device") {
+            return Ok(Some(t!("device.connected_via_mdns", ip = ip).to_string()));
+        }
+    }
+
+    Ok(None)
 }
 
 fn connect_success_message(

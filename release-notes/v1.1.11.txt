@@ -1,0 +1,2 @@
+en-US: Device online/offline status now refreshes faster, and recent wireless reconnects prefer the current ADB port when Android changes the wireless debugging port.
+zh-CN: 设备在线/离线状态现在刷新更及时；Android 无线调试端口变化后，最近无线重连会优先使用当前 ADB 端口。
