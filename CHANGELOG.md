@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.1.18] - 2026-05-27
+
+### Fixed
+
+- Replaced raw updater transport failures such as `error sending request for url` with a clear network/proxy message when GitHub cannot be reached.
+- Kept malformed release-feed errors quiet while still surfacing real updater network failures with actionable copy.
+
 ## [1.1.17] - 2026-05-27
 
 ### Changed

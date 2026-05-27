@@ -2,10 +2,13 @@ import { isTauri } from "@tauri-apps/api/core";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type DownloadEvent, type Update } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   UPDATE_AUTO_CHECK_DELAY_MS,
   UPDATE_AUTO_CHECK_INTERVAL_MS,
   canRunAutomaticUpdateCheck,
+  getUpdateCheckErrorKind,
+  isLikelyUpdateNetworkError,
   shouldTreatUpdateCheckErrorAsNoUpdate,
 } from "../updaterPolicy";
 
@@ -67,6 +70,7 @@ function toErrorMessage(error: unknown): string {
 }
 
 export function useAppUpdater(options: AppUpdaterOptions = {}): AppUpdaterControls {
+  const { t } = useTranslation();
   const autoCheckEnabled = options.autoCheckEnabled ?? true;
   const updateRef = useRef<Update | null>(null);
   const statusRef = useRef<UpdateStatus>("idle");
@@ -130,11 +134,11 @@ export function useAppUpdater(options: AppUpdaterOptions = {}): AppUpdaterContro
 
         setStatus(silent ? "idle" : "error");
         if (!silent) {
-          setError(toErrorMessage(e));
+          setError(getUpdateCheckErrorKind(e) === "network" ? t("updates.networkError") : toErrorMessage(e));
         }
       }
     },
-    [clearPendingUpdate]
+    [clearPendingUpdate, t]
   );
 
   const downloadAndInstall = useCallback(async () => {
@@ -172,9 +176,9 @@ export function useAppUpdater(options: AppUpdaterOptions = {}): AppUpdaterContro
       await relaunch();
     } catch (e) {
       setStatus("error");
-      setError(toErrorMessage(e));
+      setError(isLikelyUpdateNetworkError(e) ? t("updates.downloadNetworkError") : toErrorMessage(e));
     }
-  }, []);
+  }, [t]);
 
   const dismissPrompt = useCallback(() => {
     if (status !== "downloading") {

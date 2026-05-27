@@ -3,7 +3,9 @@ import test from "node:test";
 import {
   UPDATE_AUTO_CHECK_INTERVAL_MS,
   canRunAutomaticUpdateCheck,
+  getUpdateCheckErrorKind,
   isAutoUpdateCheckEnabled,
+  isLikelyUpdateNetworkError,
   shouldTreatUpdateCheckErrorAsNoUpdate,
 } from "../src/updaterPolicy.ts";
 
@@ -36,4 +38,21 @@ test("invalid release JSON update check errors are treated as no update", () => 
     true
   );
   assert.equal(shouldTreatUpdateCheckErrorAsNoUpdate(new Error("Failed to download update")), false);
+  assert.equal(
+    shouldTreatUpdateCheckErrorAsNoUpdate(
+      new Error(
+        "error sending request for url (https://github.com/burpeepoo/adb-devices/releases/latest/download/latest.json)"
+      )
+    ),
+    false
+  );
+});
+
+test("update request transport failures are classified as network errors", () => {
+  const error = new Error(
+    "error sending request for url (https://github.com/burpeepoo/adb-devices/releases/latest/download/latest.json)"
+  );
+  assert.equal(getUpdateCheckErrorKind(error), "network");
+  assert.equal(isLikelyUpdateNetworkError(error), true);
+  assert.equal(isLikelyUpdateNetworkError(new Error("Failed to download update")), false);
 });

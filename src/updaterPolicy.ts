@@ -10,6 +10,8 @@ export type AutoCheckUpdateStatus =
   | "ready"
   | "error";
 
+export type UpdateCheckErrorKind = "invalid-feed" | "network" | "other";
+
 export function isAutoUpdateCheckEnabled(value?: boolean): boolean {
   return value !== false;
 }
@@ -19,6 +21,36 @@ export function canRunAutomaticUpdateCheck(status: AutoCheckUpdateStatus): boole
 }
 
 export function shouldTreatUpdateCheckErrorAsNoUpdate(error: unknown): boolean {
+  return getUpdateCheckErrorKind(error) === "invalid-feed";
+}
+
+export function getUpdateCheckErrorKind(error: unknown): UpdateCheckErrorKind {
   const message = error instanceof Error ? error.message : String(error);
-  return message.toLowerCase().includes("could not fetch a valid release json from the remote");
+  const normalized = message.toLowerCase();
+  if (normalized.includes("could not fetch a valid release json from the remote")) {
+    return "invalid-feed";
+  }
+
+  if (isLikelyUpdateNetworkError(error)) {
+    return "network";
+  }
+
+  return "other";
+}
+
+export function isLikelyUpdateNetworkError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  const normalized = message.toLowerCase();
+  return [
+    "error sending request",
+    "request timed out",
+    "timed out",
+    "connection refused",
+    "connection reset",
+    "connection closed",
+    "dns error",
+    "tls",
+    "ssl",
+    "network",
+  ].some((pattern) => normalized.includes(pattern));
 }

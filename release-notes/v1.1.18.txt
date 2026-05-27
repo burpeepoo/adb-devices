@@ -1,0 +1,7 @@
+zh-CN:
+修复更新检查失败时直接显示底层网络错误的问题。当前网络或代理无法访问 GitHub 时，App 会显示清晰的网络/代理提示，而不是 `error sending request for url`。
+继续保留 release feed 格式异常的降级处理，避免自动检查更新时打扰用户。
+
+en-US:
+Fixed update checks showing raw transport errors directly. When the current network or proxy cannot reach GitHub, the app now shows a clear network/proxy message instead of `error sending request for url`.
+Malformed release-feed errors are still downgraded so automatic update checks do not interrupt the user.

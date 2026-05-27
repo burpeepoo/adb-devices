@@ -64,6 +64,8 @@
     "downloading": "正在下载更新...",
     "progressWithTotal": "{{downloaded}} / {{total}}",
     "relaunching": "更新已安装，正在重启应用...",
+    "networkError": "无法连接更新服务器。当前网络或代理可能无法访问 GitHub，请检查代理/VPN 后重试；也可以从 GitHub Release 手动下载安装包。",
+    "downloadNetworkError": "更新包下载失败。当前网络或代理可能无法访问 GitHub 下载地址，请检查代理/VPN 后重试；也可以从 GitHub Release 手动下载安装包。",
     "failed": "更新失败：{{error}}"
   },
   "pairConnect": {

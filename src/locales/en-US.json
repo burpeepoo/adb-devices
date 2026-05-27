@@ -64,6 +64,8 @@
     "downloading": "Downloading update...",
     "progressWithTotal": "{{downloaded}} / {{total}}",
     "relaunching": "Update installed. Relaunching...",
+    "networkError": "Could not reach the update server. Your current network or proxy may not be able to access GitHub. Check the proxy/VPN and try again, or download the installer manually from GitHub Releases.",
+    "downloadNetworkError": "The update package could not be downloaded. Your current network or proxy may not be able to access GitHub downloads. Check the proxy/VPN and try again, or download the installer manually from GitHub Releases.",
     "failed": "Update failed: {{error}}"
   },
   "pairConnect": {
