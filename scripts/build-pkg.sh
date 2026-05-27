@@ -26,6 +26,20 @@ if ! security find-identity -v -p basic | grep -Fq "$APPLE_INSTALLER_SIGNING_IDE
     exit 1
 fi
 
+productbuild_timestamp_arg=("--timestamp")
+case "${PRODUCTBUILD_TIMESTAMP_MODE:-trusted}" in
+    trusted)
+        productbuild_timestamp_arg=("--timestamp")
+        ;;
+    none)
+        productbuild_timestamp_arg=("--timestamp=none")
+        ;;
+    *)
+        echo "Error: PRODUCTBUILD_TIMESTAMP_MODE must be 'trusted' or 'none'." >&2
+        exit 1
+        ;;
+esac
+
 normalize_arch() {
     case "${1:-}" in
         "" | native)
@@ -80,7 +94,7 @@ build_one() {
         --component "$app_src" \
         /Applications \
         --sign "$APPLE_INSTALLER_SIGNING_IDENTITY" \
-        --timestamp \
+        "${productbuild_timestamp_arg[@]}" \
         "$pkg_path"
 
     pkgutil --check-signature "$pkg_path"

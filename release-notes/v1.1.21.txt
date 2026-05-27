@@ -1,0 +1,13 @@
+zh-CN:
+ADB Manager v1.1.21
+
+- 移除设备列表的常驻 3 秒轮询，避免设备控制台状态和诊断信息一直刷新。
+- 诊断信息只会在选中的在线设备 serial 变化时重新获取，不再因为设备列表对象刷新而反复拉取。
+- 保留启动、窗口重新聚焦、连接成功等必要时机的设备刷新。
+
+en-US:
+ADB Manager v1.1.21
+
+- Removes continuous three-second device-list polling to stop device console status and diagnostics from refreshing constantly.
+- Refreshes diagnostics only when the selected online device serial changes, instead of every device-list object refresh.
+- Keeps device refreshes for startup, window refocus, and successful connection events.

@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.1.21] - 2026-05-27
+
+### Changed
+
+- Removed the continuous device-list polling that could keep refreshing the device console status and diagnostics.
+- Limited device diagnostics refreshes to selected online serial changes instead of every device-list object refresh.
+
 ## [1.1.20] - 2026-05-27
 
 ### Changed

@@ -9,7 +9,7 @@ interface RefreshOptions {
   silent?: boolean;
 }
 
-export function useDevices(refreshInterval = 3000) {
+export function useDevices() {
   const [devices, setDevices] = useState<DeviceInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,9 +73,6 @@ export function useDevices(refreshInterval = 3000) {
 
   useEffect(() => {
     refresh();
-    const interval = setInterval(() => {
-      void refresh({ silent: true });
-    }, refreshInterval);
     const refreshWhenVisible = () => {
       if (!document.hidden) void refresh({ silent: true });
     };
@@ -85,11 +82,10 @@ export function useDevices(refreshInterval = 3000) {
     document.addEventListener("visibilitychange", refreshWhenVisible);
     window.addEventListener("focus", refreshOnFocus);
     return () => {
-      clearInterval(interval);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
       window.removeEventListener("focus", refreshOnFocus);
     };
-  }, [refresh, refreshInterval]);
+  }, [refresh]);
 
   return { devices, loading, error, selectedDevice, setSelectedDevice, refresh };
 }

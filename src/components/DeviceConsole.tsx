@@ -45,6 +45,7 @@ export default function DeviceConsole({
     () => devices.find((device) => device.serial === selectedDeviceSerial) || null,
     [devices, selectedDeviceSerial],
   );
+  const selectedOnlineSerial = selectedDevice?.state === "device" ? selectedDevice.serial : null;
   const identity = selectedDevice ? deviceIdentityKey(selectedDevice) : "";
   const note = identity ? deviceNotes[identity]?.trim() || "" : "";
   const title = note || identity;
@@ -60,7 +61,7 @@ export default function DeviceConsole({
     setSummary(null);
     setSummaryError(null);
 
-    if (!selectedDevice || selectedDevice.state !== "device") {
+    if (!selectedOnlineSerial) {
       setSummaryLoading(false);
       return () => {
         cancelled = true;
@@ -68,7 +69,7 @@ export default function DeviceConsole({
     }
 
     setSummaryLoading(true);
-    invoke<DeviceSummary>("adb_device_summary", { deviceSerial: selectedDevice.serial })
+    invoke<DeviceSummary>("adb_device_summary", { deviceSerial: selectedOnlineSerial })
       .then((nextSummary) => {
         if (!cancelled) {
           setSummary(nextSummary);
@@ -88,7 +89,7 @@ export default function DeviceConsole({
     return () => {
       cancelled = true;
     };
-  }, [selectedDevice]);
+  }, [selectedOnlineSerial]);
 
   if (!selectedDevice) {
     return (

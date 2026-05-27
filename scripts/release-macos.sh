@@ -78,6 +78,12 @@ fi
 echo "=== Release ADB Manager v${VERSION} ==="
 ./scripts/set-version.sh "$VERSION"
 
+codesign_timestamp_arg=("--timestamp")
+if [[ -n "${APPLE_CODESIGN_TIMESTAMP_URL:-}" ]]; then
+    codesign_timestamp_arg=("--timestamp=$APPLE_CODESIGN_TIMESTAMP_URL")
+    export PATH="$PWD/scripts/release-shims:$PATH"
+fi
+
 SCRCPY_BINARIES=(
     "src-tauri/resources/scrcpy/macos-aarch64/scrcpy"
     "src-tauri/resources/scrcpy/macos-x86_64/scrcpy"
@@ -90,7 +96,7 @@ for binary in "${SCRCPY_BINARIES[@]}"; do
         echo "Run ./scripts/prepare-scrcpy.sh before releasing." >&2
         exit 1
     fi
-    codesign --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$binary"
+    codesign --force --options runtime "${codesign_timestamp_arg[@]}" --sign "$APPLE_SIGNING_IDENTITY" "$binary"
     codesign --verify --strict --verbose=2 "$binary"
 done
 
@@ -118,7 +124,7 @@ for dmg in "${DMGS[@]}"; do
         exit 1
     fi
 
-    codesign --force --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
+    codesign --force "${codesign_timestamp_arg[@]}" --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
     codesign --verify --verbose=2 "$dmg"
 
     xcrun notarytool submit "$dmg" \
