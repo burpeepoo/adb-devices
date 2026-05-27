@@ -1,0 +1,7 @@
+zh-CN:
+修复 1.1.14 更新后启动修复与后台设备刷新同时调用 ADB，导致 ADB server 重启过程被抢占、内置 ADB 崩溃或连接恢复失败的问题。
+启动修复、设备刷新、mDNS 扫描、配对、连接、重连和断开现在会共享同一个后端 ADB 操作锁，避免更新后无法重新连接最近无线调试设备。
+
+en-US:
+Fixed an issue where the 1.1.14 startup repair could race with background device refresh after an update, causing the ADB server restart to be preempted and bundled ADB to crash or fail to recover connections.
+Startup repair, device refresh, mDNS scan, pairing, connect, reconnect, and disconnect now share one backend ADB operation lock so recent wireless debugging devices can reconnect reliably after updates.

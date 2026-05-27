@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.1.15] - 2026-05-27
+
+### Fixed
+
+- Serialized ADB device refresh, mDNS discovery, pairing, connection, and restart commands so startup repair after an update cannot race with background device polling.
+- Fixed update-after-restart recovery leaving only an attempted startup repair state when the bundled ADB server start path failed during concurrent polling.
+
 ## [1.1.14] - 2026-05-27
 
 ### Added

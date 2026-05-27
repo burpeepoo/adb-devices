@@ -6,7 +6,7 @@ use std::{
     net::{TcpStream, ToSocketAddrs},
     path::{Path, PathBuf},
     process::Command,
-    sync::Mutex,
+    sync::{Mutex, MutexGuard},
     time::{Duration, Instant},
 };
 use tauri::{AppHandle, State};
@@ -57,13 +57,18 @@ pub struct DeviceSummary {
 }
 
 #[tauri::command(async)]
-pub fn adb_restart_server(app: AppHandle) -> Result<String, AdbError> {
+pub fn adb_restart_server(app: AppHandle, state: State<'_, AppState>) -> Result<String, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
     restart_adb_server(&app)?;
     Ok(t!("device.adb_restarted").to_string())
 }
 
 #[tauri::command(async)]
-pub fn adb_reset_host_identity(app: AppHandle) -> Result<String, AdbError> {
+pub fn adb_reset_host_identity(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<String, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
     reset_adb_host_identity(&app)?;
     Ok(t!("device.adb_identity_reset").to_string())
 }
@@ -90,6 +95,7 @@ pub fn adb_devices(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<Vec<DeviceInfo>, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
     let output = adb::run_adb_with_timeout(&app, &["devices", "-l"], None, Duration::from_secs(8))?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     let devices = parse_devices_output(&stdout);
@@ -173,7 +179,11 @@ pub fn adb_device_summary(
 }
 
 #[tauri::command(async)]
-pub fn adb_mdns_discover(app: AppHandle) -> Result<Vec<MdnsDevice>, AdbError> {
+pub fn adb_mdns_discover(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<Vec<MdnsDevice>, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
     let output =
         adb::run_adb_with_timeout(&app, &["mdns", "services"], None, Duration::from_secs(8))?;
     adb::ensure_success(&output, &t!("device.scan_failed"))?;
@@ -182,7 +192,12 @@ pub fn adb_mdns_discover(app: AppHandle) -> Result<Vec<MdnsDevice>, AdbError> {
 }
 
 #[tauri::command(async)]
-pub fn adb_auto_connect(app: AppHandle, address: String) -> Result<String, AdbError> {
+pub fn adb_auto_connect(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    address: String,
+) -> Result<String, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
     let output = connect_address(&app, &address)?;
     if let Some(message) = connect_success_message(&output, &address, false) {
         return Ok(message);
@@ -202,6 +217,7 @@ pub fn adb_mdns_auto_connect(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<Vec<DeviceInfo>, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
     let output = adb::run_adb_with_env_timeout(
         &app,
         &["devices", "-l"],
@@ -344,10 +360,12 @@ fn parse_mdns_adb_serial(adb_serial: &str) -> Option<String> {
 #[tauri::command(async)]
 pub fn adb_pair(
     app: AppHandle,
+    state: State<'_, AppState>,
     ip: String,
     port: String,
     code: String,
 ) -> Result<String, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
     let addr = format!("{}:{}", ip, port);
     let mut output = run_pair_command(&app, &addr, &code)?;
 
@@ -390,7 +408,13 @@ pub fn adb_pair(
 }
 
 #[tauri::command(async)]
-pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, AdbError> {
+pub fn adb_connect(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    ip: String,
+    port: String,
+) -> Result<String, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
     let addr = endpoint_address(&ip, &port);
     let output = connect_address(&app, &addr)?;
 
@@ -425,10 +449,12 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
 #[tauri::command(async)]
 pub fn adb_reconnect_endpoint(
     app: AppHandle,
+    state: State<'_, AppState>,
     ip: String,
     port: String,
     restart_adb: bool,
 ) -> Result<String, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
     let addr = endpoint_address(&ip, &port);
     let _ = adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(5));
 
@@ -723,7 +749,13 @@ fn output_message(output: &std::process::Output) -> String {
 }
 
 #[tauri::command(async)]
-pub fn adb_disconnect(app: AppHandle, ip: String, port: String) -> Result<String, AdbError> {
+pub fn adb_disconnect(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    ip: String,
+    port: String,
+) -> Result<String, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
     let addr = endpoint_address(&ip, &port);
     let output =
         adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(8))?;
@@ -734,6 +766,15 @@ pub fn adb_disconnect(app: AppHandle, ip: String, port: String) -> Result<String
     } else {
         Ok(t!("device.disconnect_result", "message" => stdout.trim()).to_string())
     }
+}
+
+fn lock_adb_server_operation<'a, 'r>(
+    state: &'a State<'r, AppState>,
+) -> Result<MutexGuard<'a, ()>, AdbError> {
+    state
+        .adb_server_operation
+        .lock()
+        .map_err(|_| AdbError::CommandFailed(t!("device.adb_operation_state_error").into_owned()))
 }
 
 fn infer_connection_type(serial: &str) -> String {

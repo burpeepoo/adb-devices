@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 
 pub struct AppState {
+    pub adb_server_operation: Mutex<()>,
     pub recording_process: Mutex<Option<std::process::Child>>,
     pub recording_device: Mutex<Option<String>>,
     pub recording_remote_path: Mutex<Option<String>>,
@@ -17,6 +18,7 @@ pub struct AppState {
 impl Default for AppState {
     fn default() -> Self {
         Self {
+            adb_server_operation: Mutex::new(()),
             recording_process: Mutex::new(None),
             recording_device: Mutex::new(None),
             recording_remote_path: Mutex::new(None),
