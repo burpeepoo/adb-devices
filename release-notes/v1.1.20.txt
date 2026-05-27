@@ -1,3 +1,11 @@
+zh-CN:
+ADB Manager v1.1.20
+
+- 修复更新后设备本来已经在线、几秒后又变离线的问题。
+- 优化 macOS 下 app 内 ADB 的启动环境，让它更接近命令行里的 ADB 行为。
+- 普通连接、最近连接重连、局域网扫描后的一键连接不再自动重启 ADB；只有明确点击「重启 ADB 并重新扫描」时才会重启。
+
+en-US:
 ADB Manager v1.1.20
 
 - Avoids automatic ADB restarts when an already-online wireless device is detected after an app update.
