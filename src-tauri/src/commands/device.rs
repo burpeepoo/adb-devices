@@ -512,7 +512,13 @@ pub fn adb_reconnect_endpoint(
 fn start_adb_server(app: &AppHandle) -> Result<(), AdbError> {
     let output = adb::run_adb_with_timeout(app, &["start-server"], None, Duration::from_secs(8))?;
     adb::ensure_success(&output, &t!("device.adb_start_failed"))?;
-    Ok(())
+    if wait_for_adb_server_to_start(Duration::from_secs(3)) {
+        return Ok(());
+    }
+
+    Err(AdbError::CommandFailed(
+        t!("device.adb_start_failed").into_owned(),
+    ))
 }
 
 fn restart_adb_server(app: &AppHandle) -> Result<(), AdbError> {
@@ -581,6 +587,18 @@ fn wait_for_adb_server_to_stop(timeout: Duration) -> bool {
     }
 
     !is_adb_server_port_open()
+}
+
+fn wait_for_adb_server_to_start(timeout: Duration) -> bool {
+    let started = Instant::now();
+    while started.elapsed() < timeout {
+        if is_adb_server_port_open() {
+            return true;
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+
+    is_adb_server_port_open()
 }
 
 fn is_adb_server_port_open() -> bool {

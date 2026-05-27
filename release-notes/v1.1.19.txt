@@ -1,0 +1,7 @@
+zh-CN:
+修复 App 内「重启 ADB」后仍然无法连接无线设备的问题。macOS 现在会优先使用本机已安装的 ADB（例如 Homebrew 或 Android SDK），避免把命令行已经恢复正常的 ADB server 又换回 App bundled ADB。
+重启 ADB 后会等待 5037 端口真正恢复再继续扫描/重连，减少按钮显示完成但 server 尚未稳定的情况。
+
+en-US:
+Fixed wireless devices still failing to connect after using "Restart ADB" inside the app. On macOS, the app now prefers the host-installed ADB, such as Homebrew or Android SDK, before falling back to the bundled ADB.
+After restarting ADB, the app waits for port 5037 to actually come back before scanning or reconnecting, reducing cases where the UI reports success before the server is stable.

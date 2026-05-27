@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.1.19] - 2026-05-27
+
+### Changed
+
+- Prefer a host-installed ADB on macOS, including Homebrew and Android SDK locations, before falling back to the bundled ADB binary.
+
+### Fixed
+
+- Fixed in-app ADB restart starting a bundled ADB server that could keep wireless `adb connect` stuck on `No route to host` even when the same endpoint was reachable from the command line.
+- Wait for the restarted ADB server port to actually come back before reporting restart success.
+
 ## [1.1.18] - 2026-05-27
 
 ### Fixed

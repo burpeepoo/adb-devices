@@ -95,7 +95,20 @@ fn get_bundled_adb_path(app: &AppHandle) -> Option<PathBuf> {
 }
 
 fn get_system_adb_path() -> Option<PathBuf> {
-    which::which("adb").ok()
+    let mut candidates = Vec::new();
+    if let Ok(path) = which::which("adb") {
+        candidates.push(path);
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        candidates.push(PathBuf::from("/opt/homebrew/bin/adb"));
+        candidates.push(PathBuf::from("/usr/local/bin/adb"));
+    }
+
+    candidates
+        .into_iter()
+        .find(|path| path.exists() && path.is_file())
 }
 
 fn get_sdk_adb_path() -> Option<PathBuf> {
@@ -132,17 +145,29 @@ fn get_sdk_adb_path() -> Option<PathBuf> {
 }
 
 pub fn get_adb_path(app: &AppHandle) -> Result<PathBuf, AdbError> {
-    if let Some(path) = get_bundled_adb_path(app) {
-        ensure_executable(&path)?;
-        return Ok(path);
+    let path = select_adb_path(
+        get_bundled_adb_path(app),
+        get_system_adb_path(),
+        get_sdk_adb_path(),
+    )
+    .ok_or(AdbError::AdbNotInstalled)?;
+    ensure_executable(&path)?;
+    Ok(path)
+}
+
+fn select_adb_path(
+    bundled: Option<PathBuf>,
+    system: Option<PathBuf>,
+    sdk: Option<PathBuf>,
+) -> Option<PathBuf> {
+    if cfg!(target_os = "macos") {
+        // GUI-launched apps receive a very small PATH on macOS. Prefer a real
+        // host adb when available, because users often repair wireless ADB from
+        // that server and the app should keep using the same healthy server.
+        system.or(sdk).or(bundled)
+    } else {
+        bundled.or(system).or(sdk)
     }
-    if let Some(path) = get_system_adb_path() {
-        return Ok(path);
-    }
-    if let Some(path) = get_sdk_adb_path() {
-        return Ok(path);
-    }
-    Err(AdbError::AdbNotInstalled)
 }
 
 fn ensure_executable(path: &PathBuf) -> Result<(), AdbError> {
@@ -289,4 +314,38 @@ pub fn run_adb_with_stdin(
 
 pub fn check_adb_available(app: &AppHandle) -> bool {
     get_adb_path(app).is_ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_prefers_host_adb_over_bundled_adb() {
+        let bundled = Some(PathBuf::from("/app/resources/cozyla-adb"));
+        let system = Some(PathBuf::from("/opt/homebrew/bin/adb"));
+        let sdk = Some(PathBuf::from(
+            "/Users/example/Library/Android/sdk/platform-tools/adb",
+        ));
+
+        assert_eq!(select_adb_path(bundled, system.clone(), sdk), system);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_falls_back_to_bundled_adb_without_host_adb() {
+        let bundled = Some(PathBuf::from("/app/resources/cozyla-adb"));
+
+        assert_eq!(select_adb_path(bundled.clone(), None, None), bundled);
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    #[test]
+    fn non_macos_prefers_bundled_adb() {
+        let bundled = Some(PathBuf::from("/app/resources/adb"));
+        let system = Some(PathBuf::from("/usr/bin/adb"));
+
+        assert_eq!(select_adb_path(bundled.clone(), system, None), bundled);
+    }
 }
