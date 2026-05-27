@@ -116,7 +116,7 @@
     "probeRecent": "Check",
     "reconnectRecent": "Reconnect",
     "restartAdbAndReconnect": "Restart ADB and reconnect",
-    "tryRestartReconnect": "If the port is reachable, try \"Restart ADB and reconnect\".",
+    "tryRestartReconnect": "If the port is reachable but still fails, try \"Restart ADB and rescan\".",
     "fill": "Fill",
     "lastConnectedAt": "Last success: {{time}}",
     "probeStatus": {

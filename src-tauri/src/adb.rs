@@ -170,6 +170,67 @@ fn select_adb_path(
     }
 }
 
+fn new_adb_command(app: &AppHandle) -> Result<Command, AdbError> {
+    let adb = get_adb_path(app)?;
+    let mut cmd = Command::new(&adb);
+    prepare_adb_command(&mut cmd);
+    Ok(cmd)
+}
+
+fn prepare_adb_command(cmd: &mut Command) {
+    #[cfg(target_os = "macos")]
+    {
+        cmd.env(
+            "PATH",
+            macos_adb_command_path(std::env::var("PATH").ok().as_deref()),
+        );
+        cmd.env(
+            "LANG",
+            std::env::var("LANG").unwrap_or_else(|_| "C.UTF-8".to_string()),
+        );
+        if let Some(home) = std::env::var_os("HOME") {
+            let home_path = PathBuf::from(home);
+            if home_path.is_dir() {
+                cmd.current_dir(home_path);
+            }
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn macos_adb_command_path(existing_path: Option<&str>) -> String {
+    let mut paths = Vec::new();
+    for path in [
+        "/opt/homebrew/bin",
+        "/usr/local/bin",
+        "/System/Cryptexes/App/usr/bin",
+        "/usr/bin",
+        "/bin",
+        "/usr/sbin",
+        "/sbin",
+        "/Library/Apple/usr/bin",
+    ] {
+        push_unique_path(&mut paths, path);
+    }
+
+    if let Some(existing_path) = existing_path {
+        for path in existing_path.split(':') {
+            push_unique_path(&mut paths, path);
+        }
+    }
+
+    paths.join(":")
+}
+
+#[cfg(target_os = "macos")]
+fn push_unique_path(paths: &mut Vec<String>, path: &str) {
+    let trimmed = path.trim();
+    if trimmed.is_empty() || paths.iter().any(|existing| existing == trimmed) {
+        return;
+    }
+    paths.push(trimmed.to_string());
+}
+
 fn ensure_executable(path: &PathBuf) -> Result<(), AdbError> {
     #[cfg(unix)]
     {
@@ -211,8 +272,7 @@ pub fn run_adb_with_env(
     device_serial: Option<&str>,
     envs: &[(&str, &str)],
 ) -> Result<std::process::Output, AdbError> {
-    let adb = get_adb_path(app)?;
-    let mut cmd = std::process::Command::new(&adb);
+    let mut cmd = new_adb_command(app)?;
     if let Some(serial) = device_serial {
         cmd.args(["-s", serial]);
     }
@@ -243,8 +303,7 @@ fn build_adb_command(
     args: &[&str],
     device_serial: Option<&str>,
 ) -> Result<Command, AdbError> {
-    let adb = get_adb_path(app)?;
-    let mut cmd = Command::new(&adb);
+    let mut cmd = new_adb_command(app)?;
     if let Some(serial) = device_serial {
         cmd.args(["-s", serial]);
     }
@@ -297,8 +356,7 @@ pub fn run_adb_with_stdin(
     device_serial: Option<&str>,
     stdin_data: &[u8],
 ) -> Result<std::process::Output, AdbError> {
-    let adb = get_adb_path(app)?;
-    let mut cmd = std::process::Command::new(&adb);
+    let mut cmd = new_adb_command(app)?;
     if let Some(serial) = device_serial {
         cmd.args(["-s", serial]);
     }
@@ -338,6 +396,24 @@ mod tests {
         let bundled = Some(PathBuf::from("/app/resources/cozyla-adb"));
 
         assert_eq!(select_adb_path(bundled.clone(), None, None), bundled);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_adb_command_path_restores_shell_search_paths() {
+        let path = macos_adb_command_path(Some("/usr/bin:/custom/bin:/opt/homebrew/bin"));
+        let parts = path.split(':').collect::<Vec<_>>();
+
+        assert_eq!(parts.first(), Some(&"/opt/homebrew/bin"));
+        assert!(parts.contains(&"/usr/local/bin"));
+        assert!(parts.contains(&"/custom/bin"));
+        assert_eq!(
+            parts
+                .iter()
+                .filter(|part| **part == "/opt/homebrew/bin")
+                .count(),
+            1
+        );
     }
 
     #[cfg(not(target_os = "macos"))]

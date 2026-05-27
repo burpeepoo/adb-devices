@@ -4,7 +4,11 @@ import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { Badge, Button, Group, Paper, Stack, Text, TextInput } from "@mantine/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
-import { shouldRunAdbStartupRepair, type AdbStartupRepairState } from "../startupAdbRepair";
+import {
+  hasConnectedAdbDevice,
+  shouldRunAdbStartupRepair,
+  type AdbStartupRepairState,
+} from "../startupAdbRepair";
 import { DeviceInfo, MdnsDevice, PairConnectSettings, RecentConnectEndpoint } from "../types";
 import {
   endpointKey,
@@ -16,6 +20,7 @@ import ResultAlert from "./common/ResultAlert";
 
 const REPAIR_ACTION_FAILURE_THRESHOLD = 2;
 const RECENT_CONNECT_LIMIT = 5;
+const STARTUP_ADB_REPAIR_DEVICE_SETTLE_MS = 3500;
 
 type EndpointProbeStatus = "idle" | "checking" | "reachable" | "unreachable";
 type EndpointProbeStates = Record<string, EndpointProbeStatus>;
@@ -65,6 +70,11 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const [hostIdentityResetVisible, setHostIdentityResetVisible] = useState(false);
   const [pairConnectLoaded, setPairConnectLoaded] = useState(false);
   const localIpsRef = useRef<string[]>([]);
+  const devicesRef = useRef<DeviceInfo[]>(devices);
+
+  useEffect(() => {
+    devicesRef.current = devices;
+  }, [devices]);
 
   const updateLocalIps = useCallback((ips: string[]) => {
     const previousSignature = ipv4NetworkSignature(localIpsRef.current);
@@ -533,12 +543,40 @@ export default function PairConnect({ devices, onConnected }: Props) {
     const runStartupRepair = async () => {
       const store = await getStore();
       const currentVersion = await getVersion();
-      const saved = await store.get<AdbStartupRepairState>(STORE_KEYS.adbStartupRepair);
-      const attemptedAt = Date.now();
-      if (!shouldRunAdbStartupRepair({ currentVersion, saved, now: attemptedAt })) {
+      let saved = await store.get<AdbStartupRepairState>(STORE_KEYS.adbStartupRepair);
+      let now = Date.now();
+      if (!shouldRunAdbStartupRepair({ currentVersion, saved, now })) {
         return;
       }
 
+      const completeWithoutRepair = async (completedAt: number, state?: AdbStartupRepairState) => {
+        await store.set(STORE_KEYS.adbStartupRepair, {
+          ...state,
+          completedVersion: currentVersion,
+          completedAt,
+        });
+        await store.save();
+      };
+
+      if (hasConnectedAdbDevice(devicesRef.current)) {
+        await completeWithoutRepair(now, saved);
+        return;
+      }
+
+      await new Promise((resolve) => window.setTimeout(resolve, STARTUP_ADB_REPAIR_DEVICE_SETTLE_MS));
+      if (cancelled) return;
+
+      saved = await store.get<AdbStartupRepairState>(STORE_KEYS.adbStartupRepair);
+      now = Date.now();
+      if (!shouldRunAdbStartupRepair({ currentVersion, saved, now })) {
+        return;
+      }
+      if (hasConnectedAdbDevice(devicesRef.current)) {
+        await completeWithoutRepair(now, saved);
+        return;
+      }
+
+      const attemptedAt = now;
       await store.set(STORE_KEYS.adbStartupRepair, {
         ...saved,
         attemptedVersion: currentVersion,
@@ -782,7 +820,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
                   disabled={adbBusy}
                   onProbe={probeRecentEndpoint}
                   onProbeAll={probeRecentConnects}
-                  onReconnect={(endpoint) => handleRecentReconnect(endpoint, true)}
+                  onReconnect={(endpoint) => handleRecentReconnect(endpoint)}
                   onFill={(endpoint) => fillConnectEndpoint(endpoint.ip, endpoint.port)}
                 />
               )}
@@ -1058,13 +1096,12 @@ function RecentConnectFallback({
                   </Button>
                   <Button
                     size="xs"
-                    color="red"
                     variant="light"
                     loading={reconnectBusy || repairBusy}
                     disabled={disabled}
                     onClick={() => onReconnect(endpoint)}
                   >
-                    {t('pairConnect.restartAdbAndReconnect')}
+                    {t('pairConnect.reconnectRecent')}
                   </Button>
                   <Button size="xs" variant="subtle" disabled={disabled} onClick={() => onFill(endpoint)}>
                     {t('pairConnect.fill')}

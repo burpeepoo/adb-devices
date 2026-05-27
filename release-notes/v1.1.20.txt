@@ -1,0 +1,5 @@
+ADB Manager v1.1.20
+
+- Avoids automatic ADB restarts when an already-online wireless device is detected after an app update.
+- Starts macOS ADB commands with a terminal-like environment so the in-app ADB server behaves closer to command-line ADB.
+- Keeps normal Connect, recent Reconnect, and mDNS one-click connect lightweight; ADB restart is now reserved for explicit repair actions.

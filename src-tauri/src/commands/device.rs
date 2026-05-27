@@ -203,28 +203,13 @@ pub fn adb_auto_connect(
         return Ok(message);
     }
 
-    let restarted_adb = if should_restart_adb_after_failed_connect(&output_message(&output)) {
-        restart_adb_server(&app)?;
-        true
-    } else {
-        start_adb_server(&app)?;
-        false
-    };
-
-    let retry_output = connect_address(&app, &address)?;
-    if let Some(message) = connect_success_message(&retry_output, &address, restarted_adb) {
-        return Ok(message);
-    }
-
-    if should_restart_adb_after_failed_connect(&output_message(&retry_output)) {
-        restart_adb_server(&app)?;
-        let second_retry_output = connect_address(&app, &address)?;
-        if let Some(message) = connect_success_message(&second_retry_output, &address, true) {
+    if let Some(ip) = endpoint_ip(&address) {
+        if let Some(message) = connect_via_mdns_autoconnect(&app, ip)? {
             return Ok(message);
         }
     }
 
-    Err(connect_failed_error(&retry_output))
+    Err(connect_failed_error(&output))
 }
 
 #[tauri::command(async)]
@@ -437,27 +422,11 @@ pub fn adb_connect(
         return Ok(message);
     }
 
-    let _ = adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(5));
-    restart_adb_server(&app)?;
-    let retry_output = connect_address(&app, &addr)?;
-    if let Some(message) = connect_success_message(&retry_output, &addr, true) {
-        return Ok(message);
-    }
-
-    if should_restart_adb_after_failed_connect(&output_message(&retry_output)) {
-        restart_adb_server(&app)?;
-        let second_retry_output = connect_address(&app, &addr)?;
-        if let Some(message) = connect_success_message(&second_retry_output, &addr, true) {
-            return Ok(message);
-        }
-    }
-
     if let Some(message) = connect_via_mdns_autoconnect(&app, &ip)? {
         return Ok(message);
     }
 
-    // 两种方式都失败，返回原始错误
-    let stdout = String::from_utf8_lossy(&retry_output.stdout);
+    let stdout = String::from_utf8_lossy(&output.stdout);
     if stdout.contains("refused") {
         Err(AdbError::CommandFailed(
             t!("device.connect_refused", address = addr).into_owned(),
@@ -490,7 +459,7 @@ pub fn adb_reconnect_endpoint(
         return Ok(message);
     }
 
-    if should_restart_adb_after_failed_connect(&output_message(&output)) {
+    if restart_adb && should_restart_adb_after_failed_connect(&output_message(&output)) {
         restart_adb_server(&app)?;
         let retry_output = connect_address(&app, &addr)?;
         if let Some(message) = connect_success_message(&retry_output, &addr, true) {
@@ -712,6 +681,14 @@ fn backup_and_remove_android_files(
 
 fn endpoint_address(ip: &str, port: &str) -> String {
     format!("{}:{}", ip.trim(), port.trim())
+}
+
+fn endpoint_ip(address: &str) -> Option<&str> {
+    address
+        .trim()
+        .rsplit_once(':')
+        .map(|(ip, _)| ip.trim())
+        .filter(|ip| !ip.is_empty())
 }
 
 fn connect_address(app: &AppHandle, address: &str) -> Result<std::process::Output, AdbError> {
@@ -1131,6 +1108,15 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
     }
 
     #[test]
+    fn parses_endpoint_ip_from_address() {
+        assert_eq!(
+            endpoint_ip(" 192.168.110.111:36887 "),
+            Some("192.168.110.111")
+        );
+        assert_eq!(endpoint_ip("36887"), None);
+    }
+
+    #[test]
     fn non_destructive_adb_restart_preserves_wireless_state_and_host_key() {
         let android_dir = temp_android_dir("non-destructive-adb-restart");
         fs::write(android_dir.join("adb_known_hosts.pb"), "known hosts").unwrap();
@@ -1172,7 +1158,7 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
     }
 
     #[test]
-    fn failed_connects_restart_adb_before_retry() {
+    fn wireless_transport_errors_are_repair_candidates() {
         assert!(should_restart_adb_after_failed_connect(
             "failed to connect to '192.168.110.131:40607': No route to host"
         ));

@@ -1,16 +1,16 @@
 # Graph Report - adb_project  (2026-05-27)
 
 ## Corpus Check
-- 95 files · ~244,793 words
+- 95 files · ~245,132 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4170 nodes · 6372 edges · 324 communities (317 shown, 7 thin omitted)
+- 4203 nodes · 6467 edges · 331 communities (323 shown, 8 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 172 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e30c6656`
+- Built from commit: `965164c4`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -323,44 +323,51 @@
 - [[_COMMUNITY_Community 318|Community 318]]
 - [[_COMMUNITY_Community 319|Community 319]]
 - [[_COMMUNITY_Community 320|Community 320]]
+- [[_COMMUNITY_Community 321|Community 321]]
+- [[_COMMUNITY_Community 322|Community 322]]
+- [[_COMMUNITY_Community 323|Community 323]]
+- [[_COMMUNITY_Community 324|Community 324]]
 - [[_COMMUNITY_Community 325|Community 325]]
+- [[_COMMUNITY_Community 326|Community 326]]
+- [[_COMMUNITY_Community 327|Community 327]]
 - [[_COMMUNITY_Community 328|Community 328]]
 - [[_COMMUNITY_Community 329|Community 329]]
+- [[_COMMUNITY_Community 330|Community 330]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `[0.1.8] - 2026-05-08` - 130 edges
-2. `[0.1.7] - 2026-05-08` - 130 edges
-3. `[0.1.5] - 2026-04-30` - 130 edges
-4. `[0.1.3] - 2026-04-29` - 130 edges
-5. `[0.1.0] - 2026-04-28` - 130 edges
-6. `[0.1.9] - 2026-05-13` - 127 edges
-7. `[1.0.1] - 2026-05-19` - 115 edges
-8. `[1.0.2] - 2026-05-20` - 100 edges
-9. `[0.1.10] - 2026-05-15` - 87 edges
-10. `[0.1.6] - 2026-05-07` - 87 edges
+1. `[0.1.8] - 2026-05-08` - 133 edges
+2. `[0.1.7] - 2026-05-08` - 133 edges
+3. `[0.1.5] - 2026-04-30` - 133 edges
+4. `[0.1.3] - 2026-04-29` - 133 edges
+5. `[0.1.0] - 2026-04-28` - 133 edges
+6. `[0.1.9] - 2026-05-13` - 130 edges
+7. `[1.0.1] - 2026-05-19` - 118 edges
+8. `[1.0.2] - 2026-05-20` - 103 edges
+9. `[0.1.10] - 2026-05-15` - 89 edges
+10. `[0.1.6] - 2026-05-07` - 89 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `withTempProject()` --calls--> `run()`  [INFERRED]
+  tests/releaseNotes.test.mjs → src-tauri/src/lib.rs
 - `adb_start_recording()` --calls--> `get_adb_path()`  [INFERRED]
   src-tauri/src/commands/record.rs → src-tauri/src/adb.rs
 - `start_screen_mirror()` --semantically_similar_to--> `adb_start_logcat()`  [INFERRED] [semantically similar]
   src-tauri/src/commands/mirror.rs → src-tauri/src/commands/logcat.rs
+- `stop_screen_mirror()` --semantically_similar_to--> `adb_stop_logcat()`  [INFERRED] [semantically similar]
+  src-tauri/src/commands/mirror.rs → src-tauri/src/commands/logcat.rs
 - `adb_screenshot()` --semantically_similar_to--> `adb_stop_recording()`  [INFERRED] [semantically similar]
   src-tauri/src/commands/screenshot.rs → src-tauri/src/commands/record.rs
-- `start_screen_mirror()` --semantically_similar_to--> `adb_start_recording()`  [INFERRED] [semantically similar]
-  src-tauri/src/commands/mirror.rs → src-tauri/src/commands/record.rs
-- `install_scrcpy()` --semantically_similar_to--> `install_adb()`  [INFERRED] [semantically similar]
-  src-tauri/src/commands/mirror.rs → src-tauri/src/commands/settings.rs
 
 ## Hyperedges (group relationships)
 - **ADB Command Execution Variants** — adb_run_adb, adb_run_adb_with_timeout, adb_run_adb_with_env, adb_run_adb_with_env_timeout, adb_run_adb_with_stdin [INFERRED 0.90]
 - **Start/Stop Long-Running Child Process Pattern** — mirror_start_screen_mirror, mirror_stop_screen_mirror, logcat_adb_start_logcat, logcat_adb_stop_logcat, record_adb_start_recording, record_adb_stop_recording [INFERRED 0.85]
 - **RAII Mutex Guard for Concurrent Operation Prevention** — install_installguard, mirror_installguard, state_appstate [INFERRED 0.85]
 
-## Communities (324 total, 7 thin omitted)
+## Communities (331 total, 8 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.08
-Nodes (59): acquire_install_lock(), capture_process_output(), check_scrcpy_available(), copy_dir_all(), current_screen_mirror_state(), download_with_progress(), emit_install_progress(), emit_reader_lines() (+51 more)
+Cohesion: 0.05
+Nodes (68): tauri_build::build (Build Script), acquire_install_lock(), capture_process_output(), check_scrcpy_available(), copy_dir_all(), current_screen_mirror_state(), download_with_progress(), emit_install_progress() (+60 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.2
@@ -371,8 +378,8 @@ Cohesion: 0.03
 Nodes (69): pairConnect, adbConnected, adbRestarted, autoConnect, autoConnected, autoConnectNone, collapse, connect (+61 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.18
-Nodes (21): AdbError, build_adb_command(), check_adb_available(), ensure_executable(), get_adb_path(), get_bundled_adb_path(), get_sdk_adb_path(), get_system_adb_path() (+13 more)
+Cohesion: 0.14
+Nodes (29): AdbError, build_adb_command(), check_adb_available(), ensure_executable(), get_adb_path(), get_bundled_adb_path(), get_sdk_adb_path(), get_system_adb_path() (+21 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.03
@@ -384,27 +391,27 @@ Nodes (37): acquire_install_lock(), adb_install(), collect_apk_paths(), collects
 
 ### Community 6 - "Community 6"
 Cohesion: 0.06
-Nodes (30): AdbRestartReconnectOptions, dedupeRecentConnects(), EndpointProbeStates, EndpointProbeStatus, isMdnsDeviceConnected(), mdnsDeviceKey(), mergeRecentConnects(), normalizeRecentConnects() (+22 more)
+Nodes (31): AdbRestartReconnectOptions, dedupeRecentConnects(), EndpointProbeStates, EndpointProbeStatus, isMdnsDeviceConnected(), mdnsDeviceKey(), mergeRecentConnects(), normalizeRecentConnects() (+23 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.12
-Nodes (15): app, autoRefresh, detectingAdb, devicesOnline, noDevice, refresh, settings, title (+7 more)
+Cohesion: 0.25
+Nodes (8): app, autoRefresh, detectingAdb, devicesOnline, noDevice, refresh, settings, title
 
 ### Community 8 - "Community 8"
 Cohesion: 0.11
-Nodes (22): adb_screenshot(), download_with_progress(), emit_install_progress(), get_default_save_dir(), install_adb(), is_allowed_external_url(), open_external_url(), adb_screenshot() (+14 more)
+Nodes (28): ensure_success(), send_navigation_key(), verify_device_online(), download_with_progress(), emit_install_progress(), get_default_save_dir(), install_adb(), is_allowed_external_url() (+20 more)
 
 ### Community 9 - "Community 9"
-Cohesion: 0.05
-Nodes (39): [1.1.0] - 2026-05-20, [1.1.8] - 2026-05-25, Added, Added, Added, Added, Added, Added (+31 more)
+Cohesion: 0.09
+Nodes (17): useAppUpdater(), useDevices(), Props, DeviceNotes, Props, Props, Props, App() (+9 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.04
 Nodes (57): [0.1.11] - 2026-05-15, [1.0.3] - 2026-05-20, Added, Added, Added, Added, Added, Added (+49 more)
 
 ### Community 11 - "Community 11"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, deny-create-default
+Cohesion: 0.13
+Nodes (27): adb_auto_connect(), adb_connect(), adb_devices(), adb_disconnect(), adb_mdns_auto_connect(), adb_restart_server(), connect_address(), connect_failed_error() (+19 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.12
@@ -427,12 +434,12 @@ Cohesion: 0.25
 Nodes (8): app, autoRefresh, detectingAdb, devicesOnline, noDevice, refresh, settings, title
 
 ### Community 17 - "Community 17"
-Cohesion: 0.19
-Nodes (10): Props, SortDirection, SortKey, handleCopyPackageName(), handleSort(), sortIndicator(), DeviceSummary, ExportedApk (+2 more)
+Cohesion: 0.04
+Nodes (57): [0.1.1] - 2026-04-28, Changed, Changed, Changed, Changed, Changed, Changed, Changed (+49 more)
 
 ### Community 19 - "Community 19"
-Cohesion: 0.1
-Nodes (17): Props, SHORTCUT_TABS, TAB_LABEL_KEYS, useAppUpdater(), useDevices(), Props, Props, Props (+9 more)
+Cohesion: 0.11
+Nodes (17): Props, SHORTCUT_TABS, TAB_LABEL_KEYS, Props, SortDirection, SortKey, Props, ToolConfig (+9 more)
 
 ### Community 20 - "Community 20"
 Cohesion: 0.09
@@ -451,16 +458,16 @@ Cohesion: 0.04
 Nodes (46): apkInstall, apkFile, apkFiles, dropHere, dropHint, dropOnlyApk, forceInstall, forceInstallDesc (+38 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.14
-Nodes (10): handleSend(), Props, Props, MirrorState, Props, handleInstallScrcpy(), handleNavigationKey(), handleOpenExternalUrl() (+2 more)
+Cohesion: 0.16
+Nodes (31): adb_auto_connect(), adb_connect(), adb_disconnect(), adb_pair(), adb_reconnect_endpoint(), adb_reset_host_identity(), adb_restart_server(), android_config_dir() (+23 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.06
 Nodes (36): commands, description, identifier, commands, description, identifier, commands, description (+28 more)
 
 ### Community 37 - "Community 37"
-Cohesion: 0.04
-Nodes (57): [1.1.12] - 2026-05-26, [1.1.13] - 2026-05-26, [1.1.4] - 2026-05-21, Added, Added, Added, Added, Added (+49 more)
+Cohesion: 0.06
+Nodes (35): [1.1.4] - 2026-05-21, Added, Added, Added, Added, Added, Added, Added (+27 more)
 
 ### Community 38 - "Community 38"
 Cohesion: 0.06
@@ -476,7 +483,7 @@ Nodes (26): scripts, build, build:dmg, build:dmg:all, build:dmg:apple, build:dmg
 
 ### Community 41 - "Community 41"
 Cohesion: 0.05
-Nodes (41): commands, description, identifier, commands, description, identifier, commands, description (+33 more)
+Nodes (37): commands, description, identifier, commands, description, identifier, commands, description (+29 more)
 
 ### Community 42 - "Community 42"
 Cohesion: 0.08
@@ -540,7 +547,7 @@ Nodes (15): definitions, Identifier, Number, PermissionEntry, Target, Value, one
 
 ### Community 57 - "Community 57"
 Cohesion: 0.05
-Nodes (46): commands, description, identifier, commands, description, identifier, commands, description (+38 more)
+Nodes (40): commands, description, identifier, commands, description, identifier, commands, description (+32 more)
 
 ### Community 58 - "Community 58"
 Cohesion: 0.18
@@ -591,16 +598,16 @@ Cohesion: 0.18
 Nodes (11): tabs, apkInstall, clipboard, imageCast, logcat, packageList, pairConnect, screenMirror (+3 more)
 
 ### Community 70 - "Community 70"
-Cohesion: 0.15
-Nodes (13): [1.1.7] - 2026-05-22, Added, Added, Added, Added, Added, Added, Added (+5 more)
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, allow-popup
 
 ### Community 71 - "Community 71"
-Cohesion: 0.03
-Nodes (83): [0.1.7] - 2026-05-08, [0.1.8] - 2026-05-08, Added, Added, Added, Added, Added, Added (+75 more)
+Cohesion: 0.04
+Nodes (51): [0.1.8] - 2026-05-08, Added, Added, Added, Added, Added, Added, Added (+43 more)
 
 ### Community 72 - "Community 72"
-Cohesion: 0.1
-Nodes (21): commands, description, identifier, commands, description, identifier, commands, description (+13 more)
+Cohesion: 0.12
+Nodes (17): commands, description, identifier, commands, description, identifier, commands, description (+9 more)
 
 ### Community 73 - "Community 73"
 Cohesion: 0.25
@@ -620,7 +627,7 @@ Nodes (5): description, identifier, permissions, $schema, windows
 
 ### Community 77 - "Community 77"
 Cohesion: 0.04
-Nodes (56): [0.1.0] - 2026-04-28, Added, Added, Added, Added, Added, Added, Added (+48 more)
+Nodes (55): [0.1.0] - 2026-04-28, Added, Added, Added, Added, Added, Added, Added (+47 more)
 
 ### Community 78 - "Community 78"
 Cohesion: 0.4
@@ -631,8 +638,8 @@ Cohesion: 0.4
 Nodes (4): anyOf, description, $schema, title
 
 ### Community 80 - "Community 80"
-Cohesion: 0.05
-Nodes (103): run_adb_with_timeout(), adb_auto_connect(), adb_connect(), adb_device_summary(), adb_devices(), adb_disconnect(), adb_host_identity_reset_removes_host_keys_and_known_hosts(), adb_mdns_auto_connect() (+95 more)
+Cohesion: 0.08
+Nodes (28): adb_device_summary(), adb_mdns_discover(), adb_shell_text(), DeviceInfo, DeviceSummary, force_kill_adb_server_processes(), get_local_ipv4_addresses(), is_adb_server_port_open() (+20 more)
 
 ### Community 81 - "Community 81"
 Cohesion: 0.05
@@ -640,15 +647,15 @@ Nodes (37): commands, description, identifier, commands, description, identifier
 
 ### Community 82 - "Community 82"
 Cohesion: 0.04
-Nodes (60): [1.1.10] - 2026-05-25, [1.1.11] - 2026-05-26, [1.1.14] - 2026-05-27, [1.1.15] - 2026-05-27, [1.1.16] - 2026-05-27, [1.1.17] - 2026-05-27, [1.1.18] - 2026-05-27, [1.1.19] - 2026-05-27 (+52 more)
+Nodes (70): [1.1.10] - 2026-05-25, [1.1.11] - 2026-05-26, [1.1.14] - 2026-05-27, [1.1.15] - 2026-05-27, [1.1.16] - 2026-05-27, [1.1.17] - 2026-05-27, [1.1.18] - 2026-05-27, [1.1.19] - 2026-05-27 (+62 more)
 
 ### Community 83 - "Community 83"
-Cohesion: 0.03
-Nodes (59): [0.1.5] - 2026-04-30, Added, Added, Added, Added, Added, Added, Added (+51 more)
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, allow-remove
 
 ### Community 84 - "Community 84"
-Cohesion: 0.07
-Nodes (27): DeviceNotes, Props, commitEdit(), connectionClass(), connectionLabel(), handleNoteChange(), startEdit(), RefreshOptions (+19 more)
+Cohesion: 0.06
+Nodes (40): [1.1.12] - 2026-05-26, [1.1.13] - 2026-05-26, [1.1.7] - 2026-05-22, Added, Added, Added, Added, Added (+32 more)
 
 ### Community 85 - "Community 85"
 Cohesion: 0.67
@@ -660,19 +667,19 @@ Nodes (4): commands, description, identifier, allow-fetch-data-store-identifiers
 
 ### Community 87 - "Community 87"
 Cohesion: 0.03
-Nodes (80): [1.1.1] - 2026-05-21, [1.1.2] - 2026-05-21, [1.1.3] - 2026-05-21, Added, Added, Added, Added, Added (+72 more)
+Nodes (109): [1.1.0] - 2026-05-20, [1.1.1] - 2026-05-21, [1.1.2] - 2026-05-21, [1.1.3] - 2026-05-21, Added, Added, Added, Added (+101 more)
 
 ### Community 88 - "Community 88"
-Cohesion: 0.23
-Nodes (11): AppUpdatePrompt(), formatBytes(), Props, AppUpdaterControls, cleanNoteText(), LOCALE_LABELS, normalizeLabel(), parseLocalizedNotes() (+3 more)
+Cohesion: 0.04
+Nodes (51): [0.1.4] - 2026-04-29, Added, Added, Added, Added, Added, Added, Added (+43 more)
 
 ### Community 89 - "Community 89"
-Cohesion: 0.04
-Nodes (57): [0.1.1] - 2026-04-28, Changed, Changed, Changed, Changed, Changed, Changed, Changed (+49 more)
+Cohesion: 0.1
+Nodes (20): DeviceNotes, Props, commitEdit(), connectionClass(), connectionLabel(), handleNoteChange(), startEdit(), RefreshOptions (+12 more)
 
 ### Community 90 - "Community 90"
-Cohesion: 0.13
-Nodes (20): adb_read_logcat(), adb_start_logcat(), append_filter_args(), LogcatEntry, parse_logcat_line(), adb_start_recording(), adb_stop_recording(), wait() (+12 more)
+Cohesion: 0.16
+Nodes (17): adb_read_logcat(), adb_start_logcat(), append_filter_args(), LogcatEntry, parse_logcat_line(), adb_start_recording(), adb_stop_recording(), wait() (+9 more)
 
 ### Community 91 - "Community 91"
 Cohesion: 0.67
@@ -683,8 +690,8 @@ Cohesion: 0.05
 Nodes (40): workbench, copy, customDesc, customMode, customPlaceholder, customTitle, execute, executing (+32 more)
 
 ### Community 93 - "Community 93"
-Cohesion: 0.24
-Nodes (8): Props, fileName(), ImageCast(), ImageCastResult, imageExtension(), isSupportedImage(), Props, SUPPORTED_EXTENSIONS
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, allow-set-enabled
 
 ### Community 94 - "Community 94"
 Cohesion: 0.23
@@ -695,12 +702,12 @@ Cohesion: 0.12
 Nodes (16): ADB Manager Auto Update Design, Client Experience, code:text (https://github.com/burpeepoo/adb-devices/releases/latest/dow), code:bash (npm run build), Frontend Updater UI, Goal, Implementation Units, Important Rollout Constraint (+8 more)
 
 ### Community 96 - "Community 96"
-Cohesion: 0.07
-Nodes (29): tauri_build::build (Build Script), cleanMarkdown(), extractChangelogSection(), normalizeVersion(), readIfExists(), readReleaseNotes(), relative(), run() (+21 more)
+Cohesion: 0.1
+Nodes (21): cleanMarkdown(), extractChangelogSection(), normalizeVersion(), readIfExists(), readReleaseNotes(), relative(), allFiles, assets (+13 more)
 
 ### Community 97 - "Community 97"
-Cohesion: 0.25
-Nodes (7): clipboard, clear, noDevice, pasteToDevice, placeholder, sending, title
+Cohesion: 0.12
+Nodes (17): commands, description, identifier, commands, description, identifier, allow, commands (+9 more)
 
 ### Community 98 - "Community 98"
 Cohesion: 0.1
@@ -711,12 +718,12 @@ Cohesion: 0.05
 Nodes (40): workbench, copy, customDesc, customMode, customPlaceholder, customTitle, execute, executing (+32 more)
 
 ### Community 100 - "Community 100"
-Cohesion: 0.04
-Nodes (51): [1.0.2] - 2026-05-20, [1.1.5] - 2026-05-22, Added, Added, Added, Added, Added, Added (+43 more)
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, deny-fetch-data-store-identifiers
 
 ### Community 101 - "Community 101"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-append
+Cohesion: 0.04
+Nodes (51): [0.1.6] - 2026-05-07, Added, Added, Added, Added, Added, Added, Added (+43 more)
 
 ### Community 102 - "Community 102"
 Cohesion: 0.1
@@ -724,35 +731,35 @@ Nodes (20): updates, autoCheck, autoCheckDesc, available, check, currentVersion,
 
 ### Community 103 - "Community 103"
 Cohesion: 0.04
-Nodes (54): [0.1.4] - 2026-04-29, Added, Added, Added, Added, Added, Added, Added (+46 more)
+Nodes (54): [0.1.5] - 2026-04-30, Added, Added, Added, Added, Added, Added, Added (+46 more)
 
 ### Community 104 - "Community 104"
-Cohesion: 0.16
-Nodes (19): core, core:app, default_permission, global_scope_schema, permission_sets, default_permission, default_permission, global_scope_schema (+11 more)
+Cohesion: 0.19
+Nodes (16): core, core:app, default_permission, global_scope_schema, permission_sets, default_permission, default_permission, global_scope_schema (+8 more)
 
 ### Community 105 - "Community 105"
 Cohesion: 0.5
 Nodes (4): commands, description, identifier, allow-is-checked
 
 ### Community 106 - "Community 106"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-insert
+Cohesion: 0.04
+Nodes (52): [0.1.7] - 2026-05-08, Added, Added, Added, Added, Added, Added, Added (+44 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.21
 Nodes (16): adb_workbench_execute(), build_command_preview(), builds_preview_with_selected_device(), classify_risk(), contains_command_phrase(), flags_destructive_quoted_shell_batches_as_high_risk(), flags_destructive_shell_commands_as_high_risk(), flags_install_and_push_as_medium_risk() (+8 more)
 
 ### Community 108 - "Community 108"
-Cohesion: 0.23
-Nodes (9): mapLocale(), syncBackendLocale(), applyLanguagePreference(), mapLocale(), resolveLanguagePreference(), SUPPORTED_LOCALES, SupportedLocale, syncBackendLocale() (+1 more)
+Cohesion: 0.21
+Nodes (10): mapLocale(), syncBackendLocale(), applyLanguagePreference(), mapLocale(), resolveLanguagePreference(), SUPPORTED_LOCALES, SupportedLocale, syncBackendLocale() (+2 more)
 
 ### Community 109 - "Community 109"
 Cohesion: 0.09
 Nodes (23): activity, apkPath, componentName, duration, installMode, keyevent, localPath, namespace (+15 more)
 
 ### Community 110 - "Community 110"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-prepend
+Cohesion: 0.04
+Nodes (48): [0.1.3] - 2026-04-29, Added, Added, Added, Added, Added, Added, Added (+40 more)
 
 ### Community 111 - "Community 111"
 Cohesion: 0.09
@@ -767,8 +774,8 @@ Cohesion: 0.08
 Nodes (24): ADB Manager Device Console Implementation Plan, code:ts (import { primaryTabKey } from "../src/tabState.ts";), code:ts (interface Props {), code:tsx (if (tab === "pair") {), code:ts (import assert from "node:assert/strict";), code:bash (node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experi), code:ts (export function extractClipboardPaths(text: string): string[), code:json ("test:path-clipboard": "node --disable-warning=MODULE_TYPELE) (+16 more)
 
 ### Community 114 - "Community 114"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-register-listener
+Cohesion: 0.2
+Nodes (10): [1.1.8] - 2026-05-25, Added, Added, Added, Added, Added, Added, Added (+2 more)
 
 ### Community 115 - "Community 115"
 Cohesion: 0.22
@@ -816,7 +823,7 @@ Nodes (4): build_one(), copy_updater_artifacts(), scrcpy_path_for_arch(), target
 
 ### Community 126 - "Community 126"
 Cohesion: 0.04
-Nodes (66): [0.1.10] - 2026-05-15, [1.0.0] - 2026-05-19, Added, Added, Added, Added, Added, Added (+58 more)
+Nodes (67): [0.1.10] - 2026-05-15, [1.0.0] - 2026-05-19, Added, Added, Added, Added, Added, Added (+59 more)
 
 ### Community 127 - "Community 127"
 Cohesion: 0.22
@@ -835,8 +842,8 @@ Cohesion: 0.5
 Nodes (4): high, low, medium, risk
 
 ### Community 131 - "Community 131"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-remove-at
+Cohesion: 0.04
+Nodes (50): [1.0.2] - 2026-05-20, [1.1.5] - 2026-05-22, Added, Added, Added, Added, Added, Added (+42 more)
 
 ### Community 133 - "Community 133"
 Cohesion: 0.33
@@ -863,8 +870,8 @@ Cohesion: 0.33
 Nodes (6): Basic Usage, Device Selection, Package Information, Screen Mirroring, Screenshots and Recordings, Wireless Pairing
 
 ### Community 139 - "Community 139"
-Cohesion: 0.04
-Nodes (54): [0.1.6] - 2026-05-07, Added, Added, Added, Added, Added, Added, Added (+46 more)
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, allow-is-enabled
 
 ### Community 140 - "Community 140"
 Cohesion: 0.5
@@ -872,7 +879,7 @@ Nodes (4): commands, description, identifier, deny-register-listener
 
 ### Community 141 - "Community 141"
 Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-set-as-window-menu
+Nodes (4): commands, description, identifier, allow-items
 
 ### Community 144 - "Community 144"
 Cohesion: 0.5
@@ -883,20 +890,20 @@ Cohesion: 0.4
 Nodes (4): identifier, permissions, platforms, windows
 
 ### Community 146 - "Community 146"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-get
+Cohesion: 0.23
+Nodes (11): AppUpdatePrompt(), formatBytes(), Props, AppUpdaterControls, cleanNoteText(), LOCALE_LABELS, normalizeLabel(), parseLocalizedNotes() (+3 more)
 
 ### Community 147 - "Community 147"
 Cohesion: 0.5
 Nodes (4): commands, description, identifier, deny-is-checked
 
 ### Community 148 - "Community 148"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-identifier
+Cohesion: 0.29
+Nodes (8): adb_devices(), adb_mdns_auto_connect(), enrich_device_serial_numbers(), infer_connection_type(), parse_devices_output(), parse_mdns_adb_serial(), read_device_sn(), read_device_sn_cached()
 
 ### Community 149 - "Community 149"
 Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-is-enabled
+Nodes (4): commands, description, identifier, allow-set-as-windows-menu-for-nsapp
 
 ### Community 150 - "Community 150"
 Cohesion: 0.67
@@ -915,8 +922,8 @@ Cohesion: 0.67
 Nodes (3): desc, title, appPath
 
 ### Community 154 - "Community 154"
-Cohesion: 0.09
-Nodes (34): ensure_success(), send_navigation_key(), adb_export_package_apk(), adb_list_package_details(), adb_list_packages(), adb_package_info(), apk_output_file_name(), ExportedApk (+26 more)
+Cohesion: 0.1
+Nodes (28): adb_export_package_apk(), adb_list_package_details(), adb_list_packages(), adb_package_info(), apk_output_file_name(), ExportedApk, package_export_dir(), PackageInfo (+20 more)
 
 ### Community 155 - "Community 155"
 Cohesion: 0.67
@@ -967,8 +974,8 @@ Cohesion: 0.67
 Nodes (3): displayDensity, desc, title
 
 ### Community 167 - "Community 167"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-set-app-theme
+Cohesion: 0.25
+Nodes (7): clipboard, clear, noDevice, pasteToDevice, placeholder, sending, title
 
 ### Community 168 - "Community 168"
 Cohesion: 0.67
@@ -992,7 +999,7 @@ Nodes (3): forceStop, desc, title
 
 ### Community 173 - "Community 173"
 Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-set-as-app-menu
+Nodes (4): commands, description, identifier, allow-set-checked
 
 ### Community 174 - "Community 174"
 Cohesion: 0.67
@@ -1171,16 +1178,16 @@ Cohesion: 0.67
 Nodes (3): enableComponent, desc, title
 
 ### Community 219 - "Community 219"
-Cohesion: 0.11
-Nodes (13): Props, Props, ResultMessage, Props, ScreenRecord(), Props, formatDuration(), nowTimestamp() (+5 more)
+Cohesion: 0.05
+Nodes (31): handleSend(), Props, Props, Props, ResultMessage, Props, Props, fileName() (+23 more)
 
 ### Community 220 - "Community 220"
 Cohesion: 0.4
 Nodes (5): downgrade, grant, replace, test, installModes
 
 ### Community 221 - "Community 221"
-Cohesion: 0.67
-Nodes (3): home, desc, title
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, allow-insert
 
 ### Community 222 - "Community 222"
 Cohesion: 0.67
@@ -1203,8 +1210,8 @@ Cohesion: 0.67
 Nodes (3): meminfo, desc, title
 
 ### Community 227 - "Community 227"
-Cohesion: 0.67
-Nodes (3): monkeyLaunch, desc, title
+Cohesion: 0.29
+Nodes (8): adb_host_identity_reset_removes_host_keys_and_known_hosts(), backup_and_remove_android_files(), clear_wireless_pairing_state(), non_destructive_adb_restart_preserves_wireless_state_and_host_key(), prepare_non_destructive_adb_restart_state(), reset_adb_host_identity_state(), temp_android_dir(), wireless_pairing_repair_removes_known_hosts_but_preserves_host_key()
 
 ### Community 228 - "Community 228"
 Cohesion: 0.67
@@ -1239,8 +1246,8 @@ Cohesion: 0.18
 Nodes (10): ADB Manager Mantine UI Redesign Implementation Plan, code:tsx (import { ActionIcon, Badge, Box, Group, ScrollArea, Stack, T), code:bash (npm run build), code:tsx (import { Button, Group, Modal, Select, Stack, TextInput } fr), code:bash (npm run build), code:bash (npm run dev), File Structure, Task 4: Create Mantine DevicePanel (+2 more)
 
 ### Community 236 - "Community 236"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-set-icon
+Cohesion: 0.25
+Nodes (7): clipboard, clear, noDevice, pasteToDevice, placeholder, sending, title
 
 ### Community 237 - "Community 237"
 Cohesion: 0.67
@@ -1268,7 +1275,7 @@ Nodes (3): wake, desc, title
 
 ### Community 243 - "Community 243"
 Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-text
+Nodes (4): commands, description, identifier, deny-remove-data-store
 
 ### Community 244 - "Community 244"
 Cohesion: 0.4
@@ -1459,8 +1466,8 @@ Cohesion: 0.08
 Nodes (26): imageCast, description, deviceReady, dimensionsPending, dropHint, imageFilter, lastRemoteImage, noDevice (+18 more)
 
 ### Community 291 - "Community 291"
-Cohesion: 0.67
-Nodes (3): settingsPut, desc, title
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, deny-version
 
 ### Community 292 - "Community 292"
 Cohesion: 0.67
@@ -1479,20 +1486,16 @@ Cohesion: 0.67
 Nodes (3): [1.0.0] - 2026-05-19, Added, Changed
 
 ### Community 296 - "Community 296"
-Cohesion: 0.5
-Nodes (4): commands, description, identifier, deny-append
+Cohesion: 0.53
+Nodes (4): adb_input_text(), escape_adb_input_text(), adb_input_text(), escape_adb_input_text()
 
 ### Community 297 - "Community 297"
 Cohesion: 0.08
 Nodes (26): imageCast, description, deviceReady, dimensionsPending, dropHint, imageFilter, lastRemoteImage, noDevice (+18 more)
 
 ### Community 298 - "Community 298"
-Cohesion: 0.14
-Nodes (19): adb_input_text(), escape_adb_input_text(), adb_input_text(), escape_adb_input_text(), adb_open_reference_image(), adb_push_reference_image(), ensure_success(), file_uri() (+11 more)
-
-### Community 299 - "Community 299"
-Cohesion: 0.67
-Nodes (3): storage, desc, title
+Cohesion: 0.18
+Nodes (14): adb_open_reference_image(), adb_push_reference_image(), ensure_success(), file_uri(), ImageCastResult, mime_type_for_extension(), mime_type_for_path(), normalize_mime_type() (+6 more)
 
 ### Community 300 - "Community 300"
 Cohesion: 0.5
@@ -1512,7 +1515,7 @@ Nodes (44): deviceConsole, adbSerial, android, battery, batteryCharging, battery
 
 ### Community 304 - "Community 304"
 Cohesion: 0.5
-Nodes (4): commands, description, identifier, deny-remove-data-store
+Nodes (4): commands, description, identifier, allow-bundle-type
 
 ### Community 305 - "Community 305"
 Cohesion: 0.05
@@ -1524,7 +1527,7 @@ Nodes (22): androidSummary(), batteryStatusLabel(), batterySummary(), Connection
 
 ### Community 307 - "Community 307"
 Cohesion: 0.5
-Nodes (4): commands, description, identifier, deny-identifier
+Nodes (4): commands, description, identifier, allow-get
 
 ### Community 309 - "Community 309"
 Cohesion: 0.5
@@ -1536,15 +1539,15 @@ Nodes (4): commands, description, identifier, deny-remove-listener
 
 ### Community 311 - "Community 311"
 Cohesion: 0.5
-Nodes (4): commands, description, identifier, allow-tauri-version
+Nodes (4): commands, description, identifier, allow-identifier
 
 ### Community 312 - "Community 312"
-Cohesion: 0.04
-Nodes (53): [0.1.3] - 2026-04-29, Added, Added, Added, Added, Added, Added, Added (+45 more)
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, allow-set-app-theme
 
 ### Community 314 - "Community 314"
 Cohesion: 0.5
-Nodes (4): commands, description, identifier, deny-set-dock-visibility
+Nodes (4): commands, description, identifier, allow-version
 
 ### Community 315 - "Community 315"
 Cohesion: 0.5
@@ -1555,44 +1558,72 @@ Cohesion: 0.5
 Nodes (4): commands, description, identifier, deny-tauri-version
 
 ### Community 317 - "Community 317"
-Cohesion: 0.04
-Nodes (61): [1.0.1] - 2026-05-19, [1.1.6] - 2026-05-22, Added, Added, Added, Added, Added, Added (+53 more)
+Cohesion: 0.03
+Nodes (67): [1.0.1] - 2026-05-19, [1.1.6] - 2026-05-22, Added, Added, Added, Added, Added, Added (+59 more)
+
+### Community 318 - "Community 318"
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, deny-default-window-icon
 
 ### Community 319 - "Community 319"
 Cohesion: 0.5
 Nodes (4): commands, description, identifier, deny-set-app-theme
 
 ### Community 320 - "Community 320"
-Cohesion: 0.11
-Nodes (20): formatBytes(), Option, Props, Settings(), AppUpdaterOptions, CheckUpdateOptions, UpdateInfo, UpdateProgress (+12 more)
+Cohesion: 0.12
+Nodes (19): formatBytes(), Option, Props, Settings(), AppUpdaterOptions, CheckUpdateOptions, UpdateInfo, UpdateProgress (+11 more)
+
+### Community 321 - "Community 321"
+Cohesion: 0.67
+Nodes (3): home, desc, title
+
+### Community 322 - "Community 322"
+Cohesion: 0.67
+Nodes (3): monkeyLaunch, desc, title
+
+### Community 323 - "Community 323"
+Cohesion: 0.67
+Nodes (3): settingsPut, desc, title
+
+### Community 324 - "Community 324"
+Cohesion: 0.67
+Nodes (3): storage, desc, title
 
 ### Community 325 - "Community 325"
 Cohesion: 0.67
 Nodes (3): wifiStatus, desc, title
+
+### Community 326 - "Community 326"
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, deny-name
+
+### Community 327 - "Community 327"
+Cohesion: 0.5
+Nodes (4): commands, description, identifier, deny-new
 
 ### Community 328 - "Community 328"
 Cohesion: 0.67
 Nodes (3): wifiStatus, desc, title
 
 ## Knowledge Gaps
-- **2289 isolated node(s):** `name`, `version`, `description`, `dev`, `build` (+2284 more)
+- **2298 isolated node(s):** `name`, `version`, `description`, `dev`, `build` (+2293 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `wait()` connect `Community 90` to `Community 6`?**
-  _High betweenness centrality (0.096) - this node is a cross-community bridge._
-- **Why does `workbench` connect `Community 92` to `Community 97`, `Community 130`, `Community 129`, `Community 1`, `Community 109`, `Community 116`, `Community 119`, `Community 220`?**
+  _High betweenness centrality (0.111) - this node is a cross-community bridge._
+- **Why does `workbench` connect `Community 92` to `Community 129`, `Community 130`, `Community 1`, `Community 236`, `Community 109`, `Community 116`, `Community 119`, `Community 220`?**
+  _High betweenness centrality (0.084) - this node is a cross-community bridge._
+- **Why does `workbench` connect `Community 99` to `Community 134`, `Community 135`, `Community 167`, `Community 201`, `Community 111`, `Community 244`, `Community 118`, `Community 120`?**
   _High betweenness centrality (0.079) - this node is a cross-community bridge._
-- **Why does `adb_stop_recording()` connect `Community 90` to `Community 8`, `Community 298`, `Community 3`?**
-  _High betweenness centrality (0.075) - this node is a cross-community bridge._
 - **What connects `name`, `version`, `description` to the rest of the system?**
-  _2289 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _2298 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.03 - nodes in this community are weakly interconnected._
-- **Should `Community 4` be split into smaller, more focused modules?**
-  _Cohesion score 0.03 - nodes in this community are weakly interconnected._
+- **Should `Community 3` be split into smaller, more focused modules?**
+  _Cohesion score 0.14 - nodes in this community are weakly interconnected._

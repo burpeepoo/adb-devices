@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [1.1.20] - 2026-05-27
+
+### Changed
+
+- Changed manual wireless connect, recent reconnect, and mDNS one-click connect to avoid implicit ADB server restarts during normal connection attempts.
+- Kept ADB server restart limited to explicit repair actions such as "Restart ADB and rescan".
+
+### Fixed
+
+- Fixed startup ADB repair after app updates dropping an already-online wireless device offline a few seconds after launch.
+- Normalized macOS ADB command environment so GUI-launched ADB Manager starts the ADB server with Homebrew and standard shell paths available.
+
 ## [1.1.19] - 2026-05-27
 
 ### Changed

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { shouldRunAdbStartupRepair } from "../src/startupAdbRepair.ts";
+import { hasConnectedAdbDevice, shouldRunAdbStartupRepair } from "../src/startupAdbRepair.ts";
+
+test("detects currently connected ADB devices", () => {
+  assert.equal(hasConnectedAdbDevice([{ state: "disconnected" }, { state: "device" }]), true);
+  assert.equal(hasConnectedAdbDevice([{ state: "offline" }, { state: "unauthorized" }]), false);
+});
 
 test("runs startup ADB repair when this app version has not completed it", () => {
   assert.equal(

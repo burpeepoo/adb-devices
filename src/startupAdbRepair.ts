@@ -14,6 +14,10 @@ export interface StartupAdbRepairDecisionInput {
   cooldownMs?: number;
 }
 
+export function hasConnectedAdbDevice(devices: Array<{ state?: string }>) {
+  return devices.some((device) => device.state === "device");
+}
+
 export function shouldRunAdbStartupRepair({
   currentVersion,
   saved,

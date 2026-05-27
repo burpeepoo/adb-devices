@@ -116,7 +116,7 @@
     "probeRecent": "检测",
     "reconnectRecent": "重连",
     "restartAdbAndReconnect": "重启 ADB 后重连",
-    "tryRestartReconnect": "如果端口确认可达，可尝试「重启 ADB 后重连」。",
+    "tryRestartReconnect": "如果端口确认可达但仍失败，可尝试「重启 ADB 并重新扫描」。",
     "fill": "填入",
     "lastConnectedAt": "上次成功：{{time}}",
     "probeStatus": {
