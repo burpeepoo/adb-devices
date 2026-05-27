@@ -203,9 +203,16 @@ pub fn adb_auto_connect(
         return Ok(message);
     }
 
-    start_adb_server(&app)?;
+    let restarted_adb = if is_connect_retriable_after_adb_restart(&output_message(&output)) {
+        restart_adb_server(&app)?;
+        true
+    } else {
+        start_adb_server(&app)?;
+        false
+    };
+
     let retry_output = connect_address(&app, &address)?;
-    if let Some(message) = connect_success_message(&retry_output, &address, true) {
+    if let Some(message) = connect_success_message(&retry_output, &address, restarted_adb) {
         return Ok(message);
     }
 
@@ -467,6 +474,18 @@ pub fn adb_reconnect_endpoint(
         return Ok(message);
     }
 
+    if !restart_adb && is_connect_retriable_after_adb_restart(&output_message(&output)) {
+        restart_adb_server(&app)?;
+        let retry_output = connect_address(&app, &addr)?;
+        if let Some(message) = connect_success_message(&retry_output, &addr, true) {
+            return Ok(message);
+        }
+        if let Some(message) = connect_via_mdns_autoconnect(&app, &ip)? {
+            return Ok(message);
+        }
+        return Err(connect_failed_error(&retry_output));
+    }
+
     if let Some(message) = connect_via_mdns_autoconnect(&app, &ip)? {
         return Ok(message);
     }
@@ -689,6 +708,13 @@ fn is_pairing_retriable_after_adb_restart(message: &str) -> bool {
         || message.contains("couldn't read status message")
         || message.contains("failed to start pairing connection client")
         || message.contains("unable to start pairingclient connection")
+        || message.contains("no route to host")
+}
+
+fn is_connect_retriable_after_adb_restart(message: &str) -> bool {
+    let message = message.to_ascii_lowercase();
+    message.contains("protocol fault")
+        || message.contains("couldn't read status message")
         || message.contains("no route to host")
 }
 
@@ -1108,6 +1134,22 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
         ));
         assert!(!is_pairing_retriable_after_adb_restart(
             "Invalid pairing code"
+        ));
+    }
+
+    #[test]
+    fn connect_transport_errors_are_retriable_after_adb_restart() {
+        assert!(is_connect_retriable_after_adb_restart(
+            "failed to connect to '192.168.110.131:40607': No route to host"
+        ));
+        assert!(is_connect_retriable_after_adb_restart(
+            "error: protocol fault (couldn't read status message): Undefined error: 0"
+        ));
+        assert!(!is_connect_retriable_after_adb_restart(
+            "failed to connect to '192.168.110.131:40607': Connection refused"
+        ));
+        assert!(!is_connect_retriable_after_adb_restart(
+            "unknown host service"
         ));
     }
 

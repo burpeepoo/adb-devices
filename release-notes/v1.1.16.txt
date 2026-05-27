@@ -1,0 +1,5 @@
+zh-CN:
+修复更新后最近连接记录仍可能报 `No route to host` 的问题。现在普通重连和 mDNS 自动连接遇到这类 ADB transport 脏状态时，会自动执行一次非破坏性 ADB server 重启并重试，不再要求额外点击「重启 ADB 后重连」。
+
+en-US:
+Fixed a case where recent wireless reconnects could still fail with `No route to host` after an update. Normal reconnect and mDNS auto-connect now automatically perform one non-destructive ADB server restart and retry when they hit this stale ADB transport state.

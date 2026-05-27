@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.1.16] - 2026-05-27
+
+### Fixed
+
+- Retried recent wireless reconnects automatically after ADB reports retryable transport errors such as `No route to host`, instead of requiring a separate "Restart ADB and reconnect" click.
+- Restarted the ADB server, rather than only starting it, when mDNS auto-connect hits a stale transport error on an already-running ADB server.
+
 ## [1.1.15] - 2026-05-27
 
 ### Fixed
