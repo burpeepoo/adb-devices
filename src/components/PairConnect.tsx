@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { Badge, Button, Group, Paper, Stack, Text, TextInput } from "@mantine/core";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
+import { shouldRunAdbStartupRepair, type AdbStartupRepairState } from "../startupAdbRepair";
 import { DeviceInfo, MdnsDevice, PairConnectSettings, RecentConnectEndpoint } from "../types";
 import {
   endpointKey,
@@ -18,6 +20,12 @@ const RECENT_CONNECT_LIMIT = 5;
 type EndpointProbeStatus = "idle" | "checking" | "reachable" | "unreachable";
 type EndpointProbeStates = Record<string, EndpointProbeStatus>;
 
+interface AdbRestartReconnectOptions {
+  busyKey: string;
+  showResult: boolean;
+  revealResetWhenUnrecovered: boolean;
+}
+
 interface Props {
   devices: DeviceInfo[];
   onConnected: () => void | Promise<void>;
@@ -29,6 +37,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const discoveringRef = useRef(false);
   const pairCodeInputFocusedRef = useRef(false);
   const pairConnectFailureCountRef = useRef(0);
+  const startupRepairCheckedRef = useRef(false);
   const [pairIp, setPairIp] = useState("");
   const [pairPort, setPairPort] = useState("");
   const [pairCode, setPairCode] = useState("");
@@ -54,6 +63,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const [localIps, setLocalIps] = useState<string[]>([]);
   const [pairRepairVisible, setPairRepairVisible] = useState(false);
   const [hostIdentityResetVisible, setHostIdentityResetVisible] = useState(false);
+  const [pairConnectLoaded, setPairConnectLoaded] = useState(false);
   const localIpsRef = useRef<string[]>([]);
 
   const updateLocalIps = useCallback((ips: string[]) => {
@@ -77,9 +87,11 @@ export default function PairConnect({ devices, onConnected }: Props) {
   }, [updateLocalIps]);
 
   useEffect(() => {
+    let cancelled = false;
     getStore()
       .then((store) => store.get<PairConnectSettings>(STORE_KEYS.pairConnect))
       .then((saved) => {
+        if (cancelled) return;
         if (!saved) return;
         setPairIp(saved.pairIp || "");
         setPairPort(saved.pairPort || "");
@@ -95,7 +107,14 @@ export default function PairConnect({ devices, onConnected }: Props) {
       })
       .catch(() => {
         // Keep fields empty when local cache cannot be read.
+      })
+      .finally(() => {
+        if (!cancelled) setPairConnectLoaded(true);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -193,6 +212,15 @@ export default function PairConnect({ devices, onConnected }: Props) {
       adbOperationRef.current = false;
     }
   }, []);
+
+  const runAdbOperationWhenIdle = useCallback(async <T,>(operation: () => Promise<T>) => {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const result = await runAdbOperation(operation);
+      if (result !== null) return result;
+      await wait(500);
+    }
+    return null;
+  }, [runAdbOperation]);
 
   const clearPairConnectFailures = useCallback(() => {
     pairConnectFailureCountRef.current = 0;
@@ -392,72 +420,139 @@ export default function PairConnect({ devices, onConnected }: Props) {
     });
   };
 
-  const handleRestartAdbAndScan = async () => {
-    await runAdbOperation(async () => {
-      setBusyAddress("__repair__");
-      setRepairingAdb(true);
-      setDiscovering(true);
-      setMdnsResult(null);
-      setPairRepairVisible(false);
-      setHostIdentityResetVisible(false);
-      try {
-        const restartMessage = await invoke<string>("adb_restart_server");
-        const currentLocalIps = await refreshLocalIps();
-        const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
-        const visibleDevices = filterMdnsDevicesForLocalNetworks(devices, currentLocalIps);
-        setMdnsDevices(visibleDevices);
-        const reconnectEndpoints = reconnectEndpointsAfterAdbRestart(recentConnects, visibleDevices);
-        const reconnectedEndpoints: RecentConnectEndpoint[] = [];
-        for (const endpoint of reconnectEndpoints) {
-          const key = endpointKey(endpoint);
-          try {
-            await invoke<string>("adb_reconnect_endpoint", {
-              ip: endpoint.ip,
-              port: endpoint.port,
-              restartAdb: false,
-            });
-            setEndpointProbeStates((current) => ({ ...current, [key]: "reachable" }));
-            reconnectedEndpoints.push({ ...endpoint, lastConnectedAt: Date.now() });
-          } catch {
-            setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
-          }
+  const restartAdbAndReconnect = useCallback(async ({
+    busyKey,
+    showResult,
+    revealResetWhenUnrecovered,
+  }: AdbRestartReconnectOptions) => {
+    setBusyAddress(busyKey);
+    setRepairingAdb(true);
+    setDiscovering(true);
+    if (showResult) setMdnsResult(null);
+    setPairRepairVisible(false);
+    setHostIdentityResetVisible(false);
+    try {
+      const restartMessage = await invoke<string>("adb_restart_server");
+      const currentLocalIps = await refreshLocalIps();
+      const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
+      const visibleDevices = filterMdnsDevicesForLocalNetworks(devices, currentLocalIps);
+      setMdnsDevices(visibleDevices);
+      const reconnectEndpoints = reconnectEndpointsAfterAdbRestart(recentConnects, visibleDevices);
+      const reconnectedEndpoints: RecentConnectEndpoint[] = [];
+      for (const endpoint of reconnectEndpoints) {
+        const key = endpointKey(endpoint);
+        try {
+          await invoke<string>("adb_reconnect_endpoint", {
+            ip: endpoint.ip,
+            port: endpoint.port,
+            restartAdb: false,
+          });
+          setEndpointProbeStates((current) => ({ ...current, [key]: "reachable" }));
+          reconnectedEndpoints.push({ ...endpoint, lastConnectedAt: Date.now() });
+        } catch {
+          setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
         }
-        if (reconnectedEndpoints.length > 0) {
-          const nextRecent = dedupeRecentConnects([...reconnectedEndpoints, ...recentConnects]);
-          const latest = reconnectedEndpoints[0];
-          setRecentConnects(nextRecent);
-          setLastConnect({ ip: latest.ip, port: latest.port });
-          savePairConnect({ connectIp: latest.ip, connectPort: latest.port, recentConnects: nextRecent }, nextRecent);
-        }
-        const message = reconnectedEndpoints.length
-          ? t('pairConnect.repairReconnected', { message: restartMessage, count: reconnectedEndpoints.length })
-          : visibleDevices.length
-            ? t('pairConnect.repairFound', { message: restartMessage, count: visibleDevices.length })
-            : t('pairConnect.repairNoDevice', { message: restartMessage });
-        const recovered = visibleDevices.length > 0 || reconnectedEndpoints.length > 0;
-        if (recovered) {
-          clearPairConnectFailures();
-        } else {
-          pairConnectFailureCountRef.current = 0;
-          setPairRepairVisible(false);
-          setHostIdentityResetVisible(true);
-        }
+      }
+      if (reconnectedEndpoints.length > 0) {
+        const nextRecent = dedupeRecentConnects([...reconnectedEndpoints, ...recentConnects]);
+        const latest = reconnectedEndpoints[0];
+        setRecentConnects(nextRecent);
+        setLastConnect({ ip: latest.ip, port: latest.port });
+        savePairConnect({ connectIp: latest.ip, connectPort: latest.port, recentConnects: nextRecent }, nextRecent);
+      }
+      const message = reconnectedEndpoints.length
+        ? t('pairConnect.repairReconnected', { message: restartMessage, count: reconnectedEndpoints.length })
+        : visibleDevices.length
+          ? t('pairConnect.repairFound', { message: restartMessage, count: visibleDevices.length })
+          : t('pairConnect.repairNoDevice', { message: restartMessage });
+      const recovered = visibleDevices.length > 0 || reconnectedEndpoints.length > 0;
+      if (recovered) {
+        clearPairConnectFailures();
+      } else if (revealResetWhenUnrecovered) {
+        pairConnectFailureCountRef.current = 0;
+        setPairRepairVisible(false);
+        setHostIdentityResetVisible(true);
+      }
+      if (showResult) {
         setMdnsResult({
           ok: true,
           msg: message,
         });
-        if (visibleDevices.length === 0 && reconnectedEndpoints.length === 0) setShowManual(true);
-        await onConnected();
-      } catch (e) {
+      }
+      if (showResult && visibleDevices.length === 0 && reconnectedEndpoints.length === 0) setShowManual(true);
+      await onConnected();
+      return true;
+    } catch (e) {
+      if (showResult) {
         setPairRepairVisible(true);
         setHostIdentityResetVisible(true);
         setMdnsResult({ ok: false, msg: String(e) });
         setShowManual(true);
-      } finally {
-        setRepairingAdb(false);
-        setDiscovering(false);
-        setBusyAddress(null);
       }
+      return false;
+    } finally {
+      setRepairingAdb(false);
+      setDiscovering(false);
+      setBusyAddress(null);
+    }
+  }, [clearPairConnectFailures, onConnected, recentConnects, refreshLocalIps, savePairConnect, t]);
+
+  useEffect(() => {
+    if (!pairConnectLoaded || startupRepairCheckedRef.current) return;
+    startupRepairCheckedRef.current = true;
+    let cancelled = false;
+
+    const runStartupRepair = async () => {
+      const store = await getStore();
+      const currentVersion = await getVersion();
+      const saved = await store.get<AdbStartupRepairState>(STORE_KEYS.adbStartupRepair);
+      const attemptedAt = Date.now();
+      if (!shouldRunAdbStartupRepair({ currentVersion, saved, now: attemptedAt })) {
+        return;
+      }
+
+      await store.set(STORE_KEYS.adbStartupRepair, {
+        ...saved,
+        attemptedVersion: currentVersion,
+        attemptedAt,
+      });
+      await store.save();
+
+      const repaired = await runAdbOperationWhenIdle(() =>
+        restartAdbAndReconnect({
+          busyKey: "__startup_repair__",
+          showResult: false,
+          revealResetWhenUnrecovered: false,
+        })
+      );
+
+      if (cancelled || !repaired) return;
+
+      await store.set(STORE_KEYS.adbStartupRepair, {
+        ...saved,
+        completedVersion: currentVersion,
+        completedAt: Date.now(),
+        attemptedVersion: currentVersion,
+        attemptedAt,
+      });
+      await store.save();
+    };
+
+    runStartupRepair().catch(() => {
+      // Startup repair is a best-effort update recovery path.
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pairConnectLoaded, restartAdbAndReconnect, runAdbOperationWhenIdle]);
+
+  const handleRestartAdbAndScan = async () => {
+    await runAdbOperation(async () => {
+      await restartAdbAndReconnect({
+        busyKey: "__repair__",
+        showResult: true,
+        revealResetWhenUnrecovered: true,
+      });
     });
   };
 
@@ -1256,6 +1351,10 @@ function recentConnectsEqual(a: RecentConnectEndpoint[], b: RecentConnectEndpoin
 function formatEndpointTime(timestamp: number) {
   if (!timestamp) return "-";
   return new Date(timestamp).toLocaleString();
+}
+
+function wait(ms: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 }
 
 function PairRepairAction({

@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [1.1.14] - 2026-05-27
+
+### Added
+
+- Added startup ADB server repair after app updates and later launches, with recent wireless endpoint reconnect and cooldown protection.
+
+### Changed
+
+- Changed ADB restart recovery back to a non-destructive server restart that preserves wireless pairing cache and local ADB identity.
+- Updated wireless recovery copy to say "Restart ADB" instead of implying pairing cache cleanup.
+
+### Fixed
+
+- Retried wireless pairing automatically after protocol-fault and PairingClient transport errors by restarting the ADB server once.
+- Hardened ADB server restart to wait for port 5037 to close and force-stop stuck ADB server processes when needed.
+
 ## [1.1.13] - 2026-05-26
 
 ### Added

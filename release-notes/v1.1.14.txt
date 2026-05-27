@@ -1,0 +1,9 @@
+zh-CN:
+更新后首次打开 App 时会自动执行一次非破坏性的 ADB 服务重启；后续重新打开 App 也会按冷却时间自动修复并尝试重连最近的无线调试设备。
+“重启 ADB”现在会保留无线配对缓存和本机 ADB 身份；只有单独的“重置本机 ADB 身份”才会清除授权密钥。
+当无线配对遇到 protocol fault、PairingClient 连接失败或旧 ADB server 卡住时，App 会等待 5037 端口真正关闭，必要时清理卡住的 ADB server 进程后再重试。
+
+en-US:
+After an app update, the first launch runs a non-destructive ADB server restart. Later app launches also run the same cooldown-protected repair and try to reconnect recent wireless debugging devices.
+Restart ADB now preserves the wireless pairing cache and local ADB identity; only the separate Reset local ADB identity action clears authorization keys.
+When wireless pairing hits protocol faults, PairingClient connection failures, or a stuck old ADB server, the app waits for port 5037 to fully close and clears stuck ADB server processes before retrying.

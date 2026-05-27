@@ -9,6 +9,7 @@ export const STORE_KEYS = {
   deviceHistory: "deviceHistory",
   deviceNotes: "deviceNotes",
   pairConnect: "pairConnect",
+  adbStartupRepair: "adbStartupRepair",
   workbenchTemplates: "workbenchTemplates",
   workbenchHistory: "workbenchHistory",
 } as const;

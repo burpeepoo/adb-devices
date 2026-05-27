@@ -7,7 +7,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
     sync::Mutex,
-    time::Duration,
+    time::{Duration, Instant},
 };
 use tauri::{AppHandle, State};
 
@@ -58,8 +58,8 @@ pub struct DeviceSummary {
 
 #[tauri::command(async)]
 pub fn adb_restart_server(app: AppHandle) -> Result<String, AdbError> {
-    repair_wireless_pairing(&app)?;
-    Ok(t!("device.wireless_pairing_repaired").to_string())
+    restart_adb_server(&app)?;
+    Ok(t!("device.adb_restarted").to_string())
 }
 
 #[tauri::command(async)]
@@ -349,20 +349,19 @@ pub fn adb_pair(
     code: String,
 ) -> Result<String, AdbError> {
     let addr = format!("{}:{}", ip, port);
-    let output =
-        adb::run_adb_with_timeout(&app, &["pair", &addr, &code], None, Duration::from_secs(25))?;
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
+    let mut output = run_pair_command(&app, &addr, &code)?;
 
-    if !stdout.contains("Successful") && !stderr.contains("Successful") {
-        let msg = if stderr.trim().is_empty() {
-            stdout.trim().to_string()
-        } else {
-            stderr.trim().to_string()
-        };
-        return Err(AdbError::CommandFailed(
-            t!("device.pair_failed", "message" => msg).into_owned(),
-        ));
+    if !pair_output_succeeded(&output) {
+        let first_msg = output_message(&output);
+        if is_pairing_retriable_after_adb_restart(&first_msg) {
+            restart_adb_server(&app)?;
+            output = run_pair_command(&app, &addr, &code)?;
+        }
+
+        if !pair_output_succeeded(&output) {
+            let msg = output_message(&output);
+            return Err(pair_failed_error(msg));
+        }
     }
 
     // 配对成功后立即尝试 mDNS 自动连接，避免用户手动输入连接端口
@@ -400,7 +399,7 @@ pub fn adb_connect(app: AppHandle, ip: String, port: String) -> Result<String, A
     }
 
     let _ = adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(5));
-    repair_wireless_pairing(&app)?;
+    restart_adb_server(&app)?;
     let retry_output = connect_address(&app, &addr)?;
     if let Some(message) = connect_success_message(&retry_output, &addr, true) {
         return Ok(message);
@@ -434,7 +433,7 @@ pub fn adb_reconnect_endpoint(
     let _ = adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(5));
 
     if restart_adb {
-        repair_wireless_pairing(&app)?;
+        restart_adb_server(&app)?;
     }
 
     let output = connect_address(&app, &addr)?;
@@ -455,20 +454,36 @@ fn start_adb_server(app: &AppHandle) -> Result<(), AdbError> {
     Ok(())
 }
 
-fn repair_wireless_pairing(app: &AppHandle) -> Result<(), AdbError> {
-    let _ = adb::run_adb_with_timeout(app, &["disconnect"], None, Duration::from_secs(5));
-    let _ = adb::run_adb_with_timeout(app, &["kill-server"], None, Duration::from_secs(5));
+fn restart_adb_server(app: &AppHandle) -> Result<(), AdbError> {
+    stop_adb_server(app)?;
     let android_dir = android_config_dir()?;
-    clear_wireless_pairing_state(&android_dir)?;
+    prepare_non_destructive_adb_restart_state(&android_dir)?;
     start_adb_server(app)
 }
 
 fn reset_adb_host_identity(app: &AppHandle) -> Result<(), AdbError> {
-    let _ = adb::run_adb_with_timeout(app, &["disconnect"], None, Duration::from_secs(5));
-    let _ = adb::run_adb_with_timeout(app, &["kill-server"], None, Duration::from_secs(5));
+    stop_adb_server(app)?;
     let android_dir = android_config_dir()?;
     reset_adb_host_identity_state(&android_dir)?;
     start_adb_server(app)
+}
+
+fn stop_adb_server(app: &AppHandle) -> Result<(), AdbError> {
+    let _ = adb::run_adb_with_timeout(app, &["disconnect"], None, Duration::from_secs(5));
+    let _ = adb::run_adb_with_timeout(app, &["kill-server"], None, Duration::from_secs(5));
+
+    if wait_for_adb_server_to_stop(Duration::from_secs(2)) {
+        return Ok(());
+    }
+
+    force_kill_adb_server_processes()?;
+    if wait_for_adb_server_to_stop(Duration::from_secs(2)) {
+        return Ok(());
+    }
+
+    Err(AdbError::CommandFailed(
+        t!("device.adb_stop_failed").into_owned(),
+    ))
 }
 
 fn android_config_dir() -> Result<PathBuf, AdbError> {
@@ -490,8 +505,88 @@ fn android_config_dir() -> Result<PathBuf, AdbError> {
     )))
 }
 
-fn clear_wireless_pairing_state(android_dir: &Path) -> Result<usize, AdbError> {
-    backup_and_remove_android_files(android_dir, &["adb_known_hosts.pb"], "adb-wireless-backup")
+fn prepare_non_destructive_adb_restart_state(android_dir: &Path) -> Result<(), AdbError> {
+    fs::create_dir_all(android_dir)?;
+    Ok(())
+}
+
+fn wait_for_adb_server_to_stop(timeout: Duration) -> bool {
+    let started = Instant::now();
+    while started.elapsed() < timeout {
+        if !is_adb_server_port_open() {
+            return true;
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+
+    !is_adb_server_port_open()
+}
+
+fn is_adb_server_port_open() -> bool {
+    let Ok(mut addrs) = "127.0.0.1:5037".to_socket_addrs() else {
+        return false;
+    };
+    let Some(socket_addr) = addrs.next() else {
+        return false;
+    };
+    TcpStream::connect_timeout(&socket_addr, Duration::from_millis(150)).is_ok()
+}
+
+fn force_kill_adb_server_processes() -> Result<(), AdbError> {
+    #[cfg(unix)]
+    {
+        let output = Command::new("ps")
+            .args(["-axo", "pid=,command="])
+            .output()?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        for pid in parse_adb_server_pids_from_ps_output(&stdout) {
+            let _ = Command::new("kill")
+                .arg("-TERM")
+                .arg(pid.to_string())
+                .output();
+        }
+        std::thread::sleep(Duration::from_millis(300));
+        if is_adb_server_port_open() {
+            for pid in parse_adb_server_pids_from_ps_output(&stdout) {
+                let _ = Command::new("kill")
+                    .arg("-KILL")
+                    .arg(pid.to_string())
+                    .output();
+            }
+        }
+    }
+
+    #[cfg(windows)]
+    {
+        let _ = Command::new("taskkill")
+            .args(["/F", "/IM", "adb.exe", "/T"])
+            .output();
+    }
+
+    Ok(())
+}
+
+fn parse_adb_server_pids_from_ps_output(stdout: &str) -> Vec<u32> {
+    stdout
+        .lines()
+        .filter_map(|line| {
+            let line = line.trim();
+            let (pid, command) = line.split_once(char::is_whitespace)?;
+            let (executable, _) = command.split_once(" -L tcp:5037")?;
+            let executable = executable.trim();
+            let is_adb_binary = executable == "adb"
+                || executable.ends_with("/adb")
+                || executable.ends_with("\\adb.exe")
+                || executable.ends_with("/cozyla-adb");
+            if !is_adb_binary
+                || !command.contains("-L tcp:5037")
+                || !command.contains("fork-server server")
+            {
+                return None;
+            }
+            pid.parse::<u32>().ok()
+        })
+        .collect()
 }
 
 fn reset_adb_host_identity_state(android_dir: &Path) -> Result<usize, AdbError> {
@@ -544,6 +639,33 @@ fn connect_address(app: &AppHandle, address: &str) -> Result<std::process::Outpu
     adb::run_adb_with_timeout(app, &["connect", address], None, Duration::from_secs(15))
 }
 
+fn run_pair_command(
+    app: &AppHandle,
+    address: &str,
+    code: &str,
+) -> Result<std::process::Output, AdbError> {
+    adb::run_adb_with_timeout(app, &["pair", address, code], None, Duration::from_secs(25))
+}
+
+fn pair_output_succeeded(output: &std::process::Output) -> bool {
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    stdout.contains("Successful") || stderr.contains("Successful")
+}
+
+fn pair_failed_error(message: String) -> AdbError {
+    AdbError::CommandFailed(t!("device.pair_failed", "message" => message).into_owned())
+}
+
+fn is_pairing_retriable_after_adb_restart(message: &str) -> bool {
+    let message = message.to_ascii_lowercase();
+    message.contains("protocol fault")
+        || message.contains("couldn't read status message")
+        || message.contains("failed to start pairing connection client")
+        || message.contains("unable to start pairingclient connection")
+        || message.contains("no route to host")
+}
+
 fn connect_via_mdns_autoconnect(app: &AppHandle, ip: &str) -> Result<Option<String>, AdbError> {
     // 直接连接失败时，设备的无线调试连接端口可能已经变化。
     let fallback_output = adb::run_adb_with_env_timeout(
@@ -585,14 +707,19 @@ fn connect_success_message(
 }
 
 fn connect_failed_error(output: &std::process::Output) -> AdbError {
+    AdbError::CommandFailed(
+        t!("device.connect_failed", "message" => output_message(output)).into_owned(),
+    )
+}
+
+fn output_message(output: &std::process::Output) -> String {
     let stderr = String::from_utf8_lossy(&output.stderr);
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let msg = if stderr.trim().is_empty() {
+    if stderr.trim().is_empty() {
         stdout.trim().to_string()
     } else {
         stderr.trim().to_string()
-    };
-    AdbError::CommandFailed(t!("device.connect_failed", "message" => msg).into_owned())
+    }
 }
 
 #[tauri::command(async)]
@@ -903,15 +1030,18 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
     }
 
     #[test]
-    fn wireless_pairing_repair_removes_known_hosts_but_preserves_host_key() {
-        let android_dir = temp_android_dir("wireless-pairing-repair");
+    fn non_destructive_adb_restart_preserves_wireless_state_and_host_key() {
+        let android_dir = temp_android_dir("non-destructive-adb-restart");
         fs::write(android_dir.join("adb_known_hosts.pb"), "known hosts").unwrap();
         fs::write(android_dir.join("adbkey"), "private key").unwrap();
         fs::write(android_dir.join("adbkey.pub"), "public key").unwrap();
 
-        clear_wireless_pairing_state(&android_dir).unwrap();
+        prepare_non_destructive_adb_restart_state(&android_dir).unwrap();
 
-        assert!(!android_dir.join("adb_known_hosts.pb").exists());
+        assert_eq!(
+            fs::read_to_string(android_dir.join("adb_known_hosts.pb")).unwrap(),
+            "known hosts"
+        );
         assert_eq!(
             fs::read_to_string(android_dir.join("adbkey")).unwrap(),
             "private key"
@@ -920,9 +1050,40 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
             fs::read_to_string(android_dir.join("adbkey.pub")).unwrap(),
             "public key"
         );
-        assert!(backup_contains(&android_dir, "adb_known_hosts.pb"));
 
         fs::remove_dir_all(android_dir).unwrap();
+    }
+
+    #[test]
+    fn pairing_transport_errors_are_retriable_after_adb_restart() {
+        assert!(is_pairing_retriable_after_adb_restart(
+            "error: protocol fault (couldn't read status message): Undefined error: 0"
+        ));
+        assert!(is_pairing_retriable_after_adb_restart(
+            "Failed to start pairing connection client [failed to connect to '192.168.110.131:34959': No route to host]"
+        ));
+        assert!(is_pairing_retriable_after_adb_restart(
+            "Unable to start PairingClient connection"
+        ));
+        assert!(!is_pairing_retriable_after_adb_restart(
+            "Invalid pairing code"
+        ));
+    }
+
+    #[test]
+    fn parses_only_adb_server_pids_from_process_list() {
+        let output = "\
+29662 adb -L tcp:5037 fork-server server --reply-fd 4
+29663 /Applications/ADB Manager.app/Contents/Resources/resources/platform-tools/macos/cozyla-adb -L tcp:5037 fork-server server --reply-fd 4
+34122 /bin/zsh -c ps -axo pid=,command= | rg 'adb -L tcp:5037'
+34130 rg adb -L tcp:5037
+34131 adb devices -l
+";
+
+        assert_eq!(
+            parse_adb_server_pids_from_ps_output(output),
+            vec![29662, 29663]
+        );
     }
 
     #[test]
