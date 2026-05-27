@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.1.17] - 2026-05-27
+
+### Changed
+
+- Changed recent wireless recovery so the first reconnect attempt keeps ADB restart and connect in a single backend operation before any mDNS scan or background refresh can intervene.
+- Simplified recent wireless device actions to prefer "Restart ADB and reconnect" over a plain reconnect that is unreliable when the ADB server is already stale.
+
+### Fixed
+
+- Retried stale wireless transport failures one more time after a non-destructive ADB server restart, covering the case where the first in-app restart still leaves `adb connect` returning `No route to host`.
+
 ## [1.1.16] - 2026-05-27
 
 ### Fixed

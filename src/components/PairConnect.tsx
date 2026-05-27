@@ -432,20 +432,19 @@ export default function PairConnect({ devices, onConnected }: Props) {
     setPairRepairVisible(false);
     setHostIdentityResetVisible(false);
     try {
-      const restartMessage = await invoke<string>("adb_restart_server");
-      const currentLocalIps = await refreshLocalIps();
-      const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
-      const visibleDevices = filterMdnsDevicesForLocalNetworks(devices, currentLocalIps);
-      setMdnsDevices(visibleDevices);
-      const reconnectEndpoints = reconnectEndpointsAfterAdbRestart(recentConnects, visibleDevices);
+      let restartMessage = t('pairConnect.adbRestarted');
+      let didRestart = false;
+      const reconnectEndpoints = reconnectEndpointsAfterAdbRestart(recentConnects, []);
       const reconnectedEndpoints: RecentConnectEndpoint[] = [];
       for (const endpoint of reconnectEndpoints) {
         const key = endpointKey(endpoint);
+        const shouldRestart = !didRestart;
+        if (shouldRestart) didRestart = true;
         try {
           await invoke<string>("adb_reconnect_endpoint", {
             ip: endpoint.ip,
             port: endpoint.port,
-            restartAdb: false,
+            restartAdb: shouldRestart,
           });
           setEndpointProbeStates((current) => ({ ...current, [key]: "reachable" }));
           reconnectedEndpoints.push({ ...endpoint, lastConnectedAt: Date.now() });
@@ -453,6 +452,35 @@ export default function PairConnect({ devices, onConnected }: Props) {
           setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
         }
       }
+
+      if (!didRestart) {
+        restartMessage = await invoke<string>("adb_restart_server");
+      }
+
+      const currentLocalIps = await refreshLocalIps();
+      const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
+      const visibleDevices = filterMdnsDevicesForLocalNetworks(devices, currentLocalIps);
+      setMdnsDevices(visibleDevices);
+
+      if (reconnectedEndpoints.length === 0 && visibleDevices.length > 0) {
+        const scannedEndpoints = reconnectEndpointsAfterAdbRestart(recentConnects, visibleDevices);
+        for (const endpoint of scannedEndpoints) {
+          const key = endpointKey(endpoint);
+          if (reconnectEndpoints.some((tried) => endpointKey(tried) === key)) continue;
+          try {
+            await invoke<string>("adb_reconnect_endpoint", {
+              ip: endpoint.ip,
+              port: endpoint.port,
+              restartAdb: false,
+            });
+            setEndpointProbeStates((current) => ({ ...current, [key]: "reachable" }));
+            reconnectedEndpoints.push({ ...endpoint, lastConnectedAt: Date.now() });
+          } catch {
+            setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
+          }
+        }
+      }
+
       if (reconnectedEndpoints.length > 0) {
         const nextRecent = dedupeRecentConnects([...reconnectedEndpoints, ...recentConnects]);
         const latest = reconnectedEndpoints[0];
@@ -754,8 +782,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
                   disabled={adbBusy}
                   onProbe={probeRecentEndpoint}
                   onProbeAll={probeRecentConnects}
-                  onReconnect={(endpoint) => handleRecentReconnect(endpoint, false)}
-                  onRestartAndReconnect={(endpoint) => handleRecentReconnect(endpoint, true)}
+                  onReconnect={(endpoint) => handleRecentReconnect(endpoint, true)}
                   onFill={(endpoint) => fillConnectEndpoint(endpoint.ip, endpoint.port)}
                 />
               )}
@@ -973,7 +1000,6 @@ function RecentConnectFallback({
   onProbe,
   onProbeAll,
   onReconnect,
-  onRestartAndReconnect,
   onFill,
 }: {
   endpoints: RecentConnectEndpoint[];
@@ -983,7 +1009,6 @@ function RecentConnectFallback({
   onProbe: (endpoint: RecentConnectEndpoint) => void;
   onProbeAll: () => void;
   onReconnect: (endpoint: RecentConnectEndpoint) => void;
-  onRestartAndReconnect: (endpoint: RecentConnectEndpoint) => void;
   onFill: (endpoint: RecentConnectEndpoint) => void;
 }) {
   const { t } = useTranslation();
@@ -1033,19 +1058,11 @@ function RecentConnectFallback({
                   </Button>
                   <Button
                     size="xs"
-                    loading={reconnectBusy}
-                    disabled={disabled}
-                    onClick={() => onReconnect(endpoint)}
-                  >
-                    {t('pairConnect.reconnectRecent')}
-                  </Button>
-                  <Button
-                    size="xs"
                     color="red"
                     variant="light"
-                    loading={repairBusy}
+                    loading={reconnectBusy || repairBusy}
                     disabled={disabled}
-                    onClick={() => onRestartAndReconnect(endpoint)}
+                    onClick={() => onReconnect(endpoint)}
                   >
                     {t('pairConnect.restartAdbAndReconnect')}
                   </Button>

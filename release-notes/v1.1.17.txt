@@ -1,0 +1,9 @@
+zh-CN:
+修复 App 内点击「重启 ADB」后仍不能恢复最近无线连接的问题。最近连接恢复现在会先在同一个后端 ADB 操作里完成「重启 ADB + 连接最近端口」，成功后再进行 mDNS 扫描，避免后台刷新或扫描插入到重启与连接之间。
+如果第一次 App 内重启后 `adb connect` 仍返回 `No route to host` 或 protocol fault，后端会立即再做一次非破坏性的 ADB server restart 并重试连接，匹配手动 kill/start 能恢复的场景。
+最近连接列表也改为默认使用「重启 ADB 后重连」，不再暴露容易失败的普通重连入口。
+
+en-US:
+Fixed a case where clicking "Restart ADB" in the app still could not restore a recent wireless connection. Recent connection recovery now performs "restart ADB + connect to the recent endpoint" in one backend ADB operation before running mDNS scan, so background refresh or discovery cannot run between restart and connect.
+If the first in-app restart still leaves `adb connect` returning `No route to host` or a protocol fault, the backend now immediately performs one more non-destructive ADB server restart and retries the connection, matching the manual kill/start recovery path.
+The recent connection list now defaults to "Restart ADB and reconnect" instead of exposing the less reliable plain reconnect action.

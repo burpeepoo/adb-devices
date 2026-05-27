@@ -203,7 +203,7 @@ pub fn adb_auto_connect(
         return Ok(message);
     }
 
-    let restarted_adb = if is_connect_retriable_after_adb_restart(&output_message(&output)) {
+    let restarted_adb = if should_restart_adb_after_failed_connect(&output_message(&output)) {
         restart_adb_server(&app)?;
         true
     } else {
@@ -214,6 +214,14 @@ pub fn adb_auto_connect(
     let retry_output = connect_address(&app, &address)?;
     if let Some(message) = connect_success_message(&retry_output, &address, restarted_adb) {
         return Ok(message);
+    }
+
+    if should_restart_adb_after_failed_connect(&output_message(&retry_output)) {
+        restart_adb_server(&app)?;
+        let second_retry_output = connect_address(&app, &address)?;
+        if let Some(message) = connect_success_message(&second_retry_output, &address, true) {
+            return Ok(message);
+        }
     }
 
     Err(connect_failed_error(&retry_output))
@@ -436,6 +444,14 @@ pub fn adb_connect(
         return Ok(message);
     }
 
+    if should_restart_adb_after_failed_connect(&output_message(&retry_output)) {
+        restart_adb_server(&app)?;
+        let second_retry_output = connect_address(&app, &addr)?;
+        if let Some(message) = connect_success_message(&second_retry_output, &addr, true) {
+            return Ok(message);
+        }
+    }
+
     if let Some(message) = connect_via_mdns_autoconnect(&app, &ip)? {
         return Ok(message);
     }
@@ -474,7 +490,7 @@ pub fn adb_reconnect_endpoint(
         return Ok(message);
     }
 
-    if !restart_adb && is_connect_retriable_after_adb_restart(&output_message(&output)) {
+    if should_restart_adb_after_failed_connect(&output_message(&output)) {
         restart_adb_server(&app)?;
         let retry_output = connect_address(&app, &addr)?;
         if let Some(message) = connect_success_message(&retry_output, &addr, true) {
@@ -711,7 +727,7 @@ fn is_pairing_retriable_after_adb_restart(message: &str) -> bool {
         || message.contains("no route to host")
 }
 
-fn is_connect_retriable_after_adb_restart(message: &str) -> bool {
+fn should_restart_adb_after_failed_connect(message: &str) -> bool {
     let message = message.to_ascii_lowercase();
     message.contains("protocol fault")
         || message.contains("couldn't read status message")
@@ -1138,18 +1154,21 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
     }
 
     #[test]
-    fn connect_transport_errors_are_retriable_after_adb_restart() {
-        assert!(is_connect_retriable_after_adb_restart(
+    fn failed_connects_restart_adb_before_retry() {
+        assert!(should_restart_adb_after_failed_connect(
             "failed to connect to '192.168.110.131:40607': No route to host"
         ));
-        assert!(is_connect_retriable_after_adb_restart(
+        assert!(should_restart_adb_after_failed_connect(
             "error: protocol fault (couldn't read status message): Undefined error: 0"
         ));
-        assert!(!is_connect_retriable_after_adb_restart(
+        assert!(!should_restart_adb_after_failed_connect(
             "failed to connect to '192.168.110.131:40607': Connection refused"
         ));
-        assert!(!is_connect_retriable_after_adb_restart(
+        assert!(!should_restart_adb_after_failed_connect(
             "unknown host service"
+        ));
+        assert!(!should_restart_adb_after_failed_connect(
+            "already connected to 192.168.110.131:40607"
         ));
     }
 

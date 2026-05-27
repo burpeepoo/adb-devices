@@ -124,6 +124,7 @@
       "unreachable": "Unreachable"
     },
     "repairingAdb": "Restarting...",
+    "adbRestarted": "ADB server restarted",
     "repairReconnected": "{{message}} and reconnected {{count}} recent device(s).",
     "repairFound": "{{message}}. Rescan found {{count}} LAN ADB service(s).",
     "repairNoDevice": "{{message}}, but no devices were found. Check the current IP and port shown on Android's wireless debugging page, then try manual connection.",

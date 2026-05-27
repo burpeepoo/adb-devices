@@ -124,6 +124,7 @@
       "unreachable": "不可达"
     },
     "repairingAdb": "重启中...",
+    "adbRestarted": "ADB 服务已重启",
     "repairReconnected": "{{message}}，并已重连 {{count}} 个最近连接的设备",
     "repairFound": "{{message}}，重新扫描发现 {{count}} 个局域网 ADB 服务",
     "repairNoDevice": "{{message}}，但仍未发现设备。请确认 Android 无线调试页面显示的 IP 和端口，并尝试手动连接。",
