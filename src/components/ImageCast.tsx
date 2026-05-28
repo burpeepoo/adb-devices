@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { SyntheticEvent } from "react";
-import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useTranslation } from "react-i18next";
@@ -50,16 +50,22 @@ export default function ImageCast({ deviceSerial, active }: Props) {
   const [dragging, setDragging] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
-  const loadImagePath = useCallback((path: string) => {
+  const loadImagePath = useCallback(async (path: string) => {
     if (!isSupportedImage(path)) {
       setResult({ ok: false, msg: t("imageCast.unsupportedFile") });
       return;
     }
 
     setSelectedPath(path);
-    setPreviewUrl(convertFileSrc(path));
     setImageSize(null);
     setResult(null);
+    try {
+      const dataUrl = await invoke<string>("read_image_preview_data_url", { localPath: path });
+      setPreviewUrl(dataUrl);
+    } catch (e) {
+      setPreviewUrl(null);
+      setResult({ ok: false, msg: String(e) });
+    }
   }, [t]);
 
   useEffect(() => {
@@ -83,7 +89,7 @@ export default function ImageCast({ deviceSerial, active }: Props) {
           setDragging(false);
           const path = payload.paths.find(isSupportedImage);
           if (path) {
-            loadImagePath(path);
+            void loadImagePath(path);
           } else {
             setResult({ ok: false, msg: t("imageCast.unsupportedFile") });
           }
@@ -116,7 +122,7 @@ export default function ImageCast({ deviceSerial, active }: Props) {
       title: t("imageCast.selectImageTitle"),
     });
     if (typeof selected === "string") {
-      loadImagePath(selected);
+      await loadImagePath(selected);
     }
   };
 

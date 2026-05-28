@@ -1,12 +1,14 @@
+use base64::{engine::general_purpose, Engine as _};
 use chrono::Local;
 use rust_i18n::t;
 use serde::Serialize;
-use std::path::Path;
+use std::{fs, path::Path};
 use tauri::AppHandle;
 
 use crate::adb::{self, AdbError};
 
 const DEFAULT_REMOTE_DIR: &str = "/sdcard/Pictures/ADBManager";
+const MAX_PREVIEW_IMAGE_BYTES: u64 = 10 * 1024 * 1024;
 
 #[derive(Debug, Serialize)]
 pub struct ImageCastResult {
@@ -16,6 +18,31 @@ pub struct ImageCastResult {
     pub scanned: bool,
     pub opened: bool,
     pub message: String,
+}
+
+#[tauri::command(async)]
+pub fn read_image_preview_data_url(local_path: String) -> Result<String, AdbError> {
+    let local = Path::new(&local_path);
+    if !local.exists() || !local.is_file() {
+        return Err(AdbError::CommandFailed(
+            t!("image_cast.invalid_file", "path" => local_path).into_owned(),
+        ));
+    }
+
+    let metadata = fs::metadata(local)?;
+    if metadata.len() > MAX_PREVIEW_IMAGE_BYTES {
+        return Err(AdbError::CommandFailed(
+            t!("image_cast.preview_too_large").into_owned(),
+        ));
+    }
+
+    let mime_type = mime_type_for_path(local)?;
+    let bytes = fs::read(local)?;
+    Ok(format!(
+        "data:{};base64,{}",
+        mime_type,
+        general_purpose::STANDARD.encode(bytes)
+    ))
 }
 
 #[tauri::command(async)]
@@ -395,5 +422,21 @@ mod tests {
             file_uri("/sdcard/Pictures/ADBManager/ref.png"),
             "file:///sdcard/Pictures/ADBManager/ref.png"
         );
+    }
+
+    #[test]
+    fn builds_preview_data_url_from_supported_image() {
+        let path = std::env::temp_dir().join(format!(
+            "adb-manager-preview-{}.png",
+            chrono::Local::now()
+                .timestamp_nanos_opt()
+                .unwrap_or_default()
+        ));
+        fs::write(&path, [0u8, 1, 2]).unwrap();
+
+        let data_url = read_image_preview_data_url(path.to_string_lossy().to_string()).unwrap();
+
+        assert_eq!(data_url, "data:image/png;base64,AAEC");
+        fs::remove_file(path).unwrap();
     }
 }

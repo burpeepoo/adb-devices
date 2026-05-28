@@ -1,0 +1,92 @@
+# Command Map
+
+This map connects user-facing actions to frontend code, Tauri commands, and backend behavior.
+
+## Device And Wireless
+
+| Feature | Frontend | Tauri command | Backend behavior |
+| --- | --- | --- | --- |
+| List devices | `useDevices.ts` | `adb_devices` | Runs `adb devices -l`, parses rows, enriches SN via `ro.serialno`, infers USB/wireless. |
+| Device summary | `DeviceConsole.tsx` | `adb_device_summary` | Runs multiple `getprop`, `dumpsys`, `wm`, `df`, `getenforce`, `uptime` commands and parses summary. |
+| mDNS scan | `PairConnect.tsx` | `adb_mdns_discover` | Runs `adb mdns services` and parses pair/connect services. |
+| mDNS connect | `PairConnect.tsx` | `adb_auto_connect` | Connects to mDNS connect service address. |
+| mDNS auto-connect all | `PairConnect.tsx` | `adb_mdns_auto_connect` | Uses mDNS service output and attempts connection. |
+| Pair | `PairConnect.tsx` | `adb_pair` | Runs `adb pair ip:port code`, retries once after ADB restart on retriable transport errors, then attempts mDNS auto-connect. |
+| Manual connect | `PairConnect.tsx` | `adb_connect` | Runs `adb connect ip:port`, then falls back to mDNS auto-connect for same IP. |
+| Recent reconnect | `PairConnect.tsx` | `adb_reconnect_endpoint` | Disconnects endpoint, optionally restarts ADB, connects, optionally retries/falls back to mDNS. |
+| Restart ADB | `PairConnect.tsx` | `adb_restart_server` | Backs up/removes `adb_known_hosts.pb`, preserves host keys, disconnects, kills server, waits for port 5037 close, force-kills matching server if needed, starts and waits. |
+| Repair wireless pairing | `PairConnect.tsx` | `adb_repair_wireless_pairing` | Backs up/removes only `adb_known_hosts.pb`, preserves `adbkey` and `adbkey.pub`, then restarts ADB. |
+| Reset host identity | `PairConnect.tsx` | `adb_reset_host_identity` | Backs up/removes `adb_known_hosts.pb`, `adbkey`, `adbkey.pub`, then starts ADB. |
+| Disconnect endpoint | `PairConnect.tsx` | `adb_disconnect` | Runs `adb disconnect ip:port`. |
+| Local IPs | `PairConnect.tsx` | `get_local_ipv4_addresses` | Reads host private IPv4 addresses for network filtering. |
+| TCP probe | `PairConnect.tsx` | `tcp_probe_endpoint` | Attempts socket connect to endpoint. |
+
+## Tool Tabs
+
+| Feature | Frontend | Tauri command | Backend behavior |
+| --- | --- | --- | --- |
+| APK install | `ApkInstall.tsx` | `adb_install` | Optional uninstall, then `adb install` with install lock. |
+| Parse APK package | `ApkInstall.tsx` | `parse_apk_package` | Reads APK zip and binary manifest package name. |
+| Resolve APK paths | `ApkInstall.tsx` | `resolve_apk_paths` | Recursively expands folders to `.apk`, dedupes paths. |
+| Clipboard APK paths | `ApkInstall.tsx` | `read_clipboard_apk_paths` | Reads macOS file pasteboard or text paths, then resolves APKs. |
+| Screenshot | `Screenshot.tsx` | `adb_screenshot` | `screencap` to device temp path, pull local PNG, remove remote temp. |
+| Start recording | `ScreenRecord.tsx` | `adb_start_recording` | Spawns `adb shell screenrecord <remote>`, stores child process. |
+| Stop recording | `ScreenRecord.tsx` | `adb_stop_recording` | Kills child, pulls MP4, removes remote temp. |
+| Mirror availability | `ScreenMirror.tsx` | `check_scrcpy_available` | Checks bundled/system scrcpy path. |
+| Install scrcpy | `ScreenMirror.tsx` | `install_scrcpy` | macOS Homebrew install or Windows GitHub zip install. |
+| Start mirror | `ScreenMirror.tsx` | `start_screen_mirror` | Verifies device online, spawns scrcpy, tracks process. |
+| Stop mirror | `ScreenMirror.tsx` | `stop_screen_mirror` | Kills tracked scrcpy process. |
+| Mirror state | `ScreenMirror.tsx` | `get_screen_mirror_state` | Checks whether tracked scrcpy process is still alive. |
+| Navigation key | `ScreenMirror.tsx` | `send_navigation_key` | Sends Back/Home through `input keyevent`. |
+| Image preview | `ImageCast.tsx` | `read_image_preview_data_url` | Validates local image type/size and returns a data URL for UI preview without broad asset protocol access. |
+| Image push/open | `ImageCast.tsx` | `adb_push_reference_image` | Validates image, creates remote dir, pushes, optional scan/open. |
+| Reopen image | `ImageCast.tsx` | `adb_open_reference_image` | Validates remote path/MIME, optional scan, opens with VIEW intent. |
+| Clipboard text | `Clipboard.tsx` | `adb_input_text` | Escapes text and runs `adb shell input text`. |
+| Logcat snapshot | `Logcat.tsx` | `adb_read_logcat` | Runs `adb logcat -d -v threadtime -t <limit>`, parses lines. |
+| Logcat stream start | `Logcat.tsx` | `adb_start_logcat` | Spawns `adb logcat -v threadtime`, emits parsed line events. |
+| Logcat stream stop | `Logcat.tsx` | `adb_stop_logcat` | Kills tracked logcat process. |
+| Package names | `PackageNameInput.tsx` | `adb_list_packages` | Runs `pm list packages`, strips `package:` prefix. |
+| Package details | `PackageList.tsx` | `adb_list_package_details` | Parses `dumpsys package packages` plus build/SN properties. |
+| Package info | `PackageList.tsx` | `adb_package_info` | Reads one package's version info plus build/SN properties. |
+| Export package APK | `PackageList.tsx` | `adb_export_package_apk` | Reads `pm path`, pulls one or split APK files to Downloads. |
+| Workbench execute | `AdbWorkbench.tsx` | `adb_workbench_execute` | Parses/normalizes ADB subcommand, classifies risk, runs with timeout. |
+| Export text | `AdbWorkbench.tsx`, `Logcat.tsx` | `export_text_file` | Opens save dialog and writes text content. |
+
+## Settings And OS
+
+| Feature | Frontend | Tauri command | Backend behavior |
+| --- | --- | --- | --- |
+| Pick directory | `Settings.tsx` | `select_directory` | Opens folder picker. |
+| Default save dir | `App.tsx` | `get_default_save_dir` | Creates/returns Pictures/ADB_Manager. |
+| ADB availability | `App.tsx`, `AdbSetup` | `check_adb_available` | Resolves ADB path and executable state. |
+| Install ADB | `AdbSetup` | `install_adb` | Downloads/extracts official platform-tools. |
+| Reveal path | Multiple tools | `reveal_path` | Finder/Explorer reveal/open behavior. |
+| Open file | Multiple tools | `open_file` | OS default opener for a local file. |
+| Open external URL | Settings/help links | `open_external_url` | Allows only safelisted URLs. |
+| Backend locale | `i18n.ts` | `set_locale` | Sets `rust_i18n` locale to `zh-CN` or `en`. |
+
+## Events
+
+| Event | Producer | Consumer | Purpose |
+| --- | --- | --- | --- |
+| `global-screenshot-shortcut` | Tauri global shortcut plugin | `App.tsx` | Trigger screenshot behavior. |
+| `global-record-shortcut` | Tauri global shortcut plugin | `App.tsx` | Trigger record start/stop behavior. |
+| `adb-install-progress` | `install_adb` | Setup UI | ADB/platform-tools install progress. |
+| `scrcpy-install-progress` | `install_scrcpy` | Mirror UI | scrcpy install progress. |
+| `adb-logcat-line` | `adb_start_logcat` | Logcat UI | Streaming logcat entry. |
+
+## Shared Backend Helpers
+
+`src-tauri/src/adb.rs`
+
+- Resolves bundled/system/SDK ADB path.
+- Ensures Unix executable bit.
+- Builds ADB commands with optional `-s <serial>`.
+- Applies macOS terminal-like environment.
+- Runs commands normally, with timeout, or with extra environment.
+- Localizes errors through `AdbError`.
+
+`src-tauri/src/state.rs`
+
+- Holds global mutexes and active child processes.
+- Prevents concurrent install, recording, logcat, scrcpy, and ADB server operations where needed.

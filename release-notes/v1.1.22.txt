@@ -1,0 +1,17 @@
+zh-CN:
+ADB Manager v1.1.22
+
+- 「修复无线配对」现在会清理 ADB 的无线配对缓存 `adb_known_hosts.pb`，但保留本机 `adbkey` 身份，避免一上来就重置这台电脑的 ADB 授权身份。
+- App 内显式「重启 ADB」也会先走同一套无线配对修复逻辑，更接近之前命令行手动修复后能恢复连接的行为。
+- 收紧本地图片预览的文件访问范围：图片预览改为后端校验后返回 data URL，不再开放整个用户家目录的 asset 访问。
+- 修复 Windows 读取剪贴板 APK 路径时误调用 macOS `pbpaste` 的问题。
+- 改进录屏状态锁错误处理，并补充 CI 测试流程与功能模型文档。
+
+en-US:
+ADB Manager v1.1.22
+
+- Wireless pairing repair now clears the ADB wireless pairing cache `adb_known_hosts.pb` while preserving the local `adbkey` host identity.
+- Explicit in-app ADB restart uses the same wireless pairing repair path, matching the manual recovery flow more closely.
+- Local image preview now goes through backend validation and data URLs, removing broad home-directory asset access.
+- Fixes Windows clipboard APK path reading so it no longer calls macOS `pbpaste`.
+- Improves screen recording state-lock error handling and adds CI test coverage plus functional model documentation.

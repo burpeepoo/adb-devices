@@ -1,11 +1,16 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
+#[derive(Default)]
+pub struct RecordingState {
+    pub process: Option<std::process::Child>,
+    pub device: Option<String>,
+    pub remote_path: Option<String>,
+}
+
 pub struct AppState {
     pub adb_server_operation: Mutex<()>,
-    pub recording_process: Mutex<Option<std::process::Child>>,
-    pub recording_device: Mutex<Option<String>>,
-    pub recording_remote_path: Mutex<Option<String>>,
+    pub recording: Mutex<RecordingState>,
     pub logcat_process: Mutex<Option<std::process::Child>>,
     pub logcat_device: Mutex<Option<String>>,
     pub scrcpy_process: Mutex<Option<std::process::Child>>,
@@ -19,9 +24,7 @@ impl Default for AppState {
     fn default() -> Self {
         Self {
             adb_server_operation: Mutex::new(()),
-            recording_process: Mutex::new(None),
-            recording_device: Mutex::new(None),
-            recording_remote_path: Mutex::new(None),
+            recording: Mutex::new(RecordingState::default()),
             logcat_process: Mutex::new(None),
             logcat_device: Mutex::new(None),
             scrcpy_process: Mutex::new(None),

@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [1.1.22] - 2026-05-28
+
+### Added
+
+- Added a standalone wireless pairing repair command that refreshes ADB wireless pairing state without resetting this computer's ADB host identity.
+- Added CI test coverage before release packaging, including frontend logic tests, Rust formatting, and Rust tests.
+- Added functional model documentation for product behavior, command mapping, release operations, and known risks.
+
+### Changed
+
+- Changed explicit ADB restart repair to back up and remove only `adb_known_hosts.pb` before restarting ADB, while preserving `adbkey` and `adbkey.pub`.
+- Changed image preview loading to use a Rust validation command and data URL instead of broad home-directory asset protocol access.
+- Simplified selected-device refresh tracking so device selection changes do not rebuild the device refresh callback.
+
+### Fixed
+
+- Fixed Windows clipboard APK path reading so non-macOS builds no longer try to run macOS `pbpaste`.
+- Fixed screen recording state locking so a poisoned mutex returns a localized error instead of panicking.
+- Removed broad `$HOME/**` asset protocol scope from the Tauri security config.
+
 ## [1.1.21] - 2026-05-27
 
 ### Changed

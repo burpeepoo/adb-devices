@@ -464,7 +464,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       }
 
       if (!didRestart) {
-        restartMessage = await invoke<string>("adb_restart_server");
+        restartMessage = await invoke<string>("adb_repair_wireless_pairing");
       }
 
       const currentLocalIps = await refreshLocalIps();

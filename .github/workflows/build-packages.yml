@@ -12,8 +12,40 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    name: Test
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run frontend logic tests
+        run: npm test
+
+      - name: Check Rust formatting
+        run: cargo fmt -- --check
+        working-directory: src-tauri
+
+      - name: Run Rust tests
+        run: cargo test
+        working-directory: src-tauri
+
   build:
     name: Build ${{ matrix.platform.name }}
+    needs: test
     runs-on: ${{ matrix.platform.os }}
     strategy:
       fail-fast: false

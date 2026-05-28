@@ -16,7 +16,7 @@ device.adb_start_failed: "Failed to start ADB server"
 device.adb_stop_failed: "Failed to stop ADB server. Run adb kill-server in Terminal, then try again"
 device.adb_restarted: "ADB server restarted"
 device.adb_operation_state_error: "ADB operation state is unavailable"
-device.wireless_pairing_repaired: "ADB server restarted; local ADB identity and wireless pairing cache were preserved"
+device.wireless_pairing_repaired: "ADB server restarted; wireless pairing cache was refreshed and local ADB identity was preserved"
 device.adb_identity_reset: "Local ADB identity reset. Re-authorize or pair again on the Android device"
 device.connected_to: "Connected to %{address}"
 device.connected_after_adb_restart: "Connected to %{address} after restarting ADB"
@@ -90,6 +90,7 @@ mirror.exit_with_code: "%{context}, exit code: %{code}"
 
 # Recording
 recording.started: "Recording started"
+recording.state_error: "Recording state error, please restart the app and try again"
 recording.pull_failed: "Failed to pull recording: %{message}"
 
 # Logcat
@@ -109,6 +110,7 @@ screenshot.pull_failed: "Failed to pull screenshot: %{message}"
 # Image cast
 image_cast.invalid_file: "Image file does not exist or cannot be read: %{path}"
 image_cast.unsupported_format: "Only PNG, JPG, JPEG, or WebP images are supported"
+image_cast.preview_too_large: "Image preview is limited to 10 MB"
 image_cast.invalid_remote_path: "Unsupported device path: %{path}"
 image_cast.mkdir_failed: "Failed to create image directory on device"
 image_cast.push_failed: "Failed to push image to device"

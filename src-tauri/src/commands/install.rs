@@ -2,6 +2,7 @@ use rust_i18n::t;
 use std::collections::HashSet;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+#[cfg(target_os = "macos")]
 use std::process::Command;
 use std::sync::Mutex;
 use tauri::{AppHandle, State};
@@ -197,6 +198,7 @@ fn read_clipboard_file_paths() -> Vec<String> {
     Vec::new()
 }
 
+#[cfg(target_os = "macos")]
 fn read_clipboard_text_paths() -> Vec<String> {
     let output = Command::new("pbpaste").output();
     match output {
@@ -208,6 +210,11 @@ fn read_clipboard_text_paths() -> Vec<String> {
             .collect(),
         _ => Vec::new(),
     }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn read_clipboard_text_paths() -> Vec<String> {
+    Vec::new()
 }
 
 fn normalize_clipboard_path(path: &str) -> String {

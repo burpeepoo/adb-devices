@@ -60,7 +60,17 @@ pub struct DeviceSummary {
 pub fn adb_restart_server(app: AppHandle, state: State<'_, AppState>) -> Result<String, AdbError> {
     let _guard = lock_adb_server_operation(&state)?;
     restart_adb_server(&app)?;
-    Ok(t!("device.adb_restarted").to_string())
+    Ok(t!("device.wireless_pairing_repaired").to_string())
+}
+
+#[tauri::command(async)]
+pub fn adb_repair_wireless_pairing(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<String, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
+    restart_adb_server(&app)?;
+    Ok(t!("device.wireless_pairing_repaired").to_string())
 }
 
 #[tauri::command(async)]
@@ -493,7 +503,7 @@ fn start_adb_server(app: &AppHandle) -> Result<(), AdbError> {
 fn restart_adb_server(app: &AppHandle) -> Result<(), AdbError> {
     stop_adb_server(app)?;
     let android_dir = android_config_dir()?;
-    prepare_non_destructive_adb_restart_state(&android_dir)?;
+    repair_wireless_pairing_state(&android_dir)?;
     start_adb_server(app)
 }
 
@@ -541,9 +551,12 @@ fn android_config_dir() -> Result<PathBuf, AdbError> {
     )))
 }
 
-fn prepare_non_destructive_adb_restart_state(android_dir: &Path) -> Result<(), AdbError> {
-    fs::create_dir_all(android_dir)?;
-    Ok(())
+fn repair_wireless_pairing_state(android_dir: &Path) -> Result<usize, AdbError> {
+    backup_and_remove_android_files(
+        android_dir,
+        &["adb_known_hosts.pb"],
+        "adb-wireless-pairing-backup",
+    )
 }
 
 fn wait_for_adb_server_to_stop(timeout: Duration) -> bool {
@@ -1117,18 +1130,15 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
     }
 
     #[test]
-    fn non_destructive_adb_restart_preserves_wireless_state_and_host_key() {
-        let android_dir = temp_android_dir("non-destructive-adb-restart");
+    fn wireless_pairing_repair_removes_known_hosts_but_preserves_host_key() {
+        let android_dir = temp_android_dir("wireless-pairing-repair");
         fs::write(android_dir.join("adb_known_hosts.pb"), "known hosts").unwrap();
         fs::write(android_dir.join("adbkey"), "private key").unwrap();
         fs::write(android_dir.join("adbkey.pub"), "public key").unwrap();
 
-        prepare_non_destructive_adb_restart_state(&android_dir).unwrap();
+        assert_eq!(repair_wireless_pairing_state(&android_dir).unwrap(), 1);
 
-        assert_eq!(
-            fs::read_to_string(android_dir.join("adb_known_hosts.pb")).unwrap(),
-            "known hosts"
-        );
+        assert!(!android_dir.join("adb_known_hosts.pb").exists());
         assert_eq!(
             fs::read_to_string(android_dir.join("adbkey")).unwrap(),
             "private key"
@@ -1137,6 +1147,9 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
             fs::read_to_string(android_dir.join("adbkey.pub")).unwrap(),
             "public key"
         );
+        assert!(backup_contains(&android_dir, "adb_known_hosts.pb"));
+        assert!(!backup_contains(&android_dir, "adbkey"));
+        assert!(!backup_contains(&android_dir, "adbkey.pub"));
 
         fs::remove_dir_all(android_dir).unwrap();
     }

@@ -1,4 +1,5 @@
 import type { DeviceInfo } from "./types";
+import { deviceIdentityKey } from "./deviceNotes.ts";
 
 export function resolveVisibleSelectedDevice(
   selectedSerial: string | null,
@@ -22,8 +23,4 @@ export function resolveVisibleSelectedDevice(
   const visibleMatch = visibleOnlineDevices.find((device) => deviceIdentityKey(device) === selectedIdentity);
 
   return visibleMatch?.serial || firstVisibleOnline;
-}
-
-function deviceIdentityKey(device: Pick<DeviceInfo, "serial" | "device_sn">) {
-  return device.device_sn || device.serial;
 }

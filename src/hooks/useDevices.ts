@@ -14,7 +14,13 @@ export function useDevices() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
+  const selectedDeviceRef = useRef<string | null>(null);
   const refreshingRef = useRef(false);
+
+  const updateSelectedDevice = useCallback((serial: string | null) => {
+    selectedDeviceRef.current = serial;
+    setSelectedDevice(serial);
+  }, []);
 
   const refresh = useCallback(async (options: RefreshOptions = {}) => {
     if (refreshingRef.current) return;
@@ -61,15 +67,16 @@ export function useDevices() {
       await store.set(STORE_KEYS.deviceHistory, Array.from(historyByDeviceKey.values()));
       await store.save();
 
-      const nextSelectedDevice = resolveVisibleSelectedDevice(selectedDevice, result, merged);
-      if (nextSelectedDevice !== selectedDevice) setSelectedDevice(nextSelectedDevice);
+      const currentSelectedDevice = selectedDeviceRef.current;
+      const nextSelectedDevice = resolveVisibleSelectedDevice(currentSelectedDevice, result, merged);
+      if (nextSelectedDevice !== currentSelectedDevice) updateSelectedDevice(nextSelectedDevice);
     } catch (e) {
       setError(String(e));
     } finally {
       refreshingRef.current = false;
       if (!options.silent) setLoading(false);
     }
-  }, [selectedDevice]);
+  }, [updateSelectedDevice]);
 
   useEffect(() => {
     refresh();
@@ -87,7 +94,7 @@ export function useDevices() {
     };
   }, [refresh]);
 
-  return { devices, loading, error, selectedDevice, setSelectedDevice, refresh };
+  return { devices, loading, error, selectedDevice, setSelectedDevice: updateSelectedDevice, refresh };
 }
 
 function deviceDisplayTitle(device: Pick<DeviceInfo, "serial" | "device_sn">) {

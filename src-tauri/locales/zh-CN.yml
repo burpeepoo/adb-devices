@@ -16,7 +16,7 @@ device.adb_start_failed: "启动 ADB 服务失败"
 device.adb_stop_failed: "停止 ADB 服务失败，请在终端运行 adb kill-server 后重试"
 device.adb_restarted: "ADB 服务已重启"
 device.adb_operation_state_error: "ADB 操作状态不可用"
-device.wireless_pairing_repaired: "ADB 服务已重启，并保留本机 ADB 身份和无线配对缓存"
+device.wireless_pairing_repaired: "ADB 服务已重启，并已刷新无线配对缓存、保留本机 ADB 身份"
 device.adb_identity_reset: "已重置本机 ADB 身份，请在 Android 设备上重新授权或配对"
 device.connected_to: "已连接到 %{address}"
 device.connected_after_adb_restart: "重启 ADB 后已连接到 %{address}"
@@ -90,6 +90,7 @@ mirror.exit_with_code: "%{context}，退出码: %{code}"
 
 # Recording
 recording.started: "录屏已开始"
+recording.state_error: "录屏状态异常，请重启应用后重试"
 recording.pull_failed: "拉取录屏失败: %{message}"
 
 # Logcat
@@ -109,6 +110,7 @@ screenshot.pull_failed: "拉取截图失败: %{message}"
 # Image cast
 image_cast.invalid_file: "图片文件不存在或无法读取: %{path}"
 image_cast.unsupported_format: "只支持 PNG、JPG、JPEG 或 WebP 图片"
+image_cast.preview_too_large: "图片预览限制为 10 MB 以内"
 image_cast.invalid_remote_path: "设备路径不支持: %{path}"
 image_cast.mkdir_failed: "创建设备图片目录失败"
 image_cast.push_failed: "推送图片到设备失败"

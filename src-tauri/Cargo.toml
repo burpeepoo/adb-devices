@@ -1,6 +1,6 @@
 [package]
 name = "adb-manager"
-version = "1.1.21"
+version = "1.1.22"
 description = "ADB Manager for Cozyla PMs"
 authors = ["Cozyla"]
 edition = "2021"
@@ -13,7 +13,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["protocol-asset"] }
+tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 tauri-plugin-store = "2"
 serde = { version = "1", features = ["derive"] }
@@ -22,6 +22,7 @@ thiserror = "2"
 rust-i18n = "3"
 which = "7"
 chrono = "0.4"
+base64 = "0.22"
 reqwest = { version = "0.12", features = ["json"] }
 zip = "2"
 tokio = { version = "1", features = ["full"] }

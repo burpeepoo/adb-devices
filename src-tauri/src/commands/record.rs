@@ -1,10 +1,20 @@
 use chrono::Local;
 use rust_i18n::t;
 use std::path::PathBuf;
+use std::sync::MutexGuard;
 use tauri::AppHandle;
 
 use crate::adb::{self, AdbError};
-use crate::state::AppState;
+use crate::state::{AppState, RecordingState};
+
+fn lock_recording_state<'a>(
+    state: &'a tauri::State<'_, AppState>,
+) -> Result<MutexGuard<'a, RecordingState>, AdbError> {
+    state
+        .recording
+        .lock()
+        .map_err(|_| AdbError::CommandFailed(t!("recording.state_error").into_owned()))
+}
 
 #[tauri::command(async)]
 pub fn adb_start_recording(
@@ -12,12 +22,9 @@ pub fn adb_start_recording(
     device_serial: Option<String>,
     state: tauri::State<AppState>,
 ) -> Result<String, AdbError> {
-    // Check if already recording
-    {
-        let rec = state.recording_process.lock().unwrap();
-        if rec.is_some() {
-            return Err(AdbError::AlreadyRecording);
-        }
+    let mut recording = lock_recording_state(&state)?;
+    if recording.process.is_some() {
+        return Err(AdbError::AlreadyRecording);
     }
 
     let timestamp = Local::now().format("%Y%m%d_%H%M%S");
@@ -31,19 +38,9 @@ pub fn adb_start_recording(
     cmd.args(["shell", "screenrecord", &remote_path]);
 
     let child = cmd.spawn()?;
-
-    {
-        let mut rec = state.recording_process.lock().unwrap();
-        *rec = Some(child);
-    }
-    {
-        let mut rec_dev = state.recording_device.lock().unwrap();
-        *rec_dev = device_serial;
-    }
-    {
-        let mut rec_path = state.recording_remote_path.lock().unwrap();
-        *rec_path = Some(remote_path);
-    }
+    recording.process = Some(child);
+    recording.device = device_serial;
+    recording.remote_path = Some(remote_path);
 
     Ok(t!("recording.started").to_string())
 }
@@ -55,30 +52,21 @@ pub fn adb_stop_recording(
     device_serial: Option<String>,
     state: tauri::State<AppState>,
 ) -> Result<String, AdbError> {
-    let serial = {
-        let rec_dev = state.recording_device.lock().unwrap();
-        rec_dev.clone().or(device_serial)
-    };
-
-    // Kill the recording process
-    {
-        let mut rec = state.recording_process.lock().unwrap();
-        if let Some(mut child) = rec.take() {
+    let (serial, remote_path) = {
+        let mut recording = lock_recording_state(&state)?;
+        let serial = recording.device.clone().or(device_serial);
+        if let Some(mut child) = recording.process.take() {
             let _ = child.kill();
             let _ = child.wait();
         } else {
             return Err(AdbError::NotRecording);
         }
-    }
-    {
-        let mut rec_dev = state.recording_device.lock().unwrap();
-        *rec_dev = None;
-    }
-    let remote_path = {
-        let mut rec_path = state.recording_remote_path.lock().unwrap();
-        rec_path
+        recording.device = None;
+        let remote_path = recording
+            .remote_path
             .take()
-            .unwrap_or_else(|| "/sdcard/recording.mp4".to_string())
+            .unwrap_or_else(|| "/sdcard/recording.mp4".to_string());
+        (serial, remote_path)
     };
 
     // Give the device a moment to finalize the file
