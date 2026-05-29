@@ -54,6 +54,7 @@ Navigation:
 - The Settings button opens a modal, not a tab.
 - Tabs are lazily mounted and then kept mounted once visited, so long-running tool state is not discarded when switching away.
 - The Pair tab is implemented as the device console. It includes the selected device summary, shortcuts to other tools, and an embedded pair/connect panel.
+- The Mirror tab combines scrcpy-based interactive mirroring with a selected-device app drawer for launching installed apps.
 
 ## Cross-Cutting Principles
 

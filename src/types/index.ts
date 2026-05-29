@@ -49,6 +49,22 @@ export interface PackageInfo {
   build_number: string;
 }
 
+export interface LaunchableApp {
+  package_name: string;
+  activity_name: string;
+  component_name: string;
+  label: string;
+  icon_data_url: string | null;
+}
+
+export interface LaunchableAppAsset {
+  package_name: string;
+  activity_name: string;
+  label: string | null;
+  icon_data_url: string | null;
+  cache_stale: boolean;
+}
+
 export interface ExportedApk {
   package_name: string;
   output_dir: string;

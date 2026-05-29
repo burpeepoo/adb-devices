@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { IconDevicesPc } from "@tabler/icons-react";
+import { IconApps, IconDevicesPc, IconPlayerPlay, IconRefresh, IconSearch } from "@tabler/icons-react";
 import SectionTitle from "./common/SectionTitle";
+import type { LaunchableApp, LaunchableAppAsset } from "../types";
 
 interface Props {
   deviceSerial: string | null;
@@ -13,6 +14,30 @@ interface Props {
 interface MirrorState {
   running: boolean;
   device_serial: string | null;
+}
+
+const APP_ICON_CLASSES = [
+  "bg-blue-600",
+  "bg-emerald-600",
+  "bg-rose-600",
+  "bg-indigo-600",
+  "bg-cyan-700",
+  "bg-slate-700",
+  "bg-teal-600",
+  "bg-fuchsia-700",
+];
+
+function appIconClass(seed: string) {
+  let hash = 0;
+  for (const char of seed) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return APP_ICON_CLASSES[hash % APP_ICON_CLASSES.length];
+}
+
+function appInitial(app: LaunchableApp) {
+  const source = (app.label || app.package_name || "A").trim();
+  return source.charAt(0).toUpperCase() || "A";
 }
 
 export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Props) {
@@ -25,6 +50,13 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
   const [mirrorAudioEnabled, setMirrorAudioEnabled] = useState(false);
   const [navigationLoading, setNavigationLoading] = useState<"back" | "home" | null>(null);
   const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [drawerApps, setDrawerApps] = useState<LaunchableApp[]>([]);
+  const [drawerLoading, setDrawerLoading] = useState(false);
+  const [drawerError, setDrawerError] = useState<string | null>(null);
+  const [drawerQuery, setDrawerQuery] = useState("");
+  const [drawerStatus, setDrawerStatus] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [launchingComponent, setLaunchingComponent] = useState<string | null>(null);
+  const drawerRequestRef = useRef(0);
 
   const applyMirrorState = useCallback(
     (state: MirrorState) => {
@@ -39,6 +71,79 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
     applyMirrorState(state);
     return state;
   }, [applyMirrorState]);
+
+  const loadDrawerAppIcon = useCallback(
+    async (serial: string, app: LaunchableApp, requestId: number, forceRefresh = false) => {
+      if (drawerRequestRef.current !== requestId) return;
+      try {
+        const asset = await invoke<LaunchableAppAsset>("adb_load_launchable_app_icon", {
+          deviceSerial: serial,
+          packageName: app.package_name,
+          activityName: app.activity_name,
+          forceRefresh,
+        });
+        if (drawerRequestRef.current !== requestId) return;
+        setDrawerApps((current) =>
+          current.map((item) => {
+            if (item.component_name !== app.component_name) return item;
+            return {
+              ...item,
+              label: asset.label?.trim() || item.label,
+              icon_data_url: asset.icon_data_url || item.icon_data_url,
+            };
+          })
+        );
+        if (asset.cache_stale && !forceRefresh) {
+          void loadDrawerAppIcon(serial, app, requestId, true);
+        }
+      } catch {
+        // Keep the fallback icon when an APK cannot be pulled or parsed.
+      }
+    },
+    []
+  );
+
+  const loadDrawerAppIcons = useCallback(async (serial: string, apps: LaunchableApp[], requestId: number, forceRefresh = false) => {
+    for (const app of apps) {
+      if (drawerRequestRef.current !== requestId) return;
+      await loadDrawerAppIcon(serial, app, requestId, forceRefresh);
+    }
+  }, [loadDrawerAppIcon]);
+
+  const loadDrawerApps = useCallback(async (forceIconRefresh = false) => {
+    const serial = deviceSerial?.trim();
+    const requestId = drawerRequestRef.current + 1;
+    drawerRequestRef.current = requestId;
+    setDrawerStatus(null);
+
+    if (!serial) {
+      setDrawerApps([]);
+      setDrawerError(null);
+      setDrawerLoading(false);
+      return;
+    }
+
+    setDrawerLoading(true);
+    setDrawerError(null);
+    setDrawerApps([]);
+    try {
+      const apps = await invoke<LaunchableApp[]>("adb_list_launchable_apps", {
+        deviceSerial: serial,
+      });
+      if (drawerRequestRef.current === requestId) {
+        setDrawerApps(apps);
+        void loadDrawerAppIcons(serial, apps, requestId, forceIconRefresh);
+      }
+    } catch (e) {
+      if (drawerRequestRef.current === requestId) {
+        setDrawerError(String(e));
+      }
+    } finally {
+      if (drawerRequestRef.current === requestId) {
+        setDrawerLoading(false);
+      }
+    }
+  }, [deviceSerial, loadDrawerAppIcons]);
 
   useEffect(() => {
     invoke<boolean>("check_scrcpy_available")
@@ -69,6 +174,31 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
     }, 2500);
     return () => clearInterval(timer);
   }, [applyMirrorState, syncMirrorState]);
+
+  useEffect(() => {
+    setDrawerQuery("");
+    void loadDrawerApps(false);
+  }, [loadDrawerApps]);
+
+  const filteredDrawerApps = useMemo(() => {
+    const query = drawerQuery.trim().toLowerCase();
+    return drawerApps
+      .filter((app) => {
+        if (!query) return true;
+        return [app.label, app.package_name, app.activity_name, app.component_name]
+          .join(" ")
+          .toLowerCase()
+          .includes(query);
+      })
+      .slice()
+      .sort((a, b) => {
+        return (
+          a.label.localeCompare(b.label) ||
+          a.package_name.localeCompare(b.package_name) ||
+          a.activity_name.localeCompare(b.activity_name)
+        );
+      });
+  }, [drawerApps, drawerQuery]);
 
   const handleInstallScrcpy = async () => {
     if (installingScrcpy) return;
@@ -140,6 +270,23 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
     }
   };
 
+  const handleLaunchApp = async (app: LaunchableApp) => {
+    if (!deviceSerial || launchingComponent) return;
+    setLaunchingComponent(app.component_name);
+    setDrawerStatus(null);
+    try {
+      const msg = await invoke<string>("adb_launch_app", {
+        deviceSerial,
+        componentName: app.component_name,
+      });
+      setDrawerStatus({ ok: true, msg });
+    } catch (e) {
+      setDrawerStatus({ ok: false, msg: String(e) });
+    } finally {
+      setLaunchingComponent(null);
+    }
+  };
+
   const handleOpenExternalUrl = async (url: string) => {
     try {
       await invoke("open_external_url", { url });
@@ -148,20 +295,18 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
     }
   };
 
-  if (scrcpyAvailable === null) {
-    return (
-      <div className="max-w-3xl space-y-4">
+  const renderScrcpyPanel = () => {
+    if (scrcpyAvailable === null) {
+      return (
         <section className="bg-white rounded-lg border border-gray-200 p-4">
           <SectionTitle icon={<IconDevicesPc size={17} />} label={t('screenMirror.title')} />
           <div className="mt-3 text-sm text-gray-500">{t('screenMirror.detectingScrcpy')}</div>
         </section>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (!scrcpyAvailable) {
-    return (
-      <div className="max-w-3xl space-y-4">
+    if (!scrcpyAvailable) {
+      return (
         <section className="bg-white rounded-lg border border-gray-200 p-4">
           <SectionTitle icon={<IconDevicesPc size={17} />} label={t('screenMirror.title')} />
           <p className="text-sm text-gray-500 mt-2">
@@ -219,12 +364,10 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
             </div>
           )}
         </section>
-      </div>
-    );
-  }
+      );
+    }
 
-  return (
-    <div className="max-w-3xl space-y-4">
+    return (
       <section className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
           <SectionTitle
@@ -319,6 +462,135 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
           <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">{t('screenMirror.selectDevice')}</div>
         )}
       </section>
+    );
+  };
+
+  const renderAppDrawer = () => (
+    <section className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <SectionTitle
+          icon={<IconApps size={17} />}
+          label={t('screenMirror.appDrawer')}
+          description={t('screenMirror.appDrawerDesc')}
+          color="teal"
+        />
+        <button
+          type="button"
+          onClick={() => loadDrawerApps(true)}
+          disabled={!deviceSerial || drawerLoading}
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <IconRefresh size={15} className={drawerLoading ? "animate-spin" : ""} />
+          {t('screenMirror.refreshApps')}
+        </button>
+      </div>
+
+      {deviceSerial && (
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <label className="relative block min-w-0 flex-1">
+            <IconSearch size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              value={drawerQuery}
+              onChange={(event) => setDrawerQuery(event.target.value)}
+              placeholder={t('screenMirror.searchApps')}
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition focus:border-blue-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
+            />
+          </label>
+          <div className="text-xs font-medium text-gray-500">
+            {t('screenMirror.appsCount', { count: drawerApps.length })}
+          </div>
+        </div>
+      )}
+
+      {!deviceSerial && (
+        <div className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">{t('screenMirror.selectDevice')}</div>
+      )}
+
+      {drawerError && (
+        <div className="mt-4 rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-600">
+          <div>{drawerError}</div>
+          <button
+            type="button"
+            onClick={() => loadDrawerApps(true)}
+            className="mt-2 text-xs font-medium text-red-700 underline"
+          >
+            {t('screenMirror.retry')}
+          </button>
+        </div>
+      )}
+
+      {drawerLoading && (
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+          {Array.from({ length: 12 }).map((_, index) => (
+            <div key={index} className="min-h-[112px] animate-pulse rounded-lg border border-gray-200 bg-gray-50 p-3">
+              <div className="mx-auto h-12 w-12 rounded-lg bg-gray-200" />
+              <div className="mx-auto mt-3 h-3 w-16 rounded bg-gray-200" />
+              <div className="mx-auto mt-2 h-2 w-20 rounded bg-gray-100" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!drawerLoading && !drawerError && deviceSerial && filteredDrawerApps.length === 0 && (
+        <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-8 text-center text-sm text-gray-500">
+          {t('screenMirror.noApps')}
+        </div>
+      )}
+
+      {!drawerLoading && !drawerError && filteredDrawerApps.length > 0 && (
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+          {filteredDrawerApps.map((app) => {
+            const launching = launchingComponent === app.component_name;
+            return (
+              <button
+                key={app.component_name}
+                type="button"
+                title={app.component_name}
+                onClick={() => handleLaunchApp(app)}
+                disabled={!deviceSerial || Boolean(launchingComponent)}
+                className="group flex min-h-[112px] flex-col items-center rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition hover:border-blue-200 hover:bg-blue-50 disabled:cursor-wait disabled:opacity-70"
+              >
+                {app.icon_data_url ? (
+                  <img
+                    src={app.icon_data_url}
+                    alt=""
+                    className="h-12 w-12 rounded-lg object-cover"
+                  />
+                ) : (
+                  <span className={`flex h-12 w-12 items-center justify-center rounded-lg text-base font-semibold text-white shadow-sm ${appIconClass(app.package_name)}`}>
+                    {appInitial(app)}
+                  </span>
+                )}
+                <span className="mt-2 w-full truncate text-sm font-medium text-gray-800">
+                  {app.label}
+                </span>
+                <span className="mt-1 w-full truncate text-[11px] text-gray-500">
+                  {app.package_name}
+                </span>
+                {launching && (
+                  <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-blue-700">
+                    <IconPlayerPlay size={12} />
+                    {t('screenMirror.launchingApp')}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {drawerStatus && (
+        <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${drawerStatus.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+          {drawerStatus.msg}
+        </div>
+      )}
+    </section>
+  );
+
+  return (
+    <div className="max-w-5xl space-y-4">
+      {renderScrcpyPanel()}
+      {renderAppDrawer()}
 
       <section className="bg-gray-50 rounded-lg border border-gray-200 p-4">
         <h4 className="text-sm font-medium text-gray-600 mb-1">{t('screenMirror.notes')}</h4>

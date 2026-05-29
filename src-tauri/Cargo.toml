@@ -1,6 +1,6 @@
 [package]
 name = "adb-manager"
-version = "1.1.22"
+version = "1.1.23"
 description = "ADB Manager for Cozyla PMs"
 authors = ["Cozyla"]
 edition = "2021"

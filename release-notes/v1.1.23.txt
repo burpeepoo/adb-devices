@@ -1,0 +1,11 @@
+en-US:
+Added a Remote Control app drawer for the selected device, so launchable apps can be opened directly from ADB Manager.
+Drawer icons now parse from APK assets and load progressively in the background.
+App icons are cached locally for faster repeat loads, with stale entries revalidated after 24 hours and rebuilt when APK paths change or caches age out.
+Removed recent-app launch reordering so the drawer keeps a stable app-name order.
+
+zh-CN:
+远程控制新增应用抽屉，会根据当前选中的设备展示可启动 App，并可直接点击打开。
+应用图标现在会从 APK 资源中解析，并在后台逐个加载，不阻塞应用列表展示。
+App 图标已做本地缓存，重复进入会更快显示；超过 24 小时会后台校验，APK 路径变化或缓存过期时会重建。
+移除了最近打开 App 的自动重排序，应用抽屉会保持稳定的应用名排序。

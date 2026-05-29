@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [1.1.23] - 2026-05-29
+
+### Added
+
+- Added a Remote Control app drawer that lists launchable apps for the selected device and starts apps directly through ADB.
+- Added APK icon and label parsing for drawer apps, including a local icon cache for fast repeat loading.
+
+### Changed
+
+- Changed drawer app loading to show the app list first, then load icons progressively in the background.
+- Changed app icon refresh to reuse cached icons immediately, revalidate stale entries after 24 hours, and rebuild entries when APK paths change or caches age out.
+- Removed recent-app launch reordering so the drawer keeps a stable app-name order.
+
 ## [1.1.22] - 2026-05-28
 
 ### Added

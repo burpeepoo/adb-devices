@@ -38,6 +38,9 @@ This map connects user-facing actions to frontend code, Tauri commands, and back
 | Stop mirror | `ScreenMirror.tsx` | `stop_screen_mirror` | Kills tracked scrcpy process. |
 | Mirror state | `ScreenMirror.tsx` | `get_screen_mirror_state` | Checks whether tracked scrcpy process is still alive. |
 | Navigation key | `ScreenMirror.tsx` | `send_navigation_key` | Sends Back/Home through `input keyevent`. |
+| App drawer list | `ScreenMirror.tsx` | `adb_list_launchable_apps` | Queries launchable MAIN/LAUNCHER activities, dedupes components, and returns the drawer list quickly. |
+| App drawer icon | `ScreenMirror.tsx` | `adb_load_launchable_app_icon` | Returns cached label/icon data immediately when possible; revalidates stale entries, pulls one APK when needed, and parses manifest/resource metadata. |
+| App drawer launch | `ScreenMirror.tsx` | `adb_launch_app` | Validates a package/activity component and starts it with `am start -n`. |
 | Image preview | `ImageCast.tsx` | `read_image_preview_data_url` | Validates local image type/size and returns a data URL for UI preview without broad asset protocol access. |
 | Image push/open | `ImageCast.tsx` | `adb_push_reference_image` | Validates image, creates remote dir, pushes, optional scan/open. |
 | Reopen image | `ImageCast.tsx` | `adb_open_reference_image` | Validates remote path/MIME, optional scan, opens with VIEW intent. |
