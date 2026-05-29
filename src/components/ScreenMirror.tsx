@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { IconApps, IconDevicesPc, IconPlayerPlay, IconRefresh, IconSearch } from "@tabler/icons-react";
 import SectionTitle from "./common/SectionTitle";
+import { groupLaunchableApps } from "../appDrawerGrouping";
 import type { LaunchableApp, LaunchableAppAsset } from "../types";
 
 interface Props {
@@ -180,25 +181,22 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
     void loadDrawerApps(false);
   }, [loadDrawerApps]);
 
-  const filteredDrawerApps = useMemo(() => {
+  const filteredDrawerGroups = useMemo(() => {
     const query = drawerQuery.trim().toLowerCase();
-    return drawerApps
-      .filter((app) => {
-        if (!query) return true;
-        return [app.label, app.package_name, app.activity_name, app.component_name]
-          .join(" ")
-          .toLowerCase()
-          .includes(query);
-      })
-      .slice()
-      .sort((a, b) => {
-        return (
-          a.label.localeCompare(b.label) ||
-          a.package_name.localeCompare(b.package_name) ||
-          a.activity_name.localeCompare(b.activity_name)
-        );
-      });
+    const filteredApps = drawerApps.filter((app) => {
+      if (!query) return true;
+      return [app.label, app.package_name, app.activity_name, app.component_name]
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    });
+    return groupLaunchableApps(filteredApps);
   }, [drawerApps, drawerQuery]);
+
+  const filteredDrawerAppCount = filteredDrawerGroups.reduce(
+    (count, group) => count + group.apps.length,
+    0
+  );
 
   const handleInstallScrcpy = async () => {
     if (installingScrcpy) return;
@@ -531,51 +529,63 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
         </div>
       )}
 
-      {!drawerLoading && !drawerError && deviceSerial && filteredDrawerApps.length === 0 && (
+      {!drawerLoading && !drawerError && deviceSerial && filteredDrawerAppCount === 0 && (
         <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-8 text-center text-sm text-gray-500">
           {t('screenMirror.noApps')}
         </div>
       )}
 
-      {!drawerLoading && !drawerError && filteredDrawerApps.length > 0 && (
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-          {filteredDrawerApps.map((app) => {
-            const launching = launchingComponent === app.component_name;
-            return (
-              <button
-                key={app.component_name}
-                type="button"
-                title={app.component_name}
-                onClick={() => handleLaunchApp(app)}
-                disabled={!deviceSerial || Boolean(launchingComponent)}
-                className="group flex min-h-[112px] flex-col items-center rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition hover:border-blue-200 hover:bg-blue-50 disabled:cursor-wait disabled:opacity-70"
-              >
-                {app.icon_data_url ? (
-                  <img
-                    src={app.icon_data_url}
-                    alt=""
-                    className="h-12 w-12 rounded-lg object-cover"
-                  />
-                ) : (
-                  <span className={`flex h-12 w-12 items-center justify-center rounded-lg text-base font-semibold text-white shadow-sm ${appIconClass(app.package_name)}`}>
-                    {appInitial(app)}
-                  </span>
-                )}
-                <span className="mt-2 w-full truncate text-sm font-medium text-gray-800">
-                  {app.label}
+      {!drawerLoading && !drawerError && filteredDrawerAppCount > 0 && (
+        <div className="mt-4 space-y-5">
+          {filteredDrawerGroups.map((group) => (
+            <div key={group.key}>
+              <div className="mb-2 flex items-center gap-2 border-b border-gray-100 pb-2">
+                <h4 className="text-sm font-semibold text-gray-700">{group.title}</h4>
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+                  {group.apps.length}
                 </span>
-                <span className="mt-1 w-full truncate text-[11px] text-gray-500">
-                  {app.package_name}
-                </span>
-                {launching && (
-                  <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-blue-700">
-                    <IconPlayerPlay size={12} />
-                    {t('screenMirror.launchingApp')}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+              </div>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+                {group.apps.map((app) => {
+                  const launching = launchingComponent === app.component_name;
+                  return (
+                    <button
+                      key={app.component_name}
+                      type="button"
+                      title={app.component_name}
+                      onClick={() => handleLaunchApp(app)}
+                      disabled={!deviceSerial || Boolean(launchingComponent)}
+                      className="group flex min-h-[112px] flex-col items-center rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition hover:border-blue-200 hover:bg-blue-50 disabled:cursor-wait disabled:opacity-70"
+                    >
+                      {app.icon_data_url ? (
+                        <img
+                          src={app.icon_data_url}
+                          alt=""
+                          className="h-12 w-12 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <span className={`flex h-12 w-12 items-center justify-center rounded-lg text-base font-semibold text-white shadow-sm ${appIconClass(app.package_name)}`}>
+                          {appInitial(app)}
+                        </span>
+                      )}
+                      <span className="mt-2 w-full truncate text-sm font-medium text-gray-800">
+                        {app.label}
+                      </span>
+                      <span className="mt-1 w-full truncate text-[11px] text-gray-500">
+                        {app.package_name}
+                      </span>
+                      {launching && (
+                        <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-blue-700">
+                          <IconPlayerPlay size={12} />
+                          {t('screenMirror.launchingApp')}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

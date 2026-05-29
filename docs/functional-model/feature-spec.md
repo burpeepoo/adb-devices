@@ -324,7 +324,8 @@ Logic:
 - Navigation commands support Back and Home through `input keyevent`.
 - The app drawer loads automatically for the selected online device and reloads when the selected device changes.
 - The drawer lists launchable `MAIN` + `LAUNCHER` activities via `cmd package query-activities`, dedupes components, and keeps a stable label/package/activity sort order.
-- App icons load progressively after the drawer list appears. The backend first checks local cache, then uses `pm path <package>`, pulls that APK to a temporary directory, parses `AndroidManifest.xml` and `resources.arsc`, and returns PNG/WebP app icons as data URLs when available.
+- The drawer groups visible apps by the namespace after `com.` in the package name, displays category titles with an initial capital letter, and treats `com.elclcd.*` as Cozyla.
+- App icons load progressively after the drawer list appears. The backend first checks local cache, then uses `pm path <package>`, pulls that APK to a temporary directory, parses `AndroidManifest.xml` and `resources.arsc`, resolves direct PNG/WebP icon resources and adaptive icon XML foreground/bitmap references, and returns app icons as data URLs when available.
 - Icon cache is stored under the app cache directory. Cached icons are returned immediately; entries older than 24 hours are revalidated in the background, APK path changes rebuild immediately, and unchanged entries are rebuilt after 7 days.
 - Clicking a drawer item launches the component with `am start -n <package>/<activity>`.
 

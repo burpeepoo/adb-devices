@@ -25,6 +25,7 @@ const RESOURCE_TYPE_STRING_POOL: u16 = 0x0001;
 const RESOURCE_TYPE_TABLE: u16 = 0x0002;
 const RESOURCE_TYPE_TABLE_PACKAGE: u16 = 0x0200;
 const RESOURCE_TYPE_TABLE_TYPE: u16 = 0x0201;
+const RESOURCE_TYPE_XML_RESOURCE_MAP: u16 = 0x0180;
 const RESOURCE_TYPE_XML_START_ELEMENT: u16 = 0x0102;
 const VALUE_TYPE_REFERENCE: u8 = 0x01;
 const VALUE_TYPE_STRING: u8 = 0x03;
@@ -32,9 +33,10 @@ const VALUE_TYPE_INT_DEC: u8 = 0x10;
 const VALUE_TYPE_INT_HEX: u8 = 0x11;
 const NO_ENTRY: u32 = 0xffff_ffff;
 const MAX_ICON_BYTES: u64 = 512 * 1024;
-const ICON_CACHE_VERSION: u8 = 1;
+const ICON_CACHE_VERSION: u8 = 2;
 const ICON_CACHE_VERIFY_AFTER_SECS: i64 = 24 * 60 * 60;
 const ICON_CACHE_REBUILD_AFTER_SECS: i64 = 7 * 24 * 60 * 60;
+const MAX_ICON_XML_DEPTH: usize = 4;
 
 struct InstallGuard<'a>(&'a Mutex<bool>);
 static APP_ICON_CACHE: OnceLock<Mutex<HashMap<String, CachedLaunchableAppAsset>>> = OnceLock::new();
@@ -90,6 +92,7 @@ struct PersistentLaunchableAppIconCacheHit {
 struct ManifestLaunchMetadata {
     app_label: Option<ManifestValue>,
     app_icon: Option<u32>,
+    app_round_icon: Option<u32>,
     activities: HashMap<String, ManifestActivityMetadata>,
 }
 
@@ -97,6 +100,7 @@ struct ManifestLaunchMetadata {
 struct ManifestActivityMetadata {
     label: Option<ManifestValue>,
     icon: Option<u32>,
+    round_icon: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -122,6 +126,12 @@ struct ZipIconCandidate {
     path: String,
     score: i32,
     size: u64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct IconXmlResourceRef {
+    resource_id: u32,
+    priority: i32,
 }
 
 impl Drop for InstallGuard<'_> {
@@ -1048,20 +1058,24 @@ fn extract_launchable_app_asset_from_apk(
         .or(manifest.app_label.as_ref())
         .and_then(|value| resolve_manifest_label(value, resources.as_ref()));
 
-    let mut preferred_icon_stem = None;
+    let preferred_icon_stem = activity
+        .and_then(|activity| activity.icon.or(activity.round_icon))
+        .or(manifest.app_icon)
+        .or(manifest.app_round_icon)
+        .and_then(|resource_id| {
+            resources
+                .as_ref()
+                .and_then(|resources| resolve_resource_image_path(resources, resource_id))
+                .and_then(|path| file_stem_from_resource_path(&path))
+        });
     let icon_data_url = activity
         .and_then(|activity| activity.icon)
+        .or_else(|| activity.and_then(|activity| activity.round_icon))
         .or(manifest.app_icon)
+        .or(manifest.app_round_icon)
         .and_then(|resource_id| {
             resources.as_ref().and_then(|resources| {
-                resolve_resource_image_path(resources, resource_id).and_then(|path| {
-                    if is_supported_icon_image_path(&path) {
-                        data_url_from_zip_entry(&mut archive, &path)
-                    } else {
-                        preferred_icon_stem = file_stem_from_resource_path(&path);
-                        None
-                    }
-                })
+                resolve_resource_icon_data_url(&mut archive, resources, resource_id, 0)
             })
         })
         .or_else(|| find_best_icon_data_url(&mut archive, preferred_icon_stem.as_deref()));
@@ -1092,6 +1106,111 @@ fn data_url_from_zip_entry(archive: &mut zip::ZipArchive<File>, path: &str) -> O
         mime,
         BASE64_STANDARD.encode(data)
     ))
+}
+
+fn resolve_resource_icon_data_url(
+    archive: &mut zip::ZipArchive<File>,
+    resources: &ResourceTable,
+    resource_id: u32,
+    depth: usize,
+) -> Option<String> {
+    if depth >= MAX_ICON_XML_DEPTH {
+        return None;
+    }
+
+    let paths = resolve_resource_file_paths(resources, resource_id);
+    if let Some(path) = best_icon_image_path(&paths) {
+        if let Some(data_url) = data_url_from_zip_entry(archive, &path) {
+            return Some(data_url);
+        }
+    }
+
+    for path in ranked_icon_xml_paths(&paths) {
+        if let Some(data_url) = icon_data_url_from_xml_resource(archive, resources, &path, depth) {
+            return Some(data_url);
+        }
+    }
+
+    None
+}
+
+fn icon_data_url_from_xml_resource(
+    archive: &mut zip::ZipArchive<File>,
+    resources: &ResourceTable,
+    path: &str,
+    depth: usize,
+) -> Option<String> {
+    if depth + 1 >= MAX_ICON_XML_DEPTH {
+        return None;
+    }
+    let data = read_zip_entry(archive, path)?;
+    let elements = parse_binary_xml_start_elements(&data);
+    let references = icon_xml_resource_references_from_elements(&elements);
+    let mut seen = HashSet::new();
+    for reference in references {
+        if !seen.insert(reference.resource_id) {
+            continue;
+        }
+        if let Some(data_url) =
+            resolve_resource_icon_data_url(archive, resources, reference.resource_id, depth + 1)
+        {
+            return Some(data_url);
+        }
+    }
+
+    None
+}
+
+fn icon_xml_resource_references_from_elements(
+    elements: &[BinaryXmlElement],
+) -> Vec<IconXmlResourceRef> {
+    let mut references = Vec::new();
+    for element in elements {
+        match element.name.as_str() {
+            "foreground" => {
+                push_icon_resource_reference(&mut references, element, "drawable", 1000);
+                push_icon_resource_reference(&mut references, element, "src", 980);
+            }
+            "bitmap" => {
+                push_icon_resource_reference(&mut references, element, "src", 930);
+                push_icon_resource_reference(&mut references, element, "drawable", 900);
+            }
+            "item" => {
+                push_icon_resource_reference(&mut references, element, "drawable", 520);
+                push_icon_resource_reference(&mut references, element, "src", 500);
+            }
+            "monochrome" => {
+                push_icon_resource_reference(&mut references, element, "drawable", 120);
+                push_icon_resource_reference(&mut references, element, "src", 100);
+            }
+            "background" => {}
+            _ => {
+                push_icon_resource_reference(&mut references, element, "drawable", 320);
+                push_icon_resource_reference(&mut references, element, "src", 300);
+            }
+        }
+    }
+    references.sort_by(|left, right| {
+        right
+            .priority
+            .cmp(&left.priority)
+            .then_with(|| left.resource_id.cmp(&right.resource_id))
+    });
+    references
+}
+
+fn push_icon_resource_reference(
+    references: &mut Vec<IconXmlResourceRef>,
+    element: &BinaryXmlElement,
+    attr_name: &str,
+    priority: i32,
+) {
+    if let Some(resource_id) = element.attribute(attr_name).and_then(attr_resource_id) {
+        references.push(IconXmlResourceRef {
+            resource_id,
+            priority,
+        });
+    }
 }
 
 fn find_best_icon_data_url(
@@ -1135,6 +1254,11 @@ fn find_best_icon_data_url(
 fn is_supported_icon_image_path(path: &str) -> bool {
     let lower = path.to_ascii_lowercase();
     lower.starts_with("res/") && (lower.ends_with(".png") || lower.ends_with(".webp"))
+}
+
+fn is_icon_xml_path(path: &str) -> bool {
+    let lower = path.to_ascii_lowercase();
+    lower.starts_with("res/") && lower.ends_with(".xml")
 }
 
 fn icon_mime_type(path: &str) -> Option<&'static str> {
@@ -1224,6 +1348,71 @@ fn icon_candidate_score(path: &str, preferred_stem: Option<&str>) -> Option<i32>
     Some(score)
 }
 
+fn best_icon_image_path(paths: &[String]) -> Option<String> {
+    paths
+        .iter()
+        .filter(|path| is_supported_icon_image_path(path))
+        .max_by_key(|path| icon_resource_path_score(path))
+        .cloned()
+}
+
+fn ranked_icon_xml_paths(paths: &[String]) -> Vec<String> {
+    let mut paths = paths
+        .iter()
+        .filter(|path| is_icon_xml_path(path))
+        .cloned()
+        .collect::<Vec<_>>();
+    paths.sort_by_key(|path| std::cmp::Reverse(icon_resource_path_score(path)));
+    paths
+}
+
+fn icon_resource_path_score(path: &str) -> i32 {
+    let lower = path.to_ascii_lowercase();
+    let mut score = 0;
+    if lower.contains("/mipmap") {
+        score += 260;
+    }
+    if lower.contains("ic_launcher") {
+        score += 220;
+    } else if lower.contains("launcher") {
+        score += 160;
+    } else if lower.contains("icon") {
+        score += 100;
+    }
+    if lower.contains("xxxhdpi") {
+        score += 80;
+    } else if lower.contains("xxhdpi") {
+        score += 70;
+    } else if lower.contains("xhdpi") {
+        score += 60;
+    } else if lower.contains("hdpi") {
+        score += 40;
+    } else if lower.contains("mdpi") {
+        score += 20;
+    }
+    if lower.ends_with(".webp") {
+        score += 12;
+    } else if lower.ends_with(".png") {
+        score += 10;
+    }
+    if lower.contains("foreground") {
+        score += 8;
+    }
+    if lower.contains("round") {
+        score -= 30;
+    }
+    if lower.contains("background") {
+        score -= 120;
+    }
+    if lower.contains("monochrome") || lower.contains("notification") {
+        score -= 400;
+    }
+    if lower.contains("banner") || lower.contains("splash") {
+        score -= 250;
+    }
+    score
+}
+
 fn file_stem_from_resource_path(path: &str) -> Option<String> {
     let name = path.rsplit('/').next()?;
     let stem = name
@@ -1243,6 +1432,7 @@ fn parse_manifest_launch_metadata(data: &[u8], package_name: &str) -> ManifestLa
                     .attribute("label")
                     .and_then(|attr| attr_manifest_value(attr));
                 metadata.app_icon = element.attribute("icon").and_then(attr_resource_id);
+                metadata.app_round_icon = element.attribute("roundIcon").and_then(attr_resource_id);
             }
             "activity" | "activity-alias" => {
                 let Some(name) = element
@@ -1259,6 +1449,7 @@ fn parse_manifest_launch_metadata(data: &[u8], package_name: &str) -> ManifestLa
                             .attribute("label")
                             .and_then(|attr| attr_manifest_value(attr)),
                         icon: element.attribute("icon").and_then(attr_resource_id),
+                        round_icon: element.attribute("roundIcon").and_then(attr_resource_id),
                     },
                 );
             }
@@ -1293,6 +1484,7 @@ fn parse_binary_xml_start_elements(data: &[u8]) -> Vec<BinaryXmlElement> {
         return Vec::new();
     };
     let mut strings = Vec::new();
+    let mut resource_map = Vec::new();
     let mut elements = Vec::new();
 
     while offset + 8 <= end && offset + 8 <= data.len() {
@@ -1313,8 +1505,12 @@ fn parse_binary_xml_start_elements(data: &[u8]) -> Vec<BinaryXmlElement> {
             if let Some((pool, _)) = parse_string_pool(data, offset) {
                 strings = pool;
             }
+        } else if chunk_type == RESOURCE_TYPE_XML_RESOURCE_MAP {
+            resource_map = parse_xml_resource_map(data, offset).unwrap_or_default();
         } else if chunk_type == RESOURCE_TYPE_XML_START_ELEMENT {
-            if let Some(element) = parse_binary_xml_start_element(data, offset, &strings) {
+            if let Some(element) =
+                parse_binary_xml_start_element(data, offset, &strings, &resource_map)
+            {
                 elements.push(element);
             }
         }
@@ -1336,17 +1532,34 @@ fn binary_xml_child_range(data: &[u8]) -> Option<(usize, usize)> {
     }
 }
 
+fn parse_xml_resource_map(data: &[u8], offset: usize) -> Option<Vec<u32>> {
+    let header_size = read_u16_le(data, offset + 2)? as usize;
+    let chunk_size = read_u32_le(data, offset + 4)? as usize;
+    if chunk_size < header_size || offset + chunk_size > data.len() {
+        return None;
+    }
+    let mut resource_ids = Vec::new();
+    let mut cursor = offset + header_size;
+    let end = offset + chunk_size;
+    while cursor + 4 <= end {
+        resource_ids.push(read_u32_le(data, cursor)?);
+        cursor += 4;
+    }
+    Some(resource_ids)
+}
+
 fn parse_binary_xml_start_element(
     data: &[u8],
     offset: usize,
     strings: &[String],
+    resource_map: &[u32],
 ) -> Option<BinaryXmlElement> {
     let name_idx = read_u32_le(data, offset + 20)? as usize;
     let name = strings.get(name_idx)?.clone();
     let attr_start = read_u16_le(data, offset + 24)? as usize;
     let attr_size = read_u16_le(data, offset + 26)? as usize;
     let attr_count = read_u16_le(data, offset + 28)? as usize;
-    let attrs_offset = offset + attr_start;
+    let attrs_offset = offset + 16 + attr_start;
     let mut attributes = Vec::new();
 
     for index in 0..attr_count {
@@ -1354,8 +1567,13 @@ fn parse_binary_xml_start_element(
         if attr_offset + 20 > data.len() {
             continue;
         }
-        let attr_name_idx = read_u32_le(data, attr_offset + 4)? as usize;
-        let attr_name = strings.get(attr_name_idx)?.clone();
+        let Some(attr_name_idx) = read_u32_le(data, attr_offset + 4).map(|index| index as usize)
+        else {
+            continue;
+        };
+        let Some(attr_name) = xml_attribute_name(attr_name_idx, strings, resource_map) else {
+            continue;
+        };
         let raw_idx = read_u32_le(data, attr_offset + 8)?;
         let data_type = *data.get(attr_offset + 15)?;
         let data_value = read_u32_le(data, attr_offset + 16)?;
@@ -1375,6 +1593,29 @@ fn parse_binary_xml_start_element(
     }
 
     Some(BinaryXmlElement { name, attributes })
+}
+
+fn xml_attribute_name(
+    attr_name_idx: usize,
+    strings: &[String],
+    resource_map: &[u32],
+) -> Option<String> {
+    strings
+        .get(attr_name_idx)
+        .cloned()
+        .or_else(|| resource_map.get(attr_name_idx).and_then(android_attr_name))
+}
+
+fn android_attr_name(resource_id: &u32) -> Option<String> {
+    match *resource_id {
+        0x0101_0000 => Some("theme"),
+        0x0101_0001 => Some("label"),
+        0x0101_0002 => Some("icon"),
+        0x0101_0003 => Some("name"),
+        0x0101_052c => Some("roundIcon"),
+        _ => None,
+    }
+    .map(str::to_string)
 }
 
 fn attr_manifest_value(attr: &BinaryXmlAttribute) -> Option<ManifestValue> {
@@ -1552,14 +1793,24 @@ fn resolve_manifest_label(
 }
 
 fn resolve_resource_image_path(resources: &ResourceTable, resource_id: u32) -> Option<String> {
-    let values = resolve_resource_values(resources, resource_id, 0);
-    values
+    let paths = resolve_resource_file_paths(resources, resource_id);
+    best_icon_image_path(&paths).or_else(|| ranked_icon_xml_paths(&paths).into_iter().next())
+}
+
+fn resolve_resource_file_paths(resources: &ResourceTable, resource_id: u32) -> Vec<String> {
+    let mut seen = HashSet::new();
+    resolve_resource_values(resources, resource_id, 0)
         .into_iter()
         .filter_map(|value| value.text)
         .filter(|path| path.starts_with("res/"))
-        .max_by_key(|path| {
-            icon_candidate_score(path, file_stem_from_resource_path(path).as_deref()).unwrap_or(0)
+        .filter(|path| {
+            if seen.contains(path) {
+                false
+            } else {
+                seen.insert(path.clone())
+            }
         })
+        .collect()
 }
 
 fn resolve_resource_values(
@@ -1599,10 +1850,11 @@ fn parse_string_pool(data: &[u8], offset: usize) -> Option<(Vec<String>, usize)>
         let string_offset = read_u32_le(data, offsets_start + index * 4)? as usize;
         let absolute = strings_base + string_offset;
         let value = if is_utf8 {
-            read_utf8_pool_string(data, absolute)?
+            read_utf8_pool_string(data, absolute)
         } else {
-            read_utf16_pool_string(data, absolute)?
-        };
+            read_utf16_pool_string(data, absolute)
+        }
+        .unwrap_or_default();
         strings.push(value);
     }
 
@@ -1616,7 +1868,7 @@ fn read_utf8_pool_string(data: &[u8], offset: usize) -> Option<String> {
     if end > data.len() {
         return None;
     }
-    String::from_utf8(data[string_offset..end].to_vec()).ok()
+    Some(String::from_utf8_lossy(&data[string_offset..end]).into_owned())
 }
 
 fn read_utf16_pool_string(data: &[u8], offset: usize) -> Option<String> {
@@ -1629,7 +1881,7 @@ fn read_utf16_pool_string(data: &[u8], offset: usize) -> Option<String> {
         .chunks_exact(2)
         .map(|chunk| u16::from_le_bytes([chunk[0], chunk[1]]))
         .collect::<Vec<_>>();
-    String::from_utf16(&chars).ok()
+    Some(String::from_utf16_lossy(&chars))
 }
 
 fn read_length8(data: &[u8], offset: usize) -> Option<(usize, usize)> {
@@ -2099,6 +2351,112 @@ invalid
     }
 
     #[test]
+    fn resolves_icon_resource_bitmap_before_adaptive_xml() {
+        let resource_id = 0x7f0f0062;
+        let resources = ResourceTable {
+            values: HashMap::from([(
+                resource_id,
+                vec![
+                    ResourceValue {
+                        data_type: VALUE_TYPE_STRING,
+                        data: 0,
+                        text: Some("res/BW.xml".to_string()),
+                    },
+                    ResourceValue {
+                        data_type: VALUE_TYPE_STRING,
+                        data: 1,
+                        text: Some("res/mipmap-mdpi-v4/d2.webp".to_string()),
+                    },
+                    ResourceValue {
+                        data_type: VALUE_TYPE_STRING,
+                        data: 2,
+                        text: Some("res/mipmap-xxxhdpi-v4/sK.webp".to_string()),
+                    },
+                ],
+            )]),
+        };
+
+        assert_eq!(
+            resolve_resource_image_path(&resources, resource_id),
+            Some("res/mipmap-xxxhdpi-v4/sK.webp".to_string())
+        );
+    }
+
+    #[test]
+    fn adaptive_icon_xml_references_prefer_foreground_and_bitmap() {
+        let elements = vec![
+            BinaryXmlElement {
+                name: "adaptive-icon".to_string(),
+                attributes: Vec::new(),
+            },
+            BinaryXmlElement {
+                name: "background".to_string(),
+                attributes: vec![resource_attr("drawable", 0x7f060111)],
+            },
+            BinaryXmlElement {
+                name: "foreground".to_string(),
+                attributes: vec![resource_attr("drawable", 0x7f080222)],
+            },
+            BinaryXmlElement {
+                name: "bitmap".to_string(),
+                attributes: vec![resource_attr("src", 0x7f110333)],
+            },
+            BinaryXmlElement {
+                name: "monochrome".to_string(),
+                attributes: vec![resource_attr("drawable", 0x7f080444)],
+            },
+        ];
+
+        let references = icon_xml_resource_references_from_elements(&elements);
+        let resource_ids = references
+            .into_iter()
+            .map(|reference| reference.resource_id)
+            .collect::<Vec<_>>();
+
+        assert_eq!(resource_ids, vec![0x7f080222, 0x7f110333, 0x7f080444]);
+    }
+
+    #[test]
+    fn binary_xml_start_element_reads_attributes_from_attr_extension_offset() {
+        let mut data = vec![0u8; 56];
+        data[20..24].copy_from_slice(&0u32.to_le_bytes());
+        data[24..26].copy_from_slice(&20u16.to_le_bytes());
+        data[26..28].copy_from_slice(&20u16.to_le_bytes());
+        data[28..30].copy_from_slice(&1u16.to_le_bytes());
+
+        let attr_offset = 36;
+        data[attr_offset..attr_offset + 4].copy_from_slice(&NO_ENTRY.to_le_bytes());
+        data[attr_offset + 4..attr_offset + 8].copy_from_slice(&1u32.to_le_bytes());
+        data[attr_offset + 8..attr_offset + 12].copy_from_slice(&NO_ENTRY.to_le_bytes());
+        data[attr_offset + 15] = VALUE_TYPE_REFERENCE;
+        data[attr_offset + 16..attr_offset + 20].copy_from_slice(&0x7f0f0062u32.to_le_bytes());
+
+        let element = parse_binary_xml_start_element(
+            &data,
+            0,
+            &["application".to_string(), "icon".to_string()],
+            &[],
+        )
+        .unwrap();
+
+        assert_eq!(element.name, "application");
+        assert_eq!(
+            element.attribute("icon").and_then(attr_resource_id),
+            Some(0x7f0f0062)
+        );
+    }
+
+    #[test]
+    fn utf8_string_pool_reader_tolerates_invalid_strings() {
+        let data = [1, 1, 0xff];
+
+        assert_eq!(
+            read_utf8_pool_string(&data, 0),
+            Some("\u{fffd}".to_string())
+        );
+    }
+
+    #[test]
     fn parses_raw_hex_resource_references() {
         assert_eq!(
             parse_raw_resource_reference("@0x7f080123"),
@@ -2109,6 +2467,15 @@ invalid
             Some(0x7f080124)
         );
         assert_eq!(parse_raw_resource_reference("@mipmap/ic_launcher"), None);
+    }
+
+    fn resource_attr(name: &str, data: u32) -> BinaryXmlAttribute {
+        BinaryXmlAttribute {
+            name: name.to_string(),
+            raw_value: None,
+            data_type: VALUE_TYPE_REFERENCE,
+            data,
+        }
     }
 
     #[test]

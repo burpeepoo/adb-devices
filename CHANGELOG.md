@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [1.1.24] - 2026-05-29
+
+### Changed
+
+- Grouped Remote Control app drawer entries by the namespace after `com.` in the package name, with `com.elclcd.*` grouped under Cozyla.
+
+### Fixed
+
+- Fixed app drawer icon extraction for APKs that use adaptive icon XML, obfuscated resource paths, large string pools, or manifest attributes that require binary XML resource-map parsing.
+
 ## [1.1.23] - 2026-05-29
 
 ### Added

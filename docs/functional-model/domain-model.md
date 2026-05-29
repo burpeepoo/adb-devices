@@ -127,7 +127,7 @@ Thresholds:
 - `activity_name`: fully qualified activity class.
 - `component_name`: launch component used by `am start -n`.
 - `label`: manifest/resource label when parsed, otherwise a local fallback derived from the package name.
-- `icon_data_url`: PNG/WebP app icon encoded as a data URL when APK resource parsing succeeds, otherwise `null`.
+- `icon_data_url`: PNG/WebP app icon encoded as a data URL when APK resource parsing succeeds; extraction supports direct bitmap resources and adaptive icon XML foreground/bitmap references. The value is `null` when APK pull or icon parsing fails.
 
 App icon cache:
 
@@ -136,6 +136,8 @@ App icon cache:
 - Entries store `remote_path`, `label`, `icon_data_url`, `cached_at_unix`, `verified_at_unix`, and a failure flag.
 - Fresh cache returns without ADB work. Entries older than 24 hours are returned immediately with a stale flag so the frontend can refresh them in the background.
 - Rebuild triggers are APK path change, cache age of 7 days, or stale failed extraction.
+
+App drawer groups are derived in the frontend from each package name. For `com.<namespace>.*`, the namespace becomes the group key and the displayed title uses an initial capital letter. `com.elclcd.*` is normalized into the Cozyla group.
 
 ## Workbench Model
 
