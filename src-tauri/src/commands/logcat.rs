@@ -76,12 +76,7 @@ pub fn adb_start_logcat(
     append_filter_args(&mut filter_args, logcat_filter.as_deref());
     command.args(filter_args);
     command.stdout(Stdio::piped()).stderr(Stdio::piped());
-
-    #[cfg(target_os = "windows")]
-    {
-        use std::os::windows::process::CommandExt;
-        command.creation_flags(0x08000000);
-    }
+    adb::prepare_adb_command(&mut command);
 
     let mut child = command.spawn()?;
     let stdout = child.stdout.take();

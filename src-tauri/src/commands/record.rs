@@ -32,6 +32,7 @@ pub fn adb_start_recording(
 
     let adb_path = adb::get_adb_path(&app)?;
     let mut cmd = std::process::Command::new(&adb_path);
+    adb::prepare_adb_command(&mut cmd);
     if let Some(serial) = &device_serial {
         cmd.args(["-s", serial]);
     }

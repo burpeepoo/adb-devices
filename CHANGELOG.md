@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.1.25] - 2026-06-11
+
+### Fixed
+
+- Hid Windows console windows for app-launched ADB commands, including logcat and screen recording child processes.
+
 ## [1.1.24] - 2026-05-29
 
 ### Changed

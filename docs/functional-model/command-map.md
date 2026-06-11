@@ -86,6 +86,7 @@ This map connects user-facing actions to frontend code, Tauri commands, and back
 - Ensures Unix executable bit.
 - Builds ADB commands with optional `-s <serial>`.
 - Applies macOS terminal-like environment.
+- Hides Windows console windows for app-launched ADB child processes.
 - Runs commands normally, with timeout, or with extra environment.
 - Localizes errors through `AdbError`.
 

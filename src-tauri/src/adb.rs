@@ -177,7 +177,13 @@ fn new_adb_command(app: &AppHandle) -> Result<Command, AdbError> {
     Ok(cmd)
 }
 
-fn prepare_adb_command(cmd: &mut Command) {
+pub fn prepare_adb_command(cmd: &mut Command) {
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x08000000);
+    }
+
     #[cfg(target_os = "macos")]
     {
         cmd.env(
