@@ -57,6 +57,7 @@ pub fn run() {
             commands::device::adb_devices,
             commands::device::adb_device_summary,
             commands::device::adb_restart_server,
+            commands::device::adb_restart_server_preserving_pairing,
             commands::device::adb_repair_wireless_pairing,
             commands::device::adb_reset_host_identity,
             commands::device::get_local_ipv4_addresses,

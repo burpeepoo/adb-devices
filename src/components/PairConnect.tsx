@@ -29,6 +29,7 @@ interface AdbRestartReconnectOptions {
   busyKey: string;
   showResult: boolean;
   revealResetWhenUnrecovered: boolean;
+  preservePairing?: boolean;
 }
 
 interface Props {
@@ -434,6 +435,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
     busyKey,
     showResult,
     revealResetWhenUnrecovered,
+    preservePairing = false,
   }: AdbRestartReconnectOptions) => {
     setBusyAddress(busyKey);
     setRepairingAdb(true);
@@ -446,6 +448,12 @@ export default function PairConnect({ devices, onConnected }: Props) {
       let didRestart = false;
       const reconnectEndpoints = reconnectEndpointsAfterAdbRestart(recentConnects, []);
       const reconnectedEndpoints: RecentConnectEndpoint[] = [];
+
+      if (preservePairing) {
+        restartMessage = await invoke<string>("adb_restart_server_preserving_pairing");
+        didRestart = true;
+      }
+
       for (const endpoint of reconnectEndpoints) {
         const key = endpointKey(endpoint);
         const shouldRestart = !didRestart;
@@ -464,7 +472,9 @@ export default function PairConnect({ devices, onConnected }: Props) {
       }
 
       if (!didRestart) {
-        restartMessage = await invoke<string>("adb_repair_wireless_pairing");
+        restartMessage = await invoke<string>(
+          preservePairing ? "adb_restart_server_preserving_pairing" : "adb_repair_wireless_pairing"
+        );
       }
 
       const currentLocalIps = await refreshLocalIps();
@@ -589,6 +599,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
           busyKey: "__startup_repair__",
           showResult: false,
           revealResetWhenUnrecovered: false,
+          preservePairing: true,
         })
       );
 

@@ -1,0 +1,2 @@
+en-US: Prevent startup ADB recovery from clearing wireless pairing records after an update.
+zh-CN: 修复更新后启动自动恢复误清无线配对记录，避免已配对设备无法自动重连。

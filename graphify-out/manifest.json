@@ -1,7 +1,7 @@
 {
   "/Users/kaizhang/Documents/Cozyla/adb_project/package.json": {
-    "mtime": 1781144419.693048,
-    "ast_hash": "0a5dd019f66858b4775282e2f64630e5",
+    "mtime": 1781229986.2325945,
+    "ast_hash": "e23fd3e740460789d38013b9fb447b16",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/tsconfig.json": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/tauri.conf.json": {
-    "mtime": 1781144419.6950746,
-    "ast_hash": "e4847d247184c2cd5d91528ee7ffa461",
+    "mtime": 1781229986.2342176,
+    "ast_hash": "a9aca09cb03ffbe709ffbbb161964f70",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/build.rs": {
@@ -110,8 +110,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/lib.rs": {
-    "mtime": 1780025373.3782058,
-    "ast_hash": "a0d717f9c0ded0b4cb07ecb34a6b5773",
+    "mtime": 1781229887.1206777,
+    "ast_hash": "a63d963946fab654c407090856477587",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/adb.rs": {
@@ -130,8 +130,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/device.rs": {
-    "mtime": 1779950803.031938,
-    "ast_hash": "8ff640a5ac4dc56d3d4e11f14d472341",
+    "mtime": 1781229882.5700572,
+    "ast_hash": "caf6b06eed2412007a5017782beb276a",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/src/commands/mirror.rs": {
@@ -310,8 +310,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/PairConnect.tsx": {
-    "mtime": 1779950839.1281242,
-    "ast_hash": "4e2c71308c5d52e276ca49d3270685ec",
+    "mtime": 1781229905.6792688,
+    "ast_hash": "8b3cedacf40f7b909fc4d673f3c7fba8",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/ScreenMirror.tsx": {
@@ -622,6 +622,11 @@
   "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v1.1.18.txt": {
     "mtime": 1779861744.2548969,
     "ast_hash": "7c85309d1828d01ff1954ae2d5d22fe2",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v1.1.26.txt": {
+    "mtime": 1781229990.7884328,
+    "ast_hash": "fb2d28e3bf039de24917490ac798c2e9",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v1.1.3.txt": {
