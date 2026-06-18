@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { Badge, Button, Group, Paper, Stack, Text, TextInput } from "@mantine/core";
+import { openConfirmModal } from "@mantine/modals";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import {
   hasConnectedAdbDevice,
@@ -16,6 +17,7 @@ import {
   reconnectEndpointWithCurrentPort,
   reconnectEndpointsAfterAdbRestart,
 } from "../pairConnectEndpoints";
+import { buildWirelessRecoverySteps, type WirelessRecoveryStep } from "../wirelessRecovery.ts";
 import ResultAlert from "./common/ResultAlert";
 
 const REPAIR_ACTION_FAILURE_THRESHOLD = 2;
@@ -633,7 +635,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
     });
   };
 
-  const handleResetHostIdentity = async () => {
+  const performResetHostIdentity = async () => {
     await runAdbOperation(async () => {
       setBusyAddress("__reset_identity__");
       setResettingHostIdentity(true);
@@ -663,6 +665,25 @@ export default function PairConnect({ devices, onConnected }: Props) {
         setDiscovering(false);
         setBusyAddress(null);
       }
+    });
+  };
+
+  const handleResetHostIdentity = () => {
+    openConfirmModal({
+      title: t("pairConnect.resetConfirmTitle"),
+      children: (
+        <Text size="sm" c="dimmed">
+          {t("pairConnect.resetConfirmDesc")}
+        </Text>
+      ),
+      labels: {
+        confirm: t("pairConnect.resetConfirmAction"),
+        cancel: t("pairConnect.resetConfirmCancel"),
+      },
+      confirmProps: { color: "red" },
+      onConfirm: () => {
+        void performResetHostIdentity();
+      },
     });
   };
 
@@ -751,6 +772,27 @@ export default function PairConnect({ devices, onConnected }: Props) {
     return !key || (!connectableDeviceKeys.has(key) && !connectedDeviceKeys.has(key));
   });
   const adbBusy = busyAddress !== null || pairLoading || connectLoading || discovering || repairingAdb || resettingHostIdentity;
+  const reachableRecentCount = Object.values(endpointProbeStates).filter((status) => status === "reachable").length;
+  const recoverySteps = useMemo(
+    () =>
+      buildWirelessRecoverySteps({
+        mdnsDeviceCount: mdnsDevices.length + connectedLanDevices.length,
+        recentConnects,
+        reachableRecentCount,
+        showRepair: pairRepairVisible,
+        showResetHostIdentity: hostIdentityResetVisible,
+        localIps,
+      }),
+    [
+      connectedLanDevices.length,
+      hostIdentityResetVisible,
+      localIps,
+      mdnsDevices.length,
+      pairRepairVisible,
+      reachableRecentCount,
+      recentConnects,
+    ],
+  );
 
   return (
     <Stack maw={980} gap="md">
@@ -778,6 +820,18 @@ export default function PairConnect({ devices, onConnected }: Props) {
             </Button>
           </Group>
         </Group>
+
+        <WirelessRecoverySteps
+          steps={recoverySteps}
+          disabled={adbBusy}
+          repairing={repairingAdb}
+          resettingHostIdentity={resettingHostIdentity}
+          onScan={handleScan}
+          onProbeRecent={probeRecentConnects}
+          onShowManual={() => setShowManual(true)}
+          onRepairWirelessPairing={handleRestartAdbAndScan}
+          onResetHostIdentity={handleResetHostIdentity}
+        />
 
         <div className="space-y-3">
           {connectedLanDevices.map((device) => (
@@ -1422,6 +1476,160 @@ function wait(ms: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 }
 
+function WirelessRecoverySteps({
+  steps,
+  disabled,
+  repairing,
+  resettingHostIdentity,
+  onScan,
+  onProbeRecent,
+  onShowManual,
+  onRepairWirelessPairing,
+  onResetHostIdentity,
+}: {
+  steps: WirelessRecoveryStep[];
+  disabled: boolean;
+  repairing: boolean;
+  resettingHostIdentity: boolean;
+  onScan: () => void;
+  onProbeRecent: () => void;
+  onShowManual: () => void;
+  onRepairWirelessPairing: () => void;
+  onResetHostIdentity: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
+      <div className="mb-3">
+        <Text size="sm" fw={700} c="gray.8">
+          {t("pairConnect.recovery.title")}
+        </Text>
+        <Text size="xs" c="dimmed" mt={2}>
+          {t("pairConnect.recovery.desc")}
+        </Text>
+      </div>
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+        {steps.map((step, index) => (
+          <div key={step.id} className="rounded-md border border-gray-200 bg-white px-3 py-2">
+            <Group gap="xs" justify="space-between" align="flex-start" wrap="nowrap">
+              <div style={{ minWidth: 0 }}>
+                <Group gap={6} wrap="nowrap">
+                  <Badge size="xs" color="gray" variant="light">
+                    {index + 1}
+                  </Badge>
+                  <Badge size="xs" color={recoveryStateColor(step.state)} variant="light">
+                    {t(`pairConnect.recovery.states.${step.state}`)}
+                  </Badge>
+                </Group>
+                <Text size="sm" fw={700} mt={5}>
+                  {t(`pairConnect.recovery.steps.${step.id}.title`)}
+                </Text>
+                <Text size="xs" c="dimmed" mt={3} style={{ lineHeight: 1.45 }}>
+                  {t(`pairConnect.recovery.steps.${step.id}.desc`)}
+                </Text>
+                {step.hasMultiNetworkHint && (
+                  <Text size="xs" c="yellow.8" mt={5}>
+                    {t("pairConnect.recovery.multiNetwork")}
+                  </Text>
+                )}
+              </div>
+            </Group>
+            {recoveryAction(step, {
+              t,
+              disabled,
+              repairing,
+              resettingHostIdentity,
+              onScan,
+              onProbeRecent,
+              onShowManual,
+              onRepairWirelessPairing,
+              onResetHostIdentity,
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function recoveryAction(
+  step: WirelessRecoveryStep,
+  options: {
+    t: ReturnType<typeof useTranslation>["t"];
+    disabled: boolean;
+    repairing: boolean;
+    resettingHostIdentity: boolean;
+    onScan: () => void;
+    onProbeRecent: () => void;
+    onShowManual: () => void;
+    onRepairWirelessPairing: () => void;
+    onResetHostIdentity: () => void;
+  },
+) {
+  const disabled = options.disabled || step.state === "locked";
+  const commonClassName = "mt-2";
+  if (step.id === "mdns") {
+    return (
+      <Button className={commonClassName} size="xs" variant="light" disabled={options.disabled} onClick={options.onScan}>
+        {options.t("pairConnect.recovery.actions.scan")}
+      </Button>
+    );
+  }
+  if (step.id === "recent") {
+    return (
+      <Button className={commonClassName} size="xs" variant="light" disabled={disabled} onClick={options.onProbeRecent}>
+        {options.t("pairConnect.recovery.actions.probeRecent")}
+      </Button>
+    );
+  }
+  if (step.id === "manual") {
+    return (
+      <Button className={commonClassName} size="xs" variant="light" disabled={options.disabled} onClick={options.onShowManual}>
+        {options.t("pairConnect.recovery.actions.showManual")}
+      </Button>
+    );
+  }
+  if (step.id === "repair") {
+    return (
+      <Button
+        className={commonClassName}
+        size="xs"
+        color="orange"
+        disabled={disabled}
+        loading={options.repairing}
+        onClick={options.onRepairWirelessPairing}
+      >
+        {options.t("pairConnect.recovery.actions.repair")}
+      </Button>
+    );
+  }
+  if (step.id === "reset") {
+    return (
+      <Button
+        className={commonClassName}
+        size="xs"
+        color="red"
+        variant="light"
+        disabled={options.disabled || step.state !== "danger"}
+        loading={options.resettingHostIdentity}
+        onClick={options.onResetHostIdentity}
+      >
+        {options.t("pairConnect.recovery.actions.reset")}
+      </Button>
+    );
+  }
+  return null;
+}
+
+function recoveryStateColor(state: WirelessRecoveryStep["state"]) {
+  if (state === "done") return "green";
+  if (state === "recommended") return "blue";
+  if (state === "warning") return "yellow";
+  if (state === "danger") return "red";
+  return "gray";
+}
+
 function PairRepairAction({
   repairing,
   resettingHostIdentity,
@@ -1441,14 +1649,19 @@ function PairRepairAction({
   return (
     <Stack gap={6} mt="sm" align="flex-start">
       {showRepair && (
-        <Button
-          onClick={onRepairWirelessPairing}
-          loading={repairing}
-          size="xs"
-          color="orange"
-        >
-          {t('pairConnect.repairWirelessPairing')}
-        </Button>
+        <>
+          <Text size="xs" c="dimmed">
+            {t("pairConnect.repairWirelessPairingDesc")}
+          </Text>
+          <Button
+            onClick={onRepairWirelessPairing}
+            loading={repairing}
+            size="xs"
+            color="orange"
+          >
+            {t('pairConnect.repairWirelessPairing')}
+          </Button>
+        </>
       )}
       {showResetHostIdentity && (
         <>

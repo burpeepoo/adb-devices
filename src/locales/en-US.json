@@ -14,7 +14,7 @@
     "github": "GitHub",
     "selectedDevice": "Selected device",
     "noSelectedDevice": "No device selected",
-    "defaultDevice": "Default ADB device",
+    "defaultDevice": "No locked target",
     "adbReady": "ADB ready",
     "deviceCount": "{{online}} online / {{total}} total",
     "searchDevices": "Search devices or notes...",
@@ -22,13 +22,27 @@
     "openSettings": "Open settings",
     "openGithub": "Open GitHub repository"
   },
+  "deviceTarget": {
+    "title": "Target device",
+    "ready": "Locked",
+    "blocked": "Required",
+    "selectOnlineDevice": "Select an online device in the device panel first. ADB Manager will not use the default ADB device for this action.",
+    "selectedUnavailable": "The selected device is not online. Select an online device again.",
+    "resultLabel": "Device",
+    "connection": {
+      "usb": "USB",
+      "wireless": "Wireless",
+      "unknown": "Unknown connection"
+    }
+  },
   "tabs": {
     "pairConnect": "Device Console",
     "workbench": "ADB Workbench",
     "apkInstall": "Install APK",
     "screenshot": "Screenshot",
     "screenRecord": "Record",
-    "screenMirror": "Remote Control",
+    "screenMirror": "Local Mirror",
+    "remoteControl": "Remote Console",
     "imageCast": "Image Cast",
     "clipboard": "Clipboard",
     "logcat": "Logcat",
@@ -127,11 +141,62 @@
     },
     "repairingAdb": "Repairing...",
     "adbRestarted": "ADB server restarted; wireless pairing cache was refreshed",
+    "repairWirelessPairingDesc": "Safe repair refreshes the wireless pairing cache while preserving this computer's ADB identity.",
     "repairReconnected": "{{message}} and reconnected {{count}} recent device(s).",
     "repairFound": "{{message}}. Rescan found {{count}} LAN ADB service(s).",
     "repairNoDevice": "{{message}}, but no devices were found. Check the current IP and port shown on Android's wireless debugging page, then try manual connection.",
     "resetHostIdentity": "Reset local ADB identity",
     "resetHostIdentityDesc": "Use only after restarting ADB still fails. This computer will need to be re-authorized or paired again on all Android devices.",
+    "resetConfirmTitle": "Reset this computer's ADB identity?",
+    "resetConfirmDesc": "This removes adb_known_hosts.pb, adbkey, and adbkey.pub. All authorized or paired Android devices may need to authorize or pair this computer again. Try safe repair first.",
+    "resetConfirmAction": "Reset identity",
+    "resetConfirmCancel": "Cancel",
+    "recovery": {
+      "title": "Wireless recovery ladder",
+      "desc": "Work down the ladder: check network and discovery first, then recent endpoints and the current Android port. Safe repair comes before host identity reset.",
+      "multiNetwork": "Multiple local networks detected. Confirm the computer and Android device are on the same Wi-Fi/subnet.",
+      "states": {
+        "idle": "Pending",
+        "done": "Passed",
+        "recommended": "Recommended",
+        "warning": "Check",
+        "danger": "Last fallback",
+        "locked": "Not yet"
+      },
+      "steps": {
+        "network": {
+          "title": "Network and ADB state",
+          "desc": "Confirm local IPs, ADB server, and the Android wireless debugging screen are usable."
+        },
+        "mdns": {
+          "title": "Scan mDNS services",
+          "desc": "Look for the current pair or connect service broadcast by Android."
+        },
+        "recent": {
+          "title": "Probe recent endpoints",
+          "desc": "When scanning finds nothing, check whether recently connected IP and port pairs are reachable."
+        },
+        "manual": {
+          "title": "Enter current connect port",
+          "desc": "If a port is reachable or Android shows a new port, enter the current connect port manually."
+        },
+        "repair": {
+          "title": "Safe wireless repair",
+          "desc": "Refresh adb_known_hosts.pb and restart the local ADB server while preserving adbkey."
+        },
+        "reset": {
+          "title": "Reset host identity",
+          "desc": "Use only after safe repair still fails; all devices may need to authorize or pair again."
+        }
+      },
+      "actions": {
+        "scan": "Scan again",
+        "probeRecent": "Probe recent",
+        "showManual": "Open manual input",
+        "repair": "Safe repair",
+        "reset": "Reset identity"
+      }
+    },
     "identityResetFound": "{{message}}. Rescan found {{count}} LAN ADB service(s). Pair again on the device.",
     "identityResetNoDevice": "{{message}}, but no devices were found. Reopen the Android wireless debugging pairing code, then scan again.",
     "multiNetworkHint": "This computer has multiple LAN addresses: {{ips}}. Make sure the Android device is on the same subnet. If the device shows 192.168.110.x, use the current port from that page for manual connection.",
@@ -230,6 +295,87 @@
     "note2": "Back and Home can be triggered via the buttons above, or by right-clicking or middle-clicking in the mirror window",
     "note3": "For screenshots and recordings, use the dedicated Screenshot and Record tabs above"
   },
+  "remoteControl": {
+    "title": "Remote Console",
+    "description": "When enabled, a phone or another computer can open this ADB Manager in the browser. Remote access is limited to screenshot, tap, swipe, text input, and basic keys.",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "start": "Start Remote Control",
+    "stop": "Stop Remote Control",
+    "stopSession": "Close Remote Support Session",
+    "stopSessionDesc": "Closing stops the current gateway, sessions, and control owner. Trusted devices remain until they expire or are revoked.",
+    "refresh": "Refresh Status",
+    "started": "Remote control started",
+    "stopped": "Remote control stopped",
+    "disabledHint": "Off by default. Turn it on only when a phone or another computer needs to control a device.",
+    "pin": "One-time PIN",
+    "pinUsed": "This PIN has already been used. Stop and start remote control to admit a new controller.",
+    "urls": "Access URLs",
+    "addresses": "Access addresses",
+    "inviteLinks": "Role links",
+    "sessions": "Online sessions",
+    "activeSessions": "Active sessions",
+    "controlOwner": "Control owner",
+    "noControlOwner": "Available",
+    "stream": "Stream",
+    "used": "Used",
+    "expiresAt": "Expires at {{time}}",
+    "trustedDevices": "Trusted devices",
+    "trustExpires": "expires {{time}}",
+    "revokeTrust": "Revoke",
+    "revokeAllTrust": "Clear trust",
+    "noTrustedDevices": "No trusted devices yet. A phone can scan a role QR and choose to trust this browser for 7 days.",
+    "trustRevoked": "Trusted device revoked",
+    "roles": {
+      "viewer": "Viewer",
+      "operator": "Operator",
+      "admin": "Admin"
+    },
+    "roleDescriptions": {
+      "viewer": "Can view device status, screen, and download screenshots.",
+      "operator": "Can view, control, type text, send clipboard text, and run safe templates.",
+      "admin": "Can manage sessions, take control, install APKs, and run reconnect or pairing repair."
+    },
+    "roleCapabilities": {
+      "viewer": {
+        "can": "view device state, screen, audit, and screenshots",
+        "cannot": "tap, type, install, or repair connections"
+      },
+      "operator": {
+        "can": "tap, type, send clipboard text, and run safe templates",
+        "cannot": "install APKs, repair pairing, or manage sessions"
+      },
+      "admin": {
+        "can": "manage sessions, take control, install APKs, reconnect, and repair pairing",
+        "cannot": "run arbitrary shell commands"
+      }
+    },
+    "canDo": "Can: {{value}}",
+    "cannotDo": "Cannot: {{value}}",
+    "safetySummary": "Remote session safety summary",
+    "summary": {
+      "service": "Network exposure",
+      "sessions": "Online roles",
+      "control": "Current controller",
+      "trust": "Trusted devices",
+      "stream": "Video stream",
+      "roleCounts": "View {{viewer}} / Operate {{operator}} / Admin {{admin}}",
+      "trustedDevices": "{{count}} trusted, {{expiring}} expiring soon",
+      "streamOff": "Not started",
+      "network": {
+        "off": "Off",
+        "localhost": "Localhost only",
+        "lan": "LAN",
+        "tailscale": "Tailscale"
+      }
+    },
+    "copy": "Copy",
+    "copied": "Copied",
+    "qrAlt": "Remote control QR code",
+    "audit": "Recent remote actions",
+    "ok": "OK",
+    "failed": "Failed"
+  },
   "imageCast": {
     "title": "Image Cast",
     "description": "Push a local reference image to the device and open it with the system image viewer.",
@@ -278,7 +424,7 @@
     "changeDirFailed": "Failed to change screenshot directory",
     "openFolderFailed": "Failed to open folder — please navigate to the save directory manually",
     "showInFolder": "Show in folder",
-    "noDevice": "No device selected, using default device"
+    "noDevice": "Select an online device before taking a screenshot"
   },
   "screenRecord": {
     "title": "Device Recording",
@@ -312,7 +458,7 @@
     "sending": "Sending...",
     "pasteToDevice": "Paste to Device",
     "clear": "Clear",
-    "noDevice": "No device selected, using default device"
+    "noDevice": "Select an online device first"
   },
   "workbench": {
     "title": "ADB Workbench",
@@ -351,7 +497,7 @@
     "templateRemoved": "Template removed",
     "removeTemplate": "Remove",
     "templateName": "Template name",
-    "noDevice": "No device selected. ADB will use its default device selection.",
+    "noDevice": "Select an online device first. ADB Manager will not use the default ADB device.",
     "missingParams": "Fill required parameters before executing.",
     "highRiskConfirm": "I understand this command may delete data, uninstall apps, reboot the device, or make destructive changes.",
     "risk": {
@@ -701,7 +847,7 @@
     "refreshed": "Refreshed {{count}} log lines",
     "autoRefreshClosed": "Auto-refresh disabled",
     "exported": "Exported to {{path}}",
-    "noDevice": "No device selected, using default device"
+    "noDevice": "Select an online device before reading logcat"
   },
   "apkInstall": {
     "title": "Install APK",
@@ -738,7 +884,7 @@
     "forceNeedPkg": "Force install requires a package name",
     "forceNeedPkgMultiple": "Force install requires a package name for every APK",
     "forceMultiDesc": "Multi-APK force install uninstalls each detected package before installing that APK",
-    "noDevice": "No device selected, using default device",
+    "noDevice": "Select an online device before installing",
     "status": {
       "pending": "Pending",
       "installing": "Installing",

@@ -52,10 +52,15 @@ export default function PackageNameInput({
       return;
     }
 
+    if (!deviceSerial) {
+      setInternalPackages([]);
+      return;
+    }
+
     setInternalLoading(true);
     try {
       const loaded = await invoke<string[]>("adb_list_packages", {
-        deviceSerial: deviceSerial || null,
+        deviceSerial,
       });
       setInternalPackages(loaded);
     } catch {

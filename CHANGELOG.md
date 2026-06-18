@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [1.1.27] - 2026-06-18
+
+### Added
+
+- Added an explicit target-device guard across device actions, including Workbench execution, APK install, screenshots, recordings, scrcpy actions, image casting, clipboard input, Logcat refresh, and package export.
+- Added Remote Control safety summaries for service state, network exposure, online roles, control ownership, stream settings, and trusted-device expiry.
+
+### Changed
+
+- Changed wireless recovery into a staged ladder from network and mDNS checks through recent endpoint probing, safe pairing repair, and confirmed host identity reset.
+- Changed device action results and exports to include target-device identity, and updated Chinese and English copy to clarify that ADB Manager does not fall back to ADB's default device.
+
+### Fixed
+
+- Updated the Vite development dependency to a patched version before release packaging.
+
 ## [1.1.25] - 2026-06-11
 
 ### Fixed

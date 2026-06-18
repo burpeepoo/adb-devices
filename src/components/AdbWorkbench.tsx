@@ -7,6 +7,8 @@ import { rewriteAdbShellBatch } from "../workbenchCommandRewrite";
 import { IconTerminal2, IconWand } from "@tabler/icons-react";
 import PackageNameInput from "./PackageNameInput";
 import SectionTitle from "./common/SectionTitle";
+import DeviceTargetBanner from "./common/DeviceTargetBanner";
+import { type DeviceTargetState } from "../deviceTarget.ts";
 
 type WorkbenchMode = "library" | "templates" | "custom";
 type WorkbenchRisk = "low" | "medium" | "high";
@@ -70,7 +72,7 @@ interface WorkbenchCommandResult {
 }
 
 interface Props {
-  deviceSerial: string | null;
+  deviceTarget: DeviceTargetState;
 }
 
 const MAX_HISTORY = 30;
@@ -756,7 +758,7 @@ const quoteArg = (value: string) => {
 const commandFromTokens = (tokens: string[]) => tokens.filter(Boolean).map(quoteArg).join(" ");
 
 const commandPreview = (command: string, deviceSerial: string | null) => {
-  const prefix = deviceSerial ? `adb -s ${quoteArg(deviceSerial)}` : "adb";
+  const prefix = deviceSerial ? `adb -s ${quoteArg(deviceSerial)}` : "adb -s <select-device>";
   return `${prefix} ${command}`.trim();
 };
 
@@ -805,7 +807,7 @@ const pastedFilePaths = (event: ClipboardEvent<HTMLInputElement>) =>
     .map((file) => (file as File & { path?: string }).path)
     .filter((path): path is string => Boolean(path));
 
-export default function AdbWorkbench({ deviceSerial }: Props) {
+export default function AdbWorkbench({ deviceTarget }: Props) {
   const { t } = useTranslation();
   const [mode, setMode] = useState<WorkbenchMode>("library");
   const [query, setQuery] = useState("");
@@ -891,6 +893,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
     [allItems, t],
   );
   const selectedItem = allItems.find((item) => item.id === selectedId) ?? allItems[0];
+  const deviceSerial = deviceTarget.serial;
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -918,14 +921,14 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
 
   const currentRisk = mode === "custom" ? classifyCommandText(customCommand) : mode === "templates" ? selectedTemplate?.risk ?? "low" : selectedItem.risk;
   const missingRequired = mode === "library" && selectedItem.params.some((param) => param.required && !values[param.name]?.trim());
-  const canExecute = currentCommand.length > 0 && !missingRequired && !executing && (currentRisk !== "high" || highRiskConfirmed);
+  const canExecute = currentCommand.length > 0 && Boolean(deviceSerial) && !missingRequired && !executing && (currentRisk !== "high" || highRiskConfirmed);
   const outputExportText = useMemo(() => {
     if (!result && !error) return "";
 
     const lines = [
       "ADB Workbench Export",
       `Time: ${new Date().toISOString()}`,
-      `Device: ${deviceSerial || "default"}`,
+      `Device: ${deviceTarget.status === "ready" ? `${deviceTarget.label} (${deviceTarget.identity})` : "not selected"}`,
       `Risk: ${currentRisk}`,
       `Command: ${result?.command ?? commandPreview(currentCommand, deviceSerial)}`,
       `Exit code: ${result?.exit_code ?? "-"}`,
@@ -938,7 +941,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
     ];
 
     return lines.join("\n");
-  }, [currentCommand, currentRisk, deviceSerial, error, result]);
+  }, [currentCommand, currentRisk, deviceSerial, deviceTarget, error, result]);
 
   const chooseItem = (item: WorkbenchItem) => {
     setMode("library");
@@ -990,6 +993,10 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
   };
 
   const executeCommand = async () => {
+    if (!deviceSerial) {
+      setError(t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`));
+      return;
+    }
     if (!canExecute) return;
     setExecuting(true);
     setResult(null);
@@ -999,7 +1006,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
     try {
       const commandResult = await invoke<WorkbenchCommandResult>("adb_workbench_execute", {
         command: currentCommand,
-        deviceSerial: deviceSerial || null,
+        deviceSerial,
         allowHighRisk: currentRisk === "high" ? highRiskConfirmed : true,
       });
       setResult(commandResult);
@@ -1146,6 +1153,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
 
   return (
     <div className="flex h-full min-h-[620px] flex-col gap-4">
+      <DeviceTargetBanner target={deviceTarget} />
       <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)] gap-4">
       <section className="flex min-h-0 flex-col rounded-lg border border-gray-200 bg-white">
         <div className="border-b border-gray-200 p-4">
@@ -1263,6 +1271,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
                         value={values[param.name] ?? ""}
                         onChange={(value) => setValues((prev) => ({ ...prev, [param.name]: value }))}
                         deviceSerial={deviceSerial}
+                        disabled={!deviceSerial}
                         placeholder={param.placeholderKey ? t(param.placeholderKey) : ""}
                       />
                     ) : (
@@ -1420,11 +1429,7 @@ export default function AdbWorkbench({ deviceSerial }: Props) {
           <pre className="mt-3 max-h-32 overflow-auto rounded-lg bg-gray-950 p-3 text-xs leading-5 text-gray-100">
             {commandPreview(currentCommand || "<empty>", deviceSerial)}
           </pre>
-          {!deviceSerial && (
-            <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              {t("workbench.noDevice")}
-            </div>
-          )}
+          {!deviceSerial && <DeviceTargetBanner target={deviceTarget} className="mt-2" />}
           {missingRequired && (
             <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
               {t("workbench.missingParams")}

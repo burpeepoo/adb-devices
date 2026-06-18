@@ -110,6 +110,7 @@ export type TabKey =
   | "screenshot"
   | "record"
   | "mirror"
+  | "remote"
   | "imageCast"
   | "clipboard"
   | "logcat"

@@ -8,6 +8,8 @@ import { IconApps } from "@tabler/icons-react";
 import PackageNameInput from "./PackageNameInput";
 import SectionTitle from "./common/SectionTitle";
 import { packageMatchScore } from "../utils/packageSearch";
+import DeviceTargetBanner from "./common/DeviceTargetBanner";
+import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 
 type InstallStatus = "pending" | "installing" | "success" | "failed";
 
@@ -21,7 +23,7 @@ interface ApkInstallItem {
 }
 
 interface Props {
-  deviceSerial: string | null;
+  deviceTarget: DeviceTargetState;
   recentApkDir: string;
   onRecentApkDirChange: (dir: string) => void;
   active: boolean;
@@ -72,7 +74,7 @@ const bestPackageMatch = (item: ApkInstallItem, packages: string[]) => {
   return best && best.score >= 240 ? best.pkg : null;
 };
 
-export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirChange, active }: Props) {
+export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirChange, active }: Props) {
   const { t } = useTranslation();
   const [apkItems, setApkItems] = useState<ApkInstallItem[]>([]);
   const [force, setForce] = useState(false);
@@ -253,6 +255,10 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
 
   const handleInstall = async () => {
     if (apkItems.length === 0 || installingRef.current) return;
+    if (!deviceTarget.serial) {
+      setResult({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
+      return;
+    }
     if (force && apkItems.some((item) => !item.pkgName.trim())) {
       setResult({
         ok: false,
@@ -288,7 +294,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
             apkPath: item.path,
             force,
             pkgName: force ? item.pkgName.trim() : null,
-            deviceSerial: deviceSerial || null,
+            deviceSerial: deviceTarget.serial,
           });
           successCount += 1;
           updateItem(item.path, { status: "success", message: msg });
@@ -302,7 +308,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
 
       setResult({
         ok: failedCount === 0,
-        msg: t('apkInstall.installSummary', { success: successCount, failed: failedCount }),
+        msg: `${t('apkInstall.installSummary', { success: successCount, failed: failedCount })} · ${deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}`,
       });
     } finally {
       setCurrentIndex(null);
@@ -314,13 +320,19 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
   const handleLoadPackages = useCallback(async (options?: { showErrors?: boolean }) => {
     if (loadingPackages) return;
     const showErrors = options?.showErrors ?? true;
+    if (!deviceTarget.serial) {
+      if (showErrors) {
+        setResult({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
+      }
+      return;
+    }
     setLoadingPackages(true);
     if (showErrors) {
       setResult(null);
     }
     try {
       const packages = await invoke<string[]>("adb_list_packages", {
-        deviceSerial: deviceSerial || null,
+        deviceSerial: deviceTarget.serial,
       });
       setInstalledPackages(packages);
     } catch (e) {
@@ -330,11 +342,11 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
     } finally {
       setLoadingPackages(false);
     }
-  }, [deviceSerial, loadingPackages]);
+  }, [deviceTarget, loadingPackages, t]);
 
   useEffect(() => {
     autoPackageLoadAttemptedRef.current = false;
-  }, [apkPathKey, deviceSerial]);
+  }, [apkPathKey, deviceTarget.serial]);
 
   useEffect(() => {
     if (!force || apkItems.length === 0 || installedPackages.length > 0 || loadingPackages || installing) return;
@@ -375,6 +387,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
       <section className="flex min-h-0 flex-1 flex-col rounded-lg border border-gray-200 bg-white p-4">
         <div className="shrink-0">
           <SectionTitle icon={<IconApps size={17} />} label={t('apkInstall.title')} mb="md" />
+          <DeviceTargetBanner target={deviceTarget} className="mb-3" />
         </div>
 
         {/* APK selection */}
@@ -504,7 +517,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
                           value={item.pkgName}
                           onChange={(pkgName) => updateItem(item.path, { pkgName, pkgEdited: true, parseFailed: false })}
                           onSelectPackage={(pkgName) => updateItem(item.path, { pkgName, pkgEdited: true, parseFailed: false })}
-                          deviceSerial={deviceSerial}
+                          deviceSerial={deviceTarget.serial}
                           disabled={installing}
                           placeholder={t('apkInstall.pkgName')}
                           packages={installedPackages}
@@ -553,7 +566,7 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
         {/* Install button */}
         <button
           onClick={handleInstall}
-          disabled={installing || apkItems.length === 0}
+          disabled={installing || apkItems.length === 0 || !deviceTarget.serial}
           className="w-full shrink-0 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {installing ? t('apkInstall.installing') : t('apkInstall.installSelected', { count: apkItems.length })}
@@ -562,12 +575,6 @@ export default function ApkInstall({ deviceSerial, recentApkDir, onRecentApkDirC
         {result && (
           <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${result.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
             {result.msg}
-          </div>
-        )}
-
-        {!deviceSerial && (
-          <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-            {t('apkInstall.noDevice')}
           </div>
         )}
       </section>

@@ -3,14 +3,16 @@ import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { IconClipboard } from "@tabler/icons-react";
 import SectionTitle from "./common/SectionTitle";
+import DeviceTargetBanner from "./common/DeviceTargetBanner";
+import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 
 interface Props {
-  deviceSerial: string | null;
+  deviceTarget: DeviceTargetState;
 }
 
 const MAX_LENGTH = 2000;
 
-export default function Clipboard({ deviceSerial }: Props) {
+export default function Clipboard({ deviceTarget }: Props) {
   const { t } = useTranslation();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
@@ -18,14 +20,18 @@ export default function Clipboard({ deviceSerial }: Props) {
 
   const handleSend = async () => {
     if (!text.trim() || sending) return;
+    if (!deviceTarget.serial) {
+      setResult({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
+      return;
+    }
     setSending(true);
     setResult(null);
     try {
       const msg = await invoke<string>("adb_input_text", {
         text,
-        deviceSerial: deviceSerial || null,
+        deviceSerial: deviceTarget.serial,
       });
-      setResult({ ok: true, msg });
+      setResult({ ok: true, msg: `${msg} · ${deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}` });
     } catch (e) {
       setResult({ ok: false, msg: String(e) });
     } finally {
@@ -42,6 +48,7 @@ export default function Clipboard({ deviceSerial }: Props) {
             {text.length}/{MAX_LENGTH}
           </span>
         </div>
+        <DeviceTargetBanner target={deviceTarget} className="mb-3" />
 
         <textarea
           value={text}
@@ -55,7 +62,7 @@ export default function Clipboard({ deviceSerial }: Props) {
         <div className="mt-3 flex items-center gap-2">
           <button
             onClick={handleSend}
-            disabled={sending || !text.trim()}
+            disabled={sending || !text.trim() || !deviceTarget.serial}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {sending ? t('clipboard.sending') : t('clipboard.pasteToDevice')}
@@ -75,12 +82,6 @@ export default function Clipboard({ deviceSerial }: Props) {
         {result && (
           <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${result.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
             {result.msg}
-          </div>
-        )}
-
-        {!deviceSerial && (
-          <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-            {t('clipboard.noDevice')}
           </div>
         )}
       </section>

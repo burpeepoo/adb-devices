@@ -5,16 +5,18 @@ import { useTranslation } from "react-i18next";
 import { Button as MantineButton, Checkbox, Menu } from "@mantine/core";
 import { IconChevronDown, IconListDetails } from "@tabler/icons-react";
 import SectionTitle from "./common/SectionTitle";
+import DeviceTargetBanner from "./common/DeviceTargetBanner";
+import type { DeviceTargetState } from "../deviceTarget.ts";
 
 interface Props {
-  deviceSerial: string | null;
+  deviceTarget: DeviceTargetState;
 }
 
 const LEVELS = ["V", "D", "I", "W", "E", "F"] as const;
 const AUTO_REFRESH_MS = 60000;
 type LogcatLevel = (typeof LEVELS)[number];
 
-export default function Logcat({ deviceSerial }: Props) {
+export default function Logcat({ deviceTarget }: Props) {
   const { t } = useTranslation();
   const [entries, setEntries] = useState<LogcatEntry[]>([]);
   const [active, setActive] = useState(false);
@@ -30,11 +32,15 @@ export default function Logcat({ deviceSerial }: Props) {
 
   const refreshLogcat = async () => {
     if (loading) return;
+    if (!deviceTarget.serial) {
+      setStatus({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
+      return;
+    }
     setLoading(true);
     setStatus(null);
     try {
       const nextEntries = await invoke<LogcatEntry[]>("adb_read_logcat", {
-        deviceSerial: deviceSerial || null,
+        deviceSerial: deviceTarget.serial,
         logcatFilter: adbFilter.trim() || null,
         lineLimit: 1000,
       });
@@ -54,7 +60,7 @@ export default function Logcat({ deviceSerial }: Props) {
       refreshLogcat();
     }, AUTO_REFRESH_MS);
     return () => window.clearInterval(timer);
-  }, [active, adbFilter, deviceSerial, loading]);
+  }, [active, adbFilter, deviceTarget, loading]);
 
   useEffect(() => {
     if (logRef.current) {
@@ -100,14 +106,16 @@ export default function Logcat({ deviceSerial }: Props) {
 
   const exportText = useMemo(
     () =>
-      visibleEntries
-        .map((entry) =>
+      [
+        deviceTarget.status === "ready" ? `Device: ${deviceTarget.label} (${deviceTarget.identity})` : "",
+        deviceTarget.status === "ready" ? "" : "",
+        ...visibleEntries.map((entry) =>
           [entry.timestamp, entry.pid, entry.level, entry.tag ? `${entry.tag}:` : "", entry.message]
             .filter(Boolean)
             .join(" ")
-        )
-        .join("\n"),
-    [visibleEntries]
+        ),
+      ].filter((line, index) => line || index > 1).join("\n"),
+    [deviceTarget, visibleEntries]
   );
 
   const handleClose = async () => {
@@ -150,7 +158,7 @@ export default function Logcat({ deviceSerial }: Props) {
           <div className="flex items-center gap-2">
             <button
               onClick={refreshLogcat}
-              disabled={loading}
+              disabled={loading || !deviceTarget.serial}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? t('logcat.refreshing') : active ? t('logcat.refresh') : t('logcat.viewLogcat')}
@@ -181,6 +189,7 @@ export default function Logcat({ deviceSerial }: Props) {
             </button>
           </div>
         </div>
+        <DeviceTargetBanner target={deviceTarget} className="mb-3" />
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
           <div className="space-y-1">
@@ -295,12 +304,6 @@ export default function Logcat({ deviceSerial }: Props) {
         {status && (
           <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${status.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
             {status.msg}
-          </div>
-        )}
-
-        {!deviceSerial && (
-          <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-            {t('logcat.noDevice')}
           </div>
         )}
       </section>

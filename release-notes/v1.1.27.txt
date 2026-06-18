@@ -1,0 +1,2 @@
+en-US: Require an explicit online target device for ADB actions, add safer wireless recovery guidance, and clarify Remote Control trust and session state.
+zh-CN: 设备操作必须先锁定在线目标设备，并加入无线恢复阶梯与远程控制信任/会话安全摘要。

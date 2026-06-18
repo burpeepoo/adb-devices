@@ -40,6 +40,7 @@ export const toolIcons: Record<TabKey, ToolConfig["icon"]> = {
   screenshot: IconCamera,
   record: IconVideo,
   mirror: IconDevicesPc,
+  remote: IconDeviceMobileCode,
   imageCast: IconPhotoUp,
   clipboard: IconClipboard,
   logcat: IconListDetails,

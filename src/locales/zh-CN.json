@@ -14,7 +14,7 @@
     "github": "GitHub",
     "selectedDevice": "当前设备",
     "noSelectedDevice": "未选择设备",
-    "defaultDevice": "默认 ADB 设备",
+    "defaultDevice": "未锁定目标",
     "adbReady": "ADB 可用",
     "deviceCount": "{{online}} 在线 / {{total}} 总计",
     "searchDevices": "搜索设备或备注...",
@@ -22,13 +22,27 @@
     "openSettings": "打开设置",
     "openGithub": "打开 GitHub 仓库"
   },
+  "deviceTarget": {
+    "title": "目标设备",
+    "ready": "已锁定",
+    "blocked": "需选择",
+    "selectOnlineDevice": "请先在左侧选择一台在线设备。ADB Manager 不会使用默认 ADB 设备执行此操作。",
+    "selectedUnavailable": "当前选择的设备不在线，请重新选择在线设备。",
+    "resultLabel": "设备",
+    "connection": {
+      "usb": "USB",
+      "wireless": "无线",
+      "unknown": "未知连接"
+    }
+  },
   "tabs": {
     "pairConnect": "设备控制台",
     "workbench": "ADB 工作台",
     "apkInstall": "安装应用",
     "screenshot": "截图",
     "screenRecord": "录屏",
-    "screenMirror": "远程控制",
+    "screenMirror": "本机投屏",
+    "remoteControl": "远程控制台",
     "imageCast": "图片投屏",
     "clipboard": "剪贴板",
     "logcat": "Logcat",
@@ -127,11 +141,62 @@
     },
     "repairingAdb": "修复中...",
     "adbRestarted": "ADB 服务已重启，并已刷新无线配对缓存",
+    "repairWirelessPairingDesc": "安全修复只刷新无线配对缓存，保留这台电脑的 ADB 身份。",
     "repairReconnected": "{{message}}，并已重连 {{count}} 个最近连接的设备",
     "repairFound": "{{message}}，重新扫描发现 {{count}} 个局域网 ADB 服务",
     "repairNoDevice": "{{message}}，但仍未发现设备。请确认 Android 无线调试页面显示的 IP 和端口，并尝试手动连接。",
     "resetHostIdentity": "重置本机 ADB 身份",
     "resetHostIdentityDesc": "仅在重启 ADB 后仍失败时使用；会让这台电脑在所有 Android 设备上重新授权或配对。",
+    "resetConfirmTitle": "确认重置本机 ADB 身份？",
+    "resetConfirmDesc": "这会移除 adb_known_hosts.pb、adbkey 和 adbkey.pub。所有已授权或已配对的 Android 设备都可能需要重新授权或重新配对。请先尝试安全修复。",
+    "resetConfirmAction": "重置本机身份",
+    "resetConfirmCancel": "取消",
+    "recovery": {
+      "title": "无线恢复阶梯",
+      "desc": "按顺序排查：先看网络和发现，再试最近端点与当前端口；安全修复优先，重置本机身份只作为最后 fallback。",
+      "multiNetwork": "检测到多个本地网段，请确认电脑和 Android 设备在同一 Wi-Fi/网段。",
+      "states": {
+        "idle": "待确认",
+        "done": "已通过",
+        "recommended": "建议下一步",
+        "warning": "需注意",
+        "danger": "最后 fallback",
+        "locked": "暂不建议"
+      },
+      "steps": {
+        "network": {
+          "title": "网络与 ADB 状态",
+          "desc": "确认电脑本地 IP、ADB server 与 Android 无线调试页面处于可用状态。"
+        },
+        "mdns": {
+          "title": "扫描 mDNS 服务",
+          "desc": "优先寻找 Android 当前广播的配对或连接服务。"
+        },
+        "recent": {
+          "title": "检测最近端点",
+          "desc": "扫描不到设备时，先检测最近成功连接过的 IP 和端口是否仍可达。"
+        },
+        "manual": {
+          "title": "输入当前连接端口",
+          "desc": "端口可达或 Android 页面已显示新端口时，手动填入当前 connect port。"
+        },
+        "repair": {
+          "title": "安全修复无线配对",
+          "desc": "刷新 adb_known_hosts.pb 并重启本机 ADB server，保留 adbkey。"
+        },
+        "reset": {
+          "title": "重置本机身份",
+          "desc": "只有安全修复后仍失败时使用；会让所有设备重新授权或配对。"
+        }
+      },
+      "actions": {
+        "scan": "重新扫描",
+        "probeRecent": "检测最近连接",
+        "showManual": "打开手动输入",
+        "repair": "安全修复",
+        "reset": "重置身份"
+      }
+    },
     "identityResetFound": "{{message}}，重新扫描发现 {{count}} 个局域网 ADB 服务。请在设备上重新配对。",
     "identityResetNoDevice": "{{message}}，但仍未发现设备。请重新打开 Android 无线调试配对码后再扫描。",
     "multiNetworkHint": "检测到这台电脑有多个局域网地址：{{ips}}。请确认 Android 设备与电脑在同一网段；如果设备显示 192.168.110.x，请使用该页面当前端口手动连接。",
@@ -230,6 +295,87 @@
     "note2": "返回和 Home 可以点上方按钮，也可以直接在投屏窗口里使用鼠标右键或鼠标中键操作",
     "note3": "截图和录屏请使用顶部独立的截图、录屏页面"
   },
+  "remoteControl": {
+    "title": "远程控制台",
+    "description": "开启后，手机或另一台电脑可通过浏览器访问这台电脑的 ADB Manager，只能执行截图、点击、滑动、文本输入和基础按键。",
+    "enabled": "已开启",
+    "disabled": "未开启",
+    "start": "开启远程控制",
+    "stop": "关闭远程控制",
+    "stopSession": "关闭远程支持会话",
+    "stopSessionDesc": "关闭会停止当前 gateway、会话和控制权；已信任设备会保留到过期或手动撤销。",
+    "refresh": "刷新状态",
+    "started": "远程控制已开启",
+    "stopped": "远程控制已关闭",
+    "disabledHint": "默认关闭。需要手机或另一台电脑控制设备时，再手动开启。",
+    "pin": "一次性 PIN",
+    "pinUsed": "这个 PIN 已经被使用。若需要新的控制端接入，请关闭后重新开启。",
+    "urls": "访问地址",
+    "addresses": "访问地址",
+    "inviteLinks": "角色链接",
+    "sessions": "在线会话",
+    "activeSessions": "当前会话",
+    "controlOwner": "控制权",
+    "noControlOwner": "未占用",
+    "stream": "画面流",
+    "used": "已使用",
+    "expiresAt": "过期时间：{{time}}",
+    "trustedDevices": "已信任设备",
+    "trustExpires": "{{time}} 过期",
+    "revokeTrust": "撤销",
+    "revokeAllTrust": "清空信任",
+    "noTrustedDevices": "暂无已信任设备。手机扫角色二维码进入后，可选择信任 7 天。",
+    "trustRevoked": "已撤销信任设备",
+    "roles": {
+      "viewer": "查看者",
+      "operator": "操作者",
+      "admin": "管理员"
+    },
+    "roleDescriptions": {
+      "viewer": "只能查看设备状态、画面和下载截图。",
+      "operator": "可查看、点控、输入文本、发送剪贴板和运行安全模板。",
+      "admin": "可管理会话、接管控制权、安装 APK，并执行重连/配对修复。"
+    },
+    "roleCapabilities": {
+      "viewer": {
+        "can": "看设备状态、画面、审计和截图",
+        "cannot": "不能触控、输入、安装或修复连接"
+      },
+      "operator": {
+        "can": "触控、输入、发送剪贴板和运行安全模板",
+        "cannot": "不能安装 APK、修复配对或管理会话"
+      },
+      "admin": {
+        "can": "管理会话、接管控制、安装 APK、重连和修复配对",
+        "cannot": "不能执行任意 shell 命令"
+      }
+    },
+    "canDo": "能做：{{value}}",
+    "cannotDo": "不能做：{{value}}",
+    "safetySummary": "远程会话安全摘要",
+    "summary": {
+      "service": "网络暴露",
+      "sessions": "在线角色",
+      "control": "当前控制者",
+      "trust": "信任设备",
+      "stream": "画面流",
+      "roleCounts": "查看 {{viewer}} / 操作 {{operator}} / 管理 {{admin}}",
+      "trustedDevices": "{{count}} 个信任，{{expiring}} 个即将过期",
+      "streamOff": "未启动",
+      "network": {
+        "off": "未开启",
+        "localhost": "仅本机",
+        "lan": "局域网",
+        "tailscale": "Tailscale"
+      }
+    },
+    "copy": "复制",
+    "copied": "已复制",
+    "qrAlt": "远程控制二维码",
+    "audit": "最近远程操作",
+    "ok": "成功",
+    "failed": "失败"
+  },
   "imageCast": {
     "title": "图片投屏",
     "description": "将本地参考图推送到设备，并用系统图片查看器打开。",
@@ -278,7 +424,7 @@
     "changeDirFailed": "无法修改截图保存目录",
     "openFolderFailed": "无法打开文件夹，请手动前往保存目录查看",
     "showInFolder": "在文件夹中显示",
-    "noDevice": "未选择设备，将使用默认设备截图"
+    "noDevice": "请先选择在线设备再截图"
   },
   "screenRecord": {
     "title": "设备录屏",
@@ -312,7 +458,7 @@
     "sending": "发送中...",
     "pasteToDevice": "粘贴到设备",
     "clear": "清空",
-    "noDevice": "未选择设备，将使用默认设备"
+    "noDevice": "请先选择在线设备"
   },
   "workbench": {
     "title": "ADB 工作台",
@@ -351,7 +497,7 @@
     "templateRemoved": "模板已移除",
     "removeTemplate": "移除",
     "templateName": "模板名称",
-    "noDevice": "未选择设备，ADB 将使用默认设备选择逻辑。",
+    "noDevice": "请先选择在线设备。ADB Manager 不会使用默认设备执行命令。",
     "missingParams": "请先填写必填参数。",
     "highRiskConfirm": "我确认这个命令可能删除数据、卸载应用、重启设备或进行破坏性修改。",
     "risk": {
@@ -701,7 +847,7 @@
     "refreshed": "已刷新 {{count}} 行日志",
     "autoRefreshClosed": "已关闭自动刷新",
     "exported": "已导出到 {{path}}",
-    "noDevice": "未选择设备，将使用默认设备读取 logcat"
+    "noDevice": "请先选择在线设备再读取 logcat"
   },
   "apkInstall": {
     "title": "安装 APK",
@@ -738,7 +884,7 @@
     "forceNeedPkg": "强制安装需要输入包名",
     "forceNeedPkgMultiple": "强制安装需要为每个 APK 填写包名",
     "forceMultiDesc": "多包强制安装会逐个按对应包名卸载旧版本，再安装当前 APK",
-    "noDevice": "未选择设备，将使用默认设备安装",
+    "noDevice": "请先选择在线设备再安装",
     "status": {
       "pending": "等待",
       "installing": "安装中",

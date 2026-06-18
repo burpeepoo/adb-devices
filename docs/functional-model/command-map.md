@@ -38,6 +38,22 @@ This map connects user-facing actions to frontend code, Tauri commands, and back
 | Stop mirror | `ScreenMirror.tsx` | `stop_screen_mirror` | Kills tracked scrcpy process. |
 | Mirror state | `ScreenMirror.tsx` | `get_screen_mirror_state` | Checks whether tracked scrcpy process is still alive. |
 | Navigation key | `ScreenMirror.tsx` | `send_navigation_key` | Sends Back/Home through `input keyevent`. |
+| Remote console status | `RemoteControl.tsx` | `remote_control_status` | Reads whether the embedded `/remote` gateway is enabled, plus localhost/LAN/Tailscale addresses, role invite links with QR SVG, trusted devices, sessions, control owner, stream defaults, QR, PIN state, and audit entries. |
+| Remote console start | `RemoteControl.tsx` | `remote_control_start` | Starts the embedded HTTP/PWA gateway, preferring the last successful port before falling back to a random port, creates a one-time PIN admin fallback, and generates one-use viewer/operator/admin invite links. |
+| Remote console stop | `RemoteControl.tsx` | `remote_control_stop` | Stops the gateway thread and clears the active PIN/token session, role invites, sessions, control owner, frame cache, and audit log. |
+| Remote invite claim | `/remote` PWA | `/remote/api/invite/claim` | Exchanges a one-use role invite for an in-memory session token. |
+| Remote trusted device management | `RemoteControl.tsx` | `remote_control_trusted_devices`, `remote_control_revoke_trusted_device`, `remote_control_revoke_all_trusted_devices` | Lists or revokes 7-day trusted browsers. Desktop persistence stores token hashes only, not raw trust tokens. |
+| Remote PWA trust | `/remote` PWA | `/remote/api/trust/register`, `/trust/claim`, `/trust/devices`, `/trust/revoke`, `/trust/revoke-all` | Registers a browser trust token after session login, exchanges a valid trust token for a same-role session, and lets admin sessions inspect or revoke trusted devices. |
+| Remote PWA devices | `/remote` PWA | `/remote/api/devices` | Lists devices through `adb devices -l`; requires token auth. |
+| Remote PWA screenshot | `/remote` PWA | `/remote/api/screenshot` | Captures PNG through `exec-out screencap -p`; per-device screenshot refreshes are deduped and do not hold the input lock. |
+| Remote PWA HLS stream | `/remote` PWA | `/remote/api/video-stream/start`, `/video-stream/stop`, `/video-stream/status`, `/video-stream/playlist.m3u8`, `/video-stream/segment/*` | Experimental V2.5 stream: pipes `screenrecord --output-format=h264 -` through host ffmpeg, serves token-scoped fMP4 HLS assets (`init.mp4` plus `.m4s` segments), probes playlist/media availability before playback, and stops the pipeline when Remote Control closes or browser playback fails. |
+| Remote PWA MJPEG stream | `/remote` PWA | `/remote/api/stream.mjpeg` | Fallback stream: authenticates by token query, reuses recent per-device frames, converts screenshots to JPEG, streams multipart MJPEG, and is selected automatically when HLS startup or browser decode fails. |
+| Remote PWA control owner | `/remote` PWA | `/remote/api/control/acquire`, `/control/release` | Lets one operator/admin hold input control; admin may force acquire. |
+| Remote PWA input | `/remote` PWA | `/remote/api/tap`, `/swipe`, `/text`, `/clipboard`, `/key` | Sends only whitelisted input/clipboard actions; input actions require control ownership, are serialized, and are audited. |
+| Remote PWA sessions | `/remote` PWA | `/remote/api/sessions`, `/sessions/kick` | Admin-only session listing and kick flow; kicking a controller releases control. |
+| Remote PWA APK install | `/remote` PWA | `/remote/api/apk/install` | Admin-only single APK upload with size cap; writes temp host file, runs `adb install -r`, then removes temp file. |
+| Remote PWA repair | `/remote` PWA | `/remote/api/admin/reconnect`, `/admin/repair-pairing` | Admin-only device reconnect and wireless pairing repair, reusing ADB Manager's ADB path and ADB server lock. |
+| Remote PWA templates | `/remote` PWA | `/remote/api/templates`, `/templates/run` | Returns and runs fixed safe command templates; no arbitrary shell route is exposed. |
 | App drawer list | `ScreenMirror.tsx` | `adb_list_launchable_apps` | Queries launchable MAIN/LAUNCHER activities, dedupes components, and returns the drawer list quickly. |
 | App drawer icon | `ScreenMirror.tsx` | `adb_load_launchable_app_icon` | Returns cached label/icon data immediately when possible; revalidates stale entries, pulls one APK when needed, and parses manifest/resource metadata. |
 | App drawer launch | `ScreenMirror.tsx` | `adb_launch_app` | Validates a package/activity component and starts it with `am start -n`. |
@@ -94,3 +110,4 @@ This map connects user-facing actions to frontend code, Tauri commands, and back
 
 - Holds global mutexes and active child processes.
 - Prevents concurrent install, recording, logcat, scrcpy, and ADB server operations where needed.
+- Tracks remote-control runtime, token session, role invites, remote sessions, control owner, input serialization, per-device screenshot refresh de-dupe, per-device MJPEG frame cache, and in-memory audit entries.

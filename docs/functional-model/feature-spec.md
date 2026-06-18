@@ -53,8 +53,10 @@ User-visible behavior:
 - Device title is `device_sn || serial`.
 - Local notes can override the console title while still showing identity as secondary text.
 - Notes are local-only and keyed by `device_sn || serial`.
-- Device console exposes shortcuts to APK install, screenshot, record, mirror, image cast, clipboard, logcat, and packages.
+- Device console exposes shortcuts to APK install, screenshot, record, mirror, remote console, image cast, clipboard, logcat, and packages.
 - Device status and diagnostics are loaded on selection, not continuously polled.
+- Device-targeting tools share a target-device strip. ADB actions require an explicit online selected device; the UI does not intentionally pass an empty serial to use ADB's default device.
+- Screenshot/recording shortcuts, Workbench execution, APK install, image cast, clipboard, Logcat refresh, package export, scrcpy mirror/navigation, and app drawer launch all use the selected online serial and surface target identity in results or exports where practical.
 
 ## 3. Wireless Pair, Connect, Reconnect, And ADB Recovery
 
@@ -128,6 +130,9 @@ ADB restart/recovery logic:
 - Both repair paths preserve `adbkey` and `adbkey.pub`, so this computer's ADB host identity is unchanged.
 - `adb_reset_host_identity` is the destructive fallback: it stops ADB, backs up and removes `adb_known_hosts.pb`, `adbkey`, and `adbkey.pub`, then starts ADB.
 - Pair/connect operations are serialized by `adb_server_operation`.
+- The PairConnect UI presents a six-step wireless recovery ladder: network/ADB state, mDNS scan, recent endpoint probe, manual current connect port, safe wireless repair, and host identity reset.
+- The recovery ladder recommends recent probes when mDNS is empty but recent endpoints exist, recommends manual current-port entry when a recent endpoint is reachable, and keeps host identity reset locked behind safe repair visibility.
+- Host identity reset requires a confirmation modal that explains it can force all Android devices to authorize or pair this computer again.
 
 Startup repair:
 
@@ -335,7 +340,55 @@ scrcpy installation:
 - Windows downloads latest win64 scrcpy zip from Genymobile GitHub release and extracts it under local app data.
 - Install progress is emitted through `scrcpy-install-progress`.
 
-## 10. Image Cast
+## 10. Remote Control Console
+
+Goal: let a phone or another computer control ADB-connected devices through ADB Manager without exposing the host desktop or arbitrary shell.
+
+Frontend:
+
+- Desktop entry: `RemoteControl.tsx`
+- Browser/PWA entry: `/remote`, served by `remote.rs`
+
+Backend:
+
+- `remote_control_status`
+- `remote_control_start`
+- `remote_control_stop`
+- `remote_control_trusted_devices`
+- `remote_control_revoke_trusted_device`
+- `remote_control_revoke_all_trusted_devices`
+- Internal `/remote/api/*` HTTP routes for invite claim, trust register/claim/revoke, auth, status, device list, screenshot, experimental HLS video stream, MJPEG fallback stream, tap, swipe, text, clipboard, key, control ownership, sessions, APK install, reconnect, pairing repair, templates, and audit log.
+
+Logic:
+
+- Remote control is off by default and starts only after the desktop user enables it.
+- Starting opens an embedded HTTP service and first tries the last successful remote-control port. If that port is occupied, it falls back to a random local port and reports the current address set. Localhost, LAN, and Tailscale addresses are shown when available; Tailscale IPv4 and MagicDNS addresses are sorted first for cross-network direct access inside the user's tailnet.
+- The desktop status response includes one-time `viewer`, `operator`, and `admin` invite links with QR SVGs. Each invite can be claimed once; after claim, the same role is automatically replenished so the desktop panel stays scannable.
+- The desktop UI summarizes service state, network exposure, active role counts, current controller, trusted-device expiry pressure, and stream defaults before the detailed links.
+- Desktop role cards use localized labels and state what each role can and cannot do.
+- PIN auth remains as a fallback admin path, but role QR cards are the primary flow.
+- After a browser session logs in, it can register as a trusted device for 7 days. The browser stores the raw trust token in localStorage; the desktop app persists only the token hash, role, device name, timestamps, and last successful port in `remote-trusted-devices.json`.
+- Opening `/remote` with a valid trust token automatically creates a new same-role session. Trust never upgrades permissions; a trusted `viewer` remains view-only, and an `operator` still needs to acquire control before sending input.
+- Closing Remote Control clears in-memory sessions, invites, control owner, frame cache, and audit log, but does not delete trusted devices. Desktop admins can revoke one trusted device or clear all trusted devices.
+- The stop action is framed as closing a remote support session. The UI explains that current sessions/control are stopped while trusted devices remain until expiry or revocation.
+- `viewer` can view devices, screenshots, stream, audit, and download screenshots. `operator` can also acquire control, send input, send clipboard text, and run safe command templates. `admin` can manage sessions, force acquire control, install APKs, reconnect devices, and run wireless pairing repair.
+- Multiple remote browsers may watch at once. Only one `operator` or `admin` session can hold control at a time; input actions from non-owners return a clear conflict.
+- Remote actions are whitelisted to screenshot, HLS/MJPEG viewing, tap, swipe, text input, clipboard text, Back, Home, Recent, Power, Volume Up, Volume Down, selected safe templates, APK install, reconnect, and pairing repair.
+- Remote control does not expose arbitrary shell or the host desktop.
+- Input actions are serialized through `remote_control_operation`.
+- Screenshot refreshes use `exec-out screencap -p`, allow up to 20 seconds for slow wireless ADB devices, and are deduped per device by `remote_screenshot_in_flight`, so repeated live refreshes do not queue behind each other.
+- V2.5 experimental video stream starts `adb exec-out screenrecord --output-format=h264 -`, pipes it through host `ffmpeg`, and serves token-scoped fMP4 HLS assets (`init.mp4` plus `.m4s` media segments) under the authenticated remote API. This avoids the `screencap` path that can stall on slow wireless ADB links while keeping the stream friendlier to mobile browser HLS players. The playlist rewrite keeps media URLs token-scoped and clamps a zero target duration to 1 second because static Android screens can produce very short first fragments.
+- Only one experimental HLS stream is active at a time. Starting a stream for a different device stops the previous stream, and closing Remote Control stops any active HLS pipeline. The current POC depends on host `ffmpeg` being available.
+- MJPEG stream remains as the first fallback endpoint. It converts cached screencap PNG frames to JPEG, defaults to 5 fps, quality 70, and max width 960. Recent frames are cached per device so multiple viewers do not each trigger ADB screenshots.
+- The PWA `Start stream` button first tries the experimental HLS stream and renders it through a browser `<video>` element. Before playback, the PWA probes the playlist and first media asset so failures can distinguish unreachable HLS assets from browser playback rejection. If HLS startup or browser decode fails, the PWA stops the HLS process and automatically switches the same viewer to MJPEG; if MJPEG image loading fails, it falls back to live snapshot refresh.
+- Screenshot refreshes do not hold the input action lock. This keeps tap/key/text commands responsive while live snapshot is running.
+- The PWA supports live snapshot interval choices and optional delayed refresh after actions; by default, actions return after the input command instead of forcing an immediate screenshot refresh.
+- Operator/admin sessions can enable Mouse mode. Mouse mode shows an overlay pointer on the current frame, lets the user move it with a touchpad area, and only sends `input tap` when the user clicks, reducing accidental touches on phones.
+- APK uploads are capped and written to a temporary host file, installed with `adb install -r`, then removed.
+- Remote reconnect and pairing repair reuse the desktop app's ADB path and ADB server operation lock. Pairing repair restarts the host ADB server while preserving the host key.
+- Audit entries keep the last 100 remote actions in memory, including session id, role, action, target serial, result, and message.
+
+## 11. Image Cast
 
 Goal: push a local reference image to the device and optionally open it.
 
@@ -364,7 +417,7 @@ Logic:
 - Optional open runs `am start -a android.intent.action.VIEW -d file://... -t <mime>`.
 - Last pushed image can be reopened.
 
-## 11. Clipboard Text Input
+## 12. Clipboard Text Input
 
 Goal: send host-side text into the selected Android device as keyboard input.
 
@@ -378,7 +431,7 @@ Logic:
 - Backend escapes input for `adb shell input text`.
 - Spaces are encoded for ADB input behavior.
 
-## 12. Logcat
+## 13. Logcat
 
 Goal: read, filter, stream, and export device logs.
 
@@ -409,7 +462,7 @@ UI behavior:
 - Can export visible text.
 - Uses periodic refresh for snapshot mode while active.
 
-## 13. Settings, Language, And Updater
+## 14. Settings, Language, And Updater
 
 Goal: manage app preferences and update flow.
 
@@ -453,7 +506,7 @@ Release note localization:
 - Release body can contain `en-US`, `en`, `English`, `zh-CN`, `zh`, `中文`, or `Chinese` sections.
 - Frontend selects the section matching current language and falls back to English, Chinese, then cleaned full body.
 
-## 14. OS Integration And External URLs
+## 15. OS Integration And External URLs
 
 Goal: safely bridge common OS actions.
 
@@ -468,7 +521,7 @@ Rules:
   - `https://github.com/Genymobile/scrcpy`
   - `https://github.com/burpeepoo/adb-devices`
 
-## 15. Global Shortcuts
+## 16. Global Shortcuts
 
 Backend registers:
 

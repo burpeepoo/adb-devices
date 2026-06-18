@@ -9,9 +9,11 @@ import { IconFolder, IconPhotoUp, IconPlayerPlay, IconUpload } from "@tabler/ico
 import CommandOutput from "./common/CommandOutput";
 import ResultAlert from "./common/ResultAlert";
 import SectionTitle from "./common/SectionTitle";
+import DeviceTargetBanner from "./common/DeviceTargetBanner";
+import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 
 interface Props {
-  deviceSerial: string | null;
+  deviceTarget: DeviceTargetState;
   active: boolean;
 }
 
@@ -36,7 +38,7 @@ const imageExtension = (path: string) => {
 
 const isSupportedImage = (path: string) => SUPPORTED_EXTENSIONS.includes(imageExtension(path));
 
-export default function ImageCast({ deviceSerial, active }: Props) {
+export default function ImageCast({ deviceTarget, active }: Props) {
   const { t } = useTranslation();
   const [selectedPath, setSelectedPath] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -128,8 +130,8 @@ export default function ImageCast({ deviceSerial, active }: Props) {
 
   const handlePush = async (pushAndOpen: boolean) => {
     if (!selectedPath || loading) return;
-    if (!deviceSerial) {
-      setResult({ ok: false, msg: t("imageCast.noDevice") });
+    if (!deviceTarget.serial) {
+      setResult({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
       return;
     }
 
@@ -139,7 +141,7 @@ export default function ImageCast({ deviceSerial, active }: Props) {
     try {
       const response = await invoke<ImageCastResult>("adb_push_reference_image", {
         localPath: selectedPath,
-        deviceSerial,
+        deviceSerial: deviceTarget.serial,
         remoteDir,
         openAfterPush: pushAndOpen,
         scanMedia,
@@ -147,7 +149,7 @@ export default function ImageCast({ deviceSerial, active }: Props) {
       setLastResult(response);
       setResult({
         ok: pushAndOpen ? response.opened : response.pushed,
-        msg: response.message,
+        msg: `${response.message} · ${deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}`,
       });
     } catch (e) {
       setResult({ ok: false, msg: String(e) });
@@ -159,8 +161,8 @@ export default function ImageCast({ deviceSerial, active }: Props) {
 
   const handleOpenLast = async () => {
     if (!lastResult || loading) return;
-    if (!deviceSerial) {
-      setResult({ ok: false, msg: t("imageCast.noDevice") });
+    if (!deviceTarget.serial) {
+      setResult({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
       return;
     }
 
@@ -171,11 +173,11 @@ export default function ImageCast({ deviceSerial, active }: Props) {
       const response = await invoke<ImageCastResult>("adb_open_reference_image", {
         remotePath: lastResult.remote_path,
         mimeType: lastResult.mime_type,
-        deviceSerial,
+        deviceSerial: deviceTarget.serial,
         scanMedia,
       });
       setLastResult({ ...lastResult, ...response });
-      setResult({ ok: response.opened, msg: response.message });
+      setResult({ ok: response.opened, msg: `${response.message} · ${deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}` });
     } catch (e) {
       setResult({ ok: false, msg: String(e) });
     } finally {
@@ -202,10 +204,11 @@ export default function ImageCast({ deviceSerial, active }: Props) {
               label={t("imageCast.title")}
               description={t("imageCast.description")}
             />
-            <Badge variant="light" color={deviceSerial ? "green" : "yellow"}>
-              {deviceSerial ? t("imageCast.deviceReady") : t("imageCast.noDeviceShort")}
+            <Badge variant="light" color={deviceTarget.serial ? "green" : "yellow"}>
+              {deviceTarget.serial ? t("imageCast.deviceReady") : t("imageCast.noDeviceShort")}
             </Badge>
           </Group>
+          <DeviceTargetBanner target={deviceTarget} />
 
           <Box
             p="md"
@@ -299,7 +302,7 @@ export default function ImageCast({ deviceSerial, active }: Props) {
             <Button
               leftSection={<IconUpload size={17} />}
               variant="light"
-              disabled={!selectedPath || loading}
+              disabled={!selectedPath || loading || !deviceTarget.serial}
               loading={loadingAction === "push"}
               onClick={() => handlePush(false)}
             >
@@ -307,7 +310,7 @@ export default function ImageCast({ deviceSerial, active }: Props) {
             </Button>
             <Button
               leftSection={<IconPhotoUp size={17} />}
-              disabled={!selectedPath || loading}
+              disabled={!selectedPath || loading || !deviceTarget.serial}
               loading={loadingAction === "pushOpen"}
               onClick={() => handlePush(openAfterPush)}
             >
@@ -321,7 +324,7 @@ export default function ImageCast({ deviceSerial, active }: Props) {
               size="xs"
               leftSection={<IconPlayerPlay size={14} />}
               onClick={handleOpenLast}
-              disabled={loading}
+              disabled={loading || !deviceTarget.serial}
               loading={loadingAction === "openLast"}
               style={{ alignSelf: "flex-start" }}
             >
@@ -345,8 +348,6 @@ export default function ImageCast({ deviceSerial, active }: Props) {
               {`${lastResult.remote_path}\n${lastResult.mime_type}\n${lastResult.message}`}
             </CommandOutput>
           )}
-
-          {!deviceSerial && <ResultAlert warning result={{ ok: true, msg: t("imageCast.noDevice") }} />}
         </Stack>
       </Paper>
     </Stack>

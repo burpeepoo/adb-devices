@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -10,6 +11,11 @@ import { isAutoUpdateCheckEnabled } from "./updaterPolicy";
 import { markTabVisited, TAB_KEYS } from "./tabState";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import { deviceIdentityKey, setDeviceNote, type DeviceNotes } from "./deviceNotes";
+import {
+  buildDeviceTargetState,
+  deviceTargetResultSuffix,
+  type DeviceTargetState,
+} from "./deviceTarget.ts";
 import AppShellLayout from "./components/layout/AppShellLayout";
 import DevicePanel from "./components/layout/DevicePanel";
 import PageHeader from "./components/layout/PageHeader";
@@ -22,6 +28,7 @@ import ApkInstall from "./components/ApkInstall";
 import Screenshot from "./components/Screenshot";
 import ScreenRecord from "./components/ScreenRecord";
 import ScreenMirror from "./components/ScreenMirror";
+import RemoteControl from "./components/RemoteControl";
 import ImageCast from "./components/ImageCast";
 import Clipboard from "./components/Clipboard";
 import Logcat from "./components/Logcat";
@@ -74,6 +81,7 @@ export default function App() {
     screenshot: t('tabs.screenshot'),
     record: t('tabs.screenRecord'),
     mirror: t('tabs.screenMirror'),
+    remote: t('tabs.remoteControl'),
     imageCast: t('tabs.imageCast'),
     clipboard: t('tabs.clipboard'),
     logcat: t('tabs.logcat'),
@@ -91,15 +99,19 @@ export default function App() {
   const [mirroringDeviceSerial, setMirroringDeviceSerial] = useState<string | null>(null);
   const [screenshotShortcutResult, setScreenshotShortcutResult] = useState<ScreenshotShortcutResult | null>(null);
   const [recordShortcutResult, setRecordShortcutResult] = useState<RecordShortcutResult | null>(null);
-  const selectedDeviceRef = useRef<string | null>(selectedDevice);
+  const deviceTargetRef = useRef<DeviceTargetState | null>(null);
   const settingsRef = useRef<AppSettings>(settings);
   const screenshotShortcutRunningRef = useRef(false);
   const recordShortcutRunningRef = useRef(false);
   const recordingActiveRef = useRef(false);
+  const deviceTarget = useMemo(
+    () => buildDeviceTargetState(devices, selectedDevice, deviceNotes),
+    [devices, deviceNotes, selectedDevice],
+  );
 
   useEffect(() => {
-    selectedDeviceRef.current = selectedDevice;
-  }, [selectedDevice]);
+    deviceTargetRef.current = deviceTarget;
+  }, [deviceTarget]);
 
   useEffect(() => {
     settingsRef.current = settings;
@@ -169,6 +181,7 @@ export default function App() {
       }
 
       const saveDir = settingsRef.current.screenshotDir;
+      const target = deviceTargetRef.current;
       if (!saveDir) {
         setScreenshotShortcutResult({
           id: Date.now(),
@@ -177,17 +190,25 @@ export default function App() {
         });
         return;
       }
+      if (!target?.serial) {
+        setScreenshotShortcutResult({
+          id: Date.now(),
+          ok: false,
+          msg: target ? deviceTargetBlockMessage(t, target) : t("deviceTarget.selectOnlineDevice"),
+        });
+        return;
+      }
 
       screenshotShortcutRunningRef.current = true;
       try {
         const path = await invoke<string>("adb_screenshot", {
           saveDir,
-          deviceSerial: selectedDeviceRef.current || null,
+          deviceSerial: target.serial,
         });
         setScreenshotShortcutResult({
           id: Date.now(),
           ok: true,
-          msg: t('screenshot.saved', { path }),
+          msg: appendTargetSuffix(t('screenshot.saved', { path }), target, t),
           path,
         });
       } catch (e) {
@@ -233,13 +254,14 @@ export default function App() {
       }
 
       const saveDir = settingsRef.current.recordingDir;
-      const deviceSerial = selectedDeviceRef.current;
+      const target = deviceTargetRef.current;
+      const deviceSerial = target?.serial || null;
 
       if (!deviceSerial) {
         setRecordShortcutResult({
           id: Date.now(),
           ok: false,
-          msg: t('screenRecord.selectDevice'),
+          msg: target ? deviceTargetBlockMessage(t, target) : t("deviceTarget.selectOnlineDevice"),
           recording: recordingActiveRef.current,
         });
         return;
@@ -276,7 +298,7 @@ export default function App() {
           setRecordShortcutResult({
             id: Date.now(),
             ok: true,
-            msg: t('screenRecord.saved', { path }),
+            msg: target ? appendTargetSuffix(t('screenRecord.saved', { path }), target, t) : t('screenRecord.saved', { path }),
             recording: false,
             path,
           });
@@ -399,11 +421,11 @@ export default function App() {
         />
       );
     }
-    if (tab === "workbench") return <AdbWorkbench deviceSerial={selectedDevice} />;
+    if (tab === "workbench") return <AdbWorkbench deviceTarget={deviceTarget} />;
     if (tab === "install") {
       return (
         <ApkInstall
-          deviceSerial={selectedDevice}
+          deviceTarget={deviceTarget}
           recentApkDir={settings.recentApkDir}
           onRecentApkDirChange={(dir) => handleSaveDirChange("recentApkDir", dir)}
           active={activeTab === "install"}
@@ -413,7 +435,7 @@ export default function App() {
     if (tab === "screenshot") {
       return (
         <Screenshot
-          deviceSerial={selectedDevice}
+          deviceTarget={deviceTarget}
           saveDir={settings.screenshotDir}
           shortcutResult={screenshotShortcutResult}
           onSaveDirChange={(dir) => handleSaveDirChange("screenshotDir", dir)}
@@ -423,7 +445,7 @@ export default function App() {
     if (tab === "record") {
       return (
         <ScreenRecord
-          deviceSerial={selectedDevice}
+          deviceTarget={deviceTarget}
           saveDir={settings.recordingDir}
           shortcutResult={recordShortcutResult}
           onSaveDirChange={(dir) => handleSaveDirChange("recordingDir", dir)}
@@ -432,12 +454,13 @@ export default function App() {
       );
     }
     if (tab === "mirror") {
-      return <ScreenMirror deviceSerial={selectedDevice} onMirrorStateChange={setMirroringDeviceSerial} />;
+      return <ScreenMirror deviceTarget={deviceTarget} onMirrorStateChange={setMirroringDeviceSerial} />;
     }
-    if (tab === "imageCast") return <ImageCast deviceSerial={selectedDevice} active={activeTab === "imageCast"} />;
-    if (tab === "clipboard") return <Clipboard deviceSerial={selectedDevice} />;
-    if (tab === "logcat") return <Logcat deviceSerial={selectedDevice} />;
-    if (tab === "packages") return <PackageList deviceSerial={selectedDevice} />;
+    if (tab === "remote") return <RemoteControl />;
+    if (tab === "imageCast") return <ImageCast deviceTarget={deviceTarget} active={activeTab === "imageCast"} />;
+    if (tab === "clipboard") return <Clipboard deviceTarget={deviceTarget} />;
+    if (tab === "logcat") return <Logcat deviceTarget={deviceTarget} />;
+    if (tab === "packages") return <PackageList deviceTarget={deviceTarget} />;
     return null;
   };
 
@@ -533,4 +556,15 @@ export default function App() {
       <AppUpdatePrompt updater={updater} />
     </>
   );
+}
+
+function deviceTargetBlockMessage(t: TFunction, target: DeviceTargetState) {
+  return target.blockReason === "selected-device-not-online"
+    ? t("deviceTarget.selectedUnavailable", { count: target.onlineDeviceCount })
+    : t("deviceTarget.selectOnlineDevice", { count: target.onlineDeviceCount });
+}
+
+function appendTargetSuffix(message: string, target: DeviceTargetState, t: TFunction) {
+  const suffix = deviceTargetResultSuffix(target, t("deviceTarget.resultLabel"));
+  return suffix ? `${message} · ${suffix}` : message;
 }

@@ -6,9 +6,11 @@ import { IconCamera, IconExternalLink, IconPhoto } from "@tabler/icons-react";
 import PathSelector from "./common/PathSelector";
 import ResultAlert from "./common/ResultAlert";
 import SectionTitle from "./common/SectionTitle";
+import DeviceTargetBanner from "./common/DeviceTargetBanner";
+import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 
 interface Props {
-  deviceSerial: string | null;
+  deviceTarget: DeviceTargetState;
   saveDir: string;
   shortcutResult?: {
     id: number;
@@ -19,7 +21,7 @@ interface Props {
   onSaveDirChange: (dir: string) => void;
 }
 
-export default function Screenshot({ deviceSerial, saveDir, shortcutResult, onSaveDirChange }: Props) {
+export default function Screenshot({ deviceTarget, saveDir, shortcutResult, onSaveDirChange }: Props) {
   const { t } = useTranslation();
   const [taking, setTaking] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -30,6 +32,10 @@ export default function Screenshot({ deviceSerial, saveDir, shortcutResult, onSa
       setResult({ ok: false, msg: t('screenshot.noSaveDir') });
       return;
     }
+    if (!deviceTarget.serial) {
+      setResult({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
+      return;
+    }
     if (taking) {
       return;
     }
@@ -38,7 +44,7 @@ export default function Screenshot({ deviceSerial, saveDir, shortcutResult, onSa
     try {
       const path = await invoke<string>("adb_screenshot", {
         saveDir,
-        deviceSerial: deviceSerial || null,
+        deviceSerial: deviceTarget.serial,
       });
       setLastPath(path);
       if (openPreview) {
@@ -48,13 +54,13 @@ export default function Screenshot({ deviceSerial, saveDir, shortcutResult, onSa
           // fallback: reveal in folder
         }
       }
-      setResult({ ok: true, msg: t('screenshot.saved', { path }) });
+      setResult({ ok: true, msg: `${t('screenshot.saved', { path })} · ${deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}` });
     } catch (e) {
       setResult({ ok: false, msg: String(e) });
     } finally {
       setTaking(false);
     }
-  }, [deviceSerial, saveDir, taking, t]);
+  }, [deviceTarget, saveDir, taking, t]);
 
   useEffect(() => {
     if (!shortcutResult) {
@@ -94,6 +100,7 @@ export default function Screenshot({ deviceSerial, saveDir, shortcutResult, onSa
       <Paper withBorder radius="md" p="md">
         <Stack gap="md">
           <SectionTitle icon={<IconCamera size={17} />} label={t("screenshot.title")} />
+          <DeviceTargetBanner target={deviceTarget} />
 
           <PathSelector
             label={t("screenshot.saveDir")}
@@ -104,10 +111,10 @@ export default function Screenshot({ deviceSerial, saveDir, shortcutResult, onSa
           />
 
           <Group grow>
-            <Button leftSection={<IconCamera size={17} />} loading={taking} onClick={() => handleScreenshot(false)}>
+            <Button leftSection={<IconCamera size={17} />} loading={taking} disabled={!deviceTarget.serial} onClick={() => handleScreenshot(false)}>
               {t("screenshot.take")}
             </Button>
-            <Button variant="filled" color="dark" leftSection={<IconPhoto size={17} />} loading={taking} onClick={() => handleScreenshot(true)}>
+            <Button variant="filled" color="dark" leftSection={<IconPhoto size={17} />} loading={taking} disabled={!deviceTarget.serial} onClick={() => handleScreenshot(true)}>
               {t("screenshot.takeAndPreview")}
             </Button>
           </Group>
@@ -136,8 +143,6 @@ export default function Screenshot({ deviceSerial, saveDir, shortcutResult, onSa
               {t("screenshot.showInFolder")}
             </Button>
           )}
-
-          {!deviceSerial && <ResultAlert warning result={{ ok: true, msg: t("screenshot.noDevice") }} />}
         </Stack>
       </Paper>
     </Stack>

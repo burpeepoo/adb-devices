@@ -83,6 +83,17 @@ pub fn adb_repair_wireless_pairing(
     Ok(t!("device.wireless_pairing_repaired").to_string())
 }
 
+pub fn repair_wireless_pairing_for_remote(
+    app: &AppHandle,
+    state: &AppState,
+) -> Result<String, AdbError> {
+    let _guard = state.adb_server_operation.lock().map_err(|_| {
+        AdbError::CommandFailed(t!("device.adb_operation_state_error").into_owned())
+    })?;
+    restart_adb_server(app)?;
+    Ok(t!("device.wireless_pairing_repaired").to_string())
+}
+
 #[tauri::command(async)]
 pub fn adb_reset_host_identity(
     app: AppHandle,

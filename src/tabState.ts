@@ -7,6 +7,7 @@ export const TAB_KEYS: TabKey[] = [
   "screenshot",
   "record",
   "mirror",
+  "remote",
   "imageCast",
   "clipboard",
   "logcat",

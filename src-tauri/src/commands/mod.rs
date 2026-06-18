@@ -6,6 +6,7 @@ pub mod logcat;
 pub mod mirror;
 pub mod package;
 pub mod record;
+pub mod remote;
 pub mod screenshot;
 pub mod settings;
 pub mod workbench;

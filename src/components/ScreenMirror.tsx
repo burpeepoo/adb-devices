@@ -4,11 +4,13 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { IconApps, IconDevicesPc, IconPlayerPlay, IconRefresh, IconSearch } from "@tabler/icons-react";
 import SectionTitle from "./common/SectionTitle";
+import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import { groupLaunchableApps } from "../appDrawerGrouping";
+import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 import type { LaunchableApp, LaunchableAppAsset } from "../types";
 
 interface Props {
-  deviceSerial: string | null;
+  deviceTarget: DeviceTargetState;
   onMirrorStateChange: (deviceSerial: string | null) => void;
 }
 
@@ -41,7 +43,7 @@ function appInitial(app: LaunchableApp) {
   return source.charAt(0).toUpperCase() || "A";
 }
 
-export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Props) {
+export default function ScreenMirror({ deviceTarget, onMirrorStateChange }: Props) {
   const { t } = useTranslation();
   const [scrcpyAvailable, setScrcpyAvailable] = useState<boolean | null>(null);
   const [installingScrcpy, setInstallingScrcpy] = useState(false);
@@ -112,7 +114,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
   }, [loadDrawerAppIcon]);
 
   const loadDrawerApps = useCallback(async (forceIconRefresh = false) => {
-    const serial = deviceSerial?.trim();
+    const serial = deviceTarget.serial?.trim();
     const requestId = drawerRequestRef.current + 1;
     drawerRequestRef.current = requestId;
     setDrawerStatus(null);
@@ -144,7 +146,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
         setDrawerLoading(false);
       }
     }
-  }, [deviceSerial, loadDrawerAppIcons]);
+  }, [deviceTarget.serial, loadDrawerAppIcons]);
 
   useEffect(() => {
     invoke<boolean>("check_scrcpy_available")
@@ -216,16 +218,16 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
   };
 
   const handleStartMirror = async () => {
-    if (!deviceSerial || mirrorLoading) return;
+    if (!deviceTarget.serial || mirrorLoading) return;
     setMirrorLoading(true);
     setStatus(null);
     try {
       const msg = await invoke<string>("start_screen_mirror", {
-        deviceSerial,
+        deviceSerial: deviceTarget.serial,
         audioEnabled: mirrorAudioEnabled,
       });
       await syncMirrorState();
-      setStatus({ ok: true, msg });
+      setStatus({ ok: true, msg: `${msg} · ${deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}` });
     } catch (e) {
       syncMirrorState().catch(() => {
         applyMirrorState({ running: false, device_serial: null });
@@ -237,15 +239,15 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
   };
 
   const handleNavigationKey = async (key: "back" | "home") => {
-    if (!deviceSerial || navigationLoading) return;
+    if (!deviceTarget.serial || navigationLoading) return;
     setNavigationLoading(key);
     setStatus(null);
     try {
       const msg = await invoke<string>("send_navigation_key", {
-        deviceSerial,
+        deviceSerial: deviceTarget.serial,
         key,
       });
-      setStatus({ ok: true, msg });
+      setStatus({ ok: true, msg: `${msg} · ${deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}` });
     } catch (e) {
       setStatus({ ok: false, msg: String(e) });
     } finally {
@@ -269,15 +271,15 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
   };
 
   const handleLaunchApp = async (app: LaunchableApp) => {
-    if (!deviceSerial || launchingComponent) return;
+    if (!deviceTarget.serial || launchingComponent) return;
     setLaunchingComponent(app.component_name);
     setDrawerStatus(null);
     try {
       const msg = await invoke<string>("adb_launch_app", {
-        deviceSerial,
+        deviceSerial: deviceTarget.serial,
         componentName: app.component_name,
       });
-      setDrawerStatus({ ok: true, msg });
+      setDrawerStatus({ ok: true, msg: `${msg} · ${deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}` });
     } catch (e) {
       setDrawerStatus({ ok: false, msg: String(e) });
     } finally {
@@ -376,7 +378,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
           <div className="flex items-center gap-2">
             <button
               onClick={handleStartMirror}
-              disabled={!deviceSerial || mirroring || mirrorLoading}
+              disabled={!deviceTarget.serial || mirroring || mirrorLoading}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {mirrorLoading && !mirroring ? t('screenMirror.starting') : t('screenMirror.startMirror')}
@@ -390,6 +392,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
             </button>
           </div>
         </div>
+        <DeviceTargetBanner target={deviceTarget} className="mb-4" />
 
         <label className={`mb-4 flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 ${mirroring || mirrorLoading ? "opacity-60" : ""}`}>
           <input
@@ -411,7 +414,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
             <button
               type="button"
               onClick={() => handleNavigationKey("back")}
-              disabled={!deviceSerial || Boolean(navigationLoading)}
+              disabled={!deviceTarget.serial || Boolean(navigationLoading)}
               className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {navigationLoading === "back" ? t('screenMirror.sending') : t('screenMirror.back')}
@@ -419,7 +422,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
             <button
               type="button"
               onClick={() => handleNavigationKey("home")}
-              disabled={!deviceSerial || Boolean(navigationLoading)}
+              disabled={!deviceTarget.serial || Boolean(navigationLoading)}
               className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {navigationLoading === "home" ? t('screenMirror.sending') : t('screenMirror.home')}
@@ -455,10 +458,6 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
             {status.msg}
           </div>
         )}
-
-        {!deviceSerial && (
-          <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">{t('screenMirror.selectDevice')}</div>
-        )}
       </section>
     );
   };
@@ -475,7 +474,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
         <button
           type="button"
           onClick={() => loadDrawerApps(true)}
-          disabled={!deviceSerial || drawerLoading}
+          disabled={!deviceTarget.serial || drawerLoading}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <IconRefresh size={15} className={drawerLoading ? "animate-spin" : ""} />
@@ -483,7 +482,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
         </button>
       </div>
 
-      {deviceSerial && (
+      {deviceTarget.serial && (
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <label className="relative block min-w-0 flex-1">
             <IconSearch size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -500,9 +499,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
         </div>
       )}
 
-      {!deviceSerial && (
-        <div className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">{t('screenMirror.selectDevice')}</div>
-      )}
+      {!deviceTarget.serial && <DeviceTargetBanner target={deviceTarget} className="mt-4" />}
 
       {drawerError && (
         <div className="mt-4 rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-600">
@@ -529,7 +526,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
         </div>
       )}
 
-      {!drawerLoading && !drawerError && deviceSerial && filteredDrawerAppCount === 0 && (
+      {!drawerLoading && !drawerError && deviceTarget.serial && filteredDrawerAppCount === 0 && (
         <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-8 text-center text-sm text-gray-500">
           {t('screenMirror.noApps')}
         </div>
@@ -554,7 +551,7 @@ export default function ScreenMirror({ deviceSerial, onMirrorStateChange }: Prop
                       type="button"
                       title={app.component_name}
                       onClick={() => handleLaunchApp(app)}
-                      disabled={!deviceSerial || Boolean(launchingComponent)}
+                      disabled={!deviceTarget.serial || Boolean(launchingComponent)}
                       className="group flex min-h-[112px] flex-col items-center rounded-lg border border-gray-200 bg-white p-3 text-center shadow-sm transition hover:border-blue-200 hover:bg-blue-50 disabled:cursor-wait disabled:opacity-70"
                     >
                       {app.icon_data_url ? (

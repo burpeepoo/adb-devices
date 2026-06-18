@@ -7,9 +7,11 @@ import { IconExternalLink, IconPlayerRecord, IconPlayerStop, IconVideo } from "@
 import PathSelector from "./common/PathSelector";
 import ResultAlert from "./common/ResultAlert";
 import SectionTitle from "./common/SectionTitle";
+import DeviceTargetBanner from "./common/DeviceTargetBanner";
+import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 
 interface Props {
-  deviceSerial: string | null;
+  deviceTarget: DeviceTargetState;
   saveDir: string;
   shortcutResult?: {
     id: number;
@@ -22,7 +24,7 @@ interface Props {
   onRecordingStateChange: (recording: boolean) => void;
 }
 
-export default function ScreenRecord({ deviceSerial, saveDir, shortcutResult, onSaveDirChange, onRecordingStateChange }: Props) {
+export default function ScreenRecord({ deviceTarget, saveDir, shortcutResult, onSaveDirChange, onRecordingStateChange }: Props) {
   const { t } = useTranslation();
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -48,13 +50,13 @@ export default function ScreenRecord({ deviceSerial, saveDir, shortcutResult, on
   }, [recording]);
 
   const handleStart = useCallback(async () => {
-    if (!deviceSerial) {
-      setResult({ ok: false, msg: t('screenRecord.selectDevice') });
+    if (!deviceTarget.serial) {
+      setResult({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
       return;
     }
     try {
       await invoke<string>("adb_start_recording", {
-        deviceSerial: deviceSerial || null,
+        deviceSerial: deviceTarget.serial,
       });
       setRecording(true);
       onRecordingStateChange(true);
@@ -63,21 +65,25 @@ export default function ScreenRecord({ deviceSerial, saveDir, shortcutResult, on
     } catch (e) {
       setResult({ ok: false, msg: String(e) });
     }
-  }, [deviceSerial, onRecordingStateChange, t]);
+  }, [deviceTarget, onRecordingStateChange, t]);
 
   const handleStop = useCallback(async () => {
     if (!saveDir) {
       setResult({ ok: false, msg: t('screenRecord.noSaveDir') });
       return;
     }
+    if (!deviceTarget.serial) {
+      setResult({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
+      return;
+    }
     setStopping(true);
     try {
       const path = await invoke<string>("adb_stop_recording", {
         saveDir,
-        deviceSerial: deviceSerial || null,
+        deviceSerial: deviceTarget.serial,
       });
       setLastPath(path);
-      setResult({ ok: true, msg: t('screenRecord.saved', { path }) });
+      setResult({ ok: true, msg: `${t('screenRecord.saved', { path })} · ${deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}` });
     } catch (e) {
       setResult({ ok: false, msg: String(e) });
     } finally {
@@ -85,7 +91,7 @@ export default function ScreenRecord({ deviceSerial, saveDir, shortcutResult, on
       onRecordingStateChange(false);
       setStopping(false);
     }
-  }, [saveDir, deviceSerial, onRecordingStateChange, t]);
+  }, [saveDir, deviceTarget, onRecordingStateChange, t]);
 
   useEffect(() => {
     if (!shortcutResult) {
@@ -123,6 +129,7 @@ export default function ScreenRecord({ deviceSerial, saveDir, shortcutResult, on
       <Paper withBorder radius="md" p="md">
         <Stack gap="md">
           <SectionTitle icon={<IconVideo size={17} />} label={t("screenRecord.title")} />
+          <DeviceTargetBanner target={deviceTarget} />
 
           <PathSelector
             label={t("screenRecord.saveDir")}
@@ -152,7 +159,7 @@ export default function ScreenRecord({ deviceSerial, saveDir, shortcutResult, on
           )}
 
           {!recording ? (
-            <Button color="red" leftSection={<IconPlayerRecord size={17} />} disabled={!deviceSerial} onClick={handleStart}>
+            <Button color="red" leftSection={<IconPlayerRecord size={17} />} disabled={!deviceTarget.serial} onClick={handleStart}>
               {t("screenRecord.startRecord")}
             </Button>
           ) : (
@@ -198,7 +205,6 @@ export default function ScreenRecord({ deviceSerial, saveDir, shortcutResult, on
             </Button>
           )}
 
-          {!deviceSerial && !recording && <ResultAlert warning result={{ ok: true, msg: t("screenRecord.noDevice") }} />}
         </Stack>
       </Paper>
 

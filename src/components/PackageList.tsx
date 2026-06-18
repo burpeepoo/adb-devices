@@ -4,15 +4,17 @@ import { ExportedApk, PackageInfo } from "../types";
 import { useTranslation } from "react-i18next";
 import { IconDeviceMobileCode } from "@tabler/icons-react";
 import SectionTitle from "./common/SectionTitle";
+import DeviceTargetBanner from "./common/DeviceTargetBanner";
+import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 
 interface Props {
-  deviceSerial: string | null;
+  deviceTarget: DeviceTargetState;
 }
 
 type SortKey = "name" | "version_name" | "version_code" | "device_serial" | "build_number";
 type SortDirection = "asc" | "desc";
 
-export default function PackageList({ deviceSerial }: Props) {
+export default function PackageList({ deviceTarget }: Props) {
   const { t } = useTranslation();
   const [packages, setPackages] = useState<PackageInfo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,12 +26,16 @@ export default function PackageList({ deviceSerial }: Props) {
   const [exportResult, setExportResult] = useState<ExportedApk | null>(null);
 
   const handleList = useCallback(async () => {
+    if (!deviceTarget.serial) {
+      setError(t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`));
+      return;
+    }
     setLoading(true);
     setError(null);
     setExportResult(null);
     try {
       const result = await invoke<PackageInfo[]>("adb_list_package_details", {
-        deviceSerial: deviceSerial || null,
+        deviceSerial: deviceTarget.serial,
       });
       setPackages(result);
     } catch (e) {
@@ -38,7 +44,7 @@ export default function PackageList({ deviceSerial }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [deviceSerial]);
+  }, [deviceTarget, t]);
 
   const filtered = search
     ? packages.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
@@ -77,13 +83,17 @@ export default function PackageList({ deviceSerial }: Props) {
   };
 
   const handleExportApk = async (name: string) => {
+    if (!deviceTarget.serial) {
+      setError(t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`));
+      return;
+    }
     setExportingPackage(name);
     setError(null);
     setExportResult(null);
     try {
       const result = await invoke<ExportedApk>("adb_export_package_apk", {
         packageName: name,
-        deviceSerial: deviceSerial || null,
+        deviceSerial: deviceTarget.serial,
       });
       setExportResult(result);
     } catch (e) {
@@ -106,10 +116,11 @@ export default function PackageList({ deviceSerial }: Props) {
     <div className="h-full bg-white rounded-lg border border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
         <SectionTitle icon={<IconDeviceMobileCode size={17} />} label={t('tabs.packageList')} mb="sm" />
+        <DeviceTargetBanner target={deviceTarget} className="mb-3" />
         <div className="flex gap-2 mb-2">
           <button
             onClick={handleList}
-            disabled={loading || !deviceSerial}
+            disabled={loading || !deviceTarget.serial}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? t('packageList.loading') : t('packageList.loadPkgInfo')}
@@ -137,6 +148,8 @@ export default function PackageList({ deviceSerial }: Props) {
                 count: exportResult.files.length,
                 path: exportResult.output_dir,
               })}
+              {" · "}
+              {deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}
             </span>
             <button
               type="button"
@@ -200,7 +213,7 @@ export default function PackageList({ deviceSerial }: Props) {
                       </button>
                       <button
                         onClick={() => handleExportApk(pkg.name)}
-                        disabled={exportingPackage !== null}
+                        disabled={exportingPackage !== null || !deviceTarget.serial}
                         className="text-blue-500 hover:text-blue-700 disabled:text-gray-400 disabled:cursor-not-allowed"
                       >
                         {exportingPackage === pkg.name ? t('packageList.exportingApk') : t('packageList.exportApk')}
@@ -218,7 +231,7 @@ export default function PackageList({ deviceSerial }: Props) {
             </div>
           ) : (
             <div className="p-6 text-center text-sm text-gray-400">
-              {deviceSerial ? t('packageList.clickToLoad') : t('packageList.selectDevice')}
+              {deviceTarget.serial ? t('packageList.clickToLoad') : t('packageList.selectDevice')}
             </div>
           )
         )}

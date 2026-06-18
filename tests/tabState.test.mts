@@ -10,6 +10,7 @@ test("tab order covers every workspace tab", () => {
     "screenshot",
     "record",
     "mirror",
+    "remote",
     "imageCast",
     "clipboard",
     "logcat",

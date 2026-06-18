@@ -50,11 +50,12 @@ Startup sequence:
 
 Navigation:
 
-- The left rail exposes 10 tabs: `pair`, `workbench`, `install`, `screenshot`, `record`, `mirror`, `imageCast`, `clipboard`, `logcat`, `packages`.
+- The left rail exposes 11 tabs: `pair`, `workbench`, `install`, `screenshot`, `record`, `mirror`, `remote`, `imageCast`, `clipboard`, `logcat`, `packages`.
 - The Settings button opens a modal, not a tab.
 - Tabs are lazily mounted and then kept mounted once visited, so long-running tool state is not discarded when switching away.
 - The Pair tab is implemented as the device console. It includes the selected device summary, shortcuts to other tools, and an embedded pair/connect panel.
-- The Mirror tab combines scrcpy-based interactive mirroring with a selected-device app drawer for launching installed apps.
+- The Mirror tab combines scrcpy-based local interactive mirroring with a selected-device app drawer for launching installed apps.
+- The Remote tab starts an opt-in browser/PWA gateway for phone or second-computer control, with Tailscale-first direct links, role QR sessions, 7-day trusted browsers, experimental HLS video streaming, screenshot/MJPEG fallback viewing, and whitelisted ADB actions.
 
 ## Cross-Cutting Principles
 
@@ -63,6 +64,7 @@ Device identity:
 - Display identity should prefer `device_sn`, falling back to ADB `serial`.
 - Local notes are keyed by `device_sn || serial`, so wireless port changes can still map to the same physical device when SN is available.
 - Device history keeps recently seen devices visible as `disconnected`.
+- Device-targeting tools use a shared `DeviceTargetState` and require an explicit online selected device before invoking ADB. The UI no longer intentionally falls back to ADB's default device selection for screenshots, installs, Workbench execution, clipboard input, Logcat refresh, package export, image cast, or scrcpy actions.
 
 ADB command behavior:
 
@@ -71,11 +73,13 @@ ADB command behavior:
 - macOS ADB subprocesses get a terminal-like `PATH`, `LANG`, and home current directory.
 - Wireless pair/connect/restart commands are serialized through `AppState.adb_server_operation`.
 - ADB restart and wireless repair refresh `adb_known_hosts.pb` while preserving `adbkey` and `adbkey.pub`.
+- Remote PWA control still uses this desktop app as the only ADB host; remote clients receive scoped API access, not a host desktop session or arbitrary shell.
 
 Risk handling:
 
 - The workbench classifies commands as low, medium, or high risk.
 - High-risk commands require explicit confirmation before execution.
+- All device actions show a visible target-device strip and record target identity in user-facing results or exports when practical.
 - Host identity reset is intentionally separated from ordinary ADB restart because it removes `adbkey` and changes this computer's ADB identity.
 
 Persistence:

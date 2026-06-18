@@ -1,11 +1,11 @@
 {
   "name": "adb-manager",
-  "version": "1.1.26",
+  "version": "1.1.27",
   "description": "ADB Manager for Cozyla PMs",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "test": "npm run test:updater-policy && npm run test:release-notes && npm run test:update-notes && npm run test:tab-state && npm run test:path-clipboard && npm run test:device-notes && npm run test:device-selection && npm run test:device-form-factor && npm run test:pair-connect-endpoints && npm run test:startup-adb-repair && npm run test:workbench-rewrite && npm run test:app-drawer-grouping",
+    "test": "npm run test:updater-policy && npm run test:release-notes && npm run test:update-notes && npm run test:tab-state && npm run test:path-clipboard && npm run test:device-notes && npm run test:device-selection && npm run test:device-target && npm run test:device-form-factor && npm run test:pair-connect-endpoints && npm run test:wireless-recovery && npm run test:remote-safety && npm run test:startup-adb-repair && npm run test:workbench-rewrite && npm run test:app-drawer-grouping",
     "test:updater-policy": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/updaterPolicy.test.mts",
     "test:release-notes": "node --test tests/releaseNotes.test.mjs",
     "test:update-notes": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/updateNotes.test.mts",
@@ -13,8 +13,11 @@
     "test:path-clipboard": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/pathClipboard.test.mts",
     "test:device-notes": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/deviceNotes.test.mts",
     "test:device-selection": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/deviceSelection.test.mts",
+    "test:device-target": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/deviceTarget.test.mts",
     "test:device-form-factor": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/deviceFormFactor.test.mts",
     "test:pair-connect-endpoints": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/pairConnectEndpoints.test.mts",
+    "test:wireless-recovery": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/wirelessRecovery.test.mts",
+    "test:remote-safety": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/remoteSafety.test.mts",
     "test:startup-adb-repair": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/startupAdbRepair.test.mts",
     "test:workbench-rewrite": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/workbenchCommandRewrite.test.mts",
     "test:app-drawer-grouping": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/appDrawerGrouping.test.mts",
@@ -57,6 +60,6 @@
     "@vitejs/plugin-react": "^6.0.1",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3",
-    "vite": "^8.0.10"
+    "vite": "^8.0.16"
   }
 }

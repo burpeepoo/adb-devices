@@ -12,6 +12,26 @@ Boundary:
 
 - Wireless repair refreshes the host-side pairing cache without changing this computer's ADB identity.
 - Host identity reset remains a separate explicit fallback because it invalidates the local ADB key.
+- The UI should continue to present safe repair before host identity reset. Reset confirmation must mention `adbkey` removal and the need to re-authorize or re-pair devices.
+
+## Explicit Device Targeting
+
+Device actions must not silently fall back to ADB's default target.
+
+Coverage:
+
+- Shared frontend target state blocks device actions when no online device is selected.
+- Workbench, install, screenshot, screen record, scrcpy mirror/navigation, image cast, clipboard, Logcat, and packages all use the selected online serial.
+- Results and exports should include target identity when they may be used as QA/support evidence.
+
+Risk:
+
+- A future tool may pass `null` or an empty serial to a backend command and reintroduce default ADB target behavior.
+
+Mitigation:
+
+- Reuse the shared target-device strip and helper for new device tools.
+- Add helper tests for target selection and keep `npm test` covering them.
 
 ## Startup Repair Tradeoff
 
