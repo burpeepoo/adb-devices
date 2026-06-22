@@ -3,9 +3,10 @@ use serde::Serialize;
 use std::{
     collections::HashMap,
     fs,
+    io::Read,
     net::{TcpStream, ToSocketAddrs},
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
     sync::{Mutex, MutexGuard},
     time::{Duration, Instant},
 };
@@ -215,11 +216,7 @@ pub fn adb_mdns_discover(
     state: State<'_, AppState>,
 ) -> Result<Vec<MdnsDevice>, AdbError> {
     let _guard = lock_adb_server_operation(&state)?;
-    let output =
-        adb::run_adb_with_timeout(&app, &["mdns", "services"], None, Duration::from_secs(8))?;
-    adb::ensure_success(&output, &t!("device.scan_failed"))?;
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    Ok(parse_mdns_services(&stdout))
+    discover_mdns_devices(&app)
 }
 
 #[tauri::command(async)]
@@ -402,8 +399,8 @@ pub fn adb_pair(
 
     if !pair_output_succeeded(&output) {
         let first_msg = output_message(&output);
-        if is_pairing_retriable_after_adb_restart(&first_msg) {
-            restart_adb_server(&app)?;
+        if pairing_retry_strategy(&first_msg) == PairingRetryStrategy::RestartAdbPreservingPairing {
+            restart_adb_server_preserving_pairing(&app)?;
             output = run_pair_command(&app, &addr, &code)?;
         }
 
@@ -413,28 +410,9 @@ pub fn adb_pair(
         }
     }
 
-    // 配对成功后立即尝试 mDNS 自动连接，避免用户手动输入连接端口
-    let connect_result = adb::run_adb_with_env_timeout(
-        &app,
-        &["devices", "-l"],
-        None,
-        &[("ADB_MDNS_AUTO_CONNECT", "adb-tls-connect")],
-        Duration::from_secs(15),
-    );
-
-    match connect_result {
-        Ok(output) => {
-            let connect_stdout = String::from_utf8_lossy(&output.stdout);
-            if connect_stdout
-                .lines()
-                .any(|l| l.contains(&ip) && l.contains("device"))
-            {
-                Ok(t!("device.pair_success_connected", ip = ip).to_string())
-            } else {
-                Ok(t!("device.pair_success_pending", ip = ip).to_string())
-            }
-        }
-        Err(_) => Ok(t!("device.pair_success", ip = ip).to_string()),
+    match connect_via_current_mdns_port(&app, &ip) {
+        Ok(Some(_)) => Ok(t!("device.pair_success_connected", ip = ip).to_string()),
+        _ => Ok(t!("device.pair_success_pending", ip = ip).to_string()),
     }
 }
 
@@ -774,6 +752,20 @@ fn is_pairing_retriable_after_adb_restart(message: &str) -> bool {
         || message.contains("no route to host")
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum PairingRetryStrategy {
+    None,
+    RestartAdbPreservingPairing,
+}
+
+fn pairing_retry_strategy(message: &str) -> PairingRetryStrategy {
+    if is_pairing_retriable_after_adb_restart(message) {
+        PairingRetryStrategy::RestartAdbPreservingPairing
+    } else {
+        PairingRetryStrategy::None
+    }
+}
+
 fn should_restart_adb_after_failed_connect(message: &str) -> bool {
     let message = message.to_ascii_lowercase();
     message.contains("protocol fault")
@@ -781,8 +773,26 @@ fn should_restart_adb_after_failed_connect(message: &str) -> bool {
         || message.contains("no route to host")
 }
 
+fn discover_mdns_devices(app: &AppHandle) -> Result<Vec<MdnsDevice>, AdbError> {
+    let output =
+        adb::run_adb_with_timeout(app, &["mdns", "services"], None, Duration::from_secs(8))?;
+    adb::ensure_success(&output, &t!("device.scan_failed"))?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut devices = parse_mdns_services(&stdout);
+
+    if devices.is_empty() {
+        devices.extend(discover_platform_mdns_devices());
+    }
+
+    Ok(dedupe_mdns_devices(devices))
+}
+
 fn connect_via_mdns_autoconnect(app: &AppHandle, ip: &str) -> Result<Option<String>, AdbError> {
     // 直接连接失败时，设备的无线调试连接端口可能已经变化。
+    if let Some(message) = connect_via_current_mdns_port(app, ip)? {
+        return Ok(Some(message));
+    }
+
     let fallback_output = adb::run_adb_with_env_timeout(
         app,
         &["devices", "-l"],
@@ -797,6 +807,19 @@ fn connect_via_mdns_autoconnect(app: &AppHandle, ip: &str) -> Result<Option<Stri
         if line.contains(ip) && line.contains("device") {
             return Ok(Some(t!("device.connected_via_mdns", ip = ip).to_string()));
         }
+    }
+
+    Ok(None)
+}
+
+fn connect_via_current_mdns_port(app: &AppHandle, ip: &str) -> Result<Option<String>, AdbError> {
+    let devices = discover_mdns_devices(app)?;
+    let Some(device) = connectable_mdns_device_for_ip(&devices, ip) else {
+        return Ok(None);
+    };
+    let output = connect_address(app, &device.address)?;
+    if connect_success_message(&output, &device.address, false).is_some() {
+        return Ok(Some(t!("device.connected_via_mdns", ip = ip).to_string()));
     }
 
     Ok(None)
@@ -909,6 +932,169 @@ fn parse_mdns_services(stdout: &str) -> Vec<MdnsDevice> {
     }
 
     devices
+}
+
+fn connectable_mdns_device_for_ip(devices: &[MdnsDevice], ip: &str) -> Option<MdnsDevice> {
+    devices
+        .iter()
+        .find(|device| device.connectable && device.ip == ip)
+        .cloned()
+}
+
+fn dedupe_mdns_devices(devices: Vec<MdnsDevice>) -> Vec<MdnsDevice> {
+    let mut deduped = Vec::new();
+    for device in devices {
+        if deduped.iter().any(|existing: &MdnsDevice| {
+            existing.service_name == device.service_name
+                && existing.service_type == device.service_type
+                && existing.address == device.address
+        }) {
+            continue;
+        }
+        deduped.push(device);
+    }
+    deduped
+}
+
+#[cfg(target_os = "macos")]
+fn discover_platform_mdns_devices() -> Vec<MdnsDevice> {
+    let mut devices = Vec::new();
+    for (service_type, connectable) in [
+        ("_adb-tls-connect._tcp", true),
+        ("_adb-tls-pairing._tcp", false),
+    ] {
+        let service_type_for_parse = format!("{service_type}.");
+        let Ok(browse_output) = run_command_for_output(
+            "dns-sd",
+            &["-B", service_type, "local."],
+            Duration::from_secs(3),
+        ) else {
+            continue;
+        };
+        for service_name in parse_dns_sd_browse_services(&browse_output, &service_type_for_parse) {
+            let Ok(lookup_output) = run_command_for_output(
+                "dns-sd",
+                &["-L", &service_name, service_type, "local."],
+                Duration::from_secs(3),
+            ) else {
+                continue;
+            };
+            let Some((host, port)) = parse_dns_sd_lookup(&lookup_output) else {
+                continue;
+            };
+            let Some(ip) = resolve_reachable_ipv4(&host, &port) else {
+                continue;
+            };
+            let address = format!("{ip}:{port}");
+            devices.push(MdnsDevice {
+                service_name,
+                service_type: service_type_for_parse.clone(),
+                ip,
+                port,
+                address,
+                connectable,
+            });
+        }
+    }
+
+    devices
+}
+
+#[cfg(not(target_os = "macos"))]
+fn discover_platform_mdns_devices() -> Vec<MdnsDevice> {
+    Vec::new()
+}
+
+fn run_command_for_output(
+    command: &str,
+    args: &[&str],
+    timeout: Duration,
+) -> Result<String, std::io::Error> {
+    let mut child = Command::new(command)
+        .args(args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+    let started = Instant::now();
+    loop {
+        if child.try_wait()?.is_some() {
+            break;
+        }
+        if started.elapsed() >= timeout {
+            let _ = child.kill();
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+
+    let mut stdout = Vec::new();
+    let mut stderr = Vec::new();
+    if let Some(mut output) = child.stdout.take() {
+        let _ = output.read_to_end(&mut stdout);
+    }
+    if let Some(mut output) = child.stderr.take() {
+        let _ = output.read_to_end(&mut stderr);
+    }
+    let _ = child.wait();
+
+    stdout.extend_from_slice(&stderr);
+    Ok(String::from_utf8_lossy(&stdout).to_string())
+}
+
+fn resolve_reachable_ipv4(host: &str, port: &str) -> Option<String> {
+    let host = host.trim().trim_end_matches('.');
+    let address = format!("{host}:{port}");
+    let addrs = address.to_socket_addrs().ok()?;
+    for socket_addr in addrs {
+        if !socket_addr.ip().is_ipv4() {
+            continue;
+        }
+        if TcpStream::connect_timeout(&socket_addr, Duration::from_millis(500)).is_ok() {
+            return Some(socket_addr.ip().to_string());
+        }
+    }
+
+    None
+}
+
+fn parse_dns_sd_browse_services(stdout: &str, service_type: &str) -> Vec<String> {
+    stdout
+        .lines()
+        .filter_map(|line| {
+            let line = line.trim();
+            if !line.contains(" Add ") || !line.contains(service_type) {
+                return None;
+            }
+
+            line.split(service_type)
+                .nth(1)
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .map(ToString::to_string)
+        })
+        .collect()
+}
+
+fn parse_dns_sd_lookup(stdout: &str) -> Option<(String, String)> {
+    for line in stdout.lines() {
+        let line = line.trim();
+        let Some((_, target)) = line.split_once(" can be reached at ") else {
+            continue;
+        };
+        let Some((host_port, _)) = target.split_once(" (interface ") else {
+            continue;
+        };
+        let Some((host, port)) = host_port.rsplit_once(':') else {
+            continue;
+        };
+        let host = host.trim().trim_end_matches('.').to_string();
+        let port = port.trim().to_string();
+        if !host.is_empty() && !port.is_empty() {
+            return Some((host, port));
+        }
+    }
+
+    None
 }
 
 fn split_address(address: &str) -> Option<(String, String)> {
@@ -1236,6 +1422,73 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
         assert!(!is_pairing_retriable_after_adb_restart(
             "Invalid pairing code"
         ));
+    }
+
+    #[test]
+    fn pairing_protocol_fault_uses_non_destructive_adb_restart_retry() {
+        assert_eq!(
+            pairing_retry_strategy(
+                "error: protocol fault (couldn't read status message): Undefined error: 0"
+            ),
+            PairingRetryStrategy::RestartAdbPreservingPairing
+        );
+        assert_eq!(
+            pairing_retry_strategy("Invalid pairing code"),
+            PairingRetryStrategy::None
+        );
+    }
+
+    #[test]
+    fn selects_current_connectable_mdns_port_for_paired_ip() {
+        let devices = vec![
+            MdnsDevice {
+                service_name: "adb-NCRC10008CC-ALDBGe".to_string(),
+                service_type: "_adb-tls-pairing._tcp".to_string(),
+                ip: "192.168.110.35".to_string(),
+                port: "36625".to_string(),
+                address: "192.168.110.35:36625".to_string(),
+                connectable: false,
+            },
+            MdnsDevice {
+                service_name: "adb-NCRC10008CC-ALDBGe".to_string(),
+                service_type: "_adb-tls-connect._tcp".to_string(),
+                ip: "192.168.110.35".to_string(),
+                port: "34353".to_string(),
+                address: "192.168.110.35:34353".to_string(),
+                connectable: true,
+            },
+        ];
+
+        let device = connectable_mdns_device_for_ip(&devices, "192.168.110.35").unwrap();
+
+        assert_eq!(device.address, "192.168.110.35:34353");
+    }
+
+    #[test]
+    fn parses_macos_dns_sd_browse_and_lookup_output() {
+        let browse = "\
+Browsing for _adb-tls-connect._tcp.local.
+DATE: ---Mon 22 Jun 2026---
+11:47:59.220  Add        3  15 local.               _adb-tls-connect._tcp. adb-APRC10002NC-0Y0nJt
+11:47:59.220  Add        2  15 local.               _adb-tls-connect._tcp. adb-NCRC10008CC-ALDBGe
+";
+        let lookup = "\
+Lookup adb-NCRC10008CC-ALDBGe._adb-tls-connect._tcp.local.
+11:48:16.033  adb-NCRC10008CC-ALDBGe._adb-tls-connect._tcp.local. can be reached at Android.local.:34353 (interface 15)
+ api=34 name=CD-8R544F2 v=1
+";
+
+        assert_eq!(
+            parse_dns_sd_browse_services(browse, "_adb-tls-connect._tcp."),
+            vec![
+                "adb-APRC10002NC-0Y0nJt".to_string(),
+                "adb-NCRC10008CC-ALDBGe".to_string()
+            ]
+        );
+        assert_eq!(
+            parse_dns_sd_lookup(lookup),
+            Some(("Android.local".to_string(), "34353".to_string()))
+        );
     }
 
     #[test]

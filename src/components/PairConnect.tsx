@@ -273,7 +273,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
 
   const discoverMdns = useCallback(async (silent = false, force = false) => {
     if (!force && (discoveringRef.current || adbOperationRef.current || (silent && pairCodeInputFocusedRef.current))) {
-      return;
+      return [];
     }
     discoveringRef.current = true;
     if (!silent) {
@@ -293,15 +293,47 @@ export default function PairConnect({ devices, onConnected }: Props) {
       if (visibleDevices.length === 0 && recentConnects.length > 0) {
         void probeRecentConnects();
       }
+      return visibleDevices;
     } catch (e) {
       if (!silent) {
         setMdnsResult({ ok: false, msg: String(e) });
       }
+      return [];
     } finally {
       discoveringRef.current = false;
       if (!silent) setDiscovering(false);
     }
   }, [probeRecentConnects, recentConnects.length, refreshLocalIps, t]);
+
+  const rememberPairedEndpoint = useCallback(async (ip: string, pairPortValue: string) => {
+    const visibleDevices = await discoverMdns(true, true);
+    const connectableDevice = visibleDevices.find((device) => device.connectable && device.ip === ip);
+    if (!connectableDevice) {
+      savePairConnect({ pairIp: ip, pairPort: pairPortValue });
+      return visibleDevices;
+    }
+
+    const nextRecent = mergeRecentConnects(recentConnects, {
+      ip,
+      port: connectableDevice.port,
+      lastConnectedAt: Date.now(),
+    });
+    setConnectIp(ip);
+    setConnectPort(connectableDevice.port);
+    setRecentConnects(nextRecent);
+    setLastConnect({ ip, port: connectableDevice.port });
+    savePairConnect(
+      {
+        pairIp: ip,
+        pairPort: pairPortValue,
+        connectIp: ip,
+        connectPort: connectableDevice.port,
+        recentConnects: nextRecent,
+      },
+      nextRecent,
+    );
+    return visibleDevices;
+  }, [discoverMdns, recentConnects, savePairConnect]);
 
   useEffect(() => {
     discoverMdns(true);
@@ -349,7 +381,6 @@ export default function PairConnect({ devices, onConnected }: Props) {
           code,
         });
         setMdnsResult({ ok: true, msg: result });
-        savePairConnect({ pairIp: device.ip, pairPort: device.port });
         setPairCodes((prev) => {
           const next = { ...prev };
           delete next[device.address];
@@ -357,7 +388,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
         });
         setMdnsDevices((prev) => prev.filter((item) => item.address !== device.address));
         clearPairConnectFailures();
-        await discoverMdns(true, true);
+        await rememberPairedEndpoint(device.ip, device.port);
         await onConnected();
       } catch (e) {
         recordPairConnectFailure();
@@ -718,8 +749,8 @@ export default function PairConnect({ devices, onConnected }: Props) {
         });
         setPairResult({ ok: true, msg: result });
         clearPairConnectFailures();
-        savePairConnect({ pairIp: ip, pairPort: port });
-        await discoverMdns(true, true);
+        await rememberPairedEndpoint(ip, port);
+        await onConnected();
       } catch (e) {
         recordPairConnectFailure();
         setPairResult({ ok: false, msg: String(e) });

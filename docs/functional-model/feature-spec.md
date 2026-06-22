@@ -97,6 +97,7 @@ Discovery logic:
 
 - Local IPv4 addresses refresh every 5 seconds.
 - mDNS discovery runs every 10 seconds while the pair-code input is not focused and ADB is not busy.
+- `adb_mdns_discover` first uses `adb mdns services`; on macOS, if ADB returns no services, it falls back to system Bonjour discovery through `dns-sd` and resolves reachable IPv4 endpoints.
 - mDNS rows are filtered to local private networks that match the host IP prefixes.
 - If local network signature changes, stale mDNS devices are cleared.
 - TCP probes can check recent endpoint reachability before reconnect.
@@ -105,15 +106,15 @@ Pair logic:
 
 1. User enters IP, pair port, and 6-digit code.
 2. `adb_pair` runs `adb pair <ip:port> <code>` with a 25-second timeout.
-3. If pair output has retriable transport errors, backend restarts ADB once and retries.
-4. After successful pair, backend attempts `ADB_MDNS_AUTO_CONNECT=adb-tls-connect adb devices -l` to connect automatically.
-5. UI records success/failure and may reveal repair controls after repeated failures.
+3. If pair output has retriable transport errors such as `protocol fault`, backend restarts the local ADB server once while preserving existing pairing state, then retries.
+4. After successful pair, backend discovers the current `_adb-tls-connect` service for the same IP and explicitly runs `adb connect <ip:current_connect_port>`. If no current port is found, it falls back to `ADB_MDNS_AUTO_CONNECT=adb-tls-connect adb devices -l`.
+5. UI records success/failure, saves the refreshed connect port when discovery exposes one, refreshes the device list, and may reveal repair controls after repeated failures.
 
 Connect logic:
 
 1. User enters IP and connect port or selects an mDNS/recent endpoint.
 2. `adb_connect` runs `adb connect <ip:port>` with a 15-second timeout.
-3. If direct connect fails, backend tries mDNS auto-connect for the same IP.
+3. If direct connect fails, backend tries the current mDNS connect port for the same IP, including macOS `dns-sd` fallback when ADB mDNS is empty, then falls back to ADB mDNS auto-connect.
 4. On success, endpoint is stored in recent connects.
 
 Recent reconnect logic:

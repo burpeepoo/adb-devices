@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [1.1.28] - 2026-06-22
+
+### Changed
+
+- Changed wireless pairing `protocol fault` recovery to restart ADB while preserving this computer's wireless debugging identity instead of escalating directly to host identity reset.
+- Changed successful wireless pairing to discover the device's current wireless debugging connect port, connect to it automatically when available, and remember the refreshed endpoint for future reconnects.
+
+### Fixed
+
+- Added a macOS mDNS fallback for devices that appear in system Bonjour discovery even when `adb mdns services` returns no wireless debugging entries.
+- Improved wireless pairing and reconnect diagnostics so stale pairing ports and current connect ports are surfaced more clearly.
+
 ## [1.1.27] - 2026-06-18
 
 ### Added

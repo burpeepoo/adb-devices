@@ -8,11 +8,11 @@ This map connects user-facing actions to frontend code, Tauri commands, and back
 | --- | --- | --- | --- |
 | List devices | `useDevices.ts` | `adb_devices` | Runs `adb devices -l`, parses rows, enriches SN via `ro.serialno`, infers USB/wireless. |
 | Device summary | `DeviceConsole.tsx` | `adb_device_summary` | Runs multiple `getprop`, `dumpsys`, `wm`, `df`, `getenforce`, `uptime` commands and parses summary. |
-| mDNS scan | `PairConnect.tsx` | `adb_mdns_discover` | Runs `adb mdns services` and parses pair/connect services. |
+| mDNS scan | `PairConnect.tsx` | `adb_mdns_discover` | Runs `adb mdns services`, and on macOS falls back to system `dns-sd` when ADB mDNS returns no services. |
 | mDNS connect | `PairConnect.tsx` | `adb_auto_connect` | Connects to mDNS connect service address. |
 | mDNS auto-connect all | `PairConnect.tsx` | `adb_mdns_auto_connect` | Uses mDNS service output and attempts connection. |
-| Pair | `PairConnect.tsx` | `adb_pair` | Runs `adb pair ip:port code`, retries once after ADB restart on retriable transport errors, then attempts mDNS auto-connect. |
-| Manual connect | `PairConnect.tsx` | `adb_connect` | Runs `adb connect ip:port`, then falls back to mDNS auto-connect for same IP. |
+| Pair | `PairConnect.tsx` | `adb_pair` | Runs `adb pair ip:port code`, retries once after a pairing-preserving ADB restart on retriable transport errors, then connects the current mDNS connect port for the same IP. |
+| Manual connect | `PairConnect.tsx` | `adb_connect` | Runs `adb connect ip:port`, then falls back to the current mDNS connect port and ADB mDNS auto-connect for same IP. |
 | Recent reconnect | `PairConnect.tsx` | `adb_reconnect_endpoint` | Disconnects endpoint, optionally restarts ADB, connects, optionally retries/falls back to mDNS. |
 | Restart ADB | `PairConnect.tsx` | `adb_restart_server` | Backs up/removes `adb_known_hosts.pb`, preserves host keys, disconnects, kills server, waits for port 5037 close, force-kills matching server if needed, starts and waits. |
 | Repair wireless pairing | `PairConnect.tsx` | `adb_repair_wireless_pairing` | Backs up/removes only `adb_known_hosts.pb`, preserves `adbkey` and `adbkey.pub`, then restarts ADB. |
