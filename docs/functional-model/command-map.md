@@ -102,9 +102,14 @@ This map connects user-facing actions to frontend code, Tauri commands, and back
 - Ensures Unix executable bit.
 - Builds ADB commands with optional `-s <serial>`.
 - Applies macOS terminal-like environment.
-- Hides Windows console windows for app-launched ADB child processes.
 - Runs commands normally, with timeout, or with extra environment.
 - Localizes errors through `AdbError`.
+
+`src-tauri/src/process.rs`
+
+- Creates all app-launched child processes through a shared hidden command helper.
+- Applies `CREATE_NO_WINDOW` on Windows so ADB, ffmpeg, scrcpy, `taskkill`, `ipconfig`, Tailscale, Explorer/open helpers, and other host-side child processes do not flash console windows from the GUI app.
+- Includes a regression test that rejects direct `Command::new(...)` usage outside the shared helper.
 
 `src-tauri/src/state.rs`
 

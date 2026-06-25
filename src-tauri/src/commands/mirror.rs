@@ -17,6 +17,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::adb::{self, AdbError};
+use crate::process;
 use crate::state::AppState;
 
 #[cfg(target_os = "windows")]
@@ -240,7 +241,7 @@ pub fn start_screen_mirror(
         .ok_or_else(|| AdbError::CommandFailed(t!("mirror.scrcpy_not_found").into_owned()))?;
     let adb_path = adb::get_adb_path(&app)?;
 
-    let mut command = Command::new(&scrcpy_path);
+    let mut command = process::hidden_command(&scrcpy_path);
     command.args(["-s", &device_serial]);
     if !audio_enabled.unwrap_or(false) {
         command.arg("--no-audio");
@@ -260,12 +261,6 @@ pub fn start_screen_mirror(
 
     if let Some(path_env) = scrcpy_path_env(&adb_path) {
         command.env("PATH", path_env);
-    }
-
-    #[cfg(target_os = "windows")]
-    {
-        use std::os::windows::process::CommandExt;
-        command.creation_flags(0x08000000);
     }
 
     let mut child = command.spawn()?;
@@ -2008,7 +2003,7 @@ fn install_scrcpy_macos(app: &AppHandle) -> Result<(), AdbError> {
         Some(path) => path,
         None => {
             emit_install_progress(app, &t!("mirror.homebrew_not_found"));
-            let mut command = Command::new("/bin/bash");
+            let mut command = process::hidden_command("/bin/bash");
             command.arg("-c").arg(
                 "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
             );
@@ -2020,7 +2015,7 @@ fn install_scrcpy_macos(app: &AppHandle) -> Result<(), AdbError> {
     };
 
     emit_install_progress(app, &t!("mirror.brew_install_start"));
-    let mut command = Command::new(brew_path);
+    let mut command = process::hidden_command(brew_path);
     command.args(["install", "scrcpy"]);
     run_command_with_progress(app, command, &t!("mirror.brew_install_failed"))
 }

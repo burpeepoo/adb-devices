@@ -1,12 +1,13 @@
 use rust_i18n::t;
 use std::io::{BufRead, BufReader};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::thread;
 
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, State};
 
 use crate::adb::{self, AdbError};
+use crate::process;
 use crate::state::AppState;
 
 #[derive(Debug, Serialize, Clone)]
@@ -67,7 +68,7 @@ pub fn adb_start_logcat(
     }
 
     let adb_path = adb::get_adb_path(&app)?;
-    let mut command = Command::new(adb_path);
+    let mut command = process::hidden_command(adb_path);
     if let Some(serial) = device_serial.as_deref() {
         command.args(["-s", serial]);
     }

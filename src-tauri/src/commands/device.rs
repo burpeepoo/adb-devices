@@ -6,13 +6,14 @@ use std::{
     io::Read,
     net::{TcpStream, ToSocketAddrs},
     path::{Path, PathBuf},
-    process::{Command, Stdio},
+    process::Stdio,
     sync::{Mutex, MutexGuard},
     time::{Duration, Instant},
 };
 use tauri::{AppHandle, State};
 
 use crate::adb::{self, AdbError};
+use crate::process;
 use crate::state::AppState;
 
 #[derive(Debug, Serialize, Clone)]
@@ -613,12 +614,12 @@ fn is_adb_server_port_open() -> bool {
 fn force_kill_adb_server_processes() -> Result<(), AdbError> {
     #[cfg(unix)]
     {
-        let output = Command::new("ps")
+        let output = process::hidden_command("ps")
             .args(["-axo", "pid=,command="])
             .output()?;
         let stdout = String::from_utf8_lossy(&output.stdout);
         for pid in parse_adb_server_pids_from_ps_output(&stdout) {
-            let _ = Command::new("kill")
+            let _ = process::hidden_command("kill")
                 .arg("-TERM")
                 .arg(pid.to_string())
                 .output();
@@ -626,7 +627,7 @@ fn force_kill_adb_server_processes() -> Result<(), AdbError> {
         std::thread::sleep(Duration::from_millis(300));
         if is_adb_server_port_open() {
             for pid in parse_adb_server_pids_from_ps_output(&stdout) {
-                let _ = Command::new("kill")
+                let _ = process::hidden_command("kill")
                     .arg("-KILL")
                     .arg(pid.to_string())
                     .output();
@@ -636,7 +637,7 @@ fn force_kill_adb_server_processes() -> Result<(), AdbError> {
 
     #[cfg(windows)]
     {
-        let _ = Command::new("taskkill")
+        let _ = process::hidden_command("taskkill")
             .args(["/F", "/IM", "adb.exe", "/T"])
             .output();
     }
@@ -1010,7 +1011,7 @@ fn run_command_for_output(
     args: &[&str],
     timeout: Duration,
 ) -> Result<String, std::io::Error> {
-    let mut child = Command::new(command)
+    let mut child = process::hidden_command(command)
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -1107,9 +1108,9 @@ fn split_address(address: &str) -> Option<(String, String)> {
 
 fn local_ipv4_addresses() -> Vec<String> {
     let output = if cfg!(target_os = "windows") {
-        Command::new("ipconfig").output()
+        process::hidden_command("ipconfig").output()
     } else {
-        Command::new("ifconfig").output()
+        process::hidden_command("ifconfig").output()
     };
 
     let Ok(output) = output else {

@@ -1,5 +1,6 @@
 use crate::adb::{self, AdbError};
 use crate::commands::device;
+use crate::process;
 use crate::state::{
     AppState, RemoteAuditEntry, RemoteFrameCache, RemoteVideoStreamState, RemoteWebRtcStreamState,
 };
@@ -19,7 +20,7 @@ use std::{
     io::{BufRead, BufReader, Read, Write},
     net::{TcpListener, TcpStream, UdpSocket},
     path::{Path, PathBuf},
-    process::{Command, Stdio},
+    process::Stdio,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc, Mutex,
@@ -1333,7 +1334,7 @@ fn start_remote_webrtc_stream(
     let (answer_sdp, runtime, peer, track, connection_state, last_error) =
         create_webrtc_peer(offer_sdp)?;
 
-    let mut adb_command = Command::new(adb_path);
+    let mut adb_command = process::hidden_command(adb_path);
     adb_command
         .args([
             "-s",
@@ -1350,8 +1351,6 @@ fn start_remote_webrtc_stream(
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::null());
-    apply_hidden_process_flags(&mut adb_command);
-
     let mut adb_child = adb_command.spawn().map_err(|error| {
         let _ = runtime.block_on(peer.close());
         error.to_string()
@@ -1364,7 +1363,7 @@ fn start_remote_webrtc_stream(
     };
 
     let rtp_url = format!("rtp://127.0.0.1:{rtp_port}?pkt_size=1200");
-    let mut ffmpeg_command = Command::new(ffmpeg_path);
+    let mut ffmpeg_command = process::hidden_command(ffmpeg_path);
     ffmpeg_command
         .args([
             "-hide_banner",
@@ -1392,8 +1391,6 @@ fn start_remote_webrtc_stream(
         .stdin(Stdio::from(adb_stdout))
         .stdout(Stdio::null())
         .stderr(Stdio::null());
-    apply_hidden_process_flags(&mut ffmpeg_command);
-
     let ffmpeg_child = match ffmpeg_command.spawn() {
         Ok(child) => child,
         Err(error) => {
@@ -1694,7 +1691,7 @@ fn start_remote_video_stream(
     }
     fs::create_dir_all(&dir).map_err(|error| error.to_string())?;
 
-    let mut adb_command = Command::new(adb_path);
+    let mut adb_command = process::hidden_command(adb_path);
     adb_command
         .args([
             "-s",
@@ -1711,8 +1708,6 @@ fn start_remote_video_stream(
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::null());
-    apply_hidden_process_flags(&mut adb_command);
-
     let mut adb_child = adb_command.spawn().map_err(|error| error.to_string())?;
     let Some(adb_stdout) = adb_child.stdout.take() else {
         let _ = adb_child.kill();
@@ -1726,7 +1721,7 @@ fn start_remote_video_stream(
     let hls_list_size = REMOTE_HLS_LIST_SIZE.to_string();
     let segment_pattern_arg = segment_pattern.to_string_lossy().to_string();
     let playlist_path_arg = playlist_path.to_string_lossy().to_string();
-    let mut ffmpeg_command = Command::new(ffmpeg_path);
+    let mut ffmpeg_command = process::hidden_command(ffmpeg_path);
     ffmpeg_command
         .args([
             "-hide_banner",
@@ -1762,8 +1757,6 @@ fn start_remote_video_stream(
         .stdin(Stdio::from(adb_stdout))
         .stdout(Stdio::null())
         .stderr(Stdio::null());
-    apply_hidden_process_flags(&mut ffmpeg_command);
-
     let ffmpeg_child = match ffmpeg_command.spawn() {
         Ok(child) => child,
         Err(error) => {
@@ -1937,14 +1930,6 @@ fn hls_media_content_type(name: &str) -> &'static str {
         "video/mp2t"
     } else {
         "video/mp4"
-    }
-}
-
-fn apply_hidden_process_flags(_command: &mut Command) {
-    #[cfg(target_os = "windows")]
-    {
-        use std::os::windows::process::CommandExt;
-        _command.creation_flags(0x08000000);
     }
 }
 
@@ -3246,7 +3231,10 @@ fn is_tailscale_ipv4(value: &str) -> bool {
 }
 
 fn tailscale_ipv4_addresses() -> Vec<String> {
-    let Ok(output) = Command::new("tailscale").args(["ip", "-4"]).output() else {
+    let Ok(output) = process::hidden_command("tailscale")
+        .args(["ip", "-4"])
+        .output()
+    else {
         return Vec::new();
     };
     if !output.status.success() {
@@ -3261,7 +3249,7 @@ fn tailscale_ipv4_addresses() -> Vec<String> {
 }
 
 fn tailscale_magic_dns_name() -> Option<String> {
-    let output = Command::new("tailscale")
+    let output = process::hidden_command("tailscale")
         .args(["status", "--json"])
         .output()
         .ok()?;
@@ -3289,9 +3277,9 @@ fn qr_svg_for_url(url: &str) -> Option<String> {
 
 fn local_ipv4_addresses() -> Vec<String> {
     let output = if cfg!(target_os = "windows") {
-        Command::new("ipconfig").output()
+        process::hidden_command("ipconfig").output()
     } else {
-        Command::new("ifconfig").output()
+        process::hidden_command("ifconfig").output()
     };
 
     let Ok(output) = output else {

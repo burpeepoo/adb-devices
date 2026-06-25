@@ -5,6 +5,7 @@ use std::sync::MutexGuard;
 use tauri::AppHandle;
 
 use crate::adb::{self, AdbError};
+use crate::process;
 use crate::state::{AppState, RecordingState};
 
 fn lock_recording_state<'a>(
@@ -31,7 +32,7 @@ pub fn adb_start_recording(
     let remote_path = format!("/sdcard/adb_manager_recording_{}.mp4", timestamp);
 
     let adb_path = adb::get_adb_path(&app)?;
-    let mut cmd = std::process::Command::new(&adb_path);
+    let mut cmd = process::hidden_command(&adb_path);
     adb::prepare_adb_command(&mut cmd);
     if let Some(serial) = &device_serial {
         cmd.args(["-s", serial]);

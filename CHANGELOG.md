@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.1.29] - 2026-06-25
+
+### Fixed
+
+- Routed all app-launched child processes through a shared Windows hidden-window command helper so ADB repairs, device discovery, remote streaming, scrcpy, logcat, recording, and OS open/reveal helpers do not flash console windows.
+
 ## [1.1.28] - 2026-06-22
 
 ### Changed

@@ -20,6 +20,7 @@ Logic:
 Important details:
 
 - macOS ADB subprocesses are launched with a terminal-like `PATH`.
+- Windows child processes are created through a shared hidden-window helper so app-launched ADB, ffmpeg, scrcpy, repair, discovery, and OS helper commands do not flash console windows.
 - Installation is OS-specific and only supports macOS and Windows.
 - ADB setup is separate from wireless pairing repair.
 

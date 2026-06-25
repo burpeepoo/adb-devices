@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::adb::{self, AdbError};
+use crate::process;
 
 const ALLOWED_EXTERNAL_URLS: &[&str] = &[
     "https://brew.sh/",
@@ -210,7 +211,7 @@ pub fn reveal_path(path: String) -> Result<(), AdbError> {
 
     #[cfg(target_os = "macos")]
     let mut command = {
-        let mut cmd = std::process::Command::new("open");
+        let mut cmd = process::hidden_command("open");
         if input_path.is_file() {
             cmd.arg("-R").arg(&input_path);
         } else {
@@ -221,7 +222,7 @@ pub fn reveal_path(path: String) -> Result<(), AdbError> {
 
     #[cfg(target_os = "windows")]
     let mut command = {
-        let mut cmd = std::process::Command::new("explorer");
+        let mut cmd = process::hidden_command("explorer");
         if input_path.is_file() {
             cmd.arg(format!("/select,{}", input_path.to_string_lossy()));
         } else {
@@ -232,7 +233,7 @@ pub fn reveal_path(path: String) -> Result<(), AdbError> {
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     let mut command = {
-        let mut cmd = std::process::Command::new("xdg-open");
+        let mut cmd = process::hidden_command("xdg-open");
         cmd.arg(&folder);
         cmd
     };
@@ -252,21 +253,21 @@ pub fn open_file(path: String) -> Result<(), AdbError> {
 
     #[cfg(target_os = "macos")]
     let mut command = {
-        let mut cmd = std::process::Command::new("open");
+        let mut cmd = process::hidden_command("open");
         cmd.arg(&file_path);
         cmd
     };
 
     #[cfg(target_os = "windows")]
     let mut command = {
-        let mut cmd = std::process::Command::new("cmd");
+        let mut cmd = process::hidden_command("cmd");
         cmd.args(["/c", "start", "", &file_path.to_string_lossy()]);
         cmd
     };
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     let mut command = {
-        let mut cmd = std::process::Command::new("xdg-open");
+        let mut cmd = process::hidden_command("xdg-open");
         cmd.arg(&file_path);
         cmd
     };
@@ -285,21 +286,21 @@ pub fn open_external_url(url: String) -> Result<(), AdbError> {
 
     #[cfg(target_os = "macos")]
     let mut command = {
-        let mut cmd = std::process::Command::new("open");
+        let mut cmd = process::hidden_command("open");
         cmd.arg(&url);
         cmd
     };
 
     #[cfg(target_os = "windows")]
     let mut command = {
-        let mut cmd = std::process::Command::new("rundll32");
+        let mut cmd = process::hidden_command("rundll32");
         cmd.arg("url.dll,FileProtocolHandler").arg(&url);
         cmd
     };
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     let mut command = {
-        let mut cmd = std::process::Command::new("xdg-open");
+        let mut cmd = process::hidden_command("xdg-open");
         cmd.arg(&url);
         cmd
     };

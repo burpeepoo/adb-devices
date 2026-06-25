@@ -4,6 +4,8 @@ use std::process::{Command, Output};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager};
 
+use crate::process;
+
 #[derive(Debug)]
 pub enum AdbError {
     AdbNotInstalled,
@@ -172,17 +174,13 @@ fn select_adb_path(
 
 fn new_adb_command(app: &AppHandle) -> Result<Command, AdbError> {
     let adb = get_adb_path(app)?;
-    let mut cmd = Command::new(&adb);
+    let mut cmd = process::hidden_command(&adb);
     prepare_adb_command(&mut cmd);
     Ok(cmd)
 }
 
 pub fn prepare_adb_command(cmd: &mut Command) {
-    #[cfg(target_os = "windows")]
-    {
-        use std::os::windows::process::CommandExt;
-        cmd.creation_flags(0x08000000);
-    }
+    process::apply_hidden_process_flags(cmd);
 
     #[cfg(target_os = "macos")]
     {
