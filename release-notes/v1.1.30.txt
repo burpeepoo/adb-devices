@@ -1,0 +1,17 @@
+zh-CN:
+ADB Manager v1.1.30
+
+- 新增性能采样页，用于游戏真机测试时采集前台应用、进程、系统、渲染、温度、电量、网络和存储指标。
+- 性能采样支持固定当前目标应用，并增加实时趋势线图、JSON/CSV 导出和 15 分钟滚动样本窗口。
+- 修复性能采样首轮一直空白的问题：前台识别慢时先返回系统指标，采样超时会显示明确提示并自动暂停。
+- 安装 APK 队列高度已加大，强制安装时能看到多个 APK 和包名搜索输入框。
+- 继续加固 Windows GUI 构建的子进程启动路径，避免高频 ADB 功能闪出命令行窗口。
+
+en-US:
+ADB Manager v1.1.30
+
+- Adds a Performance sampling tab for game/device testing across foreground app, process, system, rendering, temperature, battery, network, and storage metrics.
+- Performance sampling can pin the current target app and now shows live trend charts, JSON/CSV export, and a rolling 15-minute sample window.
+- Fixes the blank first-sample state: slow foreground detection no longer blocks system metrics, and sampling timeouts show a clear message before auto-pausing.
+- Increases the Install APK queue height so force-install package search remains visible with multiple APKs queued.
+- Further guards Windows GUI child-process launches so high-frequency ADB features do not flash console windows.

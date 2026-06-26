@@ -32,6 +32,7 @@ import RemoteControl from "./components/RemoteControl";
 import ImageCast from "./components/ImageCast";
 import Clipboard from "./components/Clipboard";
 import Logcat from "./components/Logcat";
+import PerformancePanel from "./components/PerformancePanel";
 import PackageList from "./components/PackageList";
 import Settings from "./components/Settings";
 import AppUpdatePrompt from "./components/AppUpdatePrompt";
@@ -85,6 +86,7 @@ export default function App() {
     imageCast: t('tabs.imageCast'),
     clipboard: t('tabs.clipboard'),
     logcat: t('tabs.logcat'),
+    performance: t('tabs.performance'),
     packages: t('tabs.packageList'),
   };
   const tools = TAB_KEYS.map((key) => ({
@@ -460,6 +462,7 @@ export default function App() {
     if (tab === "imageCast") return <ImageCast deviceTarget={deviceTarget} active={activeTab === "imageCast"} />;
     if (tab === "clipboard") return <Clipboard deviceTarget={deviceTarget} />;
     if (tab === "logcat") return <Logcat deviceTarget={deviceTarget} />;
+    if (tab === "performance") return <PerformancePanel deviceTarget={deviceTarget} active={activeTab === "performance"} />;
     if (tab === "packages") return <PackageList deviceTarget={deviceTarget} />;
     return null;
   };

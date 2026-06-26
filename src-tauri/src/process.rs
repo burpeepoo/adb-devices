@@ -66,8 +66,16 @@ mod tests {
             let Ok(content) = fs::read_to_string(&path) else {
                 continue;
             };
+            let direct_command_patterns = [
+                "Command::new(",
+                "std::process::Command::new(",
+                "tokio::process::Command::new(",
+            ];
             for (index, line) in content.lines().enumerate() {
-                if line.contains("Command::new(") || line.contains("std::process::Command::new(") {
+                if direct_command_patterns
+                    .iter()
+                    .any(|pattern| line.contains(pattern))
+                {
                     offenders.push(format!(
                         "{}:{}: {}",
                         path.strip_prefix(Path::new(env!("CARGO_MANIFEST_DIR")))

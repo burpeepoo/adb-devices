@@ -110,6 +110,9 @@ logcat.not_running: "Logcat is not running"
 logcat.export_title: "Export Logs"
 logcat.export_failed: "Failed to export logs: %{message}"
 
+# Performance
+performance.sample_failed: "Failed to collect performance sample"
+
 # Screenshot
 screenshot.failed: "Screenshot failed: %{message}"
 screenshot.pull_failed: "Failed to pull screenshot: %{message}"

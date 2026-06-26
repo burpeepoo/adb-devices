@@ -1,0 +1,750 @@
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { Badge, Button, Group, Paper, Stack, Table, Text } from "@mantine/core";
+import {
+  IconActivityHeartbeat,
+  IconDownload,
+  IconPlayerPause,
+  IconPlayerPlay,
+  IconPinned,
+  IconPinnedOff,
+  IconRefresh,
+  IconTrash,
+} from "@tabler/icons-react";
+import { useTranslation } from "react-i18next";
+import DeviceTargetBanner from "./common/DeviceTargetBanner";
+import ResultAlert from "./common/ResultAlert";
+import SectionTitle from "./common/SectionTitle";
+import type { DeviceTargetState } from "../deviceTarget.ts";
+import type { PerformanceSample } from "../types";
+import type { PerformanceTrendPoint } from "../performanceSampling.ts";
+import {
+  buildPerformanceCsvExport,
+  buildPerformanceJsonExport,
+  buildPerformanceTrendPoints,
+  calculatePerformanceMetrics,
+  initialPerformanceCadenceMarks,
+  isPerformanceSampleTimeout,
+  nextPerformancePollDueMs,
+  prunePerformanceSamples,
+  shouldIncludeFrameSample,
+  shouldIncludeSlowSample,
+  withPerformanceSampleTimeout,
+} from "../performanceSampling.ts";
+
+interface Props {
+  deviceTarget: DeviceTargetState;
+  active: boolean;
+}
+
+interface AlertItem {
+  key: string;
+  message: string;
+}
+
+export default function PerformancePanel({ deviceTarget, active }: Props) {
+  const { t } = useTranslation();
+  const [running, setRunning] = useState(false);
+  const [samples, setSamples] = useState<PerformanceSample[]>([]);
+  const [lockedPackage, setLockedPackage] = useState<string | null>(null);
+  const [startedAtMs, setStartedAtMs] = useState<number | null>(null);
+  const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [sampling, setSampling] = useState(false);
+  const [lastSampleCompletedAtMs, setLastSampleCompletedAtMs] = useState<number | null>(null);
+  const [nextSampleDueAtMs, setNextSampleDueAtMs] = useState<number | null>(null);
+  const [clockMs, setClockMs] = useState(() => Date.now());
+  const inFlightRef = useRef(false);
+  const lastSlowSampleMsRef = useRef<number | null>(null);
+  const lastFrameSampleMsRef = useRef<number | null>(null);
+  const deviceSerial = deviceTarget.serial;
+
+  const latest = samples.length > 0 ? samples[samples.length - 1] : null;
+  const previous = samples.length >= 2 ? samples[samples.length - 2] : null;
+  const metrics = useMemo(() => calculatePerformanceMetrics(previous, latest), [latest, previous]);
+  const trendPoints = useMemo(() => buildPerformanceTrendPoints(samples), [samples]);
+  const alerts = useMemo(() => buildAlerts(samples, latest, t), [latest, samples, t]);
+  const currentPackage = lockedPackage || latest?.target_package || latest?.foreground_package || null;
+  const emptyValue = sampling && samples.length === 0 ? t("performance.collectingValue") : "-";
+  const nextSampleSeconds =
+    running && nextSampleDueAtMs ? Math.max(0, Math.ceil((nextSampleDueAtMs - clockMs) / 1000)) : null;
+
+  const seedCadence = useCallback((now = Date.now()) => {
+    const marks = initialPerformanceCadenceMarks(now);
+    lastSlowSampleMsRef.current = marks.lastSlowSampleMs;
+    lastFrameSampleMsRef.current = marks.lastFrameSampleMs;
+    setNextSampleDueAtMs(null);
+  }, []);
+
+  const collectSample = useCallback(async () => {
+    if (!deviceSerial || inFlightRef.current) return false;
+    inFlightRef.current = true;
+    setSampling(true);
+    setNextSampleDueAtMs(null);
+    const now = Date.now();
+    const includeSlow = shouldIncludeSlowSample(now, lastSlowSampleMsRef.current);
+    const includeFrameStats = shouldIncludeFrameSample(now, lastFrameSampleMsRef.current);
+
+    try {
+      const sample = await withPerformanceSampleTimeout(
+        invoke<PerformanceSample>("adb_performance_sample", {
+          deviceSerial,
+          targetPackage: lockedPackage,
+          followForeground: !lockedPackage,
+          includeSlow,
+          includeFrameStats,
+        }),
+      );
+      if (includeSlow) lastSlowSampleMsRef.current = now;
+      if (includeFrameStats) lastFrameSampleMsRef.current = now;
+      setSamples((current) => prunePerformanceSamples([...current, sample], Number(sample.timestamp_ms)));
+      setLastSampleCompletedAtMs(Number(sample.timestamp_ms) || Date.now());
+      setStatus(null);
+      return true;
+    } catch (error) {
+      setStatus({ ok: false, msg: isPerformanceSampleTimeout(error) ? t("performance.sampleTimeout") : String(error) });
+      return false;
+    } finally {
+      inFlightRef.current = false;
+      setSampling(false);
+    }
+  }, [deviceSerial, lockedPackage, t]);
+
+  const start = useCallback(() => {
+    if (!deviceSerial) {
+      setStatus({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
+      return;
+    }
+    setStatus(null);
+    seedCadence();
+    setRunning(true);
+    setStartedAtMs((current) => current ?? Date.now());
+  }, [deviceSerial, deviceTarget.blockReason, seedCadence, t]);
+
+  const pause = useCallback(() => {
+    setRunning(false);
+    setNextSampleDueAtMs(null);
+    setStatus({ ok: true, msg: t("performance.paused") });
+  }, [t]);
+
+  const clear = useCallback(() => {
+    const now = Date.now();
+    setSamples([]);
+    setStatus(null);
+    setLastSampleCompletedAtMs(null);
+    setStartedAtMs(running ? now : null);
+    if (running) {
+      seedCadence(now);
+    } else {
+      lastSlowSampleMsRef.current = null;
+      lastFrameSampleMsRef.current = null;
+      setNextSampleDueAtMs(null);
+    }
+  }, [running, seedCadence]);
+
+  useEffect(() => {
+    const now = Date.now();
+    setSamples([]);
+    setLockedPackage(null);
+    setStartedAtMs(null);
+    setStatus(null);
+    setLastSampleCompletedAtMs(null);
+    setNextSampleDueAtMs(null);
+    if (deviceSerial) {
+      seedCadence(now);
+      setRunning(true);
+      setStartedAtMs(now);
+    } else {
+      lastSlowSampleMsRef.current = null;
+      lastFrameSampleMsRef.current = null;
+      setRunning(false);
+    }
+  }, [deviceSerial, seedCadence]);
+
+  useEffect(() => {
+    if (active && deviceSerial && !running && samples.length === 0) {
+      start();
+    }
+  }, [active, deviceSerial, running, samples.length, start]);
+
+  useEffect(() => {
+    if (!running || !deviceSerial) return;
+    let cancelled = false;
+    let timer: number | null = null;
+
+    const runLoop = async () => {
+      const ok = await collectSample();
+      if (cancelled) return;
+      if (!ok) {
+        setRunning(false);
+        setNextSampleDueAtMs(null);
+        return;
+      }
+      const dueAt = nextPerformancePollDueMs(Date.now());
+      setNextSampleDueAtMs(dueAt);
+      timer = window.setTimeout(runLoop, Math.max(0, dueAt - Date.now()));
+    };
+
+    void runLoop();
+
+    return () => {
+      cancelled = true;
+      if (timer !== null) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [collectSample, deviceSerial, running]);
+
+  useEffect(() => {
+    if (!running) return;
+    const timer = window.setInterval(() => setClockMs(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [running]);
+
+  const pinCurrentPackage = () => {
+    const packageName = latest?.foreground_package || latest?.target_package || null;
+    if (!packageName) {
+    setStatus({ ok: false, msg: t("performance.noPackageToPin") });
+      return;
+    }
+    setLockedPackage(packageName);
+    setStatus({ ok: true, msg: t("performance.pinned", { packageName }) });
+  };
+
+  const unlockPackage = () => {
+    setLockedPackage(null);
+    setStatus({ ok: true, msg: t("performance.unpinned") });
+  };
+
+  const exportData = async (format: "json" | "csv") => {
+    if (!samples.length || exporting) return;
+    setExporting(true);
+    setStatus(null);
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const content =
+        format === "json"
+          ? buildPerformanceJsonExport(
+              {
+                deviceLabel: deviceTarget.label,
+                deviceSerial,
+                lockedPackage,
+                startedAtMs,
+                exportedAtMs: Date.now(),
+              },
+              samples,
+            )
+          : buildPerformanceCsvExport(samples);
+      const savedPath = await invoke<string | null>("export_text_file", {
+        defaultName: `performance_${timestamp}.${format}`,
+        content,
+      });
+      if (savedPath) {
+        setStatus({ ok: true, msg: t("performance.exported", { path: savedPath }) });
+      }
+    } catch (error) {
+      setStatus({ ok: false, msg: String(error) });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <Stack gap="md">
+      <Paper withBorder radius="md" p="md">
+        <Stack gap="md">
+          <Group justify="space-between" align="flex-start" gap="md">
+            <SectionTitle
+              icon={<IconActivityHeartbeat size={17} />}
+              label={t("performance.title")}
+              description={
+                sampling
+                  ? t("performance.samplingNow")
+                  : running && nextSampleSeconds !== null
+                    ? t("performance.nextSampleIn", { seconds: nextSampleSeconds })
+                    : running
+                      ? t("performance.running")
+                      : t("performance.stopped")
+              }
+            />
+            <Group gap="xs">
+              {!running ? (
+                <Button size="sm" leftSection={<IconPlayerPlay size={16} />} disabled={!deviceSerial} onClick={start}>
+                  {t("performance.start")}
+                </Button>
+              ) : (
+                <Button size="sm" variant="default" leftSection={<IconPlayerPause size={16} />} onClick={pause}>
+                  {t("performance.pause")}
+                </Button>
+              )}
+              <Button size="sm" variant="default" leftSection={<IconRefresh size={16} />} disabled={!deviceSerial || sampling} onClick={collectSample}>
+                {t("performance.sampleNow")}
+              </Button>
+              <Button size="sm" variant="default" leftSection={<IconTrash size={16} />} disabled={!samples.length} onClick={clear}>
+                {t("performance.clear")}
+              </Button>
+            </Group>
+          </Group>
+
+          <DeviceTargetBanner target={deviceTarget} />
+
+          <Group justify="space-between" gap="md">
+            <Stack gap={3}>
+              <Text size="xs" c="dimmed">
+                {t("performance.targetPackage")}
+              </Text>
+              <Group gap="xs">
+                <Text fw={700}>{currentPackage || t("performance.noPackage")}</Text>
+                {lockedPackage ? (
+                  <Badge color="blue" variant="light">
+                    {t("performance.pinnedBadge")}
+                  </Badge>
+                ) : (
+                  <Badge color="gray" variant="light">
+                    {t("performance.followingBadge")}
+                  </Badge>
+                )}
+              </Group>
+              <Text size="xs" c="dimmed">
+                {latest?.foreground_activity || latest?.foreground_package || t("performance.noForeground")}
+              </Text>
+              <Text size="xs" c="dimmed">
+                {lockedPackage ? t("performance.pinHelpPinned") : t("performance.pinHelpFollowing")}
+              </Text>
+              <Text size="xs" c="dimmed">
+                {sampling
+                  ? t("performance.samplingNow")
+                  : lastSampleCompletedAtMs
+                    ? t("performance.lastSampleAt", { time: formatTime(lastSampleCompletedAtMs) })
+                    : t("performance.noSamples")}
+                {running && !sampling && nextSampleSeconds !== null
+                  ? ` · ${t("performance.nextSampleIn", { seconds: nextSampleSeconds })}`
+                  : ""}
+              </Text>
+            </Stack>
+            <Group gap="xs">
+              {lockedPackage ? (
+                <Button size="xs" variant="light" leftSection={<IconPinnedOff size={14} />} onClick={unlockPackage}>
+                  {t("performance.unpin")}
+                </Button>
+              ) : (
+                <Button size="xs" variant="light" leftSection={<IconPinned size={14} />} disabled={!latest?.foreground_package} onClick={pinCurrentPackage}>
+                  {t("performance.pinCurrent")}
+                </Button>
+              )}
+              <Button size="xs" variant="default" leftSection={<IconDownload size={14} />} disabled={!samples.length || exporting} onClick={() => exportData("json")}>
+                JSON
+              </Button>
+              <Button size="xs" variant="default" leftSection={<IconDownload size={14} />} disabled={!samples.length || exporting} onClick={() => exportData("csv")}>
+                CSV
+              </Button>
+            </Group>
+          </Group>
+
+          <ResultAlert result={status} />
+
+          {alerts.length > 0 && (
+            <Stack gap={6}>
+              {alerts.map((alert) => (
+                <Paper key={alert.key} withBorder radius="md" p="xs" bg="yellow.0">
+                  <Text size="sm" c="yellow.9">
+                    {alert.message}
+                  </Text>
+                </Paper>
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      </Paper>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <MetricSection title={t("performance.game")}>
+          <MetricTile label="PID" value={latest?.pid ?? emptyValue} />
+          <MetricTile label="CPU" value={latest ? formatPercent(metrics.processCpuPercent) : emptyValue} />
+          <MetricTile label="RSS" value={latest ? formatKb(latest.process.rss_kb) : emptyValue} />
+          <MetricTile label="PSS" value={latest ? formatKb(latest.process.pss_kb) : emptyValue} />
+          <MetricTile label={t("performance.threads")} value={latest?.process.thread_count ?? emptyValue} />
+          <MetricTile label={t("performance.state")} value={latest?.process.state || (latest?.target_package ? t("performance.notRunning") : emptyValue)} />
+        </MetricSection>
+
+        <MetricSection title={t("performance.rendering")}>
+          <MetricTile label="FPS" value={latest ? formatNumber(latest.frame_stats?.fps, 1) : emptyValue} />
+          <MetricTile label="P95" value={latest ? formatMs(latest.frame_stats?.p95_frame_ms) : emptyValue} />
+          <MetricTile label="P50" value={latest ? formatMs(latest.frame_stats?.p50_frame_ms) : emptyValue} />
+          <MetricTile label={t("performance.jank")} value={latest ? formatPercent(latest.frame_stats?.jank_rate) : emptyValue} />
+          <MetricTile label={t("performance.frames")} value={latest?.frame_stats?.supported ? latest.frame_stats.frame_count : emptyValue} />
+          <MetricTile label={t("performance.source")} value={latest ? (latest.frame_stats?.supported ? t("performance.available") : t("performance.unavailable")) : emptyValue} />
+        </MetricSection>
+
+        <MetricSection title={t("performance.device")}>
+          <MetricTile label="CPU" value={latest ? formatPercent(metrics.systemCpuPercent) : emptyValue} />
+          <MetricTile label={t("performance.memory")} value={latest ? formatMemoryPair(latest) : emptyValue} />
+          <MetricTile label={t("performance.battery")} value={latest ? formatBattery(latest) : emptyValue} />
+          <MetricTile label={t("performance.thermal")} value={latest?.thermal.status_label || emptyValue} />
+          <MetricTile label={t("performance.network")} value={latest ? formatNetwork(metrics) : emptyValue} />
+          <MetricTile label={t("performance.storage")} value={latest ? formatKb(latest.storage.data_available_kb) : emptyValue} />
+        </MetricSection>
+      </div>
+
+      <TrendSection points={trendPoints} t={t} />
+
+      <Paper withBorder radius="md" p="md">
+        <Stack gap="md">
+          <Group justify="space-between">
+            <Text fw={700}>{t("performance.timeline")}</Text>
+            <Text size="xs" c="dimmed">
+              {t("performance.sampleCount", { count: samples.length })}
+            </Text>
+          </Group>
+          <Table.ScrollContainer minWidth={760}>
+            <Table striped highlightOnHover withTableBorder>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>{t("performance.time")}</Table.Th>
+                  <Table.Th>{t("performance.package")}</Table.Th>
+                  <Table.Th>CPU</Table.Th>
+                  <Table.Th>RSS</Table.Th>
+                  <Table.Th>P95</Table.Th>
+                  <Table.Th>{t("performance.jank")}</Table.Th>
+                  <Table.Th>{t("performance.temp")}</Table.Th>
+                  <Table.Th>{t("performance.thermal")}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {samples.slice(-12).reverse().map((sample, index) => {
+                  const previousSample = samples[samples.indexOf(sample) - 1] || null;
+                  const rowMetrics = calculatePerformanceMetrics(previousSample, sample);
+                  return (
+                    <Table.Tr key={`${sample.timestamp_ms}-${index}`}>
+                      <Table.Td>{formatTime(sample.timestamp_ms)}</Table.Td>
+                      <Table.Td>{sample.target_package || sample.foreground_package || "-"}</Table.Td>
+                      <Table.Td>{formatPercent(rowMetrics.processCpuPercent)}</Table.Td>
+                      <Table.Td>{formatKb(sample.process.rss_kb)}</Table.Td>
+                      <Table.Td>{formatMs(sample.frame_stats?.p95_frame_ms)}</Table.Td>
+                      <Table.Td>{formatPercent(sample.frame_stats?.jank_rate)}</Table.Td>
+                      <Table.Td>{formatTemperature(sample.battery.temperature_c)}</Table.Td>
+                      <Table.Td>{sample.thermal.status_label || "-"}</Table.Td>
+                    </Table.Tr>
+                  );
+                })}
+                {samples.length === 0 && (
+                  <Table.Tr>
+                    <Table.Td colSpan={8}>
+                      <Text size="sm" c="dimmed" ta="center" py="md">
+                        {t("performance.noSamples")}
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </Stack>
+      </Paper>
+    </Stack>
+  );
+}
+
+function MetricSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <Paper withBorder radius="md" p="md">
+      <Stack gap="sm">
+        <Text fw={700}>{title}</Text>
+        <div className="grid grid-cols-2 gap-2">{children}</div>
+      </Stack>
+    </Paper>
+  );
+}
+
+function MetricTile({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 min-h-[64px]">
+      <Text size="xs" c="dimmed" truncate>
+        {label}
+      </Text>
+      <Text fw={800} size="sm" mt={4} truncate>
+        {value}
+      </Text>
+    </div>
+  );
+}
+
+interface TrendConfig {
+  key: string;
+  title: string;
+  color: string;
+  zeroBase?: boolean;
+  referenceValue?: number;
+  valueOf: (point: PerformanceTrendPoint) => number | null;
+  formatValue: (value: number | null | undefined) => string;
+}
+
+interface ChartValue {
+  timestampMs: number;
+  value: number;
+}
+
+function TrendSection({ points, t }: { points: PerformanceTrendPoint[]; t: ReturnType<typeof useTranslation>["t"] }) {
+  const configs: TrendConfig[] = [
+    {
+      key: "processCpu",
+      title: t("performance.trendProcessCpu"),
+      color: "#2563eb",
+      zeroBase: true,
+      valueOf: (point) => point.processCpuPercent,
+      formatValue: formatPercent,
+    },
+    {
+      key: "systemCpu",
+      title: t("performance.trendSystemCpu"),
+      color: "#16a34a",
+      zeroBase: true,
+      valueOf: (point) => point.systemCpuPercent,
+      formatValue: formatPercent,
+    },
+    {
+      key: "rss",
+      title: t("performance.trendRss"),
+      color: "#9333ea",
+      valueOf: (point) => point.rssMb,
+      formatValue: formatMb,
+    },
+    {
+      key: "memory",
+      title: t("performance.trendMemory"),
+      color: "#0891b2",
+      valueOf: (point) => point.memoryUsedGb,
+      formatValue: formatGb,
+    },
+    {
+      key: "p95",
+      title: t("performance.trendP95"),
+      color: "#ea580c",
+      referenceValue: 16.67,
+      valueOf: (point) => point.p95FrameMs,
+      formatValue: formatMs,
+    },
+    {
+      key: "network",
+      title: t("performance.trendNetwork"),
+      color: "#475569",
+      zeroBase: true,
+      valueOf: (point) => point.networkKbPerSecond,
+      formatValue: formatKilobytesPerSecond,
+    },
+  ];
+
+  return (
+    <Stack gap="sm">
+      <Group justify="space-between">
+        <Text fw={700}>{t("performance.trends")}</Text>
+        <Text size="xs" c="dimmed">
+          {t("performance.trendWindow")}
+        </Text>
+      </Group>
+      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
+        {configs.map((config) => (
+          <TrendCard key={config.key} config={config} points={points} emptyLabel={t("performance.noTrendData")} />
+        ))}
+      </div>
+    </Stack>
+  );
+}
+
+function TrendCard({ config, points, emptyLabel }: { config: TrendConfig; points: PerformanceTrendPoint[]; emptyLabel: string }) {
+  const values = points
+    .slice(-180)
+    .map((point) => ({
+      timestampMs: point.timestamp_ms,
+      value: config.valueOf(point),
+    }))
+    .filter((point): point is ChartValue => point.value !== null && Number.isFinite(point.value));
+  const latestValue = values.length > 0 ? values[values.length - 1].value : null;
+
+  return (
+    <Paper withBorder radius="md" p="sm">
+      <Stack gap="xs">
+        <Group justify="space-between" align="flex-start" gap="sm">
+          <Text size="sm" fw={700}>
+            {config.title}
+          </Text>
+          <Text size="sm" fw={800} c="dark">
+            {config.formatValue(latestValue)}
+          </Text>
+        </Group>
+        <LineChart
+          ariaLabel={config.title}
+          color={config.color}
+          emptyLabel={emptyLabel}
+          referenceValue={config.referenceValue}
+          values={values}
+          zeroBase={config.zeroBase}
+        />
+      </Stack>
+    </Paper>
+  );
+}
+
+function LineChart({
+  ariaLabel,
+  color,
+  emptyLabel,
+  referenceValue,
+  values,
+  zeroBase = false,
+}: {
+  ariaLabel: string;
+  color: string;
+  emptyLabel: string;
+  referenceValue?: number;
+  values: ChartValue[];
+  zeroBase?: boolean;
+}) {
+  if (values.length < 2) {
+    return (
+      <div className="h-28 rounded-md border border-gray-200 bg-gray-50 flex items-center justify-center">
+        <Text size="xs" c="dimmed">
+          {emptyLabel}
+        </Text>
+      </div>
+    );
+  }
+
+  const chartValues = values.map((point) => point.value);
+  let min = zeroBase ? Math.min(0, ...chartValues) : Math.min(...chartValues);
+  let max = zeroBase ? Math.max(0, ...chartValues) : Math.max(...chartValues);
+  if (referenceValue !== undefined && Number.isFinite(referenceValue)) {
+    min = Math.min(min, referenceValue);
+    max = Math.max(max, referenceValue);
+  }
+  if (max === min) {
+    max += 1;
+    min = Math.max(0, min - 1);
+  }
+
+  const width = 360;
+  const height = 112;
+  const paddingX = 12;
+  const paddingY = 12;
+  const plotWidth = width - paddingX * 2;
+  const plotHeight = height - paddingY * 2;
+  const yForValue = (value: number) => paddingY + (1 - (value - min) / (max - min)) * plotHeight;
+  const path = values
+    .map((point, index) => {
+      const x = paddingX + (index / Math.max(1, values.length - 1)) * plotWidth;
+      const y = yForValue(point.value);
+      return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    })
+    .join(" ");
+
+  const referenceY = referenceValue !== undefined ? yForValue(referenceValue) : null;
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="h-28 w-full rounded-md border border-gray-200 bg-gray-50" role="img" aria-label={ariaLabel} preserveAspectRatio="none">
+      <line x1={paddingX} y1={paddingY} x2={paddingX} y2={height - paddingY} stroke="#e5e7eb" />
+      <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="#e5e7eb" />
+      <line x1={paddingX} y1={paddingY + plotHeight / 2} x2={width - paddingX} y2={paddingY + plotHeight / 2} stroke="#e5e7eb" strokeDasharray="4 6" />
+      {referenceY !== null && (
+        <line x1={paddingX} y1={referenceY} x2={width - paddingX} y2={referenceY} stroke="#dc2626" strokeDasharray="6 6" />
+      )}
+      <path d={path} fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+function buildAlerts(samples: PerformanceSample[], latest: PerformanceSample | null, t: ReturnType<typeof useTranslation>["t"]): AlertItem[] {
+  if (!latest) return [];
+  const alerts: AlertItem[] = [];
+  if (latest.target_package && !latest.pid) {
+    alerts.push({ key: "process", message: t("performance.alertProcessGone") });
+  }
+  if ((latest.thermal.status ?? 0) >= 2) {
+    alerts.push({ key: "thermal", message: t("performance.alertThermal", { status: latest.thermal.status_label || latest.thermal.status }) });
+  }
+  if ((latest.battery.temperature_c ?? 0) >= 45) {
+    alerts.push({ key: "temperature", message: t("performance.alertTemperature", { temp: formatTemperature(latest.battery.temperature_c) }) });
+  }
+  if ((latest.frame_stats?.jank_rate ?? 0) > 5) {
+    alerts.push({ key: "jank", message: t("performance.alertJank", { rate: formatPercent(latest.frame_stats?.jank_rate) }) });
+  }
+  const fiveMinutesAgo = Number(latest.timestamp_ms) - 5 * 60 * 1000;
+  const baseline = samples.find((sample) => Number(sample.timestamp_ms) >= fiveMinutesAgo && sample.process.rss_kb);
+  if (baseline?.process.rss_kb && latest.process.rss_kb && latest.process.rss_kb > baseline.process.rss_kb * 1.2) {
+    alerts.push({ key: "memory", message: t("performance.alertMemory") });
+  }
+  return alerts;
+}
+
+function formatNumber(value: number | null | undefined, digits = 0) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "-";
+  return value.toFixed(digits);
+}
+
+function formatPercent(value: number | null | undefined) {
+  const number = formatNumber(value, 1);
+  return number === "-" ? "-" : `${number}%`;
+}
+
+function formatMs(value: number | null | undefined) {
+  const number = formatNumber(value, 1);
+  return number === "-" ? "-" : `${number} ms`;
+}
+
+function formatTemperature(value: number | null | undefined) {
+  const number = formatNumber(value, 1);
+  return number === "-" ? "-" : `${number} C`;
+}
+
+function formatKb(value: number | null | undefined) {
+  if (value === null || value === undefined) return "-";
+  if (value >= 1024 * 1024) return `${(value / 1024 / 1024).toFixed(1)} GB`;
+  if (value >= 1024) return `${(value / 1024).toFixed(1)} MB`;
+  return `${value} KB`;
+}
+
+function formatMb(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "-";
+  if (value >= 1024) return `${(value / 1024).toFixed(1)} GB`;
+  return `${value.toFixed(1)} MB`;
+}
+
+function formatGb(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "-";
+  return `${value.toFixed(1)} GB`;
+}
+
+function formatMemoryPair(sample: PerformanceSample | null) {
+  if (!sample?.system.mem_used_kb || !sample.system.mem_total_kb) return "-";
+  return `${formatKb(sample.system.mem_used_kb)} / ${formatKb(sample.system.mem_total_kb)}`;
+}
+
+function formatBattery(sample: PerformanceSample | null) {
+  if (!sample) return "-";
+  const level = sample.battery.level_percent === null ? "-" : `${sample.battery.level_percent}%`;
+  const temp = formatTemperature(sample.battery.temperature_c);
+  return temp === "-" ? level : `${level} · ${temp}`;
+}
+
+function formatNetwork(metrics: ReturnType<typeof calculatePerformanceMetrics>) {
+  const rx = formatBytesPerSecond(metrics.rxBytesPerSecond);
+  const tx = formatBytesPerSecond(metrics.txBytesPerSecond);
+  if (rx === "-" && tx === "-") return "-";
+  return `↓ ${rx} · ↑ ${tx}`;
+}
+
+function formatBytesPerSecond(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return "-";
+  if (value >= 1024 * 1024) return `${(value / 1024 / 1024).toFixed(1)} MB/s`;
+  if (value >= 1024) return `${(value / 1024).toFixed(1)} KB/s`;
+  return `${value.toFixed(0)} B/s`;
+}
+
+function formatKilobytesPerSecond(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "-";
+  if (value >= 1024) return `${(value / 1024).toFixed(1)} MB/s`;
+  return `${value.toFixed(1)} KB/s`;
+}
+
+function formatTime(timestampMs: number) {
+  return new Date(Number(timestampMs)).toLocaleTimeString();
+}

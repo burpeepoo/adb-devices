@@ -90,6 +90,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
 
   const progressPercent = apkItems.length > 0 ? Math.round((completedCount / apkItems.length) * 100) : 0;
   const apkPathKey = apkItems.map((item) => item.path).join("\n");
+  const queuePanelSizeClass = force ? "min-h-[320px] basis-[320px]" : "min-h-[220px] basis-[220px]";
 
   const updateItem = (path: string, patch: Partial<ApkInstallItem>) => {
     setApkItems((items) => items.map((item) => (item.path === path ? { ...item, ...patch } : item)));
@@ -382,7 +383,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
   return (
     <div
       onPasteCapture={handlePaste}
-      className={`flex h-full min-h-0 w-full min-w-0 max-w-full flex-col gap-4 overflow-hidden rounded-lg transition-colors ${dragging ? "bg-blue-50/60" : ""}`}
+      className={`flex h-full min-h-0 w-full min-w-0 max-w-full flex-col gap-4 overflow-x-hidden overflow-y-auto rounded-lg transition-colors ${dragging ? "bg-blue-50/60" : ""}`}
     >
       <section className="flex min-h-0 flex-1 flex-col rounded-lg border border-gray-200 bg-white p-4">
         <div className="shrink-0">
@@ -456,7 +457,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
           )}
         </div>
 
-        <div className="mb-4 min-h-0 flex-1">
+        <div className={`mb-4 shrink grow ${queuePanelSizeClass}`}>
           <div
             className={`flex max-h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 ${
               apkItems.length > 0 ? "" : "border-dashed bg-gray-50"

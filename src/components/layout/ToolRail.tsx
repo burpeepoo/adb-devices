@@ -1,6 +1,7 @@
 import { Indicator, Stack, Tooltip } from "@mantine/core";
 import {
   IconApps,
+  IconActivityHeartbeat,
   IconBrandGithub,
   IconCamera,
   IconClipboard,
@@ -44,6 +45,7 @@ export const toolIcons: Record<TabKey, ToolConfig["icon"]> = {
   imageCast: IconPhotoUp,
   clipboard: IconClipboard,
   logcat: IconListDetails,
+  performance: IconActivityHeartbeat,
   packages: IconDeviceMobileCode,
 };
 

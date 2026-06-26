@@ -464,7 +464,46 @@ UI behavior:
 - Can export visible text.
 - Uses periodic refresh for snapshot mode while active.
 
-## 14. Settings, Language, And Updater
+## 14. Performance Sampling
+
+Goal: sample selected-device and target-game performance during live Android testing.
+
+Frontend: `PerformancePanel.tsx`
+
+Backend:
+
+- `adb_performance_sample`
+- `export_text_file`
+
+Sampling behavior:
+
+- Entering the tab with an online selected device starts sampling automatically.
+- Fast samples run every 2 seconds; slow `dumpsys`/thermal/storage/display probes run every 10 seconds; `gfxinfo framestats` probes run every 5 seconds.
+- The first automatic sample after start/resume is fast-only so the target package and basic device metrics appear before slower probes run.
+- Sampling follows the foreground app by default and can pin the current foreground package as the fixed target game.
+- Foreground app detection reads both window focus and resumed-activity sources so customized Android builds can still resolve the target package.
+- If foreground app detection is slow or unavailable, sampling still returns system/device metrics instead of blocking the whole sample.
+- The backend returns one read-only sample per command and does not start a long-running device agent.
+- The frontend schedules the next automatic poll after the current sample completes, so slow wireless ADB does not queue overlapping probes.
+
+Metrics:
+
+- Game/process: package, PID, process state, raw process CPU jiffies, RSS/PSS, thread count.
+- Device/system: raw system CPU jiffies, memory, battery, thermal state, CPU frequency, network bytes, `/data` storage, display size/density/refresh.
+- Rendering: attempts `dumpsys gfxinfo <package> framestats`; unsupported packages show the source as unavailable without blocking other metrics.
+
+UI behavior:
+
+- Shows Game, Rendering, Device, Live Trends, and Timeline areas.
+- Shows sampling-in-progress, last sample time, and next auto-refresh countdown.
+- Shows first-sample loading values and pauses auto sampling with a visible timeout if ADB does not return within the frontend watchdog window.
+- Keeps a rolling 15-minute sample window in frontend state.
+- Computes CPU percentages and network rates from adjacent samples.
+- Draws lightweight SVG trend charts for CPU, RSS, memory, P95 frame time, and network metrics from the same rolling samples.
+- Warns on missing target process, elevated thermal state, battery temperature at or above 45 C, RSS growth over 20% in 5 minutes, and jank rate above 5%.
+- Exports JSON or CSV containing metadata, sampling intervals, and retained samples.
+
+## 15. Settings, Language, And Updater
 
 Goal: manage app preferences and update flow.
 
@@ -508,7 +547,7 @@ Release note localization:
 - Release body can contain `en-US`, `en`, `English`, `zh-CN`, `zh`, `中文`, or `Chinese` sections.
 - Frontend selects the section matching current language and falls back to English, Chinese, then cleaned full body.
 
-## 15. OS Integration And External URLs
+## 16. OS Integration And External URLs
 
 Goal: safely bridge common OS actions.
 
@@ -523,7 +562,7 @@ Rules:
   - `https://github.com/Genymobile/scrcpy`
   - `https://github.com/burpeepoo/adb-devices`
 
-## 16. Global Shortcuts
+## 17. Global Shortcuts
 
 Backend registers:
 

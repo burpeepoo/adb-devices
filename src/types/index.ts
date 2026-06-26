@@ -79,6 +79,89 @@ export interface LogcatEntry {
   message: string;
 }
 
+export interface PerformanceSample {
+  timestamp_ms: number;
+  device_serial: string;
+  target_package: string | null;
+  foreground_package: string | null;
+  foreground_activity: string | null;
+  pid: number | null;
+  process: PerformanceProcessSample;
+  system: PerformanceSystemSample;
+  battery: PerformanceBatterySample;
+  thermal: PerformanceThermalSample;
+  display: PerformanceDisplaySample;
+  network: PerformanceNetworkSample;
+  storage: PerformanceStorageSample;
+  frame_stats: PerformanceFrameStats | null;
+  unavailable: string[];
+}
+
+export interface PerformanceProcessSample {
+  package_name: string | null;
+  pid: number | null;
+  state: string | null;
+  cpu_jiffies: number | null;
+  rss_kb: number | null;
+  pss_kb: number | null;
+  thread_count: number | null;
+  running: boolean;
+}
+
+export interface PerformanceSystemSample {
+  cpu_total_jiffies: number | null;
+  cpu_idle_jiffies: number | null;
+  mem_total_kb: number | null;
+  mem_available_kb: number | null;
+  mem_used_kb: number | null;
+  cpu_frequency: {
+    average_current_khz: number | null;
+    average_max_khz: number | null;
+    online_cores: number;
+  };
+}
+
+export interface PerformanceBatterySample {
+  level_percent: number | null;
+  status: string | null;
+  temperature_c: number | null;
+}
+
+export interface PerformanceThermalSample {
+  status: number | null;
+  status_label: string | null;
+  raw: string | null;
+}
+
+export interface PerformanceDisplaySample {
+  size: string | null;
+  density: string | null;
+  refresh_rate_hz: number | null;
+}
+
+export interface PerformanceNetworkSample {
+  rx_bytes: number | null;
+  tx_bytes: number | null;
+}
+
+export interface PerformanceStorageSample {
+  data_total_kb: number | null;
+  data_used_kb: number | null;
+  data_available_kb: number | null;
+}
+
+export interface PerformanceFrameStats {
+  supported: boolean;
+  frame_count: number;
+  fps: number | null;
+  average_frame_ms: number | null;
+  p50_frame_ms: number | null;
+  p95_frame_ms: number | null;
+  jank_count: number;
+  jank_rate: number | null;
+  reason: string | null;
+}
+
 export interface AppSettings {
   screenshotDir: string;
   recordingDir: string;
@@ -114,4 +197,5 @@ export type TabKey =
   | "imageCast"
   | "clipboard"
   | "logcat"
+  | "performance"
   | "packages";

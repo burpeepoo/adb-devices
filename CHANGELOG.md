@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [1.1.30] - 2026-06-26
+
+### Added
+
+- Added a Performance sampling tab for game/device testing, with foreground package tracking, optional fixed target package, fast/slow ADB-only metrics, frame-stat probing, warnings, and JSON/CSV export.
+
+### Changed
+
+- Added live trend charts to Performance sampling and renamed the target-package lock language to fixed-target app wording.
+
+### Fixed
+
+- Made Performance sampling visibly auto-refresh by starting with a fast sample, scheduling the next poll after each completed sample, and showing sampling/last-sample/next-refresh status.
+- Made Performance foreground-app detection more robust on Cozyla devices by reading both window focus and resumed-activity sources, and cleared stale paused status when sampling restarts.
+- Made Performance sampling tolerate slow foreground detection, show first-sample loading values, and stop with a visible timeout instead of staying blank.
+- Increased the Install APK queue height so force-install package-name inputs remain visible for multiple queued APKs.
+
 ## [1.1.29] - 2026-06-25
 
 ### Fixed

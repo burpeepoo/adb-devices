@@ -104,6 +104,7 @@ pub fn run() {
             commands::package::adb_package_info,
             commands::package::adb_list_package_details,
             commands::package::adb_export_package_apk,
+            commands::performance::adb_performance_sample,
             commands::settings::select_directory,
             commands::settings::get_default_save_dir,
             commands::settings::check_adb_available,

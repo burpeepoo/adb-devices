@@ -110,6 +110,9 @@ logcat.not_running: "logcat 未在运行"
 logcat.export_title: "导出日志"
 logcat.export_failed: "导出日志失败: %{message}"
 
+# Performance
+performance.sample_failed: "性能采样失败"
+
 # Screenshot
 screenshot.failed: "截图失败: %{message}"
 screenshot.pull_failed: "拉取截图失败: %{message}"
