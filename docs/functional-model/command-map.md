@@ -64,7 +64,7 @@ This map connects user-facing actions to frontend code, Tauri commands, and back
 | Logcat snapshot | `Logcat.tsx` | `adb_read_logcat` | Runs `adb logcat -d -v threadtime -t <limit>`, parses lines. |
 | Logcat stream start | `Logcat.tsx` | `adb_start_logcat` | Spawns `adb logcat -v threadtime`, emits parsed line events. |
 | Logcat stream stop | `Logcat.tsx` | `adb_stop_logcat` | Kills tracked logcat process. |
-| Performance sample | `PerformancePanel.tsx` | `adb_performance_sample` | Samples the selected device through foreground app detection plus ADB-only `/proc`, `dumpsys`, `wm`, `df`, thermal, battery, network, and optional `gfxinfo framestats` probes; the UI computes deltas, trend charts, warnings, retention, and export. |
+| Performance sample | `PerformancePanel.tsx` | `adb_performance_sample` | Samples the selected device through foreground app detection plus ADB-only `/proc`, GPU sysfs counters, `dumpsys gpu` memory fallback, `wm`, `df`, thermal, battery, network, and optional `gfxinfo framestats` probes; the UI computes deltas, stable last-known metric cards, configurable cadence, trend charts, warnings, retention, and export. |
 | Package names | `PackageNameInput.tsx` | `adb_list_packages` | Runs `pm list packages`, strips `package:` prefix. |
 | Package details | `PackageList.tsx` | `adb_list_package_details` | Parses `dumpsys package packages` plus build/SN properties. |
 | Package info | `PackageList.tsx` | `adb_package_info` | Reads one package's version info plus build/SN properties. |

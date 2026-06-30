@@ -93,6 +93,7 @@ export interface PerformanceSample {
   display: PerformanceDisplaySample;
   network: PerformanceNetworkSample;
   storage: PerformanceStorageSample;
+  gpu: PerformanceGpuSample;
   frame_stats: PerformanceFrameStats | null;
   unavailable: string[];
 }
@@ -148,6 +149,20 @@ export interface PerformanceStorageSample {
   data_total_kb: number | null;
   data_used_kb: number | null;
   data_available_kb: number | null;
+}
+
+export interface PerformanceGpuSample {
+  supported: boolean;
+  busy_percent: number | null;
+  busy_time: number | null;
+  total_time: number | null;
+  current_frequency_hz: number | null;
+  max_frequency_hz: number | null;
+  memory_total_bytes: number | null;
+  process_memory_bytes: number | null;
+  source: string | null;
+  reason: string | null;
+  raw: string | null;
 }
 
 export interface PerformanceFrameStats {

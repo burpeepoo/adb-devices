@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   PERFORMANCE_RETENTION_MS,
+  PERFORMANCE_SAMPLE_WATCHDOG_MS,
   PERFORMANCE_SAMPLE_TIMEOUT_ERROR,
+  buildPerformanceDisplaySnapshot,
+  normalizePerformanceFastIntervalMs,
   buildPerformanceCsvExport,
   buildPerformanceJsonExport,
   buildPerformanceTrendPoints,
@@ -34,7 +37,13 @@ test("performance sampling starts with a fast sample before slow probes", () => 
   assert.equal(shouldIncludeFrameSample(10_001, marks.lastFrameSampleMs), false);
   assert.equal(shouldIncludeFrameSample(15_000, marks.lastFrameSampleMs), true);
   assert.equal(shouldIncludeSlowSample(20_000, marks.lastSlowSampleMs), true);
-  assert.equal(nextPerformancePollDueMs(12_345), 14_345);
+  assert.equal(nextPerformancePollDueMs(12_345), 13_345);
+  assert.equal(nextPerformancePollDueMs(12_345, 500), 12_845);
+  assert.equal(normalizePerformanceFastIntervalMs(333), 1000);
+});
+
+test("performance sample watchdog has headroom for slow wireless probes", () => {
+  assert.equal(PERFORMANCE_SAMPLE_WATCHDOG_MS, 20_000);
 });
 
 test("performance samples are retained for a rolling 15 minute window", () => {
@@ -58,8 +67,10 @@ test("performance metrics calculate CPU percentages and network rates from delta
     cpuTotal: 1_000,
     cpuIdle: 200,
     rx: 1_000,
-    tx: 2_000,
-  });
+      tx: 2_000,
+      gpuBusy: 100,
+      gpuTotal: 1_000,
+    });
   const current = sample({
     timestamp_ms: 3_000,
     processCpu: 150,
@@ -67,14 +78,41 @@ test("performance metrics calculate CPU percentages and network rates from delta
     cpuIdle: 300,
     rx: 3_000,
     tx: 3_000,
+    gpuBusy: 250,
+    gpuTotal: 1_500,
   });
 
   const metrics = calculatePerformanceMetrics(previous, current);
 
   assert.equal(metrics.processCpuPercent, 10);
   assert.equal(metrics.systemCpuPercent, 80);
+  assert.equal(metrics.gpuUsagePercent, 30);
   assert.equal(metrics.rxBytesPerSecond, 1000);
   assert.equal(metrics.txBytesPerSecond, 500);
+});
+
+test("performance metrics do not calculate process CPU across app changes", () => {
+  const previous = sample({
+    timestamp_ms: 1_000,
+    packageName: "com.example.old",
+    pid: 100,
+    processCpu: 500,
+    cpuTotal: 1_000,
+    cpuIdle: 200,
+  });
+  const current = sample({
+    timestamp_ms: 2_000,
+    packageName: "com.example.new",
+    pid: 200,
+    processCpu: 800,
+    cpuTotal: 1_500,
+    cpuIdle: 300,
+  });
+
+  const metrics = calculatePerformanceMetrics(previous, current);
+
+  assert.equal(metrics.processCpuPercent, null);
+  assert.equal(metrics.systemCpuPercent, 80);
 });
 
 test("performance trend points derive chart-ready values from adjacent samples", () => {
@@ -88,6 +126,7 @@ test("performance trend points derive chart-ready values from adjacent samples",
       tx: 2_048,
       rssKb: 10_240,
       memUsedKb: 1_048_576,
+      gpuBusyPercent: 12,
     }),
     sample({
       timestamp_ms: 3_000,
@@ -98,6 +137,7 @@ test("performance trend points derive chart-ready values from adjacent samples",
       tx: 4_096,
       rssKb: 20_480,
       memUsedKb: 2_097_152,
+      gpuBusyPercent: 24,
     }),
   ]);
 
@@ -108,7 +148,62 @@ test("performance trend points derive chart-ready values from adjacent samples",
   assert.equal(points[1].systemCpuPercent, 80);
   assert.equal(points[1].rssMb, 20);
   assert.equal(points[1].memoryUsedGb, 2);
+  assert.equal(points[1].gpuUsagePercent, 24);
+  assert.equal(points[1].gpuFrequencyMhz, 500);
   assert.equal(points[1].networkKbPerSecond, 2);
+});
+
+test("performance display snapshot keeps last slow metrics during fast samples", () => {
+  const slow = sample({
+    timestamp_ms: 1_000,
+    pssKb: 12_000,
+    batteryTemperatureC: 36.5,
+    storageAvailableKb: 88_000,
+    gpuMemoryTotalBytes: 512 * 1024 * 1024,
+  });
+  const fast = sample({
+    timestamp_ms: 2_000,
+    processCpu: 120,
+    cpuTotal: 1_200,
+    cpuIdle: 300,
+  });
+  fast.process.pss_kb = null;
+  fast.battery.temperature_c = null;
+  fast.storage.data_available_kb = null;
+  fast.gpu.memory_total_bytes = null;
+  fast.frame_stats = null;
+
+  const snapshot = buildPerformanceDisplaySnapshot([slow, fast]);
+
+  assert.ok(snapshot);
+  assert.equal(snapshot.sample.timestamp_ms, 2_000);
+  assert.equal(snapshot.sample.process.pss_kb, 12_000);
+  assert.equal(snapshot.sample.battery.temperature_c, 36.5);
+  assert.equal(snapshot.sample.storage.data_available_kb, 88_000);
+  assert.equal(snapshot.sample.gpu.memory_total_bytes, 512 * 1024 * 1024);
+  assert.equal(snapshot.sample.frame_stats?.p95_frame_ms, 24);
+});
+
+test("performance display snapshot does not carry app metrics across target packages", () => {
+  const app = sample({
+    timestamp_ms: 1_000,
+    packageName: "com.example.app",
+    pssKb: 12_000,
+  });
+  const settings = sample({
+    timestamp_ms: 2_000,
+    packageName: "com.android.settings",
+  });
+  settings.process.pss_kb = null;
+  settings.frame_stats = null;
+  settings.gpu.process_memory_bytes = null;
+
+  const snapshot = buildPerformanceDisplaySnapshot([app, settings]);
+
+  assert.ok(snapshot);
+  assert.equal(snapshot.sample.target_package, "com.android.settings");
+  assert.equal(snapshot.sample.process.pss_kb, null);
+  assert.equal(snapshot.sample.frame_stats, null);
 });
 
 test("performance sample timeout is detectable without waiting for the default watchdog", async () => {
@@ -123,15 +218,16 @@ test("performance sample timeout is detectable without waiting for the default w
 });
 
 test("performance exports include metadata and csv headers", () => {
-  const samples = [sample({ timestamp_ms: 42, packageName: "com.example.game" })];
+  const samples = [sample({ timestamp_ms: 42, packageName: "com.example.app" })];
   const json = JSON.parse(
     buildPerformanceJsonExport(
       {
         deviceLabel: "QA TV",
         deviceSerial: "USB123",
-        lockedPackage: "com.example.game",
+        lockedPackage: "com.example.app",
         startedAtMs: 1,
         exportedAtMs: 2,
+        sampleIntervalMs: 500,
       },
       samples,
     ),
@@ -139,37 +235,48 @@ test("performance exports include metadata and csv headers", () => {
   const csv = buildPerformanceCsvExport(samples);
 
   assert.equal(json.meta.sampleCount, 1);
-  assert.equal(json.samples[0].target_package, "com.example.game");
+  assert.equal(json.meta.fastIntervalMs, 500);
+  assert.equal(json.samples[0].target_package, "com.example.app");
+  assert.match(csv, /gpu_busy_percent/);
+  assert.match(csv, /gpu_memory_total_bytes/);
   assert.match(csv, /^timestamp_ms,target_package,foreground_package/);
-  assert.match(csv, /42,com\.example\.game,com\.example\.game/);
+  assert.match(csv, /42,com\.example\.app,com\.example\.app/);
 });
 
 function sample(overrides: {
   timestamp_ms?: number;
   packageName?: string;
+  pid?: number;
   processCpu?: number;
   cpuTotal?: number;
   cpuIdle?: number;
   rx?: number;
   tx?: number;
   rssKb?: number;
+  pssKb?: number;
   memUsedKb?: number;
+  gpuBusyPercent?: number;
+  gpuBusy?: number;
+  gpuTotal?: number;
+  gpuMemoryTotalBytes?: number;
+  batteryTemperatureC?: number;
+  storageAvailableKb?: number;
 }): PerformanceSample {
-  const packageName = overrides.packageName ?? "com.example.game";
+  const packageName = overrides.packageName ?? "com.example.app";
   return {
     timestamp_ms: overrides.timestamp_ms ?? 0,
     device_serial: "USB123",
     target_package: packageName,
     foreground_package: packageName,
     foreground_activity: ".MainActivity",
-    pid: 123,
+    pid: overrides.pid ?? 123,
     process: {
       package_name: packageName,
-      pid: 123,
+      pid: overrides.pid ?? 123,
       state: "R",
       cpu_jiffies: overrides.processCpu ?? 0,
       rss_kb: overrides.rssKb ?? 10_000,
-      pss_kb: 9_000,
+      pss_kb: overrides.pssKb ?? 9_000,
       thread_count: 20,
       running: true,
     },
@@ -188,7 +295,7 @@ function sample(overrides: {
     battery: {
       level_percent: 80,
       status: "charging",
-      temperature_c: 35,
+      temperature_c: overrides.batteryTemperatureC ?? 35,
     },
     thermal: {
       status: 0,
@@ -207,7 +314,20 @@ function sample(overrides: {
     storage: {
       data_total_kb: 100_000,
       data_used_kb: 60_000,
-      data_available_kb: 40_000,
+      data_available_kb: overrides.storageAvailableKb ?? 40_000,
+    },
+    gpu: {
+      supported: true,
+      busy_percent: overrides.gpuBusyPercent ?? null,
+      busy_time: overrides.gpuBusy ?? 10,
+      total_time: overrides.gpuTotal ?? 100,
+      current_frequency_hz: 500_000_000,
+      max_frequency_hz: 800_000_000,
+      memory_total_bytes: overrides.gpuMemoryTotalBytes ?? 256 * 1024 * 1024,
+      process_memory_bytes: null,
+      source: "/sys/class/kgsl/kgsl-3d0",
+      reason: null,
+      raw: null,
     },
     frame_stats: {
       supported: true,

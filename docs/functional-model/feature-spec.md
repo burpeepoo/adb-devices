@@ -466,7 +466,7 @@ UI behavior:
 
 ## 14. Performance Sampling
 
-Goal: sample selected-device and target-game performance during live Android testing.
+Goal: sample selected-device and target-app performance during live Android testing.
 
 Frontend: `PerformancePanel.tsx`
 
@@ -478,29 +478,33 @@ Backend:
 Sampling behavior:
 
 - Entering the tab with an online selected device starts sampling automatically.
-- Fast samples run every 2 seconds; slow `dumpsys`/thermal/storage/display probes run every 10 seconds; `gfxinfo framestats` probes run every 5 seconds.
+- Fast samples default to 1 second and can be manually set to 0.5, 1, 2, or 5 seconds; slow `dumpsys`/thermal/storage/display probes still run every 10 seconds; `gfxinfo framestats` probes still run every 5 seconds.
 - The first automatic sample after start/resume is fast-only so the target package and basic device metrics appear before slower probes run.
-- Sampling follows the foreground app by default and can pin the current foreground package as the fixed target game.
+- Sampling follows the foreground app by default and can pin the current foreground package as the fixed target app.
 - Foreground app detection reads both window focus and resumed-activity sources so customized Android builds can still resolve the target package.
 - If foreground app detection is slow or unavailable, sampling still returns system/device metrics instead of blocking the whole sample.
 - The backend returns one read-only sample per command and does not start a long-running device agent.
+- The frontend watchdog allows 20 seconds per sample so a 2-second foreground probe plus a 10-second slow/frame probe does not falsely trip the UI timeout on wireless ADB.
 - The frontend schedules the next automatic poll after the current sample completes, so slow wireless ADB does not queue overlapping probes.
+- Manual "sample now" requests made while an automatic probe is in flight are queued once and run immediately after the active probe finishes; the button does not visually debounce during periodic sampling.
 
 Metrics:
 
-- Game/process: package, PID, process state, raw process CPU jiffies, RSS/PSS, thread count.
-- Device/system: raw system CPU jiffies, memory, battery, thermal state, CPU frequency, network bytes, `/data` storage, display size/density/refresh.
+- App/process: package, PID, process state, raw process CPU jiffies, RSS/PSS, thread count.
+- Device/system: raw system CPU jiffies, memory, battery, thermal state, CPU frequency, GPU utilization/frequency when exposed by Android sysfs, `dumpsys gpu` memory fallback when sysfs counters are permission-limited, network bytes, `/data` storage, display size/density/refresh.
 - Rendering: attempts `dumpsys gfxinfo <package> framestats`; unsupported packages show the source as unavailable without blocking other metrics.
 
 UI behavior:
 
-- Shows Game, Rendering, Device, Live Trends, and Timeline areas.
-- Shows sampling-in-progress, last sample time, and next auto-refresh countdown.
+- Shows App, Rendering, Device, Live Trends, and Timeline areas.
+- Shows stable running/paused state and last sample time without a live countdown.
+- Keeps the sampling interval selector aligned with the toolbar buttons; the selector uses an accessible label instead of a visible stacked label.
 - Shows first-sample loading values and pauses auto sampling with a visible timeout if ADB does not return within the frontend watchdog window.
+- Metric cards render a last-known display snapshot for cadence-based or permission-limited fields, so fast samples do not briefly clear slow metrics to `-`; Timeline and exports still keep the raw per-sample values.
 - Keeps a rolling 15-minute sample window in frontend state.
 - Computes CPU percentages and network rates from adjacent samples.
-- Draws lightweight SVG trend charts for CPU, RSS, memory, P95 frame time, and network metrics from the same rolling samples.
-- Warns on missing target process, elevated thermal state, battery temperature at or above 45 C, RSS growth over 20% in 5 minutes, and jank rate above 5%.
+- Draws lightweight SVG trend charts for CPU, GPU, RSS, memory, P95 frame time, and network metrics from the same rolling samples.
+- Warns on missing target process, elevated thermal state, battery temperature at or above 45 C, and RSS growth over 20% in 5 minutes; jank remains visible as a metric/trend but does not raise a transient warning banner.
 - Exports JSON or CSV containing metadata, sampling intervals, and retained samples.
 
 ## 15. Settings, Language, And Updater

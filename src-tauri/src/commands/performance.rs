@@ -21,6 +21,7 @@ pub struct PerformanceSample {
     pub display: DisplaySample,
     pub network: NetworkSample,
     pub storage: StorageSample,
+    pub gpu: GpuSample,
     pub frame_stats: Option<FrameStatsSample>,
     pub unavailable: Vec<String>,
 }
@@ -86,6 +87,21 @@ pub struct StorageSample {
     pub data_total_kb: Option<u64>,
     pub data_used_kb: Option<u64>,
     pub data_available_kb: Option<u64>,
+}
+
+#[derive(Debug, Serialize, Clone, Default)]
+pub struct GpuSample {
+    pub supported: bool,
+    pub busy_percent: Option<f64>,
+    pub busy_time: Option<u64>,
+    pub total_time: Option<u64>,
+    pub current_frequency_hz: Option<u64>,
+    pub max_frequency_hz: Option<u64>,
+    pub memory_total_bytes: Option<u64>,
+    pub process_memory_bytes: Option<u64>,
+    pub source: Option<String>,
+    pub reason: Option<String>,
+    pub raw: Option<String>,
 }
 
 #[derive(Debug, Serialize, Clone, Default)]
@@ -198,11 +214,35 @@ echo "__MEMINFO__"
 cat /proc/meminfo 2>/dev/null
 echo "__NET_DEV__"
 cat /proc/net/dev 2>/dev/null
+echo "__GPU__"
+gpu_found=0
+for gpu in /sys/class/kgsl/kgsl-3d0 /sys/class/devfreq/*gpu* /sys/class/devfreq/*mali* /sys/class/devfreq/*kgsl* /sys/class/devfreq/*powervr* /sys/class/devfreq/*img* /sys/class/misc/mali0/device /sys/devices/platform/*gpu*/devfreq/* /sys/devices/platform/*mali*/devfreq/* /sys/devices/platform/soc/*gpu*/devfreq/* /sys/devices/platform/soc/*mali*/devfreq/* /sys/devices/platform/soc/*/*gpu*/devfreq/*; do
+  if [ -d "$gpu" ]; then
+    gpu_found=1
+    echo "path=$gpu"
+    for file in gpu_busy_percentage busy_percentage utilization gpu_utilization load gpubusy cur_freq max_freq min_freq target_freq trans_stat devfreq/cur_freq devfreq/max_freq; do
+      key="$(echo "$file" | tr '/' '_')"
+      value="$(cat "$gpu/$file" 2>&1)"
+      status="$?"
+      value="$(printf "%s" "$value" | head -n 1)"
+      if [ "$status" = "0" ] && [ -n "$value" ]; then
+        echo "$key=$value"
+      elif printf "%s" "$value" | grep -qi "Permission denied"; then
+        echo "${{key}}_error=permission denied"
+      fi
+    done
+  fi
+done
+if [ "$gpu_found" = "0" ]; then
+  echo "reason=gpu sysfs counters unavailable"
+fi
 if [ "$include_slow" = "1" ]; then
   echo "__DUMPSYS_MEMINFO__"
   if [ -n "$pkg" ]; then dumpsys meminfo "$pkg" 2>/dev/null | head -n 120; fi
   echo "__BATTERY__"
   dumpsys battery 2>/dev/null
+  echo "__DUMPSYS_GPU__"
+  dumpsys gpu 2>/dev/null | head -n 140
   echo "__THERMAL__"
   dumpsys thermalservice 2>/dev/null || dumpsys thermal 2>/dev/null || true
   echo "__CPU_FREQ__"
@@ -257,6 +297,15 @@ fn parse_performance_sample(
     }
 
     let system_mem = parse_system_meminfo(section(&sections, "MEMINFO"));
+    let mut gpu = parse_gpu(section(&sections, "GPU"));
+    enrich_gpu_from_dumpsys(&mut gpu, section(&sections, "DUMPSYS_GPU"), pid);
+    if !gpu.supported {
+        unavailable.push(
+            gpu.reason
+                .clone()
+                .unwrap_or_else(|| "gpu counters unavailable".to_string()),
+        );
+    }
     let system = SystemSample {
         cpu_total_jiffies: parse_proc_stat_cpu(section(&sections, "PROC_STAT"))
             .map(|value| value.0),
@@ -295,6 +344,7 @@ fn parse_performance_sample(
         display: parse_display(section(&sections, "DISPLAY")),
         network: parse_network_dev(section(&sections, "NET_DEV")),
         storage: parse_storage(section(&sections, "DF_DATA")),
+        gpu,
         frame_stats,
         unavailable,
     }
@@ -464,6 +514,14 @@ fn first_number_u64(value: &str) -> Option<u64> {
         .split(|ch: char| !ch.is_ascii_digit())
         .find(|item| !item.is_empty())
         .and_then(|item| item.parse::<u64>().ok())
+}
+
+fn first_number_f64(value: &str) -> Option<f64> {
+    value
+        .split(|ch: char| !(ch.is_ascii_digit() || ch == '.'))
+        .find(|item| !item.is_empty())
+        .and_then(|item| item.parse::<f64>().ok())
+        .filter(|item| item.is_finite())
 }
 
 fn parse_system_meminfo(section: &str) -> SystemMemInfo {
@@ -641,6 +699,143 @@ fn parse_storage(section: &str) -> StorageSample {
         data_used_kb: parts.get(2).and_then(|value| value.parse::<u64>().ok()),
         data_available_kb: parts.get(3).and_then(|value| value.parse::<u64>().ok()),
     }
+}
+
+fn parse_gpu(section: &str) -> GpuSample {
+    let mut sample = GpuSample::default();
+    let mut raw_lines = Vec::new();
+    let mut permission_denied = false;
+    for line in section.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        raw_lines.push(trimmed.to_string());
+        if let Some(value) = trimmed.strip_prefix("path=") {
+            if sample.source.is_none() {
+                sample.source = Some(value.to_string());
+            }
+            continue;
+        }
+        if let Some(value) = trimmed.strip_prefix("reason=") {
+            sample.reason = Some(value.to_string());
+            continue;
+        }
+        if let Some((key, value)) = trimmed.split_once('=') {
+            if key.ends_with("_error") {
+                if value.to_ascii_lowercase().contains("permission denied") {
+                    permission_denied = true;
+                }
+                continue;
+            }
+            match key {
+                "gpu_busy_percentage" | "busy_percentage" | "utilization" | "load" => {
+                    sample.busy_percent = sample.busy_percent.or_else(|| {
+                        first_number_f64(value).map(|percent| percent.clamp(0.0, 100.0))
+                    });
+                }
+                "gpubusy" => {
+                    let numbers = value
+                        .split_whitespace()
+                        .filter_map(|item| item.parse::<u64>().ok())
+                        .collect::<Vec<_>>();
+                    if numbers.len() >= 2 {
+                        sample.busy_time = sample.busy_time.or(Some(numbers[0]));
+                        sample.total_time = sample.total_time.or(Some(numbers[1]));
+                    }
+                }
+                "cur_freq" | "devfreq_cur_freq" => {
+                    sample.current_frequency_hz = sample
+                        .current_frequency_hz
+                        .or_else(|| first_number_u64(value));
+                }
+                "max_freq" | "devfreq_max_freq" => {
+                    sample.max_frequency_hz =
+                        sample.max_frequency_hz.or_else(|| first_number_u64(value));
+                }
+                "memory_total_bytes" => {
+                    sample.memory_total_bytes = sample
+                        .memory_total_bytes
+                        .or_else(|| first_number_u64(value));
+                }
+                "process_memory_bytes" => {
+                    sample.process_memory_bytes = sample
+                        .process_memory_bytes
+                        .or_else(|| first_number_u64(value));
+                }
+                _ => {}
+            }
+        }
+    }
+
+    sample.supported = sample.busy_percent.is_some()
+        || sample.busy_time.is_some()
+        || sample.total_time.is_some()
+        || sample.current_frequency_hz.is_some()
+        || sample.max_frequency_hz.is_some()
+        || sample.memory_total_bytes.is_some()
+        || sample.process_memory_bytes.is_some();
+    if permission_denied && sample.reason.is_none() {
+        sample.reason = Some("gpu counters permission denied by device".to_string());
+    }
+    if !sample.supported && sample.reason.is_none() {
+        sample.reason = Some("gpu sysfs counters unavailable".to_string());
+    }
+    sample.raw = (!raw_lines.is_empty()).then(|| {
+        raw_lines
+            .into_iter()
+            .take(16)
+            .collect::<Vec<_>>()
+            .join("\n")
+    });
+    sample
+}
+
+fn enrich_gpu_from_dumpsys(sample: &mut GpuSample, section: &str, target_pid: Option<u32>) {
+    if section.trim().is_empty() {
+        return;
+    }
+
+    let (total, process) = parse_dumpsys_gpu_memory(section, target_pid);
+    sample.memory_total_bytes = sample.memory_total_bytes.or(total);
+    sample.process_memory_bytes = sample.process_memory_bytes.or(process);
+    if sample.memory_total_bytes.is_some() || sample.process_memory_bytes.is_some() {
+        sample.supported = true;
+        if !has_gpu_counter_values(sample) {
+            sample.source = Some("dumpsys gpu".to_string());
+        } else if sample.source.is_none() {
+            sample.source = Some("dumpsys gpu".to_string());
+        }
+    }
+}
+
+fn has_gpu_counter_values(sample: &GpuSample) -> bool {
+    sample.busy_percent.is_some()
+        || sample.busy_time.is_some()
+        || sample.total_time.is_some()
+        || sample.current_frequency_hz.is_some()
+        || sample.max_frequency_hz.is_some()
+}
+
+fn parse_dumpsys_gpu_memory(section: &str, target_pid: Option<u32>) -> (Option<u64>, Option<u64>) {
+    let mut total = None;
+    let mut process = None;
+    for line in section.lines() {
+        let trimmed = line.trim();
+        if let Some(value) = trimmed.strip_prefix("Global total:") {
+            total = total.or_else(|| first_number_u64(value));
+            continue;
+        }
+        let parts = trimmed.split_whitespace().collect::<Vec<_>>();
+        if parts.len() >= 4
+            && parts[0] == "Proc"
+            && parts[2] == "total:"
+            && target_pid.is_some_and(|pid| parts[1].parse::<u32>().ok() == Some(pid))
+        {
+            process = process.or_else(|| parts[3].parse::<u64>().ok());
+        }
+    }
+    (total, process)
 }
 
 fn parse_display(section: &str) -> DisplaySample {
@@ -887,5 +1082,64 @@ Flags,IntendedVsync,Vsync,OldestInputEvent,NewestInputEvent,HandleInputStart,Ani
         assert_eq!(parsed.frame_count, 2);
         assert_eq!(parsed.jank_count, 1);
         assert_eq!(parsed.p95_frame_ms, Some(25.0));
+    }
+
+    #[test]
+    fn parses_gpu_sysfs_metrics() {
+        let parsed = parse_gpu(
+            "path=/sys/class/kgsl/kgsl-3d0\ngpubusy=25 100\ncur_freq=500000000\nmax_freq=800000000\n",
+        );
+
+        assert!(parsed.supported);
+        assert_eq!(parsed.busy_time, Some(25));
+        assert_eq!(parsed.total_time, Some(100));
+        assert_eq!(parsed.current_frequency_hz, Some(500000000));
+        assert_eq!(parsed.max_frequency_hz, Some(800000000));
+        assert_eq!(parsed.source.as_deref(), Some("/sys/class/kgsl/kgsl-3d0"));
+    }
+
+    #[test]
+    fn parses_gpu_direct_busy_percentage() {
+        let parsed = parse_gpu("path=/sys/class/devfreq/gpu\nload=42@600000000Hz\n");
+
+        assert!(parsed.supported);
+        assert_eq!(parsed.busy_percent, Some(42.0));
+    }
+
+    #[test]
+    fn marks_gpu_permission_denied_separately_from_missing_counters() {
+        let parsed = parse_gpu(
+            "path=/sys/class/devfreq/23100000.gpu\ncur_freq_error=permission denied\nmax_freq_error=permission denied\n",
+        );
+
+        assert!(!parsed.supported);
+        assert_eq!(
+            parsed.reason.as_deref(),
+            Some("gpu counters permission denied by device")
+        );
+        assert_eq!(
+            parsed.source.as_deref(),
+            Some("/sys/class/devfreq/23100000.gpu")
+        );
+    }
+
+    #[test]
+    fn enriches_gpu_memory_from_dumpsys_gpu() {
+        let mut sample =
+            parse_gpu("path=/sys/class/devfreq/23100000.gpu\ncur_freq_error=permission denied\n");
+        enrich_gpu_from_dumpsys(
+            &mut sample,
+            "Memory snapshot for GPU 0:\nGlobal total: 414253056\nProc 7903 total: 172662784\nProc 42 total: 2048\n",
+            Some(7903),
+        );
+
+        assert!(sample.supported);
+        assert_eq!(sample.memory_total_bytes, Some(414253056));
+        assert_eq!(sample.process_memory_bytes, Some(172662784));
+        assert_eq!(sample.source.as_deref(), Some("dumpsys gpu"));
+        assert_eq!(
+            sample.reason.as_deref(),
+            Some("gpu counters permission denied by device")
+        );
     }
 }

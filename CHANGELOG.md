@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [1.1.31] - 2026-06-30
+
+### Changed
+
+- Changed Performance sampling copy from game-specific wording to app-target wording across Chinese and English UI.
+- Changed Performance metric cards to keep last-known valid values for slow or permission-limited metrics, while preserving raw per-sample values in Timeline and exports.
+
+### Fixed
+
+- Fixed Performance sampling cards briefly clearing slow metrics such as PSS, battery, storage, frame stats, and GPU memory between fast samples.
+- Added GPU permission diagnostics and a `dumpsys gpu` memory fallback for devices that expose GPU nodes but deny sysfs counter reads.
+- Increased the Performance sampling frontend watchdog headroom for slow wireless ADB probes.
+
 ## [1.1.30] - 2026-06-26
 
 ### Added

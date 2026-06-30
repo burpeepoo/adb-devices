@@ -11,7 +11,7 @@ The app is optimized for repeated engineering and support workflows:
 - Install APKs and export installed APKs.
 - Capture screenshots and recordings.
 - Mirror/control the device through scrcpy.
-- Sample game and device performance through ADB-only foreground, process, system, battery, thermal, network, storage, and frame-stat probes.
+- Sample app and device performance through ADB-only foreground, process, system, battery, thermal, network, storage, and frame-stat probes.
 - Push/open reference images on the device.
 - Send clipboard text and inspect logcat.
 - Package and update the app through signed release artifacts.
@@ -57,7 +57,7 @@ Navigation:
 - The Pair tab is implemented as the device console. It includes the selected device summary, shortcuts to other tools, and an embedded pair/connect panel.
 - The Mirror tab combines scrcpy-based local interactive mirroring with a selected-device app drawer for launching installed apps.
 - The Remote tab starts an opt-in browser/PWA gateway for phone or second-computer control, with Tailscale-first direct links, role QR sessions, 7-day trusted browsers, experimental HLS video streaming, screenshot/MJPEG fallback viewing, and whitelisted ADB actions.
-- The Performance tab samples the selected device every 2 seconds, follows the foreground app by default, can pin a fixed game package, shows live trend charts, and exports the rolling 15-minute sample window.
+- The Performance tab samples the selected device with a configurable fast interval, defaults to 1 second, supports a 0.5 second high-frequency mode, follows the foreground app by default, can pin a fixed app package, shows stable last-known CPU/GPU/memory/rendering/network metric cards plus live trend charts, and exports the rolling 15-minute raw sample window.
 
 ## Cross-Cutting Principles
 

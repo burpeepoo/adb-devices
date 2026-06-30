@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Badge, Button, Group, Paper, Stack, Table, Text } from "@mantine/core";
+import { Badge, Button, Group, Paper, Select, Stack, Table, Text } from "@mantine/core";
 import {
   IconActivityHeartbeat,
   IconDownload,
@@ -20,12 +20,16 @@ import type { PerformanceSample } from "../types";
 import type { PerformanceTrendPoint } from "../performanceSampling.ts";
 import {
   buildPerformanceCsvExport,
+  buildPerformanceDisplaySnapshot,
   buildPerformanceJsonExport,
   buildPerformanceTrendPoints,
   calculatePerformanceMetrics,
+  PERFORMANCE_DEFAULT_FAST_INTERVAL_MS,
+  PERFORMANCE_FAST_INTERVAL_OPTIONS_MS,
   initialPerformanceCadenceMarks,
   isPerformanceSampleTimeout,
   nextPerformancePollDueMs,
+  normalizePerformanceFastIntervalMs,
   prunePerformanceSamples,
   shouldIncludeFrameSample,
   shouldIncludeSlowSample,
@@ -52,9 +56,10 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
   const [exporting, setExporting] = useState(false);
   const [sampling, setSampling] = useState(false);
   const [lastSampleCompletedAtMs, setLastSampleCompletedAtMs] = useState<number | null>(null);
-  const [nextSampleDueAtMs, setNextSampleDueAtMs] = useState<number | null>(null);
-  const [clockMs, setClockMs] = useState(() => Date.now());
+  const [sampleIntervalMs, setSampleIntervalMs] = useState(PERFORMANCE_DEFAULT_FAST_INTERVAL_MS);
   const inFlightRef = useRef(false);
+  const queuedManualSampleRef = useRef(false);
+  const samplesRef = useRef<PerformanceSample[]>([]);
   const lastSlowSampleMsRef = useRef<number | null>(null);
   const lastFrameSampleMsRef = useRef<number | null>(null);
   const deviceSerial = deviceTarget.serial;
@@ -62,25 +67,42 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
   const latest = samples.length > 0 ? samples[samples.length - 1] : null;
   const previous = samples.length >= 2 ? samples[samples.length - 2] : null;
   const metrics = useMemo(() => calculatePerformanceMetrics(previous, latest), [latest, previous]);
+  const displaySnapshot = useMemo(() => buildPerformanceDisplaySnapshot(samples), [samples]);
+  const displaySample = displaySnapshot?.sample ?? null;
+  const displayMetrics = displaySnapshot?.metrics ?? metrics;
   const trendPoints = useMemo(() => buildPerformanceTrendPoints(samples), [samples]);
   const alerts = useMemo(() => buildAlerts(samples, latest, t), [latest, samples, t]);
-  const currentPackage = lockedPackage || latest?.target_package || latest?.foreground_package || null;
+  const currentPackage = lockedPackage || displaySample?.target_package || displaySample?.foreground_package || null;
   const emptyValue = sampling && samples.length === 0 ? t("performance.collectingValue") : "-";
-  const nextSampleSeconds =
-    running && nextSampleDueAtMs ? Math.max(0, Math.ceil((nextSampleDueAtMs - clockMs) / 1000)) : null;
+  const intervalOptions = useMemo(
+    () =>
+      PERFORMANCE_FAST_INTERVAL_OPTIONS_MS.map((value) => ({
+        value: String(value),
+        label: intervalLabel(value, t),
+      })),
+    [t],
+  );
 
   const seedCadence = useCallback((now = Date.now()) => {
     const marks = initialPerformanceCadenceMarks(now);
     lastSlowSampleMsRef.current = marks.lastSlowSampleMs;
     lastFrameSampleMsRef.current = marks.lastFrameSampleMs;
-    setNextSampleDueAtMs(null);
   }, []);
 
-  const collectSample = useCallback(async () => {
-    if (!deviceSerial || inFlightRef.current) return false;
+  useEffect(() => {
+    samplesRef.current = samples;
+  }, [samples]);
+
+  const collectSample = useCallback(async ({ queueIfBusy = false } = {}) => {
+    if (!deviceSerial) return false;
+    if (inFlightRef.current) {
+      if (queueIfBusy) {
+        queuedManualSampleRef.current = true;
+      }
+      return true;
+    }
     inFlightRef.current = true;
-    setSampling(true);
-    setNextSampleDueAtMs(null);
+    setSampling(samplesRef.current.length === 0);
     const now = Date.now();
     const includeSlow = shouldIncludeSlowSample(now, lastSlowSampleMsRef.current);
     const includeFrameStats = shouldIncludeFrameSample(now, lastFrameSampleMsRef.current);
@@ -107,6 +129,12 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
     } finally {
       inFlightRef.current = false;
       setSampling(false);
+      if (queuedManualSampleRef.current && deviceSerial) {
+        queuedManualSampleRef.current = false;
+        window.setTimeout(() => {
+          void collectSample();
+        }, 0);
+      }
     }
   }, [deviceSerial, lockedPackage, t]);
 
@@ -123,7 +151,6 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
 
   const pause = useCallback(() => {
     setRunning(false);
-    setNextSampleDueAtMs(null);
     setStatus({ ok: true, msg: t("performance.paused") });
   }, [t]);
 
@@ -138,7 +165,6 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
     } else {
       lastSlowSampleMsRef.current = null;
       lastFrameSampleMsRef.current = null;
-      setNextSampleDueAtMs(null);
     }
   }, [running, seedCadence]);
 
@@ -149,7 +175,6 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
     setStartedAtMs(null);
     setStatus(null);
     setLastSampleCompletedAtMs(null);
-    setNextSampleDueAtMs(null);
     if (deviceSerial) {
       seedCadence(now);
       setRunning(true);
@@ -177,11 +202,9 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
       if (cancelled) return;
       if (!ok) {
         setRunning(false);
-        setNextSampleDueAtMs(null);
         return;
       }
-      const dueAt = nextPerformancePollDueMs(Date.now());
-      setNextSampleDueAtMs(dueAt);
+      const dueAt = nextPerformancePollDueMs(Date.now(), sampleIntervalMs);
       timer = window.setTimeout(runLoop, Math.max(0, dueAt - Date.now()));
     };
 
@@ -193,18 +216,17 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
         window.clearTimeout(timer);
       }
     };
-  }, [collectSample, deviceSerial, running]);
+  }, [collectSample, deviceSerial, running, sampleIntervalMs]);
 
-  useEffect(() => {
-    if (!running) return;
-    const timer = window.setInterval(() => setClockMs(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [running]);
+  const updateSampleInterval = (value: string | null) => {
+    const next = normalizePerformanceFastIntervalMs(Number(value));
+    setSampleIntervalMs(next);
+  };
 
   const pinCurrentPackage = () => {
     const packageName = latest?.foreground_package || latest?.target_package || null;
     if (!packageName) {
-    setStatus({ ok: false, msg: t("performance.noPackageToPin") });
+      setStatus({ ok: false, msg: t("performance.noPackageToPin") });
       return;
     }
     setLockedPackage(packageName);
@@ -231,6 +253,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
                 lockedPackage,
                 startedAtMs,
                 exportedAtMs: Date.now(),
+                sampleIntervalMs,
               },
               samples,
             )
@@ -257,15 +280,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
             <SectionTitle
               icon={<IconActivityHeartbeat size={17} />}
               label={t("performance.title")}
-              description={
-                sampling
-                  ? t("performance.samplingNow")
-                  : running && nextSampleSeconds !== null
-                    ? t("performance.nextSampleIn", { seconds: nextSampleSeconds })
-                    : running
-                      ? t("performance.running")
-                      : t("performance.stopped")
-              }
+              description={running ? t("performance.running") : t("performance.stopped")}
             />
             <Group gap="xs">
               {!running ? (
@@ -277,7 +292,16 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
                   {t("performance.pause")}
                 </Button>
               )}
-              <Button size="sm" variant="default" leftSection={<IconRefresh size={16} />} disabled={!deviceSerial || sampling} onClick={collectSample}>
+              <Select
+                size="sm"
+                w={168}
+                aria-label={t("performance.sampleInterval")}
+                data={intervalOptions}
+                value={String(sampleIntervalMs)}
+                allowDeselect={false}
+                onChange={updateSampleInterval}
+              />
+              <Button size="sm" variant="default" leftSection={<IconRefresh size={16} />} disabled={!deviceSerial} onClick={() => collectSample({ queueIfBusy: true })}>
                 {t("performance.sampleNow")}
               </Button>
               <Button size="sm" variant="default" leftSection={<IconTrash size={16} />} disabled={!samples.length} onClick={clear}>
@@ -306,20 +330,15 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
                 )}
               </Group>
               <Text size="xs" c="dimmed">
-                {latest?.foreground_activity || latest?.foreground_package || t("performance.noForeground")}
+                {displaySample?.foreground_activity || displaySample?.foreground_package || t("performance.noForeground")}
               </Text>
               <Text size="xs" c="dimmed">
                 {lockedPackage ? t("performance.pinHelpPinned") : t("performance.pinHelpFollowing")}
               </Text>
               <Text size="xs" c="dimmed">
-                {sampling
-                  ? t("performance.samplingNow")
-                  : lastSampleCompletedAtMs
-                    ? t("performance.lastSampleAt", { time: formatTime(lastSampleCompletedAtMs) })
-                    : t("performance.noSamples")}
-                {running && !sampling && nextSampleSeconds !== null
-                  ? ` · ${t("performance.nextSampleIn", { seconds: nextSampleSeconds })}`
-                  : ""}
+                {lastSampleCompletedAtMs
+                  ? t("performance.lastSampleAt", { time: formatTime(lastSampleCompletedAtMs) })
+                  : t("performance.noSamples")}
               </Text>
             </Stack>
             <Group gap="xs">
@@ -358,31 +377,35 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
       </Paper>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <MetricSection title={t("performance.game")}>
-          <MetricTile label="PID" value={latest?.pid ?? emptyValue} />
-          <MetricTile label="CPU" value={latest ? formatPercent(metrics.processCpuPercent) : emptyValue} />
-          <MetricTile label="RSS" value={latest ? formatKb(latest.process.rss_kb) : emptyValue} />
-          <MetricTile label="PSS" value={latest ? formatKb(latest.process.pss_kb) : emptyValue} />
-          <MetricTile label={t("performance.threads")} value={latest?.process.thread_count ?? emptyValue} />
-          <MetricTile label={t("performance.state")} value={latest?.process.state || (latest?.target_package ? t("performance.notRunning") : emptyValue)} />
+        <MetricSection title={t("performance.app")}>
+          <MetricTile label="PID" value={displaySample?.pid ?? emptyValue} />
+          <MetricTile label="CPU" value={displaySample ? formatPercent(displayMetrics.processCpuPercent) : emptyValue} />
+          <MetricTile label="RSS" value={displaySample ? formatKb(displaySample.process.rss_kb) : emptyValue} />
+          <MetricTile label="PSS" value={displaySample ? formatKb(displaySample.process.pss_kb) : emptyValue} />
+          <MetricTile label={t("performance.threads")} value={displaySample?.process.thread_count ?? emptyValue} />
+          <MetricTile label={t("performance.state")} value={displaySample?.process.state || (displaySample?.target_package ? t("performance.notRunning") : emptyValue)} />
         </MetricSection>
 
         <MetricSection title={t("performance.rendering")}>
-          <MetricTile label="FPS" value={latest ? formatNumber(latest.frame_stats?.fps, 1) : emptyValue} />
-          <MetricTile label="P95" value={latest ? formatMs(latest.frame_stats?.p95_frame_ms) : emptyValue} />
-          <MetricTile label="P50" value={latest ? formatMs(latest.frame_stats?.p50_frame_ms) : emptyValue} />
-          <MetricTile label={t("performance.jank")} value={latest ? formatPercent(latest.frame_stats?.jank_rate) : emptyValue} />
-          <MetricTile label={t("performance.frames")} value={latest?.frame_stats?.supported ? latest.frame_stats.frame_count : emptyValue} />
-          <MetricTile label={t("performance.source")} value={latest ? (latest.frame_stats?.supported ? t("performance.available") : t("performance.unavailable")) : emptyValue} />
+          <MetricTile label="FPS" value={displaySample ? formatNumber(displaySample.frame_stats?.fps, 1) : emptyValue} />
+          <MetricTile label="P95" value={displaySample ? formatMs(displaySample.frame_stats?.p95_frame_ms) : emptyValue} />
+          <MetricTile label="P50" value={displaySample ? formatMs(displaySample.frame_stats?.p50_frame_ms) : emptyValue} />
+          <MetricTile label={t("performance.jank")} value={displaySample ? formatPercent(displaySample.frame_stats?.jank_rate) : emptyValue} />
+          <MetricTile label={t("performance.frames")} value={displaySample?.frame_stats?.supported ? displaySample.frame_stats.frame_count : emptyValue} />
+          <MetricTile label={t("performance.source")} value={displaySample ? (displaySample.frame_stats?.supported ? t("performance.available") : t("performance.unavailable")) : emptyValue} />
         </MetricSection>
 
         <MetricSection title={t("performance.device")}>
-          <MetricTile label="CPU" value={latest ? formatPercent(metrics.systemCpuPercent) : emptyValue} />
-          <MetricTile label={t("performance.memory")} value={latest ? formatMemoryPair(latest) : emptyValue} />
-          <MetricTile label={t("performance.battery")} value={latest ? formatBattery(latest) : emptyValue} />
-          <MetricTile label={t("performance.thermal")} value={latest?.thermal.status_label || emptyValue} />
-          <MetricTile label={t("performance.network")} value={latest ? formatNetwork(metrics) : emptyValue} />
-          <MetricTile label={t("performance.storage")} value={latest ? formatKb(latest.storage.data_available_kb) : emptyValue} />
+          <MetricTile label="CPU" value={displaySample ? formatPercent(displayMetrics.systemCpuPercent) : emptyValue} />
+          <MetricTile label="GPU" value={displaySample ? formatGpuUsage(displayMetrics.gpuUsagePercent, displaySample, t) : emptyValue} />
+          <MetricTile label={t("performance.gpuFrequency")} value={displaySample ? formatFrequency(displaySample.gpu?.current_frequency_hz) : emptyValue} />
+          <MetricTile label={t("performance.gpuMemory")} value={displaySample ? formatGpuMemory(displaySample) : emptyValue} />
+          <MetricTile label={t("performance.memory")} value={displaySample ? formatMemoryPair(displaySample) : emptyValue} />
+          <MetricTile label={t("performance.battery")} value={displaySample ? formatBattery(displaySample) : emptyValue} />
+          <MetricTile label={t("performance.thermal")} value={displaySample?.thermal.status_label || emptyValue} />
+          <MetricTile label={t("performance.network")} value={displaySample ? formatNetwork(displayMetrics) : emptyValue} />
+          <MetricTile label={t("performance.storage")} value={displaySample ? formatKb(displaySample.storage.data_available_kb) : emptyValue} />
+          <MetricTile label={t("performance.gpuSource")} value={displaySample ? formatGpuSource(displaySample, t) : emptyValue} />
         </MetricSection>
       </div>
 
@@ -404,6 +427,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
                   <Table.Th>{t("performance.package")}</Table.Th>
                   <Table.Th>CPU</Table.Th>
                   <Table.Th>RSS</Table.Th>
+                  <Table.Th>GPU</Table.Th>
                   <Table.Th>P95</Table.Th>
                   <Table.Th>{t("performance.jank")}</Table.Th>
                   <Table.Th>{t("performance.temp")}</Table.Th>
@@ -420,6 +444,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
                       <Table.Td>{sample.target_package || sample.foreground_package || "-"}</Table.Td>
                       <Table.Td>{formatPercent(rowMetrics.processCpuPercent)}</Table.Td>
                       <Table.Td>{formatKb(sample.process.rss_kb)}</Table.Td>
+                      <Table.Td>{formatPercent(rowMetrics.gpuUsagePercent)}</Table.Td>
                       <Table.Td>{formatMs(sample.frame_stats?.p95_frame_ms)}</Table.Td>
                       <Table.Td>{formatPercent(sample.frame_stats?.jank_rate)}</Table.Td>
                       <Table.Td>{formatTemperature(sample.battery.temperature_c)}</Table.Td>
@@ -429,7 +454,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
                 })}
                 {samples.length === 0 && (
                   <Table.Tr>
-                    <Table.Td colSpan={8}>
+                    <Table.Td colSpan={9}>
                       <Text size="sm" c="dimmed" ta="center" py="md">
                         {t("performance.noSamples")}
                       </Text>
@@ -500,6 +525,14 @@ function TrendSection({ points, t }: { points: PerformanceTrendPoint[]; t: Retur
       color: "#16a34a",
       zeroBase: true,
       valueOf: (point) => point.systemCpuPercent,
+      formatValue: formatPercent,
+    },
+    {
+      key: "gpu",
+      title: t("performance.trendGpu"),
+      color: "#0d9488",
+      zeroBase: true,
+      valueOf: (point) => point.gpuUsagePercent,
       formatValue: formatPercent,
     },
     {
@@ -664,9 +697,6 @@ function buildAlerts(samples: PerformanceSample[], latest: PerformanceSample | n
   if ((latest.battery.temperature_c ?? 0) >= 45) {
     alerts.push({ key: "temperature", message: t("performance.alertTemperature", { temp: formatTemperature(latest.battery.temperature_c) }) });
   }
-  if ((latest.frame_stats?.jank_rate ?? 0) > 5) {
-    alerts.push({ key: "jank", message: t("performance.alertJank", { rate: formatPercent(latest.frame_stats?.jank_rate) }) });
-  }
   const fiveMinutesAgo = Number(latest.timestamp_ms) - 5 * 60 * 1000;
   const baseline = samples.find((sample) => Number(sample.timestamp_ms) >= fiveMinutesAgo && sample.process.rss_kb);
   if (baseline?.process.rss_kb && latest.process.rss_kb && latest.process.rss_kb > baseline.process.rss_kb * 1.2) {
@@ -718,6 +748,29 @@ function formatMemoryPair(sample: PerformanceSample | null) {
   return `${formatKb(sample.system.mem_used_kb)} / ${formatKb(sample.system.mem_total_kb)}`;
 }
 
+function formatGpuUsage(value: number | null, sample: PerformanceSample, t: ReturnType<typeof useTranslation>["t"]) {
+  const formatted = formatPercent(value);
+  if (formatted !== "-") return formatted;
+  if (sample.gpu?.reason?.toLowerCase().includes("permission denied")) {
+    return t("performance.permissionLimited");
+  }
+  return "-";
+}
+
+function formatGpuMemory(sample: PerformanceSample | null) {
+  const bytes = sample?.gpu?.process_memory_bytes ?? sample?.gpu?.memory_total_bytes ?? null;
+  return formatBytes(bytes);
+}
+
+function formatGpuSource(sample: PerformanceSample | null, t: ReturnType<typeof useTranslation>["t"]) {
+  if (!sample) return "-";
+  if (sample.gpu?.source) return sample.gpu.source;
+  if (sample.gpu?.reason?.toLowerCase().includes("permission denied")) {
+    return t("performance.permissionLimited");
+  }
+  return sample.gpu?.supported ? t("performance.available") : t("performance.unavailable");
+}
+
 function formatBattery(sample: PerformanceSample | null) {
   if (!sample) return "-";
   const level = sample.battery.level_percent === null ? "-" : `${sample.battery.level_percent}%`;
@@ -739,10 +792,33 @@ function formatBytesPerSecond(value: number | null) {
   return `${value.toFixed(0)} B/s`;
 }
 
+function formatBytes(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "-";
+  if (value >= 1024 * 1024 * 1024) return `${(value / 1024 / 1024 / 1024).toFixed(1)} GB`;
+  if (value >= 1024 * 1024) return `${(value / 1024 / 1024).toFixed(1)} MB`;
+  if (value >= 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${value} B`;
+}
+
 function formatKilobytesPerSecond(value: number | null | undefined) {
   if (value === null || value === undefined || !Number.isFinite(value)) return "-";
   if (value >= 1024) return `${(value / 1024).toFixed(1)} MB/s`;
   return `${value.toFixed(1)} KB/s`;
+}
+
+function formatFrequency(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "-";
+  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)} GHz`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(0)} MHz`;
+  if (value >= 1000) return `${(value / 1000).toFixed(0)} kHz`;
+  return `${value} Hz`;
+}
+
+function intervalLabel(ms: number, t: ReturnType<typeof useTranslation>["t"]) {
+  if (ms === 500) return t("performance.intervalAggressive");
+  if (ms === 1000) return t("performance.intervalFast");
+  if (ms === 2000) return t("performance.intervalBalanced");
+  return t("performance.intervalRelaxed");
 }
 
 function formatTime(timestampMs: number) {
