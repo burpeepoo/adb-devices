@@ -1,6 +1,6 @@
 use rust_i18n::t;
 use std::path::PathBuf;
-use std::process::{Command, Output};
+use std::process::{Child, Command, Output, Stdio};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager};
 
@@ -268,6 +268,16 @@ pub fn run_adb_with_timeout(
 ) -> Result<Output, AdbError> {
     let mut cmd = build_adb_command(app, args, device_serial)?;
     wait_with_timeout(&mut cmd, timeout)
+}
+
+pub fn spawn_adb_piped(
+    app: &AppHandle,
+    args: &[&str],
+    device_serial: Option<&str>,
+) -> Result<Child, AdbError> {
+    let mut cmd = build_adb_command(app, args, device_serial)?;
+    let child = cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).spawn()?;
+    Ok(child)
 }
 
 pub fn run_adb_with_env(

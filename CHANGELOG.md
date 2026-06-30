@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [1.1.32] - 2026-06-30
+
+### Added
+
+- Added a GPU diagnostics card to Performance sampling so testers can see whether GPU usage counters, frequency counters, GPU memory, and frame stats are available, permission-limited, or missing.
+
+### Changed
+
+- Changed Performance sampling to use a persistent hidden ADB shell stream for live metrics, with the UI polling cached samples instead of repeatedly spawning host ADB processes.
+- Changed Performance GPU diagnostics to use a two-row layout with wrapping text so source and permission details remain visible.
+
+### Fixed
+
+- Fixed Performance sampling slow probes so battery, thermal, storage, display, rendering, CPU frequency, and GPU memory cache refreshes do not block fast live CPU, process, memory, network, and GPU-counter frames.
+
 ## [1.1.31] - 2026-06-30
 
 ### Changed

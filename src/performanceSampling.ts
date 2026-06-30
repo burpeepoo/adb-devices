@@ -51,6 +51,27 @@ export interface PerformanceDisplaySnapshot {
   metrics: PerformanceDerivedMetrics;
 }
 
+export type PerformanceGpuDiagnosticStatus =
+  | "usage_available"
+  | "counters_permission_limited"
+  | "memory_and_frequency_only"
+  | "memory_only"
+  | "frequency_only"
+  | "metadata_only"
+  | "unavailable"
+  | "not_sampled";
+
+export interface PerformanceGpuDiagnostic {
+  status: PerformanceGpuDiagnosticStatus;
+  hasUsageCounters: boolean;
+  hasFrequency: boolean;
+  hasMemory: boolean;
+  permissionLimited: boolean;
+  source: string | null;
+  reason: string | null;
+  rawLines: string[];
+}
+
 export function initialPerformanceCadenceMarks(nowMs: number): PerformanceCadenceMarks {
   return {
     lastSlowSampleMs: nowMs,
@@ -60,6 +81,20 @@ export function initialPerformanceCadenceMarks(nowMs: number): PerformanceCadenc
 
 export function nextPerformancePollDueMs(completedAtMs: number, intervalMs = PERFORMANCE_DEFAULT_FAST_INTERVAL_MS): number {
   return completedAtMs + normalizePerformanceFastIntervalMs(intervalMs);
+}
+
+export function nextPerformanceStreamPollIntervalMs(
+  selectedIntervalMs: number,
+  usingFallback: boolean,
+): number {
+  const normalized = normalizePerformanceFastIntervalMs(selectedIntervalMs);
+  if (usingFallback) {
+    return normalized;
+  }
+  // Stream polling reads the latest in-memory backend frame, not the device.
+  // Poll slightly ahead of the device cadence so the UI does not miss a frame
+  // and appear to update at 2x the selected interval.
+  return Math.min(normalized, 500);
 }
 
 export function normalizePerformanceFastIntervalMs(value: number): number {
@@ -143,6 +178,68 @@ export function buildPerformanceDisplaySnapshot(samples: PerformanceSample[]): P
   return {
     sample: buildDisplaySample(samples),
     metrics: buildDisplayMetrics(samples),
+  };
+}
+
+export function buildPerformanceGpuDiagnostic(
+  sample: PerformanceSample | null,
+  gpuUsagePercent: number | null = null,
+): PerformanceGpuDiagnostic {
+  const gpu = sample?.gpu ?? null;
+  if (!gpu) {
+    return {
+      status: "not_sampled",
+      hasUsageCounters: false,
+      hasFrequency: false,
+      hasMemory: false,
+      permissionLimited: false,
+      source: null,
+      reason: null,
+      rawLines: [],
+    };
+  }
+
+  const hasDirectUsage = finiteOrNull(gpuUsagePercent) !== null || finiteOrNull(gpu.busy_percent) !== null;
+  const hasBusyCounters =
+    hasDirectUsage ||
+    (finiteOrNull(gpu.busy_time) !== null && finiteOrNull(gpu.total_time) !== null);
+  const hasFrequency =
+    finiteOrNull(gpu.current_frequency_hz) !== null || finiteOrNull(gpu.max_frequency_hz) !== null;
+  const hasMemory =
+    finiteOrNull(gpu.memory_total_bytes) !== null || finiteOrNull(gpu.process_memory_bytes) !== null;
+  const permissionLimited = gpu.reason?.toLowerCase().includes("permission denied") ?? false;
+  const rawLines = gpu.raw
+    ? gpu.raw
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .slice(0, 8)
+    : [];
+
+  let status: PerformanceGpuDiagnosticStatus = "unavailable";
+  if (hasBusyCounters) {
+    status = "usage_available";
+  } else if (permissionLimited) {
+    status = "counters_permission_limited";
+  } else if (hasMemory && hasFrequency) {
+    status = "memory_and_frequency_only";
+  } else if (hasMemory) {
+    status = "memory_only";
+  } else if (hasFrequency) {
+    status = "frequency_only";
+  } else if (gpu.supported || gpu.source || rawLines.length > 0) {
+    status = "metadata_only";
+  }
+
+  return {
+    status,
+    hasUsageCounters: hasBusyCounters,
+    hasFrequency,
+    hasMemory,
+    permissionLimited,
+    source: gpu.source ?? null,
+    reason: gpu.reason ?? null,
+    rawLines,
   };
 }
 

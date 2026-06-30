@@ -5,6 +5,7 @@ import {
   PERFORMANCE_SAMPLE_WATCHDOG_MS,
   PERFORMANCE_SAMPLE_TIMEOUT_ERROR,
   buildPerformanceDisplaySnapshot,
+  buildPerformanceGpuDiagnostic,
   normalizePerformanceFastIntervalMs,
   buildPerformanceCsvExport,
   buildPerformanceJsonExport,
@@ -13,6 +14,7 @@ import {
   initialPerformanceCadenceMarks,
   isPerformanceSampleTimeout,
   nextPerformancePollDueMs,
+  nextPerformanceStreamPollIntervalMs,
   prunePerformanceSamples,
   shouldIncludeFrameSample,
   shouldIncludeSlowSample,
@@ -40,6 +42,14 @@ test("performance sampling starts with a fast sample before slow probes", () => 
   assert.equal(nextPerformancePollDueMs(12_345), 13_345);
   assert.equal(nextPerformancePollDueMs(12_345, 500), 12_845);
   assert.equal(normalizePerformanceFastIntervalMs(333), 1000);
+});
+
+test("performance stream polls cached frames faster than device sampling cadence", () => {
+  assert.equal(nextPerformanceStreamPollIntervalMs(5000, false), 500);
+  assert.equal(nextPerformanceStreamPollIntervalMs(2000, false), 500);
+  assert.equal(nextPerformanceStreamPollIntervalMs(1000, false), 500);
+  assert.equal(nextPerformanceStreamPollIntervalMs(500, false), 500);
+  assert.equal(nextPerformanceStreamPollIntervalMs(2000, true), 2000);
 });
 
 test("performance sample watchdog has headroom for slow wireless probes", () => {
@@ -204,6 +214,65 @@ test("performance display snapshot does not carry app metrics across target pack
   assert.equal(snapshot.sample.target_package, "com.android.settings");
   assert.equal(snapshot.sample.process.pss_kb, null);
   assert.equal(snapshot.sample.frame_stats, null);
+});
+
+test("performance GPU diagnostics classify available and limited counter states", () => {
+  const available = buildPerformanceGpuDiagnostic(sample({ gpuBusyPercent: 42 }), 42);
+  assert.equal(available.status, "usage_available");
+  assert.equal(available.hasUsageCounters, true);
+  assert.equal(available.hasFrequency, true);
+  assert.equal(available.hasMemory, true);
+
+  const limited = sample({});
+  limited.gpu = {
+    supported: true,
+    busy_percent: null,
+    busy_time: null,
+    total_time: null,
+    current_frequency_hz: null,
+    max_frequency_hz: null,
+    memory_total_bytes: 414_253_056,
+    process_memory_bytes: 172_662_784,
+    source: "dumpsys gpu",
+    reason: "gpu counters permission denied by device",
+    raw: "path=/sys/class/devfreq/23100000.gpu\ncur_freq_error=permission denied",
+  };
+  const limitedDiagnostic = buildPerformanceGpuDiagnostic(limited, null);
+  assert.equal(limitedDiagnostic.status, "counters_permission_limited");
+  assert.equal(limitedDiagnostic.permissionLimited, true);
+  assert.equal(limitedDiagnostic.hasMemory, true);
+  assert.deepEqual(limitedDiagnostic.rawLines, [
+    "path=/sys/class/devfreq/23100000.gpu",
+    "cur_freq_error=permission denied",
+  ]);
+
+  const memoryOnly = sample({});
+  memoryOnly.gpu = {
+    ...limited.gpu,
+    source: "dumpsys gpu",
+    reason: null,
+    raw: null,
+  };
+  const memoryOnlyDiagnostic = buildPerformanceGpuDiagnostic(memoryOnly, null);
+  assert.equal(memoryOnlyDiagnostic.status, "memory_only");
+
+  const unavailable = sample({});
+  unavailable.gpu = {
+    supported: false,
+    busy_percent: null,
+    busy_time: null,
+    total_time: null,
+    current_frequency_hz: null,
+    max_frequency_hz: null,
+    memory_total_bytes: null,
+    process_memory_bytes: null,
+    source: null,
+    reason: "gpu sysfs counters unavailable",
+    raw: null,
+  };
+  const unavailableDiagnostic = buildPerformanceGpuDiagnostic(unavailable, null);
+  assert.equal(unavailableDiagnostic.status, "unavailable");
+  assert.equal(unavailableDiagnostic.hasUsageCounters, false);
 });
 
 test("performance sample timeout is detectable without waiting for the default watchdog", async () => {

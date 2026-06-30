@@ -98,6 +98,17 @@ export interface PerformanceSample {
   unavailable: string[];
 }
 
+export interface PerformanceStreamSnapshot {
+  active: boolean;
+  device_serial: string;
+  target_package: string | null;
+  follow_foreground: boolean;
+  interval_ms: number;
+  started_at_ms: number;
+  last_sample: PerformanceSample | null;
+  last_error: string | null;
+}
+
 export interface PerformanceProcessSample {
   package_name: string | null;
   pid: number | null;

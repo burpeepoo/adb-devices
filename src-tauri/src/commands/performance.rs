@@ -1,6 +1,11 @@
 use rust_i18n::t;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::io::{BufRead, BufReader};
+use std::process::{Child, ChildStderr, ChildStdout};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, OnceLock};
+use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::AppHandle;
 
@@ -117,6 +122,35 @@ pub struct FrameStatsSample {
     pub reason: Option<String>,
 }
 
+#[derive(Debug, Serialize, Clone)]
+pub struct PerformanceStreamSnapshot {
+    pub active: bool,
+    pub device_serial: String,
+    pub target_package: Option<String>,
+    pub follow_foreground: bool,
+    pub interval_ms: u64,
+    pub started_at_ms: u128,
+    pub last_sample: Option<PerformanceSample>,
+    pub last_error: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct PerformanceStreamConfig {
+    device_serial: String,
+    target_package: Option<String>,
+    follow_foreground: bool,
+    interval_ms: u64,
+}
+
+struct PerformanceStreamHandle {
+    config: PerformanceStreamConfig,
+    started_at_ms: u128,
+    active: AtomicBool,
+    child: Mutex<Option<Child>>,
+    latest_sample: Mutex<Option<PerformanceSample>>,
+    last_error: Mutex<Option<String>>,
+}
+
 #[tauri::command(async)]
 pub fn adb_performance_sample(
     app: AppHandle,
@@ -167,6 +201,225 @@ pub fn adb_performance_sample(
     Ok(sample)
 }
 
+#[tauri::command(async)]
+pub fn adb_performance_stream_start(
+    app: AppHandle,
+    device_serial: String,
+    target_package: Option<String>,
+    follow_foreground: bool,
+    interval_ms: u64,
+) -> Result<PerformanceStreamSnapshot, AdbError> {
+    let config = PerformanceStreamConfig {
+        device_serial: device_serial.clone(),
+        target_package: normalize_optional_package(target_package),
+        follow_foreground,
+        interval_ms: normalize_stream_interval_ms(interval_ms),
+    };
+
+    if let Some(existing) = performance_stream_registry()
+        .lock()
+        .ok()
+        .and_then(|registry| registry.get(&device_serial).cloned())
+    {
+        if existing.config == config && existing.active.load(Ordering::SeqCst) {
+            return Ok(stream_snapshot(&existing));
+        }
+        stop_performance_stream(&device_serial);
+    }
+
+    let script = build_stream_script(
+        config.target_package.as_deref(),
+        config.follow_foreground,
+        config.interval_ms,
+    );
+    let mut child = adb::spawn_adb_piped(
+        &app,
+        &["shell", script.as_str()],
+        Some(&config.device_serial),
+    )?;
+    let stdout = child.stdout.take().ok_or_else(|| {
+        AdbError::CommandFailed("performance stream stdout unavailable".to_string())
+    })?;
+    let stderr = child.stderr.take();
+
+    let handle = Arc::new(PerformanceStreamHandle {
+        config,
+        started_at_ms: now_ms(),
+        active: AtomicBool::new(true),
+        child: Mutex::new(Some(child)),
+        latest_sample: Mutex::new(None),
+        last_error: Mutex::new(None),
+    });
+
+    if let Ok(mut registry) = performance_stream_registry().lock() {
+        registry.insert(device_serial.clone(), handle.clone());
+    }
+
+    spawn_stream_stdout_reader(handle.clone(), stdout);
+    if let Some(stderr) = stderr {
+        spawn_stream_stderr_reader(handle.clone(), stderr);
+    }
+
+    Ok(stream_snapshot(&handle))
+}
+
+#[tauri::command(async)]
+pub fn adb_performance_stream_snapshot(
+    device_serial: String,
+) -> Result<PerformanceStreamSnapshot, AdbError> {
+    let handle = performance_stream_registry()
+        .lock()
+        .ok()
+        .and_then(|registry| registry.get(&device_serial).cloned())
+        .ok_or_else(|| AdbError::CommandFailed("performance stream is not active".to_string()))?;
+    Ok(stream_snapshot(&handle))
+}
+
+#[tauri::command(async)]
+pub fn adb_performance_stream_stop(
+    device_serial: String,
+) -> Result<PerformanceStreamSnapshot, AdbError> {
+    Ok(
+        stop_performance_stream(&device_serial).unwrap_or_else(|| PerformanceStreamSnapshot {
+            active: false,
+            device_serial,
+            target_package: None,
+            follow_foreground: true,
+            interval_ms: PERFORMANCE_STREAM_DEFAULT_INTERVAL_MS,
+            started_at_ms: 0,
+            last_sample: None,
+            last_error: None,
+        }),
+    )
+}
+
+const PERFORMANCE_STREAM_DEFAULT_INTERVAL_MS: u64 = 1000;
+const PERFORMANCE_STREAM_INTERVALS_MS: [u64; 4] = [500, 1000, 2000, 5000];
+
+fn performance_stream_registry() -> &'static Mutex<HashMap<String, Arc<PerformanceStreamHandle>>> {
+    static REGISTRY: OnceLock<Mutex<HashMap<String, Arc<PerformanceStreamHandle>>>> =
+        OnceLock::new();
+    REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn normalize_optional_package(value: Option<String>) -> Option<String> {
+    value
+        .as_deref()
+        .map(str::trim)
+        .filter(|package| is_safe_package_name(package))
+        .map(ToString::to_string)
+}
+
+fn normalize_stream_interval_ms(value: u64) -> u64 {
+    if PERFORMANCE_STREAM_INTERVALS_MS.contains(&value) {
+        value
+    } else {
+        PERFORMANCE_STREAM_DEFAULT_INTERVAL_MS
+    }
+}
+
+fn stream_snapshot(handle: &Arc<PerformanceStreamHandle>) -> PerformanceStreamSnapshot {
+    PerformanceStreamSnapshot {
+        active: handle.active.load(Ordering::SeqCst),
+        device_serial: handle.config.device_serial.clone(),
+        target_package: handle.config.target_package.clone(),
+        follow_foreground: handle.config.follow_foreground,
+        interval_ms: handle.config.interval_ms,
+        started_at_ms: handle.started_at_ms,
+        last_sample: handle
+            .latest_sample
+            .lock()
+            .ok()
+            .and_then(|sample| sample.clone()),
+        last_error: handle
+            .last_error
+            .lock()
+            .ok()
+            .and_then(|error| error.clone()),
+    }
+}
+
+fn stop_performance_stream(device_serial: &str) -> Option<PerformanceStreamSnapshot> {
+    let handle = performance_stream_registry()
+        .lock()
+        .ok()
+        .and_then(|mut registry| registry.remove(device_serial))?;
+
+    handle.active.store(false, Ordering::SeqCst);
+    if let Ok(mut child) = handle.child.lock() {
+        if let Some(mut child) = child.take() {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+    }
+
+    Some(stream_snapshot(&handle))
+}
+
+fn spawn_stream_stdout_reader(handle: Arc<PerformanceStreamHandle>, stdout: ChildStdout) {
+    thread::spawn(move || {
+        let reader = BufReader::new(stdout);
+        let mut in_frame = false;
+        let mut frame = String::new();
+
+        for line in reader.lines() {
+            let line = match line {
+                Ok(line) => line,
+                Err(error) => {
+                    set_stream_error(&handle, format!("performance stream read failed: {error}"));
+                    break;
+                }
+            };
+
+            match line.trim() {
+                "__PERF_FRAME_START__" => {
+                    in_frame = true;
+                    frame.clear();
+                }
+                "__PERF_FRAME_END__" => {
+                    if in_frame {
+                        let sample = parse_performance_stream_frame(
+                            now_ms(),
+                            handle.config.device_serial.clone(),
+                            &frame,
+                        );
+                        if let Ok(mut latest) = handle.latest_sample.lock() {
+                            *latest = Some(sample);
+                        }
+                    }
+                    in_frame = false;
+                    frame.clear();
+                }
+                _ if in_frame => {
+                    frame.push_str(&line);
+                    frame.push('\n');
+                }
+                _ => {}
+            }
+        }
+
+        handle.active.store(false, Ordering::SeqCst);
+    });
+}
+
+fn spawn_stream_stderr_reader(handle: Arc<PerformanceStreamHandle>, stderr: ChildStderr) {
+    thread::spawn(move || {
+        let reader = BufReader::new(stderr);
+        for line in reader.lines().map_while(Result::ok) {
+            let trimmed = line.trim();
+            if !trimmed.is_empty() {
+                set_stream_error(&handle, trimmed.to_string());
+            }
+        }
+    });
+}
+
+fn set_stream_error(handle: &Arc<PerformanceStreamHandle>, message: String) {
+    if let Ok(mut error) = handle.last_error.lock() {
+        *error = Some(message);
+    }
+}
+
 fn read_foreground_app(app: &AppHandle, device_serial: &str) -> Result<ForegroundApp, AdbError> {
     let output = adb::run_adb_with_timeout(
         app,
@@ -192,11 +445,22 @@ fn build_stats_script(
     let package_literal = shell_single_quote(package);
     let slow = if include_slow { "1" } else { "0" };
     let frame = if include_frame_stats { "1" } else { "0" };
+    let package_assignment = format!("pkg={package_literal}");
+    let slow_assignment = format!("include_slow={slow}");
+    let frame_assignment = format!("include_frame={frame}");
 
+    build_stats_probe_script(&package_assignment, &slow_assignment, &frame_assignment)
+}
+
+fn build_stats_probe_script(
+    package_assignment: &str,
+    slow_assignment: &str,
+    frame_assignment: &str,
+) -> String {
     format!(
-        r#"pkg={package_literal}
-include_slow={slow}
-include_frame={frame}
+        r#"{package_assignment}
+{slow_assignment}
+{frame_assignment}
 pid=""
 if [ -n "$pkg" ]; then
   pid="$(pidof "$pkg" 2>/dev/null | tr ' ' '\n' | head -n 1)"
@@ -269,6 +533,178 @@ fi
     )
 }
 
+fn build_stream_script(
+    target_package: Option<&str>,
+    follow_foreground: bool,
+    interval_ms: u64,
+) -> String {
+    let fixed_package = target_package
+        .filter(|package| is_safe_package_name(package))
+        .unwrap_or("");
+    let fixed_package_literal = shell_single_quote(fixed_package);
+    let follow = if follow_foreground { "1" } else { "0" };
+    let sleep_command = stream_sleep_command(interval_ms);
+
+    format!(
+        r#"fixed_pkg={fixed_package_literal}
+follow_foreground={follow}
+cache_dir="/data/local/tmp/adb-manager-perf-$$"
+cache_enabled=1
+mkdir -p "$cache_dir" 2>/dev/null || cache_enabled=0
+slow_cache="$cache_dir/slow"
+frame_cache="$cache_dir/frame"
+
+resolve_target() {{
+  focus="$(dumpsys window 2>/dev/null | grep -E 'mCurrentFocus|mFocusedApp' | head -n 8)"
+  case "$focus" in */*) ;; *) focus="$focus
+$(dumpsys activity activities 2>/dev/null | grep -E 'topResumedActivity|mResumedActivity|ResumedActivity' | head -n 8)" ;; esac
+  foreground_component="$(printf "%s\n" "$focus" | grep -Eo '[A-Za-z0-9_]+([.][A-Za-z0-9_]+)+/[^ }}),;]+' | head -n 1)"
+  foreground_pkg="${{foreground_component%%/*}}"
+  foreground_activity="${{foreground_component#*/}}"
+  if [ "$foreground_component" = "$foreground_activity" ]; then foreground_activity=""; fi
+  if [ "$follow_foreground" = "1" ]; then
+    pkg="$foreground_pkg"
+  else
+    pkg="$fixed_pkg"
+    if [ -z "$pkg" ]; then pkg="$foreground_pkg"; fi
+  fi
+  pid=""
+  if [ -n "$pkg" ]; then
+    pid="$(pidof "$pkg" 2>/dev/null | tr ' ' '\n' | head -n 1)"
+  fi
+}}
+
+emit_fast_probe() {{
+  resolve_target
+  echo "__FOREGROUND__"
+  echo "$focus"
+  echo "package=$foreground_pkg"
+  echo "activity=$foreground_activity"
+  echo "__TARGET__"
+  echo "package=$pkg"
+  echo "pid=$pid"
+  echo "__PROC_STAT__"
+  cat /proc/stat 2>/dev/null | head -n 1
+  echo "__PID_STAT__"
+  if [ -n "$pid" ]; then cat "/proc/$pid/stat" 2>/dev/null; fi
+  echo "__PID_STATUS__"
+  if [ -n "$pid" ]; then cat "/proc/$pid/status" 2>/dev/null; fi
+  echo "__MEMINFO__"
+  cat /proc/meminfo 2>/dev/null
+  echo "__NET_DEV__"
+  cat /proc/net/dev 2>/dev/null
+  echo "__GPU__"
+  gpu_found=0
+  for gpu in /sys/class/kgsl/kgsl-3d0 /sys/class/devfreq/*gpu* /sys/class/devfreq/*mali* /sys/class/devfreq/*kgsl* /sys/class/devfreq/*powervr* /sys/class/devfreq/*img* /sys/class/misc/mali0/device /sys/devices/platform/*gpu*/devfreq/* /sys/devices/platform/*mali*/devfreq/* /sys/devices/platform/soc/*gpu*/devfreq/* /sys/devices/platform/soc/*mali*/devfreq/* /sys/devices/platform/soc/*/*gpu*/devfreq/*; do
+    if [ -d "$gpu" ]; then
+      gpu_found=1
+      echo "path=$gpu"
+      for file in gpu_busy_percentage busy_percentage utilization gpu_utilization load gpubusy cur_freq max_freq min_freq target_freq trans_stat devfreq/cur_freq devfreq/max_freq; do
+        key="$(echo "$file" | tr '/' '_')"
+        value="$(cat "$gpu/$file" 2>&1)"
+        status="$?"
+        value="$(printf "%s" "$value" | head -n 1)"
+        if [ "$status" = "0" ] && [ -n "$value" ]; then
+          echo "$key=$value"
+        elif printf "%s" "$value" | grep -qi "Permission denied"; then
+          echo "${{key}}_error=permission denied"
+        fi
+      done
+    fi
+  done
+  if [ "$gpu_found" = "0" ]; then
+    echo "reason=gpu sysfs counters unavailable"
+  fi
+}}
+
+refresh_slow_cache() {{
+  while true; do
+    if [ "$cache_enabled" != "1" ]; then
+      sleep 10
+      continue
+    fi
+    tmp="$slow_cache.tmp"
+    {{
+      resolve_target
+      echo "__DUMPSYS_MEMINFO__"
+      if [ -n "$pkg" ]; then dumpsys meminfo "$pkg" 2>/dev/null | head -n 120; fi
+      echo "__BATTERY__"
+      dumpsys battery 2>/dev/null
+      echo "__DUMPSYS_GPU__"
+      dumpsys gpu 2>/dev/null | head -n 140
+      echo "__THERMAL__"
+      dumpsys thermalservice 2>/dev/null || dumpsys thermal 2>/dev/null || true
+      echo "__CPU_FREQ__"
+      for cpu in /sys/devices/system/cpu/cpu[0-9]*; do
+        if [ -d "$cpu" ]; then
+          name="$(basename "$cpu")"
+          cur="$(cat "$cpu/cpufreq/scaling_cur_freq" 2>/dev/null)"
+          max="$(cat "$cpu/cpufreq/cpuinfo_max_freq" 2>/dev/null)"
+          echo "$name $cur $max"
+        fi
+      done
+      echo "__DF_DATA__"
+      df -k /data 2>/dev/null
+      echo "__DISPLAY__"
+      wm size 2>/dev/null
+      wm density 2>/dev/null
+      dumpsys display 2>/dev/null | grep -E 'mBaseDisplayInfo|DisplayDeviceInfo|fps|refreshRate' | head -n 25
+    }} > "$tmp"
+    mv "$tmp" "$slow_cache" 2>/dev/null || true
+    sleep 10
+  done
+}}
+
+refresh_frame_cache() {{
+  while true; do
+    if [ "$cache_enabled" != "1" ]; then
+      sleep 5
+      continue
+    fi
+    tmp="$frame_cache.tmp"
+    {{
+      resolve_target
+      echo "__GFXINFO__"
+      if [ -n "$pkg" ]; then dumpsys gfxinfo "$pkg" framestats 2>/dev/null | head -n 260; fi
+    }} > "$tmp"
+    mv "$tmp" "$frame_cache" 2>/dev/null || true
+    sleep 5
+  done
+}}
+
+cleanup_perf_stream() {{
+  kill "$slow_pid" "$frame_pid" 2>/dev/null || true
+  if [ "$cache_enabled" = "1" ]; then
+    rm -rf "$cache_dir" 2>/dev/null || true
+  fi
+}}
+trap cleanup_perf_stream EXIT INT TERM
+refresh_slow_cache &
+slow_pid="$!"
+refresh_frame_cache &
+frame_pid="$!"
+
+while true; do
+  echo "__PERF_FRAME_START__"
+  emit_fast_probe
+  cat "$slow_cache" 2>/dev/null
+  cat "$frame_cache" 2>/dev/null
+  echo "__PERF_FRAME_END__"
+  {sleep_command}
+done
+"#
+    )
+}
+
+fn stream_sleep_command(interval_ms: u64) -> &'static str {
+    match normalize_stream_interval_ms(interval_ms) {
+        500 => "sleep 0.5 2>/dev/null || usleep 500000 2>/dev/null || toybox usleep 500000 2>/dev/null || sleep 1",
+        2000 => "sleep 2",
+        5000 => "sleep 5",
+        _ => "sleep 1",
+    }
+}
+
 fn parse_performance_sample(
     timestamp_ms: u128,
     device_serial: String,
@@ -279,6 +715,7 @@ fn parse_performance_sample(
     let sections = split_sections(stdout);
     let mut unavailable = Vec::new();
     let target = parse_target_section(section(&sections, "TARGET"));
+    let target_package = target_package.or(target.package.clone());
     let pid = target.pid;
     let process = ProcessSample {
         package_name: target_package.clone(),
@@ -350,6 +787,24 @@ fn parse_performance_sample(
     }
 }
 
+fn parse_performance_stream_frame(
+    timestamp_ms: u128,
+    device_serial: String,
+    stdout: &str,
+) -> PerformanceSample {
+    let sections = split_sections(stdout);
+    let foreground = parse_foreground_app(section(&sections, "FOREGROUND"));
+    let target = parse_target_section(section(&sections, "TARGET"));
+    let target_package = target.package.or_else(|| foreground.package.clone());
+    parse_performance_sample(
+        timestamp_ms,
+        device_serial,
+        target_package,
+        foreground,
+        stdout,
+    )
+}
+
 #[derive(Debug, Clone, Default)]
 struct ForegroundApp {
     package: Option<String>,
@@ -358,6 +813,7 @@ struct ForegroundApp {
 
 #[derive(Debug, Clone, Default)]
 struct TargetSection {
+    package: Option<String>,
     pid: Option<u32>,
 }
 
@@ -416,6 +872,27 @@ fn section<'a>(sections: &'a HashMap<String, String>, name: &str) -> &'a str {
 }
 
 fn parse_foreground_app(output: &str) -> ForegroundApp {
+    let explicit_package = output.lines().find_map(|line| {
+        line.trim()
+            .strip_prefix("package=")
+            .map(str::trim)
+            .filter(|package| is_safe_package_name(package))
+            .map(ToString::to_string)
+    });
+    if explicit_package.is_some() {
+        let explicit_activity = output.lines().find_map(|line| {
+            line.trim()
+                .strip_prefix("activity=")
+                .map(str::trim)
+                .filter(|activity| !activity.is_empty())
+                .map(ToString::to_string)
+        });
+        return ForegroundApp {
+            package: explicit_package,
+            activity: explicit_activity,
+        };
+    }
+
     for raw_token in output.split_whitespace() {
         let token = raw_token
             .trim_matches(|ch: char| matches!(ch, '{' | '}' | '[' | ']' | ')' | '(' | ',' | ';'));
@@ -435,6 +912,13 @@ fn parse_foreground_app(output: &str) -> ForegroundApp {
 fn parse_target_section(section: &str) -> TargetSection {
     let mut target = TargetSection::default();
     for line in section.lines() {
+        if let Some(value) = line.strip_prefix("package=") {
+            let package = value.trim();
+            if is_safe_package_name(package) {
+                target.package = Some(package.to_string());
+            }
+            continue;
+        }
         if let Some(value) = line.strip_prefix("pid=") {
             target.pid = value.trim().parse::<u32>().ok();
         }
@@ -1051,6 +1535,56 @@ wlan0: 1024 1 0 0 0 0 0 0 2048 1 0 0 0 0 0 0
         assert_eq!(parsed.system.mem_used_kb, Some(750));
         assert_eq!(parsed.network.rx_bytes, Some(1024));
         assert_eq!(parsed.network.tx_bytes, Some(2048));
+    }
+
+    #[test]
+    fn parses_stream_frame_with_explicit_foreground_package() {
+        let stdout = "\
+__FOREGROUND__
+package=com.example.app
+activity=.MainActivity
+__TARGET__
+package=com.example.app
+pid=123
+__PROC_STAT__
+cpu  100 20 30 400 50 0 0 0 0 0
+__PID_STAT__
+123 (example) S 0 0 0 0 0 0 0 0 0 10 5 0 0 0 0 0 0 0 0 0 0 25
+__PID_STATUS__
+State:\tS (sleeping)
+VmRSS:\t 4096 kB
+Threads:\t12
+__MEMINFO__
+MemTotal: 2000 kB
+MemAvailable: 500 kB
+__NET_DEV__
+wlan0: 100 1 0 0 0 0 0 0 300 1 0 0 0 0 0 0
+";
+        let parsed = parse_performance_stream_frame(42, "USB123".to_string(), stdout);
+
+        assert_eq!(
+            parsed.foreground_package.as_deref(),
+            Some("com.example.app")
+        );
+        assert_eq!(parsed.foreground_activity.as_deref(), Some(".MainActivity"));
+        assert_eq!(parsed.target_package.as_deref(), Some("com.example.app"));
+        assert_eq!(parsed.pid, Some(123));
+        assert_eq!(parsed.process.thread_count, Some(12));
+    }
+
+    #[test]
+    fn builds_stream_script_with_frame_markers_and_fractional_sleep() {
+        let script = build_stream_script(Some("com.example.app"), true, 500);
+
+        assert!(script.contains("__PERF_FRAME_START__"));
+        assert!(script.contains("__PERF_FRAME_END__"));
+        assert!(script.contains("refresh_slow_cache &"));
+        assert!(script.contains("refresh_frame_cache &"));
+        assert!(script.contains("cat \"$slow_cache\""));
+        assert!(script.contains("sleep 0.5"));
+        assert!(script.contains("usleep 500000"));
+        assert!(script.contains("follow_foreground=1"));
+        assert!(script.contains("fixed_pkg='com.example.app'"));
     }
 
     #[test]

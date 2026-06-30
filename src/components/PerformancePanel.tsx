@@ -16,11 +16,12 @@ import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import ResultAlert from "./common/ResultAlert";
 import SectionTitle from "./common/SectionTitle";
 import type { DeviceTargetState } from "../deviceTarget.ts";
-import type { PerformanceSample } from "../types";
-import type { PerformanceTrendPoint } from "../performanceSampling.ts";
+import type { PerformanceSample, PerformanceStreamSnapshot } from "../types";
+import type { PerformanceGpuDiagnostic, PerformanceTrendPoint } from "../performanceSampling.ts";
 import {
   buildPerformanceCsvExport,
   buildPerformanceDisplaySnapshot,
+  buildPerformanceGpuDiagnostic,
   buildPerformanceJsonExport,
   buildPerformanceTrendPoints,
   calculatePerformanceMetrics,
@@ -29,6 +30,7 @@ import {
   initialPerformanceCadenceMarks,
   isPerformanceSampleTimeout,
   nextPerformancePollDueMs,
+  nextPerformanceStreamPollIntervalMs,
   normalizePerformanceFastIntervalMs,
   prunePerformanceSamples,
   shouldIncludeFrameSample,
@@ -54,11 +56,14 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
   const [startedAtMs, setStartedAtMs] = useState<number | null>(null);
   const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(null);
   const [exporting, setExporting] = useState(false);
-  const [sampling, setSampling] = useState(false);
   const [lastSampleCompletedAtMs, setLastSampleCompletedAtMs] = useState<number | null>(null);
   const [sampleIntervalMs, setSampleIntervalMs] = useState(PERFORMANCE_DEFAULT_FAST_INTERVAL_MS);
   const inFlightRef = useRef(false);
   const queuedManualSampleRef = useRef(false);
+  const streamKeyRef = useRef<string | null>(null);
+  const streamSerialRef = useRef<string | null>(null);
+  const streamFallbackRef = useRef(false);
+  const lastStreamSampleTimestampRef = useRef<number | null>(null);
   const samplesRef = useRef<PerformanceSample[]>([]);
   const lastSlowSampleMsRef = useRef<number | null>(null);
   const lastFrameSampleMsRef = useRef<number | null>(null);
@@ -71,9 +76,14 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
   const displaySample = displaySnapshot?.sample ?? null;
   const displayMetrics = displaySnapshot?.metrics ?? metrics;
   const trendPoints = useMemo(() => buildPerformanceTrendPoints(samples), [samples]);
+  const gpuDiagnostic = useMemo(
+    () => buildPerformanceGpuDiagnostic(displaySample, displayMetrics.gpuUsagePercent),
+    [displayMetrics.gpuUsagePercent, displaySample],
+  );
   const alerts = useMemo(() => buildAlerts(samples, latest, t), [latest, samples, t]);
   const currentPackage = lockedPackage || displaySample?.target_package || displaySample?.foreground_package || null;
-  const emptyValue = sampling && samples.length === 0 ? t("performance.collectingValue") : "-";
+  const waitingForFirstSample = running && samples.length === 0;
+  const emptyValue = waitingForFirstSample ? t("performance.collectingValue") : "-";
   const intervalOptions = useMemo(
     () =>
       PERFORMANCE_FAST_INTERVAL_OPTIONS_MS.map((value) => ({
@@ -93,6 +103,80 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
     samplesRef.current = samples;
   }, [samples]);
 
+  const stopPerformanceStream = useCallback(async () => {
+    const serial = streamSerialRef.current;
+    streamKeyRef.current = null;
+    streamSerialRef.current = null;
+    lastStreamSampleTimestampRef.current = null;
+    if (!serial) return;
+    try {
+      await invoke("adb_performance_stream_stop", { deviceSerial: serial });
+    } catch {
+      // The stream may already have exited; the next start will replace it.
+    }
+  }, []);
+
+  const ensurePerformanceStream = useCallback(async () => {
+    if (!deviceSerial || streamFallbackRef.current) return null;
+    const followForeground = !lockedPackage;
+    const streamKey = `${deviceSerial}|${lockedPackage || ""}|${followForeground ? "follow" : "locked"}|${sampleIntervalMs}`;
+    if (streamKeyRef.current === streamKey) {
+      return invoke<PerformanceStreamSnapshot>("adb_performance_stream_snapshot", { deviceSerial });
+    }
+    if (streamSerialRef.current && streamSerialRef.current !== deviceSerial) {
+      await stopPerformanceStream();
+    }
+    const snapshot = await invoke<PerformanceStreamSnapshot>("adb_performance_stream_start", {
+      deviceSerial,
+      targetPackage: lockedPackage,
+      followForeground,
+      intervalMs: sampleIntervalMs,
+    });
+    streamKeyRef.current = streamKey;
+    streamSerialRef.current = deviceSerial;
+    lastStreamSampleTimestampRef.current = null;
+    return snapshot;
+  }, [deviceSerial, lockedPackage, sampleIntervalMs, stopPerformanceStream]);
+
+  const collectStreamSample = useCallback(async () => {
+    const snapshot = await ensurePerformanceStream();
+    if (snapshot && !snapshot.active) {
+      throw new Error(snapshot.last_error || "performance stream exited");
+    }
+    const sample = snapshot?.last_sample;
+    if (!sample) return true;
+    const timestamp = Number(sample.timestamp_ms);
+    if (lastStreamSampleTimestampRef.current === timestamp) {
+      return true;
+    }
+    lastStreamSampleTimestampRef.current = timestamp;
+    setSamples((current) => prunePerformanceSamples([...current, sample], timestamp || Date.now()));
+    setLastSampleCompletedAtMs(timestamp || Date.now());
+    setStatus(snapshot.last_error ? { ok: false, msg: snapshot.last_error } : null);
+    return true;
+  }, [ensurePerformanceStream]);
+
+  const collectOneShotSample = useCallback(async () => {
+    const now = Date.now();
+    const includeSlow = shouldIncludeSlowSample(now, lastSlowSampleMsRef.current);
+    const includeFrameStats = shouldIncludeFrameSample(now, lastFrameSampleMsRef.current);
+    const sample = await withPerformanceSampleTimeout(
+      invoke<PerformanceSample>("adb_performance_sample", {
+        deviceSerial,
+        targetPackage: lockedPackage,
+        followForeground: !lockedPackage,
+        includeSlow,
+        includeFrameStats,
+      }),
+    );
+    if (includeSlow) lastSlowSampleMsRef.current = now;
+    if (includeFrameStats) lastFrameSampleMsRef.current = now;
+    setSamples((current) => prunePerformanceSamples([...current, sample], Number(sample.timestamp_ms)));
+    setLastSampleCompletedAtMs(Number(sample.timestamp_ms) || Date.now());
+    setStatus(null);
+    return true;
+  }, [deviceSerial, lockedPackage]);
+
   const collectSample = useCallback(async ({ queueIfBusy = false } = {}) => {
     if (!deviceSerial) return false;
     if (inFlightRef.current) {
@@ -102,33 +186,24 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
       return true;
     }
     inFlightRef.current = true;
-    setSampling(samplesRef.current.length === 0);
-    const now = Date.now();
-    const includeSlow = shouldIncludeSlowSample(now, lastSlowSampleMsRef.current);
-    const includeFrameStats = shouldIncludeFrameSample(now, lastFrameSampleMsRef.current);
 
     try {
-      const sample = await withPerformanceSampleTimeout(
-        invoke<PerformanceSample>("adb_performance_sample", {
-          deviceSerial,
-          targetPackage: lockedPackage,
-          followForeground: !lockedPackage,
-          includeSlow,
-          includeFrameStats,
-        }),
-      );
-      if (includeSlow) lastSlowSampleMsRef.current = now;
-      if (includeFrameStats) lastFrameSampleMsRef.current = now;
-      setSamples((current) => prunePerformanceSamples([...current, sample], Number(sample.timestamp_ms)));
-      setLastSampleCompletedAtMs(Number(sample.timestamp_ms) || Date.now());
-      setStatus(null);
+      if (!streamFallbackRef.current) {
+        try {
+          return await collectStreamSample();
+        } catch (error) {
+          streamFallbackRef.current = true;
+          setStatus({ ok: false, msg: t("performance.streamFallback", { reason: String(error) }) });
+          await stopPerformanceStream();
+        }
+      }
+      await collectOneShotSample();
       return true;
     } catch (error) {
       setStatus({ ok: false, msg: isPerformanceSampleTimeout(error) ? t("performance.sampleTimeout") : String(error) });
       return false;
     } finally {
       inFlightRef.current = false;
-      setSampling(false);
       if (queuedManualSampleRef.current && deviceSerial) {
         queuedManualSampleRef.current = false;
         window.setTimeout(() => {
@@ -136,7 +211,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
         }, 0);
       }
     }
-  }, [deviceSerial, lockedPackage, t]);
+  }, [collectOneShotSample, collectStreamSample, deviceSerial, stopPerformanceStream, t]);
 
   const start = useCallback(() => {
     if (!deviceSerial) {
@@ -144,6 +219,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
       return;
     }
     setStatus(null);
+    streamFallbackRef.current = false;
     seedCadence();
     setRunning(true);
     setStartedAtMs((current) => current ?? Date.now());
@@ -151,14 +227,16 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
 
   const pause = useCallback(() => {
     setRunning(false);
+    void stopPerformanceStream();
     setStatus({ ok: true, msg: t("performance.paused") });
-  }, [t]);
+  }, [stopPerformanceStream, t]);
 
   const clear = useCallback(() => {
     const now = Date.now();
     setSamples([]);
     setStatus(null);
     setLastSampleCompletedAtMs(null);
+    lastStreamSampleTimestampRef.current = null;
     setStartedAtMs(running ? now : null);
     if (running) {
       seedCadence(now);
@@ -170,6 +248,8 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
 
   useEffect(() => {
     const now = Date.now();
+    void stopPerformanceStream();
+    streamFallbackRef.current = false;
     setSamples([]);
     setLockedPackage(null);
     setStartedAtMs(null);
@@ -184,7 +264,11 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
       lastFrameSampleMsRef.current = null;
       setRunning(false);
     }
-  }, [deviceSerial, seedCadence]);
+  }, [deviceSerial, seedCadence, stopPerformanceStream]);
+
+  useEffect(() => () => {
+    void stopPerformanceStream();
+  }, [stopPerformanceStream]);
 
   useEffect(() => {
     if (active && deviceSerial && !running && samples.length === 0) {
@@ -204,7 +288,11 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
         setRunning(false);
         return;
       }
-      const dueAt = nextPerformancePollDueMs(Date.now(), sampleIntervalMs);
+      const pollIntervalMs = nextPerformanceStreamPollIntervalMs(
+        sampleIntervalMs,
+        streamFallbackRef.current,
+      );
+      const dueAt = nextPerformancePollDueMs(Date.now(), pollIntervalMs);
       timer = window.setTimeout(runLoop, Math.max(0, dueAt - Date.now()));
     };
 
@@ -376,7 +464,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
         </Stack>
       </Paper>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
         <MetricSection title={t("performance.app")}>
           <MetricTile label="PID" value={displaySample?.pid ?? emptyValue} />
           <MetricTile label="CPU" value={displaySample ? formatPercent(displayMetrics.processCpuPercent) : emptyValue} />
@@ -395,21 +483,26 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
           <MetricTile label={t("performance.source")} value={displaySample ? (displaySample.frame_stats?.supported ? t("performance.available") : t("performance.unavailable")) : emptyValue} />
         </MetricSection>
 
-        <MetricSection title={t("performance.device")}>
+        <MetricSection title={t("performance.deviceLive")}>
           <MetricTile label="CPU" value={displaySample ? formatPercent(displayMetrics.systemCpuPercent) : emptyValue} />
-          <MetricTile label="GPU" value={displaySample ? formatGpuUsage(displayMetrics.gpuUsagePercent, displaySample, t) : emptyValue} />
+          <MetricTile label={t("performance.gpuUsage")} value={displaySample ? formatGpuUsage(displayMetrics.gpuUsagePercent, displaySample, t) : emptyValue} />
           <MetricTile label={t("performance.gpuFrequency")} value={displaySample ? formatFrequency(displaySample.gpu?.current_frequency_hz) : emptyValue} />
-          <MetricTile label={t("performance.gpuMemory")} value={displaySample ? formatGpuMemory(displaySample) : emptyValue} />
           <MetricTile label={t("performance.memory")} value={displaySample ? formatMemoryPair(displaySample) : emptyValue} />
+          <MetricTile label={t("performance.network")} value={displaySample ? formatNetwork(displayMetrics) : emptyValue} />
+        </MetricSection>
+
+        <MetricSection title={t("performance.deviceDetails")}>
           <MetricTile label={t("performance.battery")} value={displaySample ? formatBattery(displaySample) : emptyValue} />
           <MetricTile label={t("performance.thermal")} value={displaySample?.thermal.status_label || emptyValue} />
-          <MetricTile label={t("performance.network")} value={displaySample ? formatNetwork(displayMetrics) : emptyValue} />
           <MetricTile label={t("performance.storage")} value={displaySample ? formatKb(displaySample.storage.data_available_kb) : emptyValue} />
+          <MetricTile label={t("performance.gpuMemory")} value={displaySample ? formatGpuMemory(displaySample) : emptyValue} />
           <MetricTile label={t("performance.gpuSource")} value={displaySample ? formatGpuSource(displaySample, t) : emptyValue} />
         </MetricSection>
       </div>
 
-      <TrendSection points={trendPoints} t={t} />
+      <GpuDiagnostics diagnostic={gpuDiagnostic} frameSupported={displaySample?.frame_stats?.supported ?? false} sample={displaySample} t={t} />
+
+      <TrendSection gpuReason={displaySample?.gpu?.reason ?? null} points={trendPoints} t={t} />
 
       <Paper withBorder radius="md" p="md">
         <Stack gap="md">
@@ -494,10 +587,90 @@ function MetricTile({ label, value }: { label: string; value: React.ReactNode })
   );
 }
 
+function GpuDiagnostics({
+  diagnostic,
+  frameSupported,
+  sample,
+  t,
+}: {
+  diagnostic: PerformanceGpuDiagnostic;
+  frameSupported: boolean;
+  sample: PerformanceSample | null;
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  const usageValue = diagnostic.hasUsageCounters
+    ? t("performance.available")
+    : diagnostic.permissionLimited
+      ? t("performance.gpuDiagnosticLimited")
+      : t("performance.gpuDiagnosticMissing");
+  const frequencyValue = diagnostic.hasFrequency
+    ? formatGpuFrequencyPair(sample)
+    : diagnostic.permissionLimited
+      ? t("performance.gpuDiagnosticLimited")
+      : t("performance.gpuDiagnosticMissing");
+  const memoryValue = diagnostic.hasMemory ? formatGpuMemory(sample) : t("performance.gpuDiagnosticMissing");
+
+  return (
+    <Paper withBorder radius="md" p="md">
+      <Stack gap="sm">
+        <Group justify="space-between" gap="sm">
+          <Text fw={700}>{t("performance.gpuDiagnostics")}</Text>
+          <Badge color={gpuDiagnosticStatusColor(diagnostic.status)} variant="light">
+            {gpuDiagnosticStatusLabel(diagnostic.status, t)}
+          </Badge>
+        </Group>
+        <Text size="sm" c="dimmed">
+          {gpuDiagnosticSummary(diagnostic.status, t)}
+        </Text>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <GpuDiagnosticField label={t("performance.gpuDiagnosticUsageCounters")} value={usageValue} />
+          <GpuDiagnosticField label={t("performance.gpuDiagnosticFrequencyCounters")} value={frequencyValue} />
+          <GpuDiagnosticField label={t("performance.gpuDiagnosticMemoryData")} value={memoryValue} />
+          <GpuDiagnosticField label={t("performance.gpuDiagnosticFrameData")} value={frameSupported ? t("performance.available") : t("performance.unavailable")} />
+        </div>
+        {(diagnostic.source || diagnostic.reason) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <GpuDiagnosticField label={t("performance.gpuSource")} value={diagnostic.source || "-"} />
+            <GpuDiagnosticField label={t("performance.gpuDiagnosticReason")} value={diagnostic.reason || "-"} />
+          </div>
+        )}
+        {diagnostic.rawLines.length > 0 && (
+          <div>
+            <Text size="xs" c="dimmed" mb={4}>
+              {t("performance.gpuDiagnosticRaw")}
+            </Text>
+            <Text
+              component="pre"
+              size="xs"
+              className="max-h-28 overflow-auto whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2 font-mono"
+            >
+              {diagnostic.rawLines.join("\n")}
+            </Text>
+          </div>
+        )}
+      </Stack>
+    </Paper>
+  );
+}
+
+function GpuDiagnosticField({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 min-h-[64px]">
+      <Text size="xs" c="dimmed">
+        {label}
+      </Text>
+      <Text fw={700} size="sm" mt={4} className="break-words whitespace-normal">
+        {value}
+      </Text>
+    </div>
+  );
+}
+
 interface TrendConfig {
   key: string;
   title: string;
   color: string;
+  emptyLabel?: string;
   zeroBase?: boolean;
   referenceValue?: number;
   valueOf: (point: PerformanceTrendPoint) => number | null;
@@ -509,7 +682,18 @@ interface ChartValue {
   value: number;
 }
 
-function TrendSection({ points, t }: { points: PerformanceTrendPoint[]; t: ReturnType<typeof useTranslation>["t"] }) {
+function TrendSection({
+  gpuReason,
+  points,
+  t,
+}: {
+  gpuReason: string | null;
+  points: PerformanceTrendPoint[];
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  const gpuEmptyLabel = gpuReason?.toLowerCase().includes("permission denied")
+    ? t("performance.gpuCountersPermissionLimited")
+    : t("performance.noTrendData");
   const configs: TrendConfig[] = [
     {
       key: "processCpu",
@@ -531,6 +715,7 @@ function TrendSection({ points, t }: { points: PerformanceTrendPoint[]; t: Retur
       key: "gpu",
       title: t("performance.trendGpu"),
       color: "#0d9488",
+      emptyLabel: gpuEmptyLabel,
       zeroBase: true,
       valueOf: (point) => point.gpuUsagePercent,
       formatValue: formatPercent,
@@ -577,7 +762,7 @@ function TrendSection({ points, t }: { points: PerformanceTrendPoint[]; t: Retur
       </Group>
       <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
         {configs.map((config) => (
-          <TrendCard key={config.key} config={config} points={points} emptyLabel={t("performance.noTrendData")} />
+          <TrendCard key={config.key} config={config} points={points} emptyLabel={config.emptyLabel ?? t("performance.noTrendData")} />
         ))}
       </div>
     </Stack>
@@ -748,11 +933,79 @@ function formatMemoryPair(sample: PerformanceSample | null) {
   return `${formatKb(sample.system.mem_used_kb)} / ${formatKb(sample.system.mem_total_kb)}`;
 }
 
+function isGpuPermissionLimited(sample: PerformanceSample | null) {
+  return sample?.gpu?.reason?.toLowerCase().includes("permission denied") ?? false;
+}
+
+function gpuDiagnosticStatusLabel(status: PerformanceGpuDiagnostic["status"], t: ReturnType<typeof useTranslation>["t"]) {
+  switch (status) {
+    case "usage_available":
+      return t("performance.gpuDiagnosticStatusUsageAvailable");
+    case "counters_permission_limited":
+      return t("performance.gpuDiagnosticStatusCountersPermissionLimited");
+    case "memory_and_frequency_only":
+      return t("performance.gpuDiagnosticStatusMemoryAndFrequencyOnly");
+    case "memory_only":
+      return t("performance.gpuDiagnosticStatusMemoryOnly");
+    case "frequency_only":
+      return t("performance.gpuDiagnosticStatusFrequencyOnly");
+    case "metadata_only":
+      return t("performance.gpuDiagnosticStatusMetadataOnly");
+    case "not_sampled":
+      return t("performance.gpuDiagnosticStatusNotSampled");
+    case "unavailable":
+    default:
+      return t("performance.gpuDiagnosticStatusUnavailable");
+  }
+}
+
+function gpuDiagnosticStatusColor(status: PerformanceGpuDiagnostic["status"]) {
+  switch (status) {
+    case "usage_available":
+      return "green";
+    case "counters_permission_limited":
+      return "red";
+    case "memory_and_frequency_only":
+    case "memory_only":
+    case "frequency_only":
+      return "blue";
+    case "metadata_only":
+      return "gray";
+    case "not_sampled":
+      return "gray";
+    case "unavailable":
+    default:
+      return "yellow";
+  }
+}
+
+function gpuDiagnosticSummary(status: PerformanceGpuDiagnostic["status"], t: ReturnType<typeof useTranslation>["t"]) {
+  switch (status) {
+    case "usage_available":
+      return t("performance.gpuDiagnosticSummaryUsageAvailable");
+    case "counters_permission_limited":
+      return t("performance.gpuDiagnosticSummaryCountersPermissionLimited");
+    case "memory_and_frequency_only":
+      return t("performance.gpuDiagnosticSummaryMemoryAndFrequencyOnly");
+    case "memory_only":
+      return t("performance.gpuDiagnosticSummaryMemoryOnly");
+    case "frequency_only":
+      return t("performance.gpuDiagnosticSummaryFrequencyOnly");
+    case "metadata_only":
+      return t("performance.gpuDiagnosticSummaryMetadataOnly");
+    case "not_sampled":
+      return t("performance.gpuDiagnosticSummaryNotSampled");
+    case "unavailable":
+    default:
+      return t("performance.gpuDiagnosticSummaryUnavailable");
+  }
+}
+
 function formatGpuUsage(value: number | null, sample: PerformanceSample, t: ReturnType<typeof useTranslation>["t"]) {
   const formatted = formatPercent(value);
   if (formatted !== "-") return formatted;
-  if (sample.gpu?.reason?.toLowerCase().includes("permission denied")) {
-    return t("performance.permissionLimited");
+  if (isGpuPermissionLimited(sample)) {
+    return t("performance.gpuCountersLimited");
   }
   return "-";
 }
@@ -762,11 +1015,19 @@ function formatGpuMemory(sample: PerformanceSample | null) {
   return formatBytes(bytes);
 }
 
+function formatGpuFrequencyPair(sample: PerformanceSample | null) {
+  const current = formatFrequency(sample?.gpu?.current_frequency_hz);
+  const max = formatFrequency(sample?.gpu?.max_frequency_hz);
+  if (current === "-" && max === "-") return "-";
+  if (current !== "-" && max !== "-") return `${current} / ${max}`;
+  return current !== "-" ? current : max;
+}
+
 function formatGpuSource(sample: PerformanceSample | null, t: ReturnType<typeof useTranslation>["t"]) {
   if (!sample) return "-";
   if (sample.gpu?.source) return sample.gpu.source;
-  if (sample.gpu?.reason?.toLowerCase().includes("permission denied")) {
-    return t("performance.permissionLimited");
+  if (isGpuPermissionLimited(sample)) {
+    return t("performance.gpuCountersPermissionLimited");
   }
   return sample.gpu?.supported ? t("performance.available") : t("performance.unavailable");
 }

@@ -473,6 +473,9 @@ Frontend: `PerformancePanel.tsx`
 Backend:
 
 - `adb_performance_sample`
+- `adb_performance_stream_start`
+- `adb_performance_stream_snapshot`
+- `adb_performance_stream_stop`
 - `export_text_file`
 
 Sampling behavior:
@@ -483,7 +486,11 @@ Sampling behavior:
 - Sampling follows the foreground app by default and can pin the current foreground package as the fixed target app.
 - Foreground app detection reads both window focus and resumed-activity sources so customized Android builds can still resolve the target package.
 - If foreground app detection is slow or unavailable, sampling still returns system/device metrics instead of blocking the whole sample.
-- The backend returns one read-only sample per command and does not start a long-running device agent.
+- The default path starts one persistent `adb shell` sampling stream per selected device and keeps the latest complete frame in memory; the selected 0.5/1/2/5 second cadence controls the device-side fast sampler, while the UI may poll the in-memory snapshot more frequently so it does not miss newly completed frames.
+- Slow probes run as background cache refreshers inside the same device-side shell so battery/thermal/storage/rendering probes do not block live CPU, memory, network, process, and GPU counter frames.
+- Device metrics are tiered: CPU, memory, network, process state, and available GPU sysfs counters refresh on the selected cadence; battery, thermal, storage, display, CPU frequency, and `dumpsys gpu` memory fallback remain slow probes at about 10 seconds.
+- If the persistent stream cannot start or exits before producing data, the UI falls back to the compatible one-shot `adb_performance_sample` path.
+- The compatible backend path returns one read-only sample per command and does not start a long-running device agent.
 - The frontend watchdog allows 20 seconds per sample so a 2-second foreground probe plus a 10-second slow/frame probe does not falsely trip the UI timeout on wireless ADB.
 - The frontend schedules the next automatic poll after the current sample completes, so slow wireless ADB does not queue overlapping probes.
 - Manual "sample now" requests made while an automatic probe is in flight are queued once and run immediately after the active probe finishes; the button does not visually debounce during periodic sampling.
@@ -501,6 +508,7 @@ UI behavior:
 - Keeps the sampling interval selector aligned with the toolbar buttons; the selector uses an accessible label instead of a visible stacked label.
 - Shows first-sample loading values and pauses auto sampling with a visible timeout if ADB does not return within the frontend watchdog window.
 - Metric cards render a last-known display snapshot for cadence-based or permission-limited fields, so fast samples do not briefly clear slow metrics to `-`; Timeline and exports still keep the raw per-sample values.
+- Adds a GPU diagnostics card that explains whether usage counters, frequency counters, GPU memory, and frame stats are available, permission-limited, or missing based only on the existing sample fields and raw probe lines; diagnostic fields use a two-row wrapping layout so source and permission details stay readable.
 - Keeps a rolling 15-minute sample window in frontend state.
 - Computes CPU percentages and network rates from adjacent samples.
 - Draws lightweight SVG trend charts for CPU, GPU, RSS, memory, P95 frame time, and network metrics from the same rolling samples.
