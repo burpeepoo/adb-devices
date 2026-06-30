@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   PERFORMANCE_RETENTION_MS,
@@ -273,6 +274,22 @@ test("performance GPU diagnostics classify available and limited counter states"
   const unavailableDiagnostic = buildPerformanceGpuDiagnostic(unavailable, null);
   assert.equal(unavailableDiagnostic.status, "unavailable");
   assert.equal(unavailableDiagnostic.hasUsageCounters, false);
+});
+
+test("performance overview panels stay in a two-column desktop layout", () => {
+  const source = readFileSync(new URL("../src/components/PerformancePanel.tsx", import.meta.url), "utf8");
+
+  assert.match(source, /grid grid-cols-1 xl:grid-cols-2 gap-4/);
+  assert.doesNotMatch(source, /xl:grid-cols-4/);
+});
+
+test("performance GPU diagnostics default to collapsed details", () => {
+  const source = readFileSync(new URL("../src/components/PerformancePanel.tsx", import.meta.url), "utf8");
+
+  assert.match(source, /const \[expanded, setExpanded\] = useState\(false\)/);
+  assert.match(source, /aria-expanded=\{expanded\}/);
+  assert.match(source, /\{expanded && \(/);
+  assert.match(source, /<details className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">/);
 });
 
 test("performance sample timeout is detectable without waiting for the default watchdog", async () => {

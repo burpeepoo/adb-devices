@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.1.33] - 2026-06-30
+
+### Changed
+
+- Changed Performance sampling overview metrics to a two-column desktop layout so app, rendering, live device, and device detail cards stay readable on wide screens.
+- Changed the Performance GPU diagnostics card to stay collapsed by default, with raw probe output hidden behind a second disclosure.
+
+### Tests
+
+- Added Performance sampling UI guard tests for the two-column overview layout and collapsed GPU diagnostics behavior.
+
 ## [1.1.32] - 2026-06-30
 
 ### Added

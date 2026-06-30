@@ -3,6 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { Badge, Button, Group, Paper, Select, Stack, Table, Text } from "@mantine/core";
 import {
   IconActivityHeartbeat,
+  IconChevronDown,
+  IconChevronRight,
   IconDownload,
   IconPlayerPause,
   IconPlayerPlay,
@@ -464,7 +466,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
         </Stack>
       </Paper>
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <MetricSection title={t("performance.app")}>
           <MetricTile label="PID" value={displaySample?.pid ?? emptyValue} />
           <MetricTile label="CPU" value={displaySample ? formatPercent(displayMetrics.processCpuPercent) : emptyValue} />
@@ -598,6 +600,7 @@ function GpuDiagnostics({
   sample: PerformanceSample | null;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
+  const [expanded, setExpanded] = useState(false);
   const usageValue = diagnostic.hasUsageCounters
     ? t("performance.available")
     : diagnostic.permissionLimited
@@ -611,42 +614,55 @@ function GpuDiagnostics({
   const memoryValue = diagnostic.hasMemory ? formatGpuMemory(sample) : t("performance.gpuDiagnosticMissing");
 
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper withBorder radius="md" p={expanded ? "md" : "sm"}>
       <Stack gap="sm">
         <Group justify="space-between" gap="sm">
-          <Text fw={700}>{t("performance.gpuDiagnostics")}</Text>
-          <Badge color={gpuDiagnosticStatusColor(diagnostic.status)} variant="light">
-            {gpuDiagnosticStatusLabel(diagnostic.status, t)}
-          </Badge>
+          <Group gap="xs">
+            <Text fw={700}>{t("performance.gpuDiagnostics")}</Text>
+            <Badge color={gpuDiagnosticStatusColor(diagnostic.status)} variant="light">
+              {gpuDiagnosticStatusLabel(diagnostic.status, t)}
+            </Badge>
+          </Group>
+          <Button
+            size="xs"
+            variant="subtle"
+            leftSection={expanded ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
+            aria-expanded={expanded}
+            onClick={() => setExpanded((current) => !current)}
+          >
+            {expanded ? t("common.collapse") : t("common.expand")}
+          </Button>
         </Group>
         <Text size="sm" c="dimmed">
           {gpuDiagnosticSummary(diagnostic.status, t)}
         </Text>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <GpuDiagnosticField label={t("performance.gpuDiagnosticUsageCounters")} value={usageValue} />
-          <GpuDiagnosticField label={t("performance.gpuDiagnosticFrequencyCounters")} value={frequencyValue} />
-          <GpuDiagnosticField label={t("performance.gpuDiagnosticMemoryData")} value={memoryValue} />
-          <GpuDiagnosticField label={t("performance.gpuDiagnosticFrameData")} value={frameSupported ? t("performance.available") : t("performance.unavailable")} />
-        </div>
-        {(diagnostic.source || diagnostic.reason) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <GpuDiagnosticField label={t("performance.gpuSource")} value={diagnostic.source || "-"} />
-            <GpuDiagnosticField label={t("performance.gpuDiagnosticReason")} value={diagnostic.reason || "-"} />
-          </div>
-        )}
-        {diagnostic.rawLines.length > 0 && (
-          <div>
-            <Text size="xs" c="dimmed" mb={4}>
-              {t("performance.gpuDiagnosticRaw")}
-            </Text>
-            <Text
-              component="pre"
-              size="xs"
-              className="max-h-28 overflow-auto whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2 font-mono"
-            >
-              {diagnostic.rawLines.join("\n")}
-            </Text>
-          </div>
+        {expanded && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <GpuDiagnosticField label={t("performance.gpuDiagnosticUsageCounters")} value={usageValue} />
+              <GpuDiagnosticField label={t("performance.gpuDiagnosticFrequencyCounters")} value={frequencyValue} />
+              <GpuDiagnosticField label={t("performance.gpuDiagnosticMemoryData")} value={memoryValue} />
+              <GpuDiagnosticField
+                label={t("performance.gpuDiagnosticFrameData")}
+                value={frameSupported ? t("performance.available") : t("performance.unavailable")}
+              />
+            </div>
+            {(diagnostic.source || diagnostic.reason) && (
+              <Text size="xs" c="dimmed" className="break-words">
+                {diagnostic.source ? `${t("performance.gpuSource")}: ${diagnostic.source}` : ""}
+                {diagnostic.source && diagnostic.reason ? " · " : ""}
+                {diagnostic.reason ? `${t("performance.gpuDiagnosticReason")}: ${diagnostic.reason}` : ""}
+              </Text>
+            )}
+            {diagnostic.rawLines.length > 0 && (
+              <details className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                <summary className="cursor-pointer text-xs text-gray-500">{t("performance.gpuDiagnosticRaw")}</summary>
+                <Text component="pre" size="xs" className="mt-2 max-h-28 overflow-auto whitespace-pre-wrap font-mono">
+                  {diagnostic.rawLines.join("\n")}
+                </Text>
+              </details>
+            )}
+          </>
         )}
       </Stack>
     </Paper>

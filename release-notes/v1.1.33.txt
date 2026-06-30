@@ -1,0 +1,5 @@
+en-US:
+Performance sampling now uses a two-column metric layout on wide screens, and GPU diagnostics stay collapsed by default so the main panel remains easier to scan.
+
+zh-CN:
+性能采样页现在在宽屏下使用两列指标布局，并且 GPU 诊断默认收起，主面板更容易浏览。

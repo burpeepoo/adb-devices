@@ -503,12 +503,12 @@ Metrics:
 
 UI behavior:
 
-- Shows App, Rendering, Device, Live Trends, and Timeline areas.
+- Shows App, Rendering, Device realtime, Device details, Live Trends, and Timeline areas; the four metric overview panels use a two-column desktop layout so dense values stay readable.
 - Shows stable running/paused state and last sample time without a live countdown.
 - Keeps the sampling interval selector aligned with the toolbar buttons; the selector uses an accessible label instead of a visible stacked label.
 - Shows first-sample loading values and pauses auto sampling with a visible timeout if ADB does not return within the frontend watchdog window.
 - Metric cards render a last-known display snapshot for cadence-based or permission-limited fields, so fast samples do not briefly clear slow metrics to `-`; Timeline and exports still keep the raw per-sample values.
-- Adds a GPU diagnostics card that explains whether usage counters, frequency counters, GPU memory, and frame stats are available, permission-limited, or missing based only on the existing sample fields and raw probe lines; diagnostic fields use a two-row wrapping layout so source and permission details stay readable.
+- Adds a GPU diagnostics card that explains whether usage counters, frequency counters, GPU memory, and frame stats are available, permission-limited, or missing based only on the existing sample fields and raw probe lines; the card is collapsed by default, expands into a two-row diagnostic layout, and keeps raw probe output behind a second disclosure.
 - Keeps a rolling 15-minute sample window in frontend state.
 - Computes CPU percentages and network rates from adjacent samples.
 - Draws lightweight SVG trend charts for CPU, GPU, RSS, memory, P95 frame time, and network metrics from the same rolling samples.
