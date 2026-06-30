@@ -33,6 +33,33 @@ Mitigation:
 - Reuse the shared target-device strip and helper for new device tools.
 - Add helper tests for target selection and keep `npm test` covering them.
 
+## Android Device Copilot Boundaries
+
+The Copilot tab is intentionally experimental and evidence-first.
+
+Coverage:
+
+- Embedded Android-agent skills live in both `docs/agent-skills/` and `src/androidAgentSkills.ts`.
+- The Copilot auto-matches skills from prompt text, attachment names, and bounded text previews; users do not select a skill manually before sending.
+- Skill runs use `adb_workbench_execute`, so selected-device targeting and risk classification still apply.
+- Session history is local and persisted under `agentCopilotSessions`.
+- Global Agent CLI settings and current-device overrides are stored in `settings.agentCli`; current-device overrides are edited from the Agent Lab CLI panel.
+
+Risks:
+
+- The current Copilot can run deterministic skill steps, but it does not yet execute an external Codex/Claude/custom CLI profile.
+- Automatic skill matching is keyword-based and evidence-first; it should be treated as routing assistance, not a root-cause conclusion.
+- The ordinary APK Agent cannot read privileged system counters. Treat APK data as supplemental, not authoritative.
+- Agent APK upgrades preserve app data only when the package name and signing certificate stay stable. Signature changes or version downgrades require explicit manual handling because automatic uninstall would delete Agent app data.
+- A future CLI execution path could run arbitrary host commands if profile validation and explicit approval are weak.
+
+Mitigation:
+
+- Keep CLI launch as an explicit future command path with visible approval and hidden-process handling.
+- Keep ordinary APK limits visible in skill docs and UI copy.
+- Keep Agent APK version metadata aligned across Java, the build script, and the desktop backend whenever the APK behavior changes.
+- Keep local skill docs synchronized with the embedded app catalog.
+
 ## Startup Repair Tradeoff
 
 Startup repair is intentionally gated by version and 10-minute cooldown. It avoids repair if any device is already online.

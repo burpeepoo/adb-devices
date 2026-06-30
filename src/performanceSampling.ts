@@ -1,4 +1,4 @@
-import type { PerformanceSample } from "./types";
+import type { PerformanceAgentStatus, PerformanceSample, PerformanceSampleSource } from "./types";
 
 export const PERFORMANCE_FAST_INTERVAL_OPTIONS_MS = [500, 1000, 2000, 5000] as const;
 export const PERFORMANCE_DEFAULT_FAST_INTERVAL_MS = 1000;
@@ -7,6 +7,7 @@ export const PERFORMANCE_FRAME_INTERVAL_MS = 5000;
 export const PERFORMANCE_RETENTION_MS = 15 * 60 * 1000;
 export const PERFORMANCE_SAMPLE_WATCHDOG_MS = 20000;
 export const PERFORMANCE_SAMPLE_TIMEOUT_ERROR = "PERFORMANCE_SAMPLE_TIMEOUT";
+export const PERFORMANCE_STREAM_FIRST_SAMPLE_POLL_MS = 500;
 
 export interface PerformanceDerivedMetrics {
   processCpuPercent: number | null;
@@ -51,6 +52,8 @@ export interface PerformanceDisplaySnapshot {
   metrics: PerformanceDerivedMetrics;
 }
 
+export type PerformanceEffectiveSampleSource = PerformanceSampleSource | "agent_unavailable";
+
 export type PerformanceGpuDiagnosticStatus =
   | "usage_available"
   | "counters_permission_limited"
@@ -86,21 +89,96 @@ export function nextPerformancePollDueMs(completedAtMs: number, intervalMs = PER
 export function nextPerformanceStreamPollIntervalMs(
   selectedIntervalMs: number,
   usingFallback: boolean,
+  hasStreamSample = true,
 ): number {
   const normalized = normalizePerformanceFastIntervalMs(selectedIntervalMs);
   if (usingFallback) {
     return normalized;
   }
-  // Stream polling reads the latest in-memory backend frame, not the device.
-  // Poll slightly ahead of the device cadence so the UI does not miss a frame
-  // and appear to update at 2x the selected interval.
-  return Math.min(normalized, 500);
+  // Before the first stream frame, poll the lightweight in-memory snapshot
+  // quickly so the panel does not look blank. After that, visible auto-refresh
+  // follows the interval the user selected.
+  return hasStreamSample ? normalized : Math.min(normalized, PERFORMANCE_STREAM_FIRST_SAMPLE_POLL_MS);
 }
 
 export function normalizePerformanceFastIntervalMs(value: number): number {
   return PERFORMANCE_FAST_INTERVAL_OPTIONS_MS.includes(value as (typeof PERFORMANCE_FAST_INTERVAL_OPTIONS_MS)[number])
     ? value
     : PERFORMANCE_DEFAULT_FAST_INTERVAL_MS;
+}
+
+export function normalizePerformanceAgentStatus(value: unknown): PerformanceAgentStatus {
+  return value === "missing" ||
+    value === "installing" ||
+    value === "starting" ||
+    value === "update_available" ||
+    value === "connected" ||
+    value === "permission_limited" ||
+    value === "failed"
+    ? value
+    : "failed";
+}
+
+export function performanceSampleSource(
+  agentStatus: PerformanceAgentStatus | null,
+  hasAgentSample: boolean,
+  hasAdbSample: boolean,
+): PerformanceEffectiveSampleSource {
+  if (hasAgentSample && hasAdbSample) return "merged";
+  if (hasAgentSample) return "agent";
+  if (hasAdbSample) return "adb";
+  return agentStatus === "connected" || agentStatus === "permission_limited" ? "agent" : "agent_unavailable";
+}
+
+export function mergePerformanceAgentSample(
+  adbSample: PerformanceSample | null,
+  agentSample: PerformanceSample | null,
+): PerformanceSample {
+  if (!adbSample && !agentSample) {
+    throw new Error("at least one performance sample is required");
+  }
+  if (!adbSample) {
+    return markPerformanceSampleSource(agentSample!, "agent", agentSample!.agent_status ?? "connected");
+  }
+  if (!agentSample) {
+    return markPerformanceSampleSource(adbSample, "adb", adbSample.agent_status ?? null);
+  }
+
+  return {
+    ...adbSample,
+    timestamp_ms: Math.max(adbSample.timestamp_ms, agentSample.timestamp_ms),
+    sample_source: "merged",
+    agent_status: normalizePerformanceAgentStatus(agentSample.agent_status ?? "connected"),
+    target_package: agentSample.target_package ?? adbSample.target_package,
+    foreground_package: agentSample.foreground_package ?? adbSample.foreground_package,
+    foreground_activity: agentSample.foreground_activity ?? adbSample.foreground_activity,
+    pid: agentSample.pid ?? adbSample.pid,
+    process: {
+      ...adbSample.process,
+      ...nonNullObject(agentSample.process),
+      package_name: agentSample.process.package_name ?? adbSample.process.package_name,
+      pid: agentSample.process.pid ?? adbSample.process.pid,
+      running: agentSample.process.running || adbSample.process.running,
+    },
+    network: {
+      rx_bytes: agentSample.network.rx_bytes ?? adbSample.network.rx_bytes,
+      tx_bytes: agentSample.network.tx_bytes ?? adbSample.network.tx_bytes,
+    },
+    frame_stats: agentSample.frame_stats ?? adbSample.frame_stats,
+    unavailable: [...new Set([...adbSample.unavailable, ...agentSample.unavailable])],
+  };
+}
+
+function markPerformanceSampleSource(
+  sample: PerformanceSample,
+  sampleSource: PerformanceSampleSource,
+  agentStatus: PerformanceAgentStatus | null,
+): PerformanceSample {
+  return {
+    ...sample,
+    sample_source: sampleSource,
+    agent_status: agentStatus,
+  };
 }
 
 export function shouldIncludeSlowSample(nowMs: number, lastSlowSampleMs: number | null): boolean {
@@ -574,6 +652,12 @@ function networkKbPerSecond(metrics: PerformanceDerivedMetrics): number | null {
   const tx = metrics.txBytesPerSecond;
   if (rx === null && tx === null) return null;
   return ((rx ?? 0) + (tx ?? 0)) / 1024;
+}
+
+function nonNullObject<T extends object>(value: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter(([, entry]) => entry !== null && entry !== undefined),
+  ) as Partial<T>;
 }
 
 function csvCell(value: unknown): string {

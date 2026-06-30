@@ -5,6 +5,9 @@ import {
   PERFORMANCE_RETENTION_MS,
   PERFORMANCE_SAMPLE_WATCHDOG_MS,
   PERFORMANCE_SAMPLE_TIMEOUT_ERROR,
+  mergePerformanceAgentSample,
+  normalizePerformanceAgentStatus,
+  performanceSampleSource,
   buildPerformanceDisplaySnapshot,
   buildPerformanceGpuDiagnostic,
   normalizePerformanceFastIntervalMs,
@@ -46,11 +49,68 @@ test("performance sampling starts with a fast sample before slow probes", () => 
 });
 
 test("performance stream polls cached frames faster than device sampling cadence", () => {
-  assert.equal(nextPerformanceStreamPollIntervalMs(5000, false), 500);
-  assert.equal(nextPerformanceStreamPollIntervalMs(2000, false), 500);
-  assert.equal(nextPerformanceStreamPollIntervalMs(1000, false), 500);
-  assert.equal(nextPerformanceStreamPollIntervalMs(500, false), 500);
+  assert.equal(nextPerformanceStreamPollIntervalMs(5000, false, false), 500);
+  assert.equal(nextPerformanceStreamPollIntervalMs(2000, false, false), 500);
+  assert.equal(nextPerformanceStreamPollIntervalMs(1000, false, false), 500);
+  assert.equal(nextPerformanceStreamPollIntervalMs(500, false, false), 500);
+});
+
+test("performance stream follows selected interval after first sample", () => {
+  assert.equal(nextPerformanceStreamPollIntervalMs(5000, false, true), 5000);
+  assert.equal(nextPerformanceStreamPollIntervalMs(2000, false, true), 2000);
+  assert.equal(nextPerformanceStreamPollIntervalMs(1000, false, true), 1000);
+  assert.equal(nextPerformanceStreamPollIntervalMs(500, false, true), 500);
   assert.equal(nextPerformanceStreamPollIntervalMs(2000, true), 2000);
+});
+
+test("performance agent status normalizes unknown backend states to failed", () => {
+  assert.equal(normalizePerformanceAgentStatus("connected"), "connected");
+  assert.equal(normalizePerformanceAgentStatus("permission_limited"), "permission_limited");
+  assert.equal(normalizePerformanceAgentStatus("update_available"), "update_available");
+  assert.equal(normalizePerformanceAgentStatus("unexpected-state"), "failed");
+});
+
+test("performance sample source reflects agent and adb availability", () => {
+  assert.equal(performanceSampleSource("connected", true, true), "merged");
+  assert.equal(performanceSampleSource("connected", true, false), "agent");
+  assert.equal(performanceSampleSource("missing", false, true), "adb");
+  assert.equal(performanceSampleSource("failed", false, false), "agent_unavailable");
+});
+
+test("performance agent sample merge keeps adb system metrics and uses fresher agent app metrics", () => {
+  const adb = sample({
+    timestamp_ms: 1_000,
+    packageName: "com.example.game",
+    rssKb: 10_000,
+    pssKb: 9_000,
+    cpuTotal: 1_000,
+    cpuIdle: 200,
+  });
+  const agent = sample({
+    timestamp_ms: 1_200,
+    packageName: "com.example.game",
+    rssKb: 22_000,
+    pssKb: 20_000,
+  });
+  agent.sample_source = "agent";
+  agent.process.thread_count = 42;
+  agent.system.cpu_total_jiffies = null;
+  agent.system.cpu_idle_jiffies = null;
+  agent.battery.temperature_c = null;
+  agent.storage.data_available_kb = null;
+
+  const merged = mergePerformanceAgentSample(adb, agent);
+
+  assert.equal(merged.sample_source, "merged");
+  assert.equal(merged.agent_status, "connected");
+  assert.equal(merged.timestamp_ms, 1_200);
+  assert.equal(merged.process.rss_kb, 22_000);
+  assert.equal(merged.process.pss_kb, 20_000);
+  assert.equal(merged.process.thread_count, 42);
+  assert.equal(merged.system.cpu_total_jiffies, 1_000);
+  assert.equal(merged.system.cpu_idle_jiffies, 200);
+  assert.equal(merged.battery.temperature_c, 35);
+  assert.equal(merged.storage.data_available_kb, 40_000);
 });
 
 test("performance sample watchdog has headroom for slow wireless probes", () => {
@@ -283,6 +343,22 @@ test("performance overview panels stay in a two-column desktop layout", () => {
   assert.doesNotMatch(source, /xl:grid-cols-4/);
 });
 
+test("performance bounded metrics show real limits without synthetic percent caps", () => {
+  const source = readFileSync(new URL("../src/components/PerformancePanel.tsx", import.meta.url), "utf8");
+
+  assert.match(source, /formatPercent\(displayMetrics\.processCpuPercent\)/);
+  assert.match(source, /formatPercent\(displayMetrics\.systemCpuPercent\)/);
+  assert.doesNotMatch(source, /formatPercentLimit/);
+  assert.doesNotMatch(source, /\/ 100%/);
+  assert.match(source, /formatLimitPair/);
+  assert.match(source, /formatCpuFrequencyPair\(displaySample\)/);
+  assert.match(source, /formatGpuFrequencyPair\(displaySample\)/);
+  assert.match(source, /formatStoragePair\(displaySample\)/);
+  assert.match(source, /formatGpuMemory\(displaySample\)/);
+  assert.match(source, /performance\.cpuFrequency/);
+  assert.match(source, /overflowWrap: "anywhere"/);
+});
+
 test("performance GPU diagnostics default to collapsed details", () => {
   const source = readFileSync(new URL("../src/components/PerformancePanel.tsx", import.meta.url), "utf8");
 
@@ -352,6 +428,8 @@ function sample(overrides: {
   return {
     timestamp_ms: overrides.timestamp_ms ?? 0,
     device_serial: "USB123",
+    sample_source: "adb",
+    agent_status: null,
     target_package: packageName,
     foreground_package: packageName,
     foreground_activity: ".MainActivity",

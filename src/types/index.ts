@@ -82,6 +82,8 @@ export interface LogcatEntry {
 export interface PerformanceSample {
   timestamp_ms: number;
   device_serial: string;
+  sample_source: PerformanceSampleSource;
+  agent_status: PerformanceAgentStatus | null;
   target_package: string | null;
   foreground_package: string | null;
   foreground_activity: string | null;
@@ -96,6 +98,32 @@ export interface PerformanceSample {
   gpu: PerformanceGpuSample;
   frame_stats: PerformanceFrameStats | null;
   unavailable: string[];
+}
+
+export type PerformanceSampleSource = "adb" | "agent" | "merged";
+
+export type PerformanceAgentStatus =
+  | "missing"
+  | "installing"
+  | "starting"
+  | "update_available"
+  | "connected"
+  | "permission_limited"
+  | "failed";
+
+export interface PerformanceAgentStatusResponse {
+  device_serial: string;
+  package_name: string;
+  status: PerformanceAgentStatus;
+  installed: boolean;
+  apk_available: boolean;
+  forwarded_port: number | null;
+  version_name: string | null;
+  bundled_version_name: string | null;
+  protocol_version: number | null;
+  update_available: boolean;
+  started_at_ms: number | null;
+  message: string | null;
 }
 
 export interface PerformanceStreamSnapshot {
@@ -194,9 +222,92 @@ export interface AppSettings {
   recentApkDir: string;
   languagePreference?: LanguagePreference;
   autoCheckUpdates?: boolean;
+  agentCli?: AgentCliSettings;
 }
 
 export type LanguagePreference = "system" | "en-US" | "zh-CN";
+
+export type AgentCliKind = "codex_cli" | "claude_code" | "custom_cli";
+
+export interface AgentCliProfile {
+  id: string;
+  kind: AgentCliKind;
+  name: string;
+  command: string;
+  args: string[];
+  cwd?: string;
+  notes?: string;
+  builtIn?: boolean;
+}
+
+export interface AgentCliSettings {
+  globalProfileId: string;
+  profiles: AgentCliProfile[];
+  perDeviceProfileIds: Record<string, string>;
+}
+
+export type AndroidAgentSkillId =
+  | "device_report"
+  | "performance_triage"
+  | "black_screen_triage"
+  | "calendar_sync_triage"
+  | "install_failure_triage"
+  | "wireless_adb_triage"
+  | "input_touch_triage"
+  | "package_state_triage"
+  | "network_triage"
+  | "logcat_crash_triage"
+  | "storage_pressure_triage";
+
+export interface AndroidAgentSkillStep {
+  id: string;
+  title: string;
+  command: string;
+  why: string;
+}
+
+export interface AndroidAgentSkill {
+  id: AndroidAgentSkillId;
+  title: string;
+  summary: string;
+  localPath: string;
+  requiresAgentApk: boolean;
+  triggerKeywords: string[];
+  steps: AndroidAgentSkillStep[];
+  acceptance: string[];
+}
+
+export interface AgentCopilotAttachment {
+  id: string;
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+  textPreview?: string;
+  createdAt: number;
+}
+
+export interface AgentCopilotMessage {
+  id: string;
+  role: "user" | "assistant" | "system" | "command";
+  body: string;
+  createdAt: number;
+  skillId?: AndroidAgentSkillId;
+  command?: string;
+  ok?: boolean;
+  attachments?: AgentCopilotAttachment[];
+}
+
+export interface AgentCopilotSession {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  deviceKey: string | null;
+  deviceSerial: string | null;
+  skillId: AndroidAgentSkillId;
+  cliProfileId: string;
+  messages: AgentCopilotMessage[];
+}
 
 export interface PairConnectSettings {
   pairIp: string;
@@ -223,5 +334,6 @@ export type TabKey =
   | "imageCast"
   | "clipboard"
   | "logcat"
+  | "agent"
   | "performance"
   | "packages";

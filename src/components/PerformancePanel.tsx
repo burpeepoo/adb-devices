@@ -18,7 +18,7 @@ import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import ResultAlert from "./common/ResultAlert";
 import SectionTitle from "./common/SectionTitle";
 import type { DeviceTargetState } from "../deviceTarget.ts";
-import type { PerformanceSample, PerformanceStreamSnapshot } from "../types";
+import type { PerformanceAgentStatusResponse, PerformanceSample, PerformanceStreamSnapshot } from "../types";
 import type { PerformanceGpuDiagnostic, PerformanceTrendPoint } from "../performanceSampling.ts";
 import {
   buildPerformanceCsvExport,
@@ -31,9 +31,12 @@ import {
   PERFORMANCE_FAST_INTERVAL_OPTIONS_MS,
   initialPerformanceCadenceMarks,
   isPerformanceSampleTimeout,
+  mergePerformanceAgentSample,
   nextPerformancePollDueMs,
   nextPerformanceStreamPollIntervalMs,
+  normalizePerformanceAgentStatus,
   normalizePerformanceFastIntervalMs,
+  performanceSampleSource,
   prunePerformanceSamples,
   shouldIncludeFrameSample,
   shouldIncludeSlowSample,
@@ -60,6 +63,8 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
   const [exporting, setExporting] = useState(false);
   const [lastSampleCompletedAtMs, setLastSampleCompletedAtMs] = useState<number | null>(null);
   const [sampleIntervalMs, setSampleIntervalMs] = useState(PERFORMANCE_DEFAULT_FAST_INTERVAL_MS);
+  const [agentStatus, setAgentStatus] = useState<PerformanceAgentStatusResponse | null>(null);
+  const [agentBusy, setAgentBusy] = useState(false);
   const inFlightRef = useRef(false);
   const queuedManualSampleRef = useRef(false);
   const streamKeyRef = useRef<string | null>(null);
@@ -84,6 +89,11 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
   );
   const alerts = useMemo(() => buildAlerts(samples, latest, t), [latest, samples, t]);
   const currentPackage = lockedPackage || displaySample?.target_package || displaySample?.foreground_package || null;
+  const sampleSource = performanceSampleSource(
+    agentStatus?.status ? normalizePerformanceAgentStatus(agentStatus.status) : displaySample?.agent_status ?? null,
+    displaySample?.sample_source === "agent" || displaySample?.sample_source === "merged",
+    Boolean(displaySample),
+  );
   const waitingForFirstSample = running && samples.length === 0;
   const emptyValue = waitingForFirstSample ? t("performance.collectingValue") : "-";
   const intervalOptions = useMemo(
@@ -179,6 +189,122 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
     return true;
   }, [deviceSerial, lockedPackage]);
 
+  const collectAgentMergedSample = useCallback(async () => {
+    const agentSample = await withPerformanceSampleTimeout(
+      invoke<PerformanceSample>("adb_agent_sample", {
+        deviceSerial,
+        targetPackage: lockedPackage,
+        intervalMs: sampleIntervalMs,
+      }),
+      5_000,
+    );
+    let adbSample: PerformanceSample | null = null;
+    try {
+      const snapshot = await ensurePerformanceStream();
+      adbSample = snapshot?.last_sample ?? null;
+      if (snapshot?.last_error) {
+        setStatus({ ok: false, msg: snapshot.last_error });
+      }
+    } catch {
+      adbSample = null;
+    }
+    const sample = mergePerformanceAgentSample(adbSample, agentSample);
+    setSamples((current) => prunePerformanceSamples([...current, sample], Number(sample.timestamp_ms)));
+    setLastSampleCompletedAtMs(Number(sample.timestamp_ms) || Date.now());
+    return true;
+  }, [deviceSerial, ensurePerformanceStream, lockedPackage, sampleIntervalMs]);
+
+  const refreshAgentStatus = useCallback(async () => {
+    if (!deviceSerial) {
+      setAgentStatus(null);
+      return null;
+    }
+    try {
+      const nextStatus = await invoke<PerformanceAgentStatusResponse>("adb_agent_status", { deviceSerial });
+      nextStatus.status = normalizePerformanceAgentStatus(nextStatus.status);
+      setAgentStatus(nextStatus);
+      return nextStatus;
+    } catch (error) {
+      const failedStatus: PerformanceAgentStatusResponse = {
+        device_serial: deviceSerial,
+        package_name: "com.cozyla.adbmanager.agent",
+        status: "failed",
+        installed: false,
+        apk_available: false,
+        forwarded_port: null,
+        version_name: null,
+        bundled_version_name: null,
+        protocol_version: null,
+        update_available: false,
+        started_at_ms: null,
+        message: String(error),
+      };
+      setAgentStatus(failedStatus);
+      return failedStatus;
+    }
+  }, [deviceSerial]);
+
+  const enableAgent = useCallback(async () => {
+    if (!deviceSerial || agentBusy) return;
+    setAgentBusy(true);
+    setStatus(null);
+    try {
+      let nextStatus = await invoke<PerformanceAgentStatusResponse>("adb_agent_status", { deviceSerial });
+      nextStatus.status = normalizePerformanceAgentStatus(nextStatus.status);
+      if (nextStatus.apk_available) {
+        nextStatus = await invoke<PerformanceAgentStatusResponse>("adb_agent_install", { deviceSerial });
+        nextStatus.status = normalizePerformanceAgentStatus(nextStatus.status);
+        if (nextStatus.status === "failed") {
+          setAgentStatus(nextStatus);
+          setStatus({ ok: false, msg: agentStatusMessage(nextStatus, t) });
+          return;
+        }
+      }
+      nextStatus = await invoke<PerformanceAgentStatusResponse>("adb_agent_start", { deviceSerial });
+      nextStatus = await invoke<PerformanceAgentStatusResponse>("adb_agent_connect", { deviceSerial });
+      nextStatus.status = normalizePerformanceAgentStatus(nextStatus.status);
+      setAgentStatus(nextStatus);
+      setStatus({
+        ok: nextStatus.status === "connected" || nextStatus.status === "permission_limited",
+        msg: agentStatusMessage(nextStatus, t),
+      });
+    } catch (error) {
+      const failedStatus: PerformanceAgentStatusResponse = {
+        device_serial: deviceSerial,
+        package_name: "com.cozyla.adbmanager.agent",
+        status: "failed",
+        installed: false,
+        apk_available: false,
+        forwarded_port: null,
+        version_name: null,
+        bundled_version_name: null,
+        protocol_version: null,
+        update_available: false,
+        started_at_ms: null,
+        message: String(error),
+      };
+      setAgentStatus(failedStatus);
+      setStatus({ ok: false, msg: t("performance.agentEnableFailed", { reason: String(error) }) });
+    } finally {
+      setAgentBusy(false);
+    }
+  }, [agentBusy, deviceSerial, t]);
+
+  const stopAgent = useCallback(async () => {
+    if (!deviceSerial || agentBusy) return;
+    setAgentBusy(true);
+    try {
+      const nextStatus = await invoke<PerformanceAgentStatusResponse>("adb_agent_stop", { deviceSerial });
+      nextStatus.status = normalizePerformanceAgentStatus(nextStatus.status);
+      setAgentStatus(nextStatus);
+      setStatus({ ok: true, msg: t("performance.agentStopped") });
+    } catch (error) {
+      setStatus({ ok: false, msg: String(error) });
+    } finally {
+      setAgentBusy(false);
+    }
+  }, [agentBusy, deviceSerial, t]);
+
   const collectSample = useCallback(async ({ queueIfBusy = false } = {}) => {
     if (!deviceSerial) return false;
     if (inFlightRef.current) {
@@ -190,6 +316,14 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
     inFlightRef.current = true;
 
     try {
+      if (agentStatus?.status === "connected" || agentStatus?.status === "permission_limited") {
+        try {
+          return await collectAgentMergedSample();
+        } catch (error) {
+          setStatus({ ok: false, msg: t("performance.agentSampleFallback", { reason: String(error) }) });
+          void refreshAgentStatus();
+        }
+      }
       if (!streamFallbackRef.current) {
         try {
           return await collectStreamSample();
@@ -213,7 +347,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
         }, 0);
       }
     }
-  }, [collectOneShotSample, collectStreamSample, deviceSerial, stopPerformanceStream, t]);
+  }, [agentStatus?.status, collectAgentMergedSample, collectOneShotSample, collectStreamSample, deviceSerial, refreshAgentStatus, stopPerformanceStream, t]);
 
   const start = useCallback(() => {
     if (!deviceSerial) {
@@ -257,6 +391,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
     setStartedAtMs(null);
     setStatus(null);
     setLastSampleCompletedAtMs(null);
+    setAgentStatus(null);
     if (deviceSerial) {
       seedCadence(now);
       setRunning(true);
@@ -267,6 +402,11 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
       setRunning(false);
     }
   }, [deviceSerial, seedCadence, stopPerformanceStream]);
+
+  useEffect(() => {
+    if (!active || !deviceSerial) return;
+    void refreshAgentStatus();
+  }, [active, deviceSerial, refreshAgentStatus]);
 
   useEffect(() => () => {
     void stopPerformanceStream();
@@ -293,6 +433,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
       const pollIntervalMs = nextPerformanceStreamPollIntervalMs(
         sampleIntervalMs,
         streamFallbackRef.current,
+        samplesRef.current.length > 0 || lastStreamSampleTimestampRef.current !== null,
       );
       const dueAt = nextPerformancePollDueMs(Date.now(), pollIntervalMs);
       timer = window.setTimeout(runLoop, Math.max(0, dueAt - Date.now()));
@@ -373,6 +514,18 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
               description={running ? t("performance.running") : t("performance.stopped")}
             />
             <Group gap="xs">
+              <Badge color={sampleSourceColor(sampleSource)} variant="light">
+                {t("performance.sampleSource")}: {sampleSourceLabel(sampleSource, t)}
+              </Badge>
+              {agentStatus?.status === "connected" || agentStatus?.status === "permission_limited" ? (
+                <Button size="sm" variant="default" disabled={!deviceSerial || agentBusy} onClick={stopAgent}>
+                  {t("performance.agentStop")}
+                </Button>
+              ) : (
+                <Button size="sm" variant="light" disabled={!deviceSerial || agentBusy} onClick={enableAgent}>
+                  {agentBusy ? t("performance.agentWorking") : t("performance.agentEnable")}
+                </Button>
+              )}
               {!running ? (
                 <Button size="sm" leftSection={<IconPlayerPlay size={16} />} disabled={!deviceSerial} onClick={start}>
                   {t("performance.start")}
@@ -404,6 +557,19 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
 
           <Group justify="space-between" gap="md">
             <Stack gap={3}>
+              <Group gap="xs">
+                <Text size="xs" c="dimmed">
+                  {t("performance.agentMode")}
+                </Text>
+                <Badge color={agentStatusColor(agentStatus)} variant="light">
+                  {agentStatusLabel(agentStatus, t)}
+                </Badge>
+              </Group>
+              {agentStatus?.message && (
+                <Text size="xs" c="dimmed" className="break-words">
+                  {agentStatus.message}
+                </Text>
+              )}
               <Text size="xs" c="dimmed">
                 {t("performance.targetPackage")}
               </Text>
@@ -487,8 +653,9 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
 
         <MetricSection title={t("performance.deviceLive")}>
           <MetricTile label="CPU" value={displaySample ? formatPercent(displayMetrics.systemCpuPercent) : emptyValue} />
+          <MetricTile label={t("performance.cpuFrequency")} value={displaySample ? formatCpuFrequencyPair(displaySample) : emptyValue} />
           <MetricTile label={t("performance.gpuUsage")} value={displaySample ? formatGpuUsage(displayMetrics.gpuUsagePercent, displaySample, t) : emptyValue} />
-          <MetricTile label={t("performance.gpuFrequency")} value={displaySample ? formatFrequency(displaySample.gpu?.current_frequency_hz) : emptyValue} />
+          <MetricTile label={t("performance.gpuFrequency")} value={displaySample ? formatGpuFrequencyPair(displaySample) : emptyValue} />
           <MetricTile label={t("performance.memory")} value={displaySample ? formatMemoryPair(displaySample) : emptyValue} />
           <MetricTile label={t("performance.network")} value={displaySample ? formatNetwork(displayMetrics) : emptyValue} />
         </MetricSection>
@@ -496,7 +663,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
         <MetricSection title={t("performance.deviceDetails")}>
           <MetricTile label={t("performance.battery")} value={displaySample ? formatBattery(displaySample) : emptyValue} />
           <MetricTile label={t("performance.thermal")} value={displaySample?.thermal.status_label || emptyValue} />
-          <MetricTile label={t("performance.storage")} value={displaySample ? formatKb(displaySample.storage.data_available_kb) : emptyValue} />
+          <MetricTile label={t("performance.storage")} value={displaySample ? formatStoragePair(displaySample) : emptyValue} />
           <MetricTile label={t("performance.gpuMemory")} value={displaySample ? formatGpuMemory(displaySample) : emptyValue} />
           <MetricTile label={t("performance.gpuSource")} value={displaySample ? formatGpuSource(displaySample, t) : emptyValue} />
         </MetricSection>
@@ -582,7 +749,7 @@ function MetricTile({ label, value }: { label: string; value: React.ReactNode })
       <Text size="xs" c="dimmed" truncate>
         {label}
       </Text>
-      <Text fw={800} size="sm" mt={4} truncate>
+      <Text fw={800} size="sm" mt={4} className="leading-snug" style={{ overflowWrap: "anywhere" }}>
         {value}
       </Text>
     </div>
@@ -906,6 +1073,86 @@ function buildAlerts(samples: PerformanceSample[], latest: PerformanceSample | n
   return alerts;
 }
 
+function agentStatusLabel(status: PerformanceAgentStatusResponse | null, t: ReturnType<typeof useTranslation>["t"]) {
+  if (!status) return t("performance.agentStatusUnknown");
+  switch (status.status) {
+    case "connected":
+      return t("performance.agentStatusConnected");
+    case "permission_limited":
+      return t("performance.agentStatusPermissionLimited");
+    case "installing":
+      return t("performance.agentStatusInstalling");
+    case "starting":
+      return t("performance.agentStatusStarting");
+    case "update_available":
+      return t("performance.agentStatusUpdateAvailable");
+    case "missing":
+      return status.apk_available ? t("performance.agentStatusMissing") : t("performance.agentStatusApkMissing");
+    case "failed":
+    default:
+      return t("performance.agentStatusFailed");
+  }
+}
+
+function agentStatusColor(status: PerformanceAgentStatusResponse | null) {
+  switch (status?.status) {
+    case "connected":
+      return "green";
+    case "permission_limited":
+      return "yellow";
+    case "installing":
+    case "starting":
+    case "update_available":
+      return "blue";
+    case "failed":
+      return "red";
+    case "missing":
+    default:
+      return "gray";
+  }
+}
+
+function agentStatusMessage(status: PerformanceAgentStatusResponse, t: ReturnType<typeof useTranslation>["t"]) {
+  if (status.status === "connected") {
+    return t("performance.agentConnected");
+  }
+  if (status.status === "permission_limited") {
+    return t("performance.agentPermissionLimited");
+  }
+  if (status.status === "update_available") {
+    return status.message || t("performance.agentUpdateAvailable");
+  }
+  return status.message || agentStatusLabel(status, t);
+}
+
+function sampleSourceLabel(source: ReturnType<typeof performanceSampleSource>, t: ReturnType<typeof useTranslation>["t"]) {
+  switch (source) {
+    case "merged":
+      return t("performance.sampleSourceMerged");
+    case "agent":
+      return t("performance.sampleSourceAgent");
+    case "adb":
+      return t("performance.sampleSourceAdb");
+    case "agent_unavailable":
+    default:
+      return t("performance.sampleSourceAgentUnavailable");
+  }
+}
+
+function sampleSourceColor(source: ReturnType<typeof performanceSampleSource>) {
+  switch (source) {
+    case "merged":
+      return "green";
+    case "agent":
+      return "blue";
+    case "adb":
+      return "gray";
+    case "agent_unavailable":
+    default:
+      return "yellow";
+  }
+}
+
 function formatNumber(value: number | null | undefined, digits = 0) {
   if (value === null || value === undefined || !Number.isFinite(value)) return "-";
   return value.toFixed(digits);
@@ -933,6 +1180,41 @@ function formatKb(value: number | null | undefined) {
   return `${value} KB`;
 }
 
+function finiteNumber(value: number | null | undefined): number | null {
+  return value === null || value === undefined || !Number.isFinite(value) ? null : value;
+}
+
+function deriveUsed(total: number | null | undefined, available: number | null | undefined) {
+  const totalValue = finiteNumber(total);
+  const availableValue = finiteNumber(available);
+  if (totalValue === null || availableValue === null) return null;
+  return Math.max(totalValue - availableValue, 0);
+}
+
+function toHzFromKhz(value: number | null | undefined) {
+  const khz = finiteNumber(value);
+  return khz === null ? null : khz * 1000;
+}
+
+function formatLimitPair(
+  current: number | null | undefined,
+  limit: number | null | undefined,
+  formatter: (value: number | null | undefined) => string,
+) {
+  const currentValue = finiteNumber(current);
+  const limitValue = finiteNumber(limit);
+  const currentText = formatter(currentValue);
+  const limitText = formatter(limitValue);
+  if (currentText === "-" && limitText === "-") return "-";
+  if (limitText === "-") return currentText;
+
+  const ratio = currentValue !== null && limitValue !== null && limitValue > 0
+    ? formatPercent((currentValue / limitValue) * 100)
+    : "-";
+  const pair = `${currentText} / ${limitText}`;
+  return ratio === "-" ? pair : `${pair} · ${ratio}`;
+}
+
 function formatMb(value: number | null | undefined) {
   if (value === null || value === undefined || !Number.isFinite(value)) return "-";
   if (value >= 1024) return `${(value / 1024).toFixed(1)} GB`;
@@ -945,8 +1227,21 @@ function formatGb(value: number | null | undefined) {
 }
 
 function formatMemoryPair(sample: PerformanceSample | null) {
-  if (!sample?.system.mem_used_kb || !sample.system.mem_total_kb) return "-";
-  return `${formatKb(sample.system.mem_used_kb)} / ${formatKb(sample.system.mem_total_kb)}`;
+  const usedKb = sample?.system.mem_used_kb ?? deriveUsed(sample?.system.mem_total_kb, sample?.system.mem_available_kb);
+  return formatLimitPair(usedKb, sample?.system.mem_total_kb, formatKb);
+}
+
+function formatStoragePair(sample: PerformanceSample | null) {
+  const usedKb = sample?.storage.data_used_kb ?? deriveUsed(sample?.storage.data_total_kb, sample?.storage.data_available_kb);
+  return formatLimitPair(usedKb, sample?.storage.data_total_kb, formatKb);
+}
+
+function formatCpuFrequencyPair(sample: PerformanceSample | null) {
+  return formatLimitPair(
+    toHzFromKhz(sample?.system.cpu_frequency.average_current_khz),
+    toHzFromKhz(sample?.system.cpu_frequency.average_max_khz),
+    formatFrequency,
+  );
 }
 
 function isGpuPermissionLimited(sample: PerformanceSample | null) {
@@ -1027,16 +1322,11 @@ function formatGpuUsage(value: number | null, sample: PerformanceSample, t: Retu
 }
 
 function formatGpuMemory(sample: PerformanceSample | null) {
-  const bytes = sample?.gpu?.process_memory_bytes ?? sample?.gpu?.memory_total_bytes ?? null;
-  return formatBytes(bytes);
+  return formatLimitPair(sample?.gpu?.process_memory_bytes, sample?.gpu?.memory_total_bytes, formatBytes);
 }
 
 function formatGpuFrequencyPair(sample: PerformanceSample | null) {
-  const current = formatFrequency(sample?.gpu?.current_frequency_hz);
-  const max = formatFrequency(sample?.gpu?.max_frequency_hz);
-  if (current === "-" && max === "-") return "-";
-  if (current !== "-" && max !== "-") return `${current} / ${max}`;
-  return current !== "-" ? current : max;
+  return formatLimitPair(sample?.gpu?.current_frequency_hz, sample?.gpu?.max_frequency_hz, formatFrequency);
 }
 
 function formatGpuSource(sample: PerformanceSample | null, t: ReturnType<typeof useTranslation>["t"]) {

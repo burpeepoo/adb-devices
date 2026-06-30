@@ -12,6 +12,7 @@ export const STORE_KEYS = {
   adbStartupRepair: "adbStartupRepair",
   workbenchTemplates: "workbenchTemplates",
   workbenchHistory: "workbenchHistory",
+  agentCopilotSessions: "agentCopilotSessions",
 } as const;
 
 export function getStore() {

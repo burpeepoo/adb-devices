@@ -70,6 +70,7 @@ Tauri store path: `settings.json`.
 | `adbStartupRepair` | `AdbStartupRepairState` | `startupAdbRepair.ts`, `PairConnect.tsx` |
 | `workbenchTemplates` | Saved workbench templates | `AdbWorkbench.tsx` |
 | `workbenchHistory` | Last 30 workbench executions | `AdbWorkbench.tsx` |
+| `agentCopilotSessions` | `AgentCopilotSession[]` | `AgentCopilot.tsx` |
 
 `AppSettings`
 
@@ -78,6 +79,21 @@ Tauri store path: `settings.json`.
 - `recentApkDir`
 - `languagePreference`: `system`, `en-US`, or `zh-CN`
 - `autoCheckUpdates`: default enabled unless explicitly false
+- `agentCli`: global Agent CLI profile settings, custom CLI fields, and current-device profile overrides edited from Agent Lab
+
+`AgentCliSettings`
+
+- `globalProfileId`: default profile for all devices.
+- `profiles`: built-in Codex CLI / Claude Code profiles plus an editable custom CLI profile.
+- `perDeviceProfileIds`: optional overrides keyed by `device_sn || serial`; these are stored in settings but edited from the Agent Lab CLI panel, not the Settings modal.
+
+`AgentCopilotSession`
+
+- `id`, `title`, `createdAt`, `updatedAt`
+- `deviceKey`, `deviceSerial`
+- `skillId`: the most recently auto-matched embedded skill for the conversation.
+- `cliProfileId`
+- `messages`: user, assistant, system, and command evidence messages. User messages may include attachment metadata and bounded text previews.
 
 ## Selection Model
 

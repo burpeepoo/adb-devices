@@ -16,6 +16,7 @@ const SHORTCUT_TABS: TabKey[] = [
   "imageCast",
   "clipboard",
   "logcat",
+  "agent",
   "performance",
   "packages",
 ];
@@ -31,6 +32,7 @@ const TAB_LABEL_KEYS: Record<TabKey, string> = {
   imageCast: "tabs.imageCast",
   clipboard: "tabs.clipboard",
   logcat: "tabs.logcat",
+  agent: "tabs.agent",
   performance: "tabs.performance",
   packages: "tabs.packageList",
 };

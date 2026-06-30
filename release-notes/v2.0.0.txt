@@ -1,0 +1,5 @@
+en-US:
+ADB Manager 2.0.0 adds Android Device Copilot, an experimental Agent Lab for device investigation. It can choose embedded Android diagnosis skills automatically, collect ADB evidence, pass results to the configured Agent CLI for analysis, support attachments and prompt suggestions, and update the bundled device Agent APK while preserving app data when Android allows it. Performance sampling now shows real metric limits where available and avoids synthetic 100% caps for values that are already percentages.
+
+zh-CN:
+ADB Manager 2.0.0 新增 Android Device Copilot，这是一个实验室级设备诊断 Agent 工作区。它可以自动匹配内置 Android 诊断技能、采集 ADB 证据、交给当前配置的 Agent CLI 生成分析结果，支持附件和随机提示句，并在 Android 允许同签名升级时更新内置设备端 Agent APK 且保留数据。性能采样现在会在有真实上限时显示指标上限，同时不会给本身已经是百分比的指标再显示虚假的 100% 上限。

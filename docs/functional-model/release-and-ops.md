@@ -79,13 +79,14 @@ Responsibilities:
 2. Validate signing/notary environment.
 3. Load Tauri updater private key.
 4. Update version files.
-5. Sign bundled scrcpy binaries.
-6. Build app bundles and custom DMGs for Apple Silicon and Intel.
-7. Build signed PKG installers.
-8. Sign, notarize, staple, and verify final DMGs.
-9. Notarize, staple, and verify final PKGs.
-10. Verify app bundles with codesign and Gatekeeper.
-11. Print final artifact paths.
+5. Ensure the bundled Agent APK exists through `npm run build` / `scripts/ensure-agent-apk.mjs`.
+6. Sign bundled scrcpy binaries.
+7. Build app bundles and custom DMGs for Apple Silicon and Intel.
+8. Build signed PKG installers.
+9. Sign, notarize, staple, and verify final DMGs.
+10. Notarize, staple, and verify final PKGs.
+11. Verify app bundles with codesign and Gatekeeper.
+12. Print final artifact paths.
 
 Required local secrets/identities:
 

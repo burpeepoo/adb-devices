@@ -11,6 +11,7 @@ export const TAB_KEYS: TabKey[] = [
   "imageCast",
   "clipboard",
   "logcat",
+  "agent",
   "performance",
   "packages",
 ];

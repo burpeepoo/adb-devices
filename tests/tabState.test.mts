@@ -14,6 +14,7 @@ test("tab order covers every workspace tab", () => {
     "imageCast",
     "clipboard",
     "logcat",
+    "agent",
     "performance",
     "packages",
   ]);

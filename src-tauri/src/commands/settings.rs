@@ -1,6 +1,6 @@
 use rust_i18n::t;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::adb::{self, AdbError};
@@ -244,7 +244,7 @@ pub fn reveal_path(path: String) -> Result<(), AdbError> {
 
 #[tauri::command(async)]
 pub fn open_file(path: String) -> Result<(), AdbError> {
-    let file_path = PathBuf::from(&path);
+    let file_path = resolve_open_file_path(&path);
     if !file_path.exists() {
         return Err(AdbError::CommandFailed(
             t!("settings.file_not_found", "path" => path).into_owned(),
@@ -274,6 +274,23 @@ pub fn open_file(path: String) -> Result<(), AdbError> {
 
     let output = command.output()?;
     adb::ensure_success(&output, &t!("settings.open_file_failed"))
+}
+
+fn resolve_open_file_path(path: &str) -> PathBuf {
+    let file_path = PathBuf::from(path);
+    if file_path.exists() || file_path.is_absolute() {
+        return file_path;
+    }
+    let project_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .map(Path::to_path_buf);
+    if let Some(root) = project_root {
+        let project_file_path = root.join(&file_path);
+        if project_file_path.exists() {
+            return project_file_path;
+        }
+    }
+    file_path
 }
 
 #[tauri::command(async)]
@@ -311,13 +328,21 @@ pub fn open_external_url(url: String) -> Result<(), AdbError> {
 
 #[cfg(test)]
 mod tests {
-    use super::is_allowed_external_url;
+    use super::{is_allowed_external_url, resolve_open_file_path};
 
     #[test]
     fn allows_adb_manager_github_repository() {
         assert!(is_allowed_external_url(
             "https://github.com/burpeepoo/adb-devices"
         ));
+    }
+
+    #[test]
+    fn resolves_repo_relative_document_paths_for_open_file() {
+        let path = resolve_open_file_path("docs/agent-skills/device-report.md");
+
+        assert!(path.is_absolute());
+        assert!(path.ends_with("docs/agent-skills/device-report.md"));
     }
 }
 

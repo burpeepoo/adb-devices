@@ -1,3 +1,5 @@
+pub mod agent;
+pub mod agent_cli;
 pub mod clipboard;
 pub mod device;
 pub mod image_cast;

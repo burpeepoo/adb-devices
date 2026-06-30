@@ -12,6 +12,7 @@ The app is optimized for repeated engineering and support workflows:
 - Capture screenshots and recordings.
 - Mirror/control the device through scrcpy.
 - Sample app and device performance through ADB-only foreground, process, system, battery, thermal, network, storage, and frame-stat probes.
+- Run experimental Android Device Copilot sessions that apply embedded diagnostic skills and keep evidence history.
 - Push/open reference images on the device.
 - Send clipboard text and inspect logcat.
 - Package and update the app through signed release artifacts.
@@ -51,13 +52,14 @@ Startup sequence:
 
 Navigation:
 
-- The left rail exposes 12 tabs: `pair`, `workbench`, `install`, `screenshot`, `record`, `mirror`, `remote`, `imageCast`, `clipboard`, `logcat`, `performance`, `packages`.
+- The left rail exposes 13 tabs: `pair`, `workbench`, `install`, `screenshot`, `record`, `mirror`, `remote`, `imageCast`, `clipboard`, `logcat`, `agent`, `performance`, `packages`.
 - The Settings button opens a modal, not a tab.
 - Tabs are lazily mounted and then kept mounted once visited, so long-running tool state is not discarded when switching away.
 - The Pair tab is implemented as the device console. It includes the selected device summary, shortcuts to other tools, and an embedded pair/connect panel.
 - The Mirror tab combines scrcpy-based local interactive mirroring with a selected-device app drawer for launching installed apps.
 - The Remote tab starts an opt-in browser/PWA gateway for phone or second-computer control, with Tailscale-first direct links, role QR sessions, 7-day trusted browsers, experimental HLS video streaming, screenshot/MJPEG fallback viewing, and whitelisted ADB actions.
-- The Performance tab samples the selected device with a configurable fast interval, defaults to 1 second, supports a 0.5 second high-frequency mode, follows the foreground app by default, can pin a fixed app package, shows stable last-known CPU/GPU/memory/rendering/network metric cards plus live trend charts, and exports the rolling 15-minute raw sample window.
+- The Agent tab is an experimental Android Device Copilot workspace. It keeps session history, auto-matches embedded Android-agent skills from prompts and attachments, runs bounded ADB evidence steps against the selected device, and shows the selected global or current-device Agent CLI profile without claiming a CLI run unless one has actually happened.
+- The Performance tab samples the selected device with a configurable fast interval, defaults to 1 second, supports a 0.5 second high-frequency mode, follows the foreground app by default, can pin a fixed app package, optionally enables a device-side Agent APK through ADB forward for lower-jitter app/process samples, shows stable last-known CPU/GPU/memory/rendering/network metric cards plus live trend charts, and exports the rolling 15-minute raw sample window.
 
 ## Cross-Cutting Principles
 
@@ -87,7 +89,7 @@ Risk handling:
 Persistence:
 
 - Tauri store path: `settings.json`
-- Store keys: `settings`, `deviceHistory`, `deviceNotes`, `pairConnect`, `adbStartupRepair`, `workbenchTemplates`, `workbenchHistory`
+- Store keys: `settings`, `deviceHistory`, `deviceNotes`, `pairConnect`, `adbStartupRepair`, `workbenchTemplates`, `workbenchHistory`, `agentCopilotSessions`
 - Store writes are best-effort in several UI paths so convenience data does not block operations.
 - Local image preview goes through a Rust validation command that returns a data URL. Broad `$HOME/**` asset protocol access is not required.
 

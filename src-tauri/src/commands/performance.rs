@@ -15,6 +15,8 @@ use crate::adb::{self, AdbError};
 pub struct PerformanceSample {
     pub timestamp_ms: u128,
     pub device_serial: String,
+    pub sample_source: String,
+    pub agent_status: Option<String>,
     pub target_package: Option<String>,
     pub foreground_package: Option<String>,
     pub foreground_activity: Option<String>,
@@ -770,6 +772,8 @@ fn parse_performance_sample(
     PerformanceSample {
         timestamp_ms,
         device_serial,
+        sample_source: "adb".to_string(),
+        agent_status: None,
         target_package,
         foreground_package: foreground.package,
         foreground_activity: foreground.activity,

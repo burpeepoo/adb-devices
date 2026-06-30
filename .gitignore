@@ -7,6 +7,10 @@ dist/
 # Rust/Tauri build output
 src-tauri/target/
 
+# Android Agent build output
+agent-android/build/
+agent-android/debug.keystore
+
 # Logs
 *.log
 npm-debug.log*

@@ -476,6 +476,12 @@ Backend:
 - `adb_performance_stream_start`
 - `adb_performance_stream_snapshot`
 - `adb_performance_stream_stop`
+- `adb_agent_status`
+- `adb_agent_install`
+- `adb_agent_start`
+- `adb_agent_connect`
+- `adb_agent_sample`
+- `adb_agent_stop`
 - `export_text_file`
 
 Sampling behavior:
@@ -486,9 +492,14 @@ Sampling behavior:
 - Sampling follows the foreground app by default and can pin the current foreground package as the fixed target app.
 - Foreground app detection reads both window focus and resumed-activity sources so customized Android builds can still resolve the target package.
 - If foreground app detection is slow or unavailable, sampling still returns system/device metrics instead of blocking the whole sample.
-- The default path starts one persistent `adb shell` sampling stream per selected device and keeps the latest complete frame in memory; the selected 0.5/1/2/5 second cadence controls the device-side fast sampler, while the UI may poll the in-memory snapshot more frequently so it does not miss newly completed frames.
+- The default path starts one persistent `adb shell` sampling stream per selected device and keeps the latest complete frame in memory; the UI polls the in-memory snapshot quickly only until the first frame arrives, then follows the selected 0.5/1/2/5 second live-metric cadence.
+- Optional Agent mode installs and starts bundled package `com.cozyla.adbmanager.agent` from `src-tauri/resources/agent/adb-manager-agent.apk`, forwards `tcp:0` to `localabstract:adb_manager_agent`, checks `/health`, and then samples `/samples/stream`; if the APK is missing, install fails, permissions are limited, or the socket disconnects, the UI clearly reports the status and keeps using ADB-only sampling.
+- Agent status compares the installed/running Agent version and protocol with the bundled desktop APK. If the installed Agent is missing or may be stale, enabling Agent runs `adb install -r` with the bundled APK before start/connect so same-package same-signature upgrades preserve the Agent app data.
+- If Android rejects the data-preserving update because of an incompatible signature, inconsistent certificate, or version downgrade, the desktop app reports the failure and does not automatically uninstall the old Agent. Manual uninstall remains a data-loss decision outside the automatic update path.
+- `npm run build` first runs `scripts/ensure-agent-apk.mjs`, which rebuilds the bundled APK when local Android SDK/JDK tooling is available and the Agent source is newer; CI/package environments without Android tooling reuse the checked-in APK and fail only if the APK is missing.
+- When Agent sampling is active, the frontend merges the Agent app/process/network sample with the latest ADB persistent-stream system sample and marks the source as `Agent + ADB`; Agent-only data never replaces unavailable system GPU, thermal, battery, storage, or `gfxinfo` probes.
 - Slow probes run as background cache refreshers inside the same device-side shell so battery/thermal/storage/rendering probes do not block live CPU, memory, network, process, and GPU counter frames.
-- Device metrics are tiered: CPU, memory, network, process state, and available GPU sysfs counters refresh on the selected cadence; battery, thermal, storage, display, CPU frequency, and `dumpsys gpu` memory fallback remain slow probes at about 10 seconds.
+- Device metrics are tiered: CPU, memory, network, process state, and available GPU sysfs counters refresh on the selected live-metric cadence after the first stream frame; battery, thermal, storage, display, CPU frequency, and `dumpsys gpu` memory fallback remain slow probes at about 10 seconds.
 - If the persistent stream cannot start or exits before producing data, the UI falls back to the compatible one-shot `adb_performance_sample` path.
 - The compatible backend path returns one read-only sample per command and does not start a long-running device agent.
 - The frontend watchdog allows 20 seconds per sample so a 2-second foreground probe plus a 10-second slow/frame probe does not falsely trip the UI timeout on wireless ADB.
@@ -499,15 +510,18 @@ Metrics:
 
 - App/process: package, PID, process state, raw process CPU jiffies, RSS/PSS, thread count.
 - Device/system: raw system CPU jiffies, memory, battery, thermal state, CPU frequency, GPU utilization/frequency when exposed by Android sysfs, `dumpsys gpu` memory fallback when sysfs counters are permission-limited, network bytes, `/data` storage, display size/density/refresh.
+- Agent: protocol/version/permission status, device timestamp, target package, foreground package when Usage Stats access is available, Agent-visible process memory/thread count, and Agent UID network counters.
 - Rendering: attempts `dumpsys gfxinfo <package> framestats`; unsupported packages show the source as unavailable without blocking other metrics.
 
 UI behavior:
 
 - Shows App, Rendering, Device realtime, Device details, Live Trends, and Timeline areas; the four metric overview panels use a two-column desktop layout so dense values stay readable.
+- Shows Agent mode status and sample source (`Agent + ADB`, `Agent`, `ADB only`, or `Agent unavailable`) without implying that ordinary APK permissions can unlock restricted system GPU counters.
 - Shows stable running/paused state and last sample time without a live countdown.
-- Keeps the sampling interval selector aligned with the toolbar buttons; the selector uses an accessible label instead of a visible stacked label.
+- Keeps the live-metric interval selector aligned with the toolbar buttons; the selector uses an accessible label instead of a visible stacked label.
 - Shows first-sample loading values and pauses auto sampling with a visible timeout if ADB does not return within the frontend watchdog window.
 - Metric cards render a last-known display snapshot for cadence-based or permission-limited fields, so fast samples do not briefly clear slow metrics to `-`; Timeline and exports still keep the raw per-sample values.
+- Metric cards show the upper limit and current utilization percentage only when the sample exposes a real max/total value: CPU/GPU frequency against max frequency, memory and storage against total capacity, and GPU process memory against total GPU memory when both values are available. Metrics that are already percentages, such as process CPU, system CPU, GPU usage, and jank, remain plain percentages without a synthetic `100%` limit.
 - Adds a GPU diagnostics card that explains whether usage counters, frequency counters, GPU memory, and frame stats are available, permission-limited, or missing based only on the existing sample fields and raw probe lines; the card is collapsed by default, expands into a two-row diagnostic layout, and keeps raw probe output behind a second disclosure.
 - Keeps a rolling 15-minute sample window in frontend state.
 - Computes CPU percentages and network rates from adjacent samples.
@@ -515,7 +529,62 @@ UI behavior:
 - Warns on missing target process, elevated thermal state, battery temperature at or above 45 C, and RSS growth over 20% in 5 minutes; jank remains visible as a metric/trend but does not raise a transient warning banner.
 - Exports JSON or CSV containing metadata, sampling intervals, and retained samples.
 
-## 15. Settings, Language, And Updater
+## 15. Android Device Copilot
+
+Goal: provide an experimental session-based device-investigation workspace that is more valuable than generating one-off ADB commands.
+
+Frontend:
+
+- `AgentCopilot.tsx`
+- `androidAgentSkills.ts`
+- `agentCliSettings.ts`
+- `Settings.tsx`
+
+Local skill sources:
+
+- `docs/agent-skills/device-report.md`
+- `docs/agent-skills/performance-triage.md`
+- `docs/agent-skills/black-screen-triage.md`
+- `docs/agent-skills/calendar-sync-triage.md`
+- `docs/agent-skills/install-failure-triage.md`
+- `docs/agent-skills/wireless-adb-triage.md`
+- `docs/agent-skills/input-touch-triage.md`
+- `docs/agent-skills/package-state-triage.md`
+- `docs/agent-skills/network-triage.md`
+- `docs/agent-skills/logcat-crash-triage.md`
+- `docs/agent-skills/storage-pressure-triage.md`
+
+Backend commands used:
+
+- `adb_workbench_execute`
+- `agent_cli_analyze`
+- Performance Agent commands when the user enables Agent mode in the Performance tab.
+
+Behavior:
+
+- The Agent tab is marked as a lab feature and is separate from the Performance tab.
+- The UI uses a left session list and right conversation panel; sessions are persisted under `agentCopilotSessions`.
+- Each session stores title, timestamps, selected device identity, the automatically matched skill, selected CLI profile, message history, and message attachment metadata/text previews.
+- Embedded skills define bounded ADB evidence steps, trigger keywords, and acceptance criteria in local Markdown and in the app catalog.
+- The Copilot automatically chooses the best matching skill from the user's prompt and attachment names/text previews. The UI does not require manually selecting a skill before sending a message.
+- The conversation composer shows five randomly selected practical prompt suggestions from a larger localized scenario pool whenever a new conversation is opened. Clicking a suggestion inserts that prompt and immediately sends it through the same auto-skill path as typed prompts.
+- The conversation composer accepts multiple attachments. Text-like files are stored with bounded previews for skill matching and message context; large or binary files keep metadata only.
+- Sending a prompt immediately executes each safe evidence step for the current diagnosis scenario through the existing Workbench backend, preserving selected-device targeting and existing risk classification. There is no separate manual "run skill" action in the header.
+- While evidence collection is running, the current conversation shows an inline progress bar with the current step and completed/total counts.
+- The Copilot records command, stdout, stderr, and success status in the session, then invokes the current Agent CLI profile non-interactively to write the final user-facing analysis from the collected evidence instead of returning a step-completion checklist.
+- Built-in Codex CLI analysis uses `codex exec` with read-only sandboxing, no approvals, ephemeral session state, stdin prompt input, and last-message output capture. Built-in Claude Code analysis uses `claude --print --output-format text`. Custom CLI profiles receive the analysis prompt on stdin with the user-configured args.
+- If the Agent CLI is unavailable, times out, exits without useful output, or is not configured, the Copilot falls back to the built-in stdout/stderr analyzer. Device Report fallback extracts identity, Android version, display, storage, memory, battery, and key package signals into a readable conclusion, attention list, and evidence summary; other skills extract failures, crash/error/permission/resource signals, and next actions from the collected command output.
+- Local diagnostic document paths such as `docs/agent-skills/device-report.md` render as clickable links when they appear in messages and open through the desktop app; repo-relative links are resolved against the project root before opening.
+- Agent CLI settings are global by default. Built-in profiles are Codex CLI and Claude Code; custom CLI command, args, and working directory are editable in Settings. The custom working directory accepts pasted local paths or `file://` folder URLs and also has a folder picker button.
+- The Agent Lab CLI panel shows the current-device CLI override and current device/CLI context in one inline row; global CLI settings remain in Settings.
+
+Boundaries:
+
+- The ordinary APK Agent remains an optional helper, not a system app.
+- APK-limited data is labeled as such. ADB remains the source for system CPU, thermal, display, GPU, storage, and `gfxinfo` probes.
+- Missing device, missing CLI command, unavailable command output, and permission limits are surfaced as evidence gaps.
+
+## 16. Settings, Language, And Updater
 
 Goal: manage app preferences and update flow.
 
@@ -542,6 +611,7 @@ Settings:
 - Screenshot directory.
 - Recording directory.
 - Automatic update checks.
+- Agent CLI global default and custom profile fields. Current-device CLI overrides live in the Agent Lab CLI panel.
 
 Updater behavior:
 
@@ -559,7 +629,7 @@ Release note localization:
 - Release body can contain `en-US`, `en`, `English`, `zh-CN`, `zh`, `中文`, or `Chinese` sections.
 - Frontend selects the section matching current language and falls back to English, Chinese, then cleaned full body.
 
-## 16. OS Integration And External URLs
+## 17. OS Integration And External URLs
 
 Goal: safely bridge common OS actions.
 

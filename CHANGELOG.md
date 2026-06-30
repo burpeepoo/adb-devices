@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-30
+
+### Added
+
+- Added the experimental Android Device Copilot tab with session history, prompt messages, skill-run evidence messages, and selected-device targeting.
+- Added embedded Android-agent skill catalog entries for Device Report, Performance Triage, Black Screen Triage, Calendar Sync Triage, install failures, wireless ADB, input/touch, package state, network, crash/ANR, and storage pressure triage.
+- Added Agent CLI settings with Codex CLI and Claude Code presets, editable custom CLI fields, global default selection, and per-device overrides.
+- Added contract coverage for the Copilot tab, embedded skill docs, Agent CLI settings, bundled Agent APK workflow, and Agent CLI evidence analysis.
+- Added Agent Lab attachment support so conversation messages can include bounded file metadata and text previews.
+- Added randomized Android Device Copilot prompt suggestions above the composer, with one-click auto-send for practical device diagnosis scenarios.
+
+### Changed
+
+- Changed the app version to 2.0.0 for the Agent Copilot release line.
+- Updated the functional model to include Copilot sessions, Agent CLI state, skill persistence, and ordinary-APK capability boundaries.
+- Changed Performance sampling bounded metrics to show their upper limit and current utilization percentage where a max/total value is available.
+- Changed Performance sampling percentage metrics to remain plain percentages instead of showing a synthetic `100%` limit.
+- Changed Performance Agent enablement to detect stale bundled APK installs and update with `adb install -r`, preserving Agent app data when Android allows same-signature upgrades.
+- Changed Android Device Copilot to choose skills automatically from the prompt and attachments instead of requiring manual skill selection.
+- Changed Android Device Copilot prompts to automatically start evidence collection on send, with inline progress and final conversation results.
+- Changed Android Device Copilot final replies to run the configured Agent CLI for evidence-grounded analysis, with a stdout/stderr fallback analyzer instead of step-completion checklists.
+- Fixed Android Device Copilot diagnostic document links so repo-relative paths open through the desktop app.
+- Moved current-device Agent CLI overrides from Settings into the Agent Lab CLI panel, while Settings keeps only global/default CLI fields.
+- Simplified the Agent Lab current-device CLI control into one inline row without the extra panel title or global settings button.
+- Added paste handling and a folder picker for the custom Agent CLI working directory.
+
 ## [1.1.33] - 2026-06-30
 
 ### Changed

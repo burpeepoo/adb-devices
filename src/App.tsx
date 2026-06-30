@@ -11,6 +11,7 @@ import { isAutoUpdateCheckEnabled } from "./updaterPolicy";
 import { markTabVisited, TAB_KEYS } from "./tabState";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import { deviceIdentityKey, setDeviceNote, type DeviceNotes } from "./deviceNotes";
+import { normalizeAgentCliSettings } from "./agentCliSettings";
 import {
   buildDeviceTargetState,
   deviceTargetResultSuffix,
@@ -32,6 +33,7 @@ import RemoteControl from "./components/RemoteControl";
 import ImageCast from "./components/ImageCast";
 import Clipboard from "./components/Clipboard";
 import Logcat from "./components/Logcat";
+import AgentCopilot from "./components/AgentCopilot";
 import PerformancePanel from "./components/PerformancePanel";
 import PackageList from "./components/PackageList";
 import Settings from "./components/Settings";
@@ -68,6 +70,7 @@ export default function App() {
     recentApkDir: "",
     languagePreference: "system",
     autoCheckUpdates: true,
+    agentCli: normalizeAgentCliSettings(undefined),
   });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [deviceNotes, setDeviceNotes] = useState<DeviceNotes>({});
@@ -86,6 +89,7 @@ export default function App() {
     imageCast: t('tabs.imageCast'),
     clipboard: t('tabs.clipboard'),
     logcat: t('tabs.logcat'),
+    agent: t('tabs.agent'),
     performance: t('tabs.performance'),
     packages: t('tabs.packageList'),
   };
@@ -148,6 +152,7 @@ export default function App() {
         recentApkDir: saved?.recentApkDir || "",
         languagePreference: saved?.languagePreference || "system",
         autoCheckUpdates: saved?.autoCheckUpdates ?? true,
+        agentCli: normalizeAgentCliSettings(saved?.agentCli),
       };
       setSettings(nextSettings);
       await applyLanguagePreference(nextSettings.languagePreference);
@@ -462,6 +467,15 @@ export default function App() {
     if (tab === "imageCast") return <ImageCast deviceTarget={deviceTarget} active={activeTab === "imageCast"} />;
     if (tab === "clipboard") return <Clipboard deviceTarget={deviceTarget} />;
     if (tab === "logcat") return <Logcat deviceTarget={deviceTarget} />;
+    if (tab === "agent") {
+      return (
+        <AgentCopilot
+          deviceTarget={deviceTarget}
+          settings={settings}
+          onSettingsChange={handleSettingsChange}
+        />
+      );
+    }
     if (tab === "performance") return <PerformancePanel deviceTarget={deviceTarget} active={activeTab === "performance"} />;
     if (tab === "packages") return <PackageList deviceTarget={deviceTarget} />;
     return null;
