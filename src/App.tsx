@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
+import { ActionIcon, Drawer, Indicator, Tooltip } from "@mantine/core";
+import { IconRobot } from "@tabler/icons-react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { TabKey, AppSettings, DeviceInfo } from "./types";
@@ -12,6 +14,7 @@ import { markTabVisited, TAB_KEYS } from "./tabState";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import { deviceIdentityKey, setDeviceNote, type DeviceNotes } from "./deviceNotes";
 import { normalizeAgentCliSettings } from "./agentCliSettings";
+import { normalizeAgentProviderSettings } from "./agentProviderSettings";
 import {
   buildDeviceTargetState,
   deviceTargetResultSuffix,
@@ -71,6 +74,7 @@ export default function App() {
     languagePreference: "system",
     autoCheckUpdates: true,
     agentCli: normalizeAgentCliSettings(undefined),
+    agentProviders: normalizeAgentProviderSettings(undefined),
   });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [deviceNotes, setDeviceNotes] = useState<DeviceNotes>({});
@@ -102,6 +106,7 @@ export default function App() {
   const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set(["pair"]));
   const [adbAvailable, setAdbAvailable] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [copilotDrawerOpen, setCopilotDrawerOpen] = useState(false);
   const [mirroringDeviceSerial, setMirroringDeviceSerial] = useState<string | null>(null);
   const [screenshotShortcutResult, setScreenshotShortcutResult] = useState<ScreenshotShortcutResult | null>(null);
   const [recordShortcutResult, setRecordShortcutResult] = useState<RecordShortcutResult | null>(null);
@@ -153,6 +158,7 @@ export default function App() {
         languagePreference: saved?.languagePreference || "system",
         autoCheckUpdates: saved?.autoCheckUpdates ?? true,
         agentCli: normalizeAgentCliSettings(saved?.agentCli),
+        agentProviders: normalizeAgentProviderSettings(saved?.agentProviders),
       };
       setSettings(nextSettings);
       await applyLanguagePreference(nextSettings.languagePreference);
@@ -473,6 +479,7 @@ export default function App() {
           deviceTarget={deviceTarget}
           settings={settings}
           onSettingsChange={handleSettingsChange}
+          contextLabel={TAB_LABELS[activeTab]}
         />
       );
     }
@@ -499,8 +506,8 @@ export default function App() {
 
   if (adbAvailable === null) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">{t('app.detectingAdb')}</div>
+      <div className="sky flex h-screen items-center justify-center">
+        <div className="card card-compact text-muted">{t('app.detectingAdb')}</div>
       </div>
     );
   }
@@ -561,6 +568,57 @@ export default function App() {
           />
         }
       />
+
+      <Tooltip label={t("agent.openCopilot")} position="left">
+        <Indicator
+          color="green"
+          size={10}
+          offset={8}
+          disabled={!copilotDrawerOpen}
+          processing={copilotDrawerOpen}
+        >
+          <ActionIcon
+            size={54}
+            radius="xl"
+            variant="filled"
+            color="ink"
+            aria-label={t("agent.openCopilot")}
+            onClick={() => setCopilotDrawerOpen(true)}
+            style={{
+              position: "fixed",
+              right: 24,
+              bottom: 40,
+              zIndex: 220,
+              boxShadow: "var(--shadow-tier-2)",
+            }}
+          >
+            <IconRobot size={26} />
+          </ActionIcon>
+        </Indicator>
+      </Tooltip>
+
+      <Drawer
+        opened={copilotDrawerOpen}
+        onClose={() => setCopilotDrawerOpen(false)}
+        position="right"
+        size={520}
+        title={t("agent.drawerTitle")}
+        zIndex={300}
+        keepMounted
+        styles={{
+          content: { display: "flex", flexDirection: "column" },
+          body: { flex: 1, minHeight: 0, padding: 16 },
+        }}
+      >
+        <AgentCopilot
+          surface="drawer"
+          drawerOpen={copilotDrawerOpen}
+          contextLabel={TAB_LABELS[activeTab]}
+          deviceTarget={deviceTarget}
+          settings={settings}
+          onSettingsChange={handleSettingsChange}
+        />
+      </Drawer>
 
       {showSettings && (
         <Settings

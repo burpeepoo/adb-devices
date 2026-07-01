@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { buildWirelessRecoverySteps } from "../src/wirelessRecovery.ts";
 import type { MdnsDevice, RecentConnectEndpoint } from "../src/types/index.ts";
@@ -43,6 +44,18 @@ test("keeps host identity reset locked behind safe repair", () => {
   assert.equal(steps.find((step) => step.id === "repair")?.state, "recommended");
   assert.equal(steps.find((step) => step.id === "reset")?.state, "danger");
   assert.equal(steps.some((step) => step.hasMultiNetworkHint), true);
+});
+
+test("wireless recovery ladder steps do not render as bordered cards", () => {
+  const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
+  const componentStart = source.indexOf("function WirelessRecoverySteps");
+  const componentEnd = source.indexOf("function recoveryAction");
+  const componentSource = source.slice(componentStart, componentEnd);
+
+  assert.match(componentSource, /<div key=\{step\.id\} className="px-3 py-2">/);
+  assert.match(componentSource, /<Text size="sm" fw=\{600\} c="gray\.8"/);
+  assert.doesNotMatch(componentSource, /rounded-md border border-gray-200 bg-white/);
+  assert.doesNotMatch(componentSource, /<Badge size="xs" color="gray" variant="light">\s*\{index \+ 1\}/);
 });
 
 function recent(ip: string, port: string): RecentConnectEndpoint {

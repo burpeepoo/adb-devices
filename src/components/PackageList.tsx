@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { ExportedApk, PackageInfo } from "../types";
 import { useTranslation } from "react-i18next";
-import { IconDeviceMobileCode } from "@tabler/icons-react";
+import { IconPackage } from "@tabler/icons-react";
 import SectionTitle from "./common/SectionTitle";
 import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
@@ -113,15 +113,15 @@ export default function PackageList({ deviceTarget }: Props) {
   };
 
   return (
-    <div className="h-full bg-white rounded-lg border border-gray-200 flex flex-col">
-      <div className="p-4 border-b border-gray-200">
-        <SectionTitle icon={<IconDeviceMobileCode size={17} />} label={t('tabs.packageList')} mb="sm" />
+    <div className="card card-flush h-full flex flex-col">
+      <div className="p-6 border-b border-gray-200">
+        <SectionTitle icon={<IconPackage size={17} />} label={t('tabs.packageList')} mb="sm" />
         <DeviceTargetBanner target={deviceTarget} className="mb-3" />
         <div className="flex gap-2 mb-2">
           <button
             onClick={handleList}
             disabled={loading || !deviceTarget.serial}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn btn-primary btn-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? t('packageList.loading') : t('packageList.loadPkgInfo')}
           </button>
@@ -131,17 +131,17 @@ export default function PackageList({ deviceTarget }: Props) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('packageList.searchPkg')}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="input flex-1"
             />
           )}
         </div>
         {error && (
-          <div className="text-sm px-3 py-2 rounded-lg bg-red-50 text-red-600">
+          <div className="text-sm px-4 py-3 rounded-lg bg-red-50 text-red-600">
             {error}
           </div>
         )}
         {exportResult && (
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm px-3 py-2 rounded-lg bg-green-50 text-green-700">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm px-4 py-3 rounded-lg bg-green-50 text-green-700">
             <span>
               {t('packageList.exportedApk', {
                 package: exportResult.package_name,
@@ -154,7 +154,7 @@ export default function PackageList({ deviceTarget }: Props) {
             <button
               type="button"
               onClick={() => handleRevealExport(exportResult.output_dir)}
-              className="text-green-800 underline underline-offset-2 hover:text-green-900"
+              className="text-green-800 hover:text-green-900"
             >
               {t('packageList.revealExport')}
             </button>
@@ -198,7 +198,7 @@ export default function PackageList({ deviceTarget }: Props) {
             <tbody>
               {sorted.map((pkg) => (
                 <tr key={pkg.name} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-3 py-2 font-mono text-gray-800">{pkg.name}</td>
+                  <td className="px-3 py-2 text-gray-800">{pkg.name}</td>
                   <td className="px-3 py-2 text-gray-700">{pkg.version_name || "-"}</td>
                   <td className="px-3 py-2 text-gray-700">{pkg.version_code || "-"}</td>
                   <td className="px-3 py-2 text-gray-700">{pkg.device_serial || "-"}</td>
@@ -207,14 +207,14 @@ export default function PackageList({ deviceTarget }: Props) {
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => handleCopyPackageName(pkg.name)}
-                        className="text-blue-500 hover:text-blue-700"
+                        className="chip"
                       >
                         {t('packageList.copyPkgName')}
                       </button>
                       <button
                         onClick={() => handleExportApk(pkg.name)}
                         disabled={exportingPackage !== null || !deviceTarget.serial}
-                        className="text-blue-500 hover:text-blue-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                        className="chip disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {exportingPackage === pkg.name ? t('packageList.exportingApk') : t('packageList.exportApk')}
                       </button>

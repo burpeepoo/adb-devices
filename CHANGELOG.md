@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-07-01
+
+### Added
+
+- Added QA Scribe modes for normal chat, feature walkthrough, and bug reproduction, with Agent-guided start/stop controls, scribe intensity, evidence timelines, and final report generation.
+- Added evidence package export so QA reports and referenced assets such as screenshots are bundled together in a zip archive.
+- Added provider configuration in Settings for local CLI profiles and model API providers, plus an explicit Copilot health check action from the provider selector.
+
+### Changed
+
+- Changed Copilot evidence sessions to collect compact device context, Agent APK status, performance samples, notes, screenshots, recordings, Remote actions, and Logcat summaries for Agent prompts.
+- Changed the workspace UI to use the Cirrus design system stylesheet, with compact radii, tighter spacing, restrained shadows, corrected navigation icons, and system-aligned Settings, Logcat, projection, install, and wireless recovery layouts.
+- Changed walkthrough and bug reproduction flows so they live at the same level as chat instead of taking over the whole Copilot surface.
+
+### Fixed
+
+- Fixed the install queue layout so multiple APK rows remain scrollable and their install buttons stay reachable.
+- Fixed QA Scribe evidence previews and record panes so recent records stretch with the window and preserve recorded notes and screenshot paths.
+
 ## [2.0.0] - 2026-06-30
 
 ### Added

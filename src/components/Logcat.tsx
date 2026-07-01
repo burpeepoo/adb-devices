@@ -272,19 +272,19 @@ export default function Logcat({ deviceTarget }: Props) {
 
         <div
           ref={logRef}
-          className="h-[520px] overflow-auto rounded-lg bg-gray-950 border border-gray-800 font-mono text-xs"
+          className="h-[520px] overflow-auto rounded-lg bg-gray-50 border border-gray-200 text-xs"
         >
           {visibleEntries.length > 0 ? (
             visibleEntries.map((entry, index) => (
               <div
                 key={`${index}-${entry.timestamp}-${entry.pid}-${entry.tag}`}
-                className={`grid grid-cols-[118px_64px_34px_180px_minmax(360px,1fr)] gap-2 px-3 py-1 border-b border-gray-900 ${levelRowClass(entry.level)}`}
+                className={`grid grid-cols-[118px_64px_34px_180px_minmax(360px,1fr)] gap-2 px-3 py-1 border-b border-gray-100 ${levelRowClass(entry.level)}`}
               >
                 <span className="text-gray-500">{highlight(entry.timestamp, query)}</span>
                 <span className="text-gray-500">{highlight(entry.pid, query)}</span>
                 <span className={`font-semibold ${levelTextClass(entry.level)}`}>{entry.level || "-"}</span>
-                <span className="truncate text-gray-300">{highlight(entry.tag, query)}</span>
-                <span className="whitespace-pre-wrap break-words text-gray-100">
+                <span className="truncate text-gray-600">{highlight(entry.tag, query)}</span>
+                <span className="whitespace-pre-wrap break-words text-gray-800">
                   {highlight(entry.message, query)}
                 </span>
               </div>
@@ -316,15 +316,15 @@ function levelTextClass(level: string) {
     case "V":
       return "text-gray-400";
     case "D":
-      return "text-blue-400";
+      return "text-blue-500";
     case "I":
-      return "text-green-400";
+      return "text-green-700";
     case "W":
-      return "text-yellow-300";
+      return "text-red-600";
     case "E":
-      return "text-red-400";
+      return "text-red-600";
     case "F":
-      return "text-red-300 font-bold";
+      return "text-red-600 font-bold";
     default:
       return "text-gray-400";
   }
@@ -333,10 +333,10 @@ function levelTextClass(level: string) {
 function levelRowClass(level: string) {
   switch (level) {
     case "W":
-      return "bg-yellow-950/20";
+      return "bg-orange-50";
     case "E":
     case "F":
-      return "bg-red-950/25";
+      return "bg-red-50";
     default:
       return "";
   }

@@ -1,0 +1,5 @@
+en-US:
+ADB Manager 2.0.1 upgrades Android Device Copilot into a QA Scribe workflow. Copilot now separates normal chat, feature walkthrough, and bug reproduction modes; walkthrough and repro sessions can start and stop Agent-guided recording, collect device context, Agent APK status, performance samples, notes, screenshots, recordings, Remote actions, and Logcat summaries, then export the QA report and referenced assets together as a zip package. Settings now includes richer local CLI and model API provider configuration, with an explicit health check from the Copilot provider selector. The app UI now uses the Cirrus design system with smaller radii, tighter spacing, restrained shadows, corrected feature icons, and improved Settings, Logcat, projection, install queue, and wireless recovery layouts.
+
+zh-CN:
+ADB Manager 2.0.1 将 Android Device Copilot 升级为 QA Scribe 工作流。Copilot 现在区分普通对话、功能走查和 Bug 复现模式；走查和复现可以启动或停止 Agent 陪跑记录，采集设备上下文、Agent APK 状态、性能采样、备注、截图、录屏、Remote 操作和 Logcat 摘要，并把 QA 报告和引用到的截图等资产一起打包导出为 zip。设置页新增更完整的本地 CLI 和模型 API provider 配置，Copilot 的 provider 选择区提供显式健康检测。整体 UI 现在接入 Cirrus 设计系统，圆角更小、间距更紧、投影更克制，并修正功能图标以及 Settings、Logcat、投影、安装队列和无线恢复布局。

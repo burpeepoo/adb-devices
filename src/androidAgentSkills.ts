@@ -588,10 +588,17 @@ export function recommendAndroidAgentSkill(
   prompt: string,
   attachments: Pick<AgentCopilotAttachment, "name" | "textPreview">[] = [],
 ): AndroidAgentSkill {
+  return recommendAndroidAgentSkillCandidate(prompt, attachments) ?? ANDROID_AGENT_SKILLS[0];
+}
+
+export function recommendAndroidAgentSkillCandidate(
+  prompt: string,
+  attachments: Pick<AgentCopilotAttachment, "name" | "textPreview">[] = [],
+): AndroidAgentSkill | null {
   const haystack = [prompt, ...attachments.flatMap((attachment) => [attachment.name, attachment.textPreview ?? ""])]
     .join("\n")
     .toLowerCase();
-  if (!haystack.trim()) return ANDROID_AGENT_SKILLS[0];
+  if (!haystack.trim()) return null;
 
   let best = ANDROID_AGENT_SKILLS[0];
   let bestScore = 0;
@@ -607,5 +614,5 @@ export function recommendAndroidAgentSkill(
     }
   }
 
-  return bestScore > 0 ? best : ANDROID_AGENT_SKILLS[0];
+  return bestScore > 0 ? best : null;
 }

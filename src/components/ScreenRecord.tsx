@@ -142,16 +142,16 @@ export default function ScreenRecord({ deviceTarget, saveDir, shortcutResult, on
 
           {recording && (
             <Stack align="center" gap={6}>
-              <Group gap="sm" px="md" py="xs" style={{ borderRadius: "var(--mantine-radius-md)", background: "var(--mantine-color-red-0)" }}>
+              <Group gap="sm" px="md" py="xs" style={{ borderRadius: "var(--radius-pill)", background: "var(--surface-sunken)", border: "var(--border-hairline)" }}>
                 <ThemeIcon color="red" radius="xl" size="sm">
                   <IconPlayerRecord size={12} fill="currentColor" />
                 </ThemeIcon>
-                <Text ff="monospace" fw={800} size="xl" c="red.8">
+                <Text ff="var(--font-sans)" fw={800} size="xl" style={{ color: "var(--color-citrus)" }}>
                   {formatDuration(elapsed)}
                 </Text>
               </Group>
               {showWarning && (
-                <Text size="sm" c="yellow.8">
+                <Text size="sm" style={{ color: "var(--color-citrus)" }}>
                   {t("screenRecord.nearingLimit")}
                 </Text>
               )}
@@ -168,18 +168,18 @@ export default function ScreenRecord({ deviceTarget, saveDir, shortcutResult, on
             </Button>
           )}
 
-          <Paper withBorder radius="md" p="sm" bg="red.0">
-            <Text size="xs" fw={700} c="red.8">
+          <Paper withBorder p="sm" style={{ background: "var(--surface-sunken)" }}>
+            <Text size="xs" fw={700}>
               {t("screenRecord.shortcutTitle")}
             </Text>
-            <Text size="xs" c="red.8" mt={4}>
+            <Text size="xs" c="dimmed" mt={4}>
               {t("screenRecord.shortcutHint")}
             </Text>
             <Group gap="xs" mt="xs">
-              <Text size="xs" px={8} py={4} bg="white" style={{ borderRadius: "var(--mantine-radius-sm)" }}>
+              <Text size="xs" px={10} py={5} style={{ background: "var(--color-cloud)", border: "var(--border-hairline)", borderRadius: "var(--radius-pill)" }}>
                 {t("screenRecord.shortcutMac")}
               </Text>
-              <Text size="xs" px={8} py={4} bg="white" style={{ borderRadius: "var(--mantine-radius-sm)" }}>
+              <Text size="xs" px={10} py={5} style={{ background: "var(--color-cloud)", border: "var(--border-hairline)", borderRadius: "var(--radius-pill)" }}>
                 {t("screenRecord.shortcutWindows")}
               </Text>
             </Group>
@@ -208,7 +208,7 @@ export default function ScreenRecord({ deviceTarget, saveDir, shortcutResult, on
         </Stack>
       </Paper>
 
-      <Paper withBorder radius="md" p="md" bg="gray.0">
+      <Paper withBorder p="md" style={{ background: "var(--color-cloud)" }}>
         <Text size="sm" fw={600} c="dimmed" mb={4}>
           {t("screenRecord.notes")}
         </Text>

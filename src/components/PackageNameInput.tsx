@@ -91,11 +91,11 @@ export default function PackageNameInput({
         placeholder={placeholder}
         className={
           className ??
-          "w-full rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+          "input w-full outline-none disabled:opacity-50"
         }
       />
       {showSuggestions && (
-        <div className="absolute z-20 mt-1 max-h-44 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+        <div className="absolute z-20 mt-2 max-h-44 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg">
           {isLoading && <div className="px-2 py-1.5 text-xs text-gray-400">{t("apkInstall.loading")}</div>}
           {!isLoading &&
             suggestions.map((pkg) => (
@@ -104,7 +104,7 @@ export default function PackageNameInput({
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => handleSelect(pkg)}
-                className="w-full px-2 py-1.5 text-left font-mono text-xs text-gray-700 hover:bg-blue-50"
+                className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-blue-50"
               >
                 {pkg}
               </button>

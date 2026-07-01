@@ -213,9 +213,9 @@ export default function ImageCast({ deviceTarget, active }: Props) {
           <Box
             p="md"
             style={{
-              border: `1px dashed ${dragging ? "var(--mantine-color-blue-5)" : "var(--mantine-color-gray-4)"}`,
-              borderRadius: "var(--mantine-radius-md)",
-              background: dragging ? "var(--mantine-color-blue-0)" : "var(--mantine-color-gray-0)",
+              border: `1px dashed ${dragging ? "var(--color-signal)" : "var(--color-edge)"}`,
+              borderRadius: "var(--radius-card)",
+              background: dragging ? "var(--surface-sunken)" : "var(--color-cloud)",
             }}
           >
             <Group justify="space-between" gap="md" align="center">
@@ -224,11 +224,12 @@ export default function ImageCast({ deviceTarget, active }: Props) {
                   style={{
                     width: 42,
                     height: 42,
-                    borderRadius: "var(--mantine-radius-md)",
+                    borderRadius: "var(--radius-pill)",
                     display: "grid",
                     placeItems: "center",
-                    background: "white",
-                    border: "1px solid var(--mantine-color-gray-3)",
+                    background: "var(--color-ink)",
+                    color: "var(--color-cloud)",
+                    border: "1px solid var(--color-ink)",
                     flex: "0 0 auto",
                   }}
                 >
@@ -255,10 +256,10 @@ export default function ImageCast({ deviceTarget, active }: Props) {
                 style={{
                   width: 260,
                   minHeight: 160,
-                  borderRadius: "var(--mantine-radius-md)",
-                  border: "1px solid var(--mantine-color-gray-3)",
+                  borderRadius: "var(--radius-tile)",
+                  border: "var(--border-hairline)",
                   overflow: "hidden",
-                  background: "var(--mantine-color-gray-1)",
+                  background: "var(--surface-sunken)",
                   display: "grid",
                   placeItems: "center",
                   flex: "0 0 auto",

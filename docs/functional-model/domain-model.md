@@ -71,6 +71,7 @@ Tauri store path: `settings.json`.
 | `workbenchTemplates` | Saved workbench templates | `AdbWorkbench.tsx` |
 | `workbenchHistory` | Last 30 workbench executions | `AdbWorkbench.tsx` |
 | `agentCopilotSessions` | `AgentCopilotSession[]` | `AgentCopilot.tsx` |
+| `evidenceSessions` | `EvidenceSession[]` | `AgentCopilot.tsx` |
 
 `AppSettings`
 
@@ -80,6 +81,7 @@ Tauri store path: `settings.json`.
 - `languagePreference`: `system`, `en-US`, or `zh-CN`
 - `autoCheckUpdates`: default enabled unless explicitly false
 - `agentCli`: global Agent CLI profile settings, custom CLI fields, and current-device profile overrides edited from Agent Lab
+- `agentProviders`: default Agent runtime provider plus enabled model API provider configuration
 
 `AgentCliSettings`
 
@@ -87,13 +89,27 @@ Tauri store path: `settings.json`.
 - `profiles`: built-in Codex CLI / Claude Code profiles plus an editable custom CLI profile.
 - `perDeviceProfileIds`: optional overrides keyed by `device_sn || serial`; these are stored in settings but edited from the Agent Lab CLI panel, not the Settings modal.
 
+`AgentProviderSettings`
+
+- `defaultProviderId`: default runtime provider id shown in Settings. It may point to a CLI profile or a configured model API provider.
+- `apiProviders`: local model API provider configs for OpenAI-compatible and Anthropic-style APIs, including enabled state, base URL, model, and API key. These are local settings; current conversational execution still uses the CLI runtime path until direct model-provider execution is implemented.
+
 `AgentCopilotSession`
 
 - `id`, `title`, `createdAt`, `updatedAt`
 - `deviceKey`, `deviceSerial`
-- `skillId`: the most recently auto-matched embedded skill for the conversation.
+- `skillId`: the most recently inferred embedded evidence shortcut hint for the conversation. Normal chat is agent-driven and does not show or automatically run this template.
 - `cliProfileId`
 - `messages`: user, assistant, system, and command evidence messages. User messages may include attachment metadata and bounded text previews.
+
+`EvidenceSession`
+
+- `id`, `kind`, `status`, `title`, `createdAt`, `updatedAt`, optional `closedAt`
+- `deviceKey`, `deviceSerial`: binds the evidence session to the selected device when available.
+- `capturePolicy`: screenshot, Remote audit snapshot, and issue-time Logcat behavior.
+- `scribe`: optional QA Scribe state with enabled flag, proactive intensity (`quiet`, `key_moments`, `live`), goal, last reviewed artifact id, summaries, and next action. Missing `scribe` means a historical plain evidence record.
+- `artifacts`: screenshot, recording, Logcat, note, issue marker, Remote audit, screen-state, and Agent note evidence.
+- Checklist or test-plan files are represented as `AgentCopilotAttachment` context, not as `EvidenceSession` fields.
 
 ## Selection Model
 

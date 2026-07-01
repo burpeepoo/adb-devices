@@ -1542,13 +1542,13 @@ function WirelessRecoverySteps({
       </div>
       <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
         {steps.map((step, index) => (
-          <div key={step.id} className="rounded-md border border-gray-200 bg-white px-3 py-2">
+          <div key={step.id} className="px-3 py-2">
             <Group gap="xs" justify="space-between" align="flex-start" wrap="nowrap">
               <div style={{ minWidth: 0 }}>
                 <Group gap={6} wrap="nowrap">
-                  <Badge size="xs" color="gray" variant="light">
+                  <Text size="sm" fw={600} c="gray.8" style={{ minWidth: 20, textAlign: "center" }}>
                     {index + 1}
-                  </Badge>
+                  </Text>
                   <Badge size="xs" color={recoveryStateColor(step.state)} variant="light">
                     {t(`pairConnect.recovery.states.${step.state}`)}
                   </Badge>

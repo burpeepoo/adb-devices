@@ -13,6 +13,7 @@ export const STORE_KEYS = {
   workbenchTemplates: "workbenchTemplates",
   workbenchHistory: "workbenchHistory",
   agentCopilotSessions: "agentCopilotSessions",
+  evidenceSessions: "evidenceSessions",
 } as const;
 
 export function getStore() {

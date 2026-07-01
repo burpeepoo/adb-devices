@@ -90,7 +90,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
 
   const progressPercent = apkItems.length > 0 ? Math.round((completedCount / apkItems.length) * 100) : 0;
   const apkPathKey = apkItems.map((item) => item.path).join("\n");
-  const queuePanelSizeClass = force ? "min-h-[320px] basis-[320px]" : "min-h-[220px] basis-[220px]";
+  const queuePanelSizeClass = force ? "min-h-[180px] basis-[320px]" : "min-h-[140px] basis-[220px]";
 
   const updateItem = (path: string, patch: Partial<ApkInstallItem>) => {
     setApkItems((items) => items.map((item) => (item.path === path ? { ...item, ...patch } : item)));
@@ -383,9 +383,9 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
   return (
     <div
       onPasteCapture={handlePaste}
-      className={`flex h-full min-h-0 w-full min-w-0 max-w-full flex-col gap-4 overflow-x-hidden overflow-y-auto rounded-lg transition-colors ${dragging ? "bg-blue-50/60" : ""}`}
+      className={`apk-install-page flex h-full min-h-0 w-full min-w-0 max-w-full flex-col gap-4 overflow-y-auto overflow-x-hidden rounded-lg pb-3 transition-colors ${dragging ? "bg-blue-50/60" : ""}`}
     >
-      <section className="flex min-h-0 flex-1 flex-col rounded-lg border border-gray-200 bg-white p-4">
+      <section className="apk-install-card flex min-h-0 flex-1 flex-col rounded-lg border border-gray-200 bg-white p-4">
         <div className="shrink-0">
           <SectionTitle icon={<IconApps size={17} />} label={t('apkInstall.title')} mb="md" />
           <DeviceTargetBanner target={deviceTarget} className="mb-3" />
@@ -457,7 +457,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
           )}
         </div>
 
-        <div className={`mb-4 shrink grow ${queuePanelSizeClass}`}>
+        <div className={`apk-install-queue-panel mb-4 min-h-0 shrink grow ${queuePanelSizeClass}`}>
           <div
             className={`flex max-h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 ${
               apkItems.length > 0 ? "" : "border-dashed bg-gray-50"
@@ -474,7 +474,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
                 </span>
               )}
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden divide-y divide-gray-100">
+            <div className="apk-install-queue-list min-h-0 flex-1 overflow-y-auto overflow-x-hidden divide-y divide-gray-100">
               {apkItems.length === 0 ? (
                 <div className="px-3 py-6 text-center text-sm text-gray-400">{t('apkInstall.selectApk')}</div>
               ) : (
@@ -550,34 +550,35 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
           </div>
         </div>
 
-        {installing && (
-          <div className="mb-4 shrink-0">
-            <div className="mb-1 flex items-center justify-between text-xs text-gray-500">
-              <span>{t('apkInstall.progress')}</span>
-              <span>
-                {completedCount}/{apkItems.length}
-              </span>
+        <div className="apk-install-action-bar sticky bottom-0 z-10 shrink-0 border-t border-gray-100 bg-white pt-3 pb-3">
+          {installing && (
+            <div className="mb-4">
+              <div className="mb-1 flex items-center justify-between text-xs text-gray-500">
+                <span>{t('apkInstall.progress')}</span>
+                <span>
+                  {completedCount}/{apkItems.length}
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                <div className="h-full bg-blue-600 transition-all" style={{ width: `${progressPercent}%` }} />
+              </div>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-              <div className="h-full bg-blue-600 transition-all" style={{ width: `${progressPercent}%` }} />
+          )}
+
+          <button
+            onClick={handleInstall}
+            disabled={installing || apkItems.length === 0 || !deviceTarget.serial}
+            className="w-full shrink-0 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {installing ? t('apkInstall.installing') : t('apkInstall.installSelected', { count: apkItems.length })}
+          </button>
+
+          {result && (
+            <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${result.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+              {result.msg}
             </div>
-          </div>
-        )}
-
-        {/* Install button */}
-        <button
-          onClick={handleInstall}
-          disabled={installing || apkItems.length === 0 || !deviceTarget.serial}
-          className="w-full shrink-0 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {installing ? t('apkInstall.installing') : t('apkInstall.installSelected', { count: apkItems.length })}
-        </button>
-
-        {result && (
-          <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${result.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-            {result.msg}
-          </div>
-        )}
+          )}
+        </div>
       </section>
 
       {/* Info */}

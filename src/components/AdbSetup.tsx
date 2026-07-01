@@ -42,23 +42,23 @@ export default function AdbSetup({ onInstalled }: Props) {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-50">
-      <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
-        <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
-          <svg className="w-8 h-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="sky flex h-screen items-center justify-center px-8">
+      <div className="card max-w-md w-full text-center">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: "var(--color-ink)", color: "var(--color-cloud)" }}>
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">{t('adbSetup.notInstalled')}</h2>
-        <p className="text-gray-500 mb-6">
+        <h2 className="heading-3 mb-2">{t('adbSetup.notInstalled')}</h2>
+        <p className="text-muted mb-6">
           {t('adbSetup.desc1')}
           <br />{t('adbSetup.desc2')}
         </p>
 
         {success ? (
-          <div className="text-green-600 font-medium py-3">
+          <div className="font-medium py-3" style={{ color: "var(--color-meadow)" }}>
             {t('adbSetup.installSuccess')}
           </div>
         ) : (
@@ -66,13 +66,13 @@ export default function AdbSetup({ onInstalled }: Props) {
             <button
               onClick={handleInstall}
               disabled={installing}
-              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {installing ? t('adbSetup.installing') : t('adbSetup.install')}
             </button>
 
             {installing && (
-              <div className="mt-3 text-left text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1">
+              <div className="mt-4 text-left text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1">
                 {progress.map((line, index) => (
                   <div key={`${line}-${index}`}>{line}</div>
                 ))}
@@ -80,7 +80,7 @@ export default function AdbSetup({ onInstalled }: Props) {
             )}
 
             {error && (
-              <div className="mt-3 text-sm text-red-600 bg-red-50 rounded-lg p-3">
+              <div className="mt-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">
                 {error}
               </div>
             )}

@@ -119,18 +119,18 @@ export default function Screenshot({ deviceTarget, saveDir, shortcutResult, onSa
             </Button>
           </Group>
 
-          <Paper withBorder radius="md" p="sm" bg="blue.0">
-            <Text size="xs" fw={700} c="blue.8">
+          <Paper withBorder p="sm" style={{ background: "var(--surface-sunken)" }}>
+            <Text size="xs" fw={700}>
               {t("screenshot.shortcutTitle")}
             </Text>
-            <Text size="xs" c="blue.8" mt={4}>
+            <Text size="xs" c="dimmed" mt={4}>
               {t("screenshot.shortcutHint")}
             </Text>
             <Group gap="xs" mt="xs">
-              <Text size="xs" px={8} py={4} bg="white" style={{ borderRadius: "var(--mantine-radius-sm)" }}>
+              <Text size="xs" px={10} py={5} style={{ background: "var(--color-cloud)", border: "var(--border-hairline)", borderRadius: "var(--radius-pill)" }}>
                 {t("screenshot.shortcutMac")}
               </Text>
-              <Text size="xs" px={8} py={4} bg="white" style={{ borderRadius: "var(--mantine-radius-sm)" }}>
+              <Text size="xs" px={10} py={5} style={{ background: "var(--color-cloud)", border: "var(--border-hairline)", borderRadius: "var(--radius-pill)" }}>
                 {t("screenshot.shortcutWindows")}
               </Text>
             </Group>

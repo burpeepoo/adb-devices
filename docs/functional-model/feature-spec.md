@@ -236,6 +236,7 @@ Logic:
 - Force mode attempts `adb uninstall <package>` first, then `adb install <apk>` without `-r`.
 - A backend install lock prevents concurrent installs.
 - Each queue item tracks pending/installing/success/failed status.
+- The install queue scrolls inside its own panel, while progress, result, and the primary install action remain in a bottom action area so large multi-APK batches do not push the install button out of reach.
 
 Edge cases:
 
@@ -531,16 +532,17 @@ UI behavior:
 
 ## 15. Android Device Copilot
 
-Goal: provide an experimental session-based device-investigation workspace that is more valuable than generating one-off ADB commands.
+Goal: provide an experimental session-based device-investigation workspace where the AI Agent owns the conversation and ADB Manager provides typed, permission-aware device tools.
 
 Frontend:
 
 - `AgentCopilot.tsx`
+- `App.tsx`
 - `androidAgentSkills.ts`
 - `agentCliSettings.ts`
 - `Settings.tsx`
 
-Local skill sources:
+Local optional evidence shortcut sources:
 
 - `docs/agent-skills/device-report.md`
 - `docs/agent-skills/performance-triage.md`
@@ -564,18 +566,34 @@ Behavior:
 
 - The Agent tab is marked as a lab feature and is separate from the Performance tab.
 - The UI uses a left session list and right conversation panel; sessions are persisted under `agentCopilotSessions`.
-- Each session stores title, timestamps, selected device identity, the automatically matched skill, selected CLI profile, message history, and message attachment metadata/text previews.
-- Embedded skills define bounded ADB evidence steps, trigger keywords, and acceptance criteria in local Markdown and in the app catalog.
-- The Copilot automatically chooses the best matching skill from the user's prompt and attachment names/text previews. The UI does not require manually selecting a skill before sending a message.
-- The conversation composer shows five randomly selected practical prompt suggestions from a larger localized scenario pool whenever a new conversation is opened. Clicking a suggestion inserts that prompt and immediately sends it through the same auto-skill path as typed prompts.
+- A bottom-right Copilot icon is always available in the main workspace. Clicking it opens a right-side contextual drawer that reuses the Copilot surface, defaults to Chat mode, and passes the current tab label into the Agent prompt as current ADB Manager context. The CLI/model selector includes a manual runtime health-check action; clicking it opens an independent modal overlay that checks configured CLI commands with `agent_cli_probe` and summarizes enabled model API provider configuration so the user can see whether any Agent runtime is available.
+- The drawer also exposes Walkthrough and Bug Repro as peer modes next to Chat, so QA recording and repro recording do not crowd the normal chat composer and users can switch back after starting a Bug Repro.
+- The app uses the global Cirrus design system stylesheet from `src/styles/system.css`: cloudy sky canvas, Cloud surfaces, Ink primary actions, Edge hairlines, pill controls, and Signal/Citrus/Meadow data accents. Because the app uses Mantine components and has some legacy Tailwind utility pages, `src/index.css` provides a global Mantine skin plus a temporary Tailwind palette bridge so Copilot, device management, setup, install, package, media, settings, and other feature surfaces share the same visual language instead of reintroducing a separate blue/gray style.
+- Opening the right-side drawer checks the selected device's Agent APK install/update/connect status through `adb_agent_status`. If the APK is missing or outdated, the drawer shows an install/update prompt; installing is explicit user action and then starts/connects the Agent so future turns can include APK sampling data.
+- Each session stores title, timestamps, selected device identity, the most recently inferred evidence shortcut hint, selected CLI profile, message history, and message attachment metadata/text previews.
+- Conversation titles and header badges stay conversational (`New chat` / `Chat`) unless the user prompt supplies a meaningful title; the default evidence shortcut must not appear as the drawer title or badge.
+- Sending a prompt routes the conversation to the selected Agent CLI profile as a normal multi-turn agent prompt. It does not automatically execute a fixed embedded skill or collect evidence first.
+- The Agent receives the user message, recent conversation, selected-device context, default device/performance context, current optional evidence shortcut hint, active evidence compact timeline, attachment previews, available read-only tools, and permission rules.
+- The Agent may answer directly, ask a follow-up question, or request typed tools by returning a JSON `toolCalls` block.
+- Auto-approved read-only tools currently include device summary, foreground app/window focus, screenshot capture when a screenshot directory exists, Logcat snapshot, package list, the active evidence record, and performance context that prefers the active performance stream plus Agent APK samples when available.
+- Tool calls execute through existing Tauri commands or the Workbench backend, preserving selected-device targeting and existing risk classification.
+- Tool results are recorded into the conversation as command/evidence messages and then returned to the Agent for a follow-up response in the same conversation.
+- Mutating or expert ADB commands use an approval-gated `workbench.request_adb_command` path. The request is rendered as a conversation approval card with command, conservative risk estimate, reason, copy command, deny, and allow-once actions; execution occurs only after user approval.
+- Evidence records are user-facing, local, device-bound QA Scribe containers persisted under `evidenceSessions`. Starting a record captures a goal and proactive intensity (`quiet`, `key_moments`, or `live`), records an initial screen-state snapshot, switches the Copilot surface into the matching Walkthrough or Bug Repro mode, and then tracks screenshots, Remote audit snapshots, notes, issue markers, recordings, Logcat, screen-state snapshots, Agent notes, and Markdown reports. Active records render a visible timeline in their selected mode; screenshot previews load through `read_image_preview_data_url` so local images are validated and returned as data URLs instead of relying on broad asset access. Export uses `export_evidence_package` to write a `.zip` with `report.md` plus available local artifact files under `assets/`; missing files are skipped and reported instead of failing the whole export. Chat mode keeps only a lightweight active-record strip with a link back to the record's mode. Walkthrough and Bug Repro each provide a mode-scoped recent-record list that stretches to the available panel height, plus a blue start / red stop Agent footer: start sends the QA or repro goal and current evidence timeline to the Agent, while stop records a stop prompt, generates the final QA report, and closes the record. The older separate header `End` action is not shown. The Agent CLI is not kept open while the user performs a long walkthrough or repro; each CLI turn remains bounded by the backend timeout, and ADB Manager persists evidence locally until the user stops. The Agent receives the compact timeline in every turn and may call `evidence.get_active_record` for fuller detail. The Agent can also request `evidence.start_session`, but it renders as an approval card and starts only after the user allows it.
+- QA Scribe proactivity is conservative. `quiet` records evidence only and generates a final report at the end. `key_moments` triggers Agent review on start, issue markers, every three new reviewable artifacts, and end. `live` additionally samples lightweight screen state every 15 seconds and skips unchanged foreground/context snapshots.
+- QA Scribe does not claim system-wide touch observation. It records only ADB Manager-confirmed evidence such as foreground/window output, screenshots, performance context, Agent APK status, Remote audit entries, Logcat, user notes, and saved paths.
+- Bug reproduction sessions are selected from the top-level Bug Repro mode and add start/stop recording controls. Marking an issue records the issue note and attempts to attach an issue-time Logcat snapshot.
+- Checklist and test-plan files are uploaded as conversation attachments. The Agent can read bounded text previews and guide the walkthrough, but there is no separate Checklist evidence mode, item-status model, or checklist-specific export blocker.
+- Embedded skills define bounded ADB evidence steps, trigger keywords, and acceptance criteria in local Markdown and in the app catalog, but the Copilot UI no longer exposes a manual "run template" action. The current shortcut is only a hint in the Agent prompt, so the Agent can decide whether it matters.
+- The conversation sends on Enter, keeps Shift+Enter for new lines, auto-scrolls to the newest message, and renders Agent thinking as an in-thread animated message rather than a top progress bar.
+- Closing the contextual drawer hides it without unmounting the Copilot, so an in-flight Agent turn continues and reappears with its current thinking or final state when the drawer is opened again.
+- The conversation composer shows five randomly selected practical prompt suggestions from a larger localized scenario pool whenever a new conversation is opened. Clicking a suggestion sends it to the same agentic conversation path as typed prompts.
 - The conversation composer accepts multiple attachments. Text-like files are stored with bounded previews for skill matching and message context; large or binary files keep metadata only.
-- Sending a prompt immediately executes each safe evidence step for the current diagnosis scenario through the existing Workbench backend, preserving selected-device targeting and existing risk classification. There is no separate manual "run skill" action in the header.
-- While evidence collection is running, the current conversation shows an inline progress bar with the current step and completed/total counts.
-- The Copilot records command, stdout, stderr, and success status in the session, then invokes the current Agent CLI profile non-interactively to write the final user-facing analysis from the collected evidence instead of returning a step-completion checklist.
-- Built-in Codex CLI analysis uses `codex exec` with read-only sandboxing, no approvals, ephemeral session state, stdin prompt input, and last-message output capture. Built-in Claude Code analysis uses `claude --print --output-format text`. Custom CLI profiles receive the analysis prompt on stdin with the user-configured args.
-- If the Agent CLI is unavailable, times out, exits without useful output, or is not configured, the Copilot falls back to the built-in stdout/stderr analyzer. Device Report fallback extracts identity, Android version, display, storage, memory, battery, and key package signals into a readable conclusion, attention list, and evidence summary; other skills extract failures, crash/error/permission/resource signals, and next actions from the collected command output.
+- Built-in Codex CLI turns use `codex exec` with ephemeral session state, stdin prompt input, and last-message output capture. The app adds read-only sandboxing by default, but it does not force an approval policy and respects user-provided Codex profile args such as `--yolo`, `--dangerously-bypass-approvals-and-sandbox`, or an explicit `--sandbox` override. Built-in Claude Code turns use `claude --print --output-format text`. Custom CLI profiles receive the conversation prompt on stdin with the user-configured args.
+- If the Agent CLI is unavailable, times out, exits without useful output, or is not configured, the Copilot surfaces the runtime gap instead of pretending a real agent answered. Built-in stdout/stderr analysis remains available only for explicit evidence shortcut collection.
 - Local diagnostic document paths such as `docs/agent-skills/device-report.md` render as clickable links when they appear in messages and open through the desktop app; repo-relative links are resolved against the project root before opening.
-- Agent CLI settings are global by default. Built-in profiles are Codex CLI and Claude Code; custom CLI command, args, and working directory are editable in Settings. The custom working directory accepts pasted local paths or `file://` folder URLs and also has a folder picker button.
+- Settings uses a full-screen panel for Agent runtime configuration rather than a small modal. Agent CLI settings are global by default. Built-in profiles are Codex CLI and Claude Code; custom CLI command, args, and working directory are editable in Settings. The custom working directory accepts pasted local paths or `file://` folder URLs and also has a folder picker button.
+- Settings also exposes Provider configuration: a default provider selector and local OpenAI-compatible / Anthropic API provider fields for enablement, Base URL, model, and API key. API providers are checked as configuration during manual runtime health checks; direct conversation execution remains on the CLI path until model-provider execution is added.
 - The Agent Lab CLI panel shows the current-device CLI override and current device/CLI context in one inline row; global CLI settings remain in Settings.
 
 Boundaries:
@@ -583,6 +601,7 @@ Boundaries:
 - The ordinary APK Agent remains an optional helper, not a system app.
 - APK-limited data is labeled as such. ADB remains the source for system CPU, thermal, display, GPU, storage, and `gfxinfo` probes.
 - Missing device, missing CLI command, unavailable command output, and permission limits are surfaced as evidence gaps.
+- High-risk or mutating actions are not executed through the auto-approved tool path. Raw ADB command requests require an explicit approval card before execution.
 
 ## 16. Settings, Language, And Updater
 
@@ -607,6 +626,7 @@ Backend:
 
 Settings:
 
+- Settings opens as a full-screen workspace that reuses the main app shell language: dark left rail, gray workspace background, white bordered section panels, and blue primary actions.
 - Language preference: system, English, Chinese.
 - Screenshot directory.
 - Recording directory.

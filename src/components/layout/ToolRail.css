@@ -1,33 +1,48 @@
+.rail-card {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-cloud);
+  border: var(--border-hairline);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-tier-1);
+}
+
 .tool-rail__button {
   width: 100%;
   min-height: 42px;
-  border: 0;
-  border-radius: var(--mantine-radius-md);
+  border: var(--border-hairline);
+  border-color: transparent;
+  border-radius: var(--radius-pill);
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 9px;
-  padding: 0 10px;
-  color: var(--mantine-color-gray-4);
+  padding: 0 12px;
+  color: var(--text-muted);
   background: transparent;
   cursor: pointer;
   transition:
-    background 120ms ease,
-    color 120ms ease;
+    background-color var(--dur-quick) var(--ease-soft),
+    border-color var(--dur-quick) var(--ease-soft),
+    color var(--dur-quick) var(--ease-soft),
+    box-shadow var(--dur-base) var(--ease-soft);
 }
 
 .tool-rail__button:hover {
-  color: var(--mantine-color-white);
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-strong);
+  background: var(--surface-sunken);
+  border-color: var(--color-edge);
 }
 
 .tool-rail__button[data-active="true"] {
-  color: var(--mantine-color-white);
-  background: var(--mantine-color-blue-6);
+  color: var(--color-cloud);
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  box-shadow: var(--shadow-tier-2);
 }
 
 .tool-rail__button--utility {
-  min-height: 40px;
+  min-height: 38px;
 }
 
 .tool-rail__label {
@@ -35,7 +50,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--fs-body);
+  font-weight: 500;
   letter-spacing: 0;
 }

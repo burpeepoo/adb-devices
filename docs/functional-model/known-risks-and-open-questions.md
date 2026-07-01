@@ -40,22 +40,32 @@ The Copilot tab is intentionally experimental and evidence-first.
 Coverage:
 
 - Embedded Android-agent skills live in both `docs/agent-skills/` and `src/androidAgentSkills.ts`.
-- The Copilot auto-matches skills from prompt text, attachment names, and bounded text previews; users do not select a skill manually before sending.
-- Skill runs use `adb_workbench_execute`, so selected-device targeting and risk classification still apply.
+- The Copilot can pass an optional evidence shortcut hint to the Agent from prompt text, attachment names, bounded text previews, or recent conversation context, but normal chat does not show or run a manual template action.
+- Normal prompt submission is routed to the selected Agent CLI as a multi-turn conversation. The Agent may answer directly, ask follow-up questions, or request typed read-only tools through structured `toolCalls`.
+- Auto-approved read-only tool requests use existing Tauri commands and `adb_workbench_execute`, so selected-device targeting and risk classification still apply.
+- The right-side Copilot drawer checks Agent APK installation status on open and prompts for explicit install/update when the selected device lacks the APK; installation is not automatic.
+- Runtime probing is manual from the Copilot CLI/model selector. It opens an independent modal that checks local CLI availability and enabled API provider configuration when the user asks for a health check.
+- Mutating or expert raw ADB command requests render as approval cards and require user action before execution.
+- QA Scribe evidence records persist local artifacts for feature walkthrough and Bug reproduction flows; Bug repro issue markers attempt to attach issue-time Logcat, active records expose compact evidence timelines to the Agent, and the local `evidence.get_active_record` tool can return fuller detail. Full QA Scribe controls live in peer Walkthrough and Bug Repro modes so normal Chat mode remains conversational and users can switch back after starting a repro. Checklist and test-plan handling depends on uploaded attachments plus Agent guidance rather than a dedicated checklist status workflow.
+- Explicit evidence shortcut collection still runs bounded skill steps through `adb_workbench_execute`.
 - Session history is local and persisted under `agentCopilotSessions`.
 - Global Agent CLI settings and current-device overrides are stored in `settings.agentCli`; current-device overrides are edited from the Agent Lab CLI panel.
+- Provider settings are stored in `settings.agentProviders`. API keys are local app settings, so distribution, backup, and shared-machine use need care. API provider configuration is visible and probeable, but current Agent conversation execution still depends on CLI runtime support.
 
 Risks:
 
-- The current Copilot can run deterministic skill steps, but it does not yet execute an external Codex/Claude/custom CLI profile.
-- Automatic skill matching is keyword-based and evidence-first; it should be treated as routing assistance, not a root-cause conclusion.
+- Automatic evidence shortcut matching is keyword-based and should be treated as routing assistance, not a root-cause conclusion.
+- The current tool-call protocol is text/JSON based. If the configured CLI does not follow the requested `toolCalls` format, the app will treat the output as a normal assistant answer.
+- Evidence records currently store artifact metadata and bounded text locally; large binary artifacts are referenced by path rather than copied into the store. QA Scribe export copies currently available local artifact files into the `.zip` evidence package, but missing or moved files are skipped and reported.
+- QA Scribe does not observe every physical touch or system-wide user action. It only records evidence ADB Manager can verify, such as screenshots, foreground/window output, Remote audit entries, Logcat, user notes, performance context, Agent APK status, and saved paths.
 - The ordinary APK Agent cannot read privileged system counters. Treat APK data as supplemental, not authoritative.
 - Agent APK upgrades preserve app data only when the package name and signing certificate stay stable. Signature changes or version downgrades require explicit manual handling because automatic uninstall would delete Agent app data.
-- A future CLI execution path could run arbitrary host commands if profile validation and explicit approval are weak.
+- Agent CLI execution could run arbitrary host commands if profile validation, sandbox defaults, or high-risk approval gates are weakened.
 
 Mitigation:
 
-- Keep CLI launch as an explicit future command path with visible approval and hidden-process handling.
+- Keep built-in CLI profiles read-only/non-interactive by default, and keep custom CLI profiles visible in settings.
+- Keep high-risk or mutating actions outside the auto-approved read-only tool path and keep approval cards visible in the conversation audit trail.
 - Keep ordinary APK limits visible in skill docs and UI copy.
 - Keep Agent APK version metadata aligned across Java, the build script, and the desktop backend whenever the APK behavior changes.
 - Keep local skill docs synchronized with the embedded app catalog.

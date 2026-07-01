@@ -9,6 +9,7 @@ use crate::adb::AdbError;
 use crate::process;
 
 const AGENT_CLI_TIMEOUT: Duration = Duration::from_secs(120);
+const AGENT_CLI_PROBE_TIMEOUT: Duration = Duration::from_secs(3);
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -27,6 +28,23 @@ pub struct AgentCliAnalysisResult {
     pub exit_code: Option<i32>,
     pub stdout: String,
     pub stderr: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentCliProbeRequest {
+    pub command: String,
+    pub cwd: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentCliProbeResult {
+    pub command: String,
+    pub exit_code: Option<i32>,
+    pub stdout: String,
+    pub stderr: String,
+    pub ok: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -49,6 +67,69 @@ pub async fn agent_cli_analyze(
     tauri::async_runtime::spawn_blocking(move || run_agent_cli_analysis(request))
         .await
         .map_err(|error| AdbError::CommandFailed(format!("Agent CLI task failed: {error}")))?
+}
+
+#[tauri::command(async)]
+pub async fn agent_cli_probe(
+    request: AgentCliProbeRequest,
+) -> Result<AgentCliProbeResult, AdbError> {
+    tauri::async_runtime::spawn_blocking(move || run_agent_cli_probe(request))
+        .await
+        .map_err(|error| AdbError::CommandFailed(format!("Agent CLI probe task failed: {error}")))?
+}
+
+fn run_agent_cli_probe(request: AgentCliProbeRequest) -> Result<AgentCliProbeResult, AdbError> {
+    let program = request.command.trim();
+    if program.is_empty() {
+        return Err(AdbError::CommandFailed(
+            "Agent CLI command is empty".to_string(),
+        ));
+    }
+    let args = vec!["--version".to_string()];
+    let mut command = process::hidden_command(program);
+    command.args(&args);
+    if let Some(cwd) = request
+        .cwd
+        .as_deref()
+        .map(str::trim)
+        .filter(|cwd| !cwd.is_empty())
+    {
+        command.current_dir(cwd);
+    }
+    command
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+
+    let mut child = command.spawn().map_err(|error| {
+        AdbError::CommandFailed(format!("Failed to start Agent CLI probe: {error}"))
+    })?;
+    let started = Instant::now();
+    loop {
+        if child
+            .try_wait()
+            .map_err(|error| AdbError::CommandFailed(format!("Agent CLI probe failed: {error}")))?
+            .is_some()
+        {
+            let output = child.wait_with_output().map_err(|error| {
+                AdbError::CommandFailed(format!("Failed to read Agent CLI probe output: {error}"))
+            })?;
+            return Ok(AgentCliProbeResult {
+                command: command_preview(program, &args),
+                exit_code: output.status.code(),
+                stdout: String::from_utf8_lossy(&output.stdout).to_string(),
+                stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+                ok: output.status.success(),
+            });
+        }
+        if started.elapsed() >= AGENT_CLI_PROBE_TIMEOUT {
+            let _ = child.kill();
+            return Err(AdbError::CommandFailed(
+                "Agent CLI probe timed out".to_string(),
+            ));
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
 }
 
 fn run_agent_cli_analysis(
@@ -139,12 +220,12 @@ fn build_agent_cli_invocation(
     match request.kind.as_str() {
         "codex_cli" => {
             let output_file = temp_output_file("codex-agent-analysis");
+            let has_sandbox_override = codex_args_include_sandbox_override(&args);
+            args.push("exec".to_string());
+            if !has_sandbox_override {
+                args.extend(["--sandbox".to_string(), "read-only".to_string()]);
+            }
             args.extend([
-                "exec".to_string(),
-                "--sandbox".to_string(),
-                "read-only".to_string(),
-                "--ask-for-approval".to_string(),
-                "never".to_string(),
                 "--skip-git-repo-check".to_string(),
                 "--ephemeral".to_string(),
                 "--color".to_string(),
@@ -183,6 +264,15 @@ fn build_agent_cli_invocation(
             output_file: None,
         }),
     }
+}
+
+fn codex_args_include_sandbox_override(args: &[String]) -> bool {
+    args.iter().any(|arg| {
+        matches!(
+            arg.as_str(),
+            "--yolo" | "--dangerously-bypass-approvals-and-sandbox" | "--sandbox" | "-s"
+        ) || arg.starts_with("--sandbox=")
+    })
 }
 
 fn temp_output_file(prefix: &str) -> PathBuf {
@@ -230,9 +320,34 @@ mod tests {
         assert_eq!(invocation.prompt_mode, PromptMode::Stdin);
         assert!(invocation.args.contains(&"exec".to_string()));
         assert!(invocation.args.contains(&"read-only".to_string()));
-        assert!(invocation.args.contains(&"never".to_string()));
+        assert!(!invocation.args.contains(&"--ask-for-approval".to_string()));
         assert!(invocation.args.contains(&"-".to_string()));
         assert!(invocation.output_file.is_some());
+    }
+
+    #[test]
+    fn codex_cli_respects_user_sandbox_or_yolo_args() {
+        let mut yolo = request("codex_cli");
+        yolo.args = vec!["--yolo".to_string()];
+        let invocation = build_agent_cli_invocation(&yolo).unwrap();
+
+        assert_eq!(invocation.args[0], "--yolo");
+        assert!(invocation.args.contains(&"exec".to_string()));
+        assert!(!invocation.args.contains(&"--sandbox".to_string()));
+        assert!(!invocation.args.contains(&"read-only".to_string()));
+
+        let mut danger = request("codex_cli");
+        danger.args = vec!["--sandbox".to_string(), "danger-full-access".to_string()];
+        let invocation = build_agent_cli_invocation(&danger).unwrap();
+        assert_eq!(
+            invocation
+                .args
+                .iter()
+                .filter(|arg| arg.as_str() == "--sandbox")
+                .count(),
+            1
+        );
+        assert!(!invocation.args.contains(&"read-only".to_string()));
     }
 
     #[test]

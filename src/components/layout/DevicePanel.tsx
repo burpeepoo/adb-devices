@@ -47,7 +47,7 @@ export default function DevicePanel({
 
   return (
     <Stack h="100%" gap={0}>
-      <Box p="sm" style={{ borderBottom: "1px solid var(--mantine-color-gray-3)", background: "var(--mantine-color-white)" }}>
+      <Box p="md" style={{ borderBottom: "var(--border-hairline)", background: "var(--color-cloud)" }}>
         <Group justify="space-between" mb="xs">
           <Text size="sm" fw={700}>
             {t("deviceList.title")}
@@ -67,8 +67,8 @@ export default function DevicePanel({
       </Box>
 
       {error && (
-        <Box px="sm" py={7} style={{ background: "var(--mantine-color-red-0)" }}>
-          <Text size="xs" c="red">
+        <Box px="md" py={8} style={{ background: "var(--surface-sunken)", borderBottom: "var(--border-hairline)" }}>
+          <Text size="xs" style={{ color: "var(--color-citrus)" }}>
             {error}
           </Text>
         </Box>
@@ -121,7 +121,7 @@ export default function DevicePanel({
 
 function DeviceSection({ label }: { label: string }) {
   return (
-    <Text size="10px" fw={700} tt="uppercase" c="dimmed" px={4} pt={6}>
+    <Text size="xs" fw={500} c="dimmed" px={4} pt={8}>
       {label}
     </Text>
   );
@@ -158,9 +158,9 @@ function DeviceRow({
     <Box
       p="xs"
       style={{
-        border: selected ? "1px solid var(--mantine-color-blue-4)" : "1px solid transparent",
-        borderRadius: "var(--mantine-radius-md)",
-        background: selected ? "var(--mantine-color-blue-0)" : "var(--mantine-color-white)",
+        border: selected ? "1px solid var(--color-ink)" : "1px solid transparent",
+        borderRadius: "var(--radius-tile)",
+        background: selected ? "var(--surface-sunken)" : "var(--color-cloud)",
         opacity: online ? 1 : 0.6,
       }}
     >
@@ -172,7 +172,7 @@ function DeviceRow({
             height: 9,
             borderRadius: 99,
             flexShrink: 0,
-            background: online ? "var(--mantine-color-green-6)" : "var(--mantine-color-red-5)",
+            background: online ? "var(--color-meadow)" : "var(--color-citrus)",
           }}
         />
         <Box style={{ minWidth: 0, flex: 1 }}>
@@ -235,9 +235,10 @@ function DeviceRow({
               }}
               style={{
                 minHeight: 28,
-                borderRadius: "var(--mantine-radius-sm)",
+                borderRadius: "var(--radius-pill)",
                 cursor: "text",
-                background: selected ? "rgba(255,255,255,.55)" : "var(--mantine-color-gray-0)",
+                background: selected ? "var(--color-cloud)" : "var(--surface-sunken)",
+                border: "var(--border-soft)",
               }}
             >
               <Text size="xs" c={note ? "gray.7" : "dimmed"}>

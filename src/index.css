@@ -1,17 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap");
 @import "tailwindcss";
+@import "./styles/system.css";
 
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
-  line-height: 1.5;
-  color: #1a1a2e;
-  background-color: #f8f9fa;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  overflow: hidden;
+  line-height: var(--lh-body);
+  color: var(--text-strong);
+  background: var(--surface-page);
 }
 
 html,
@@ -21,22 +19,494 @@ body,
   height: 100%;
 }
 
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  color: var(--text-strong);
+  background: var(--surface-page);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  font-variant-numeric: tabular-nums;
+}
+
 * {
   box-sizing: border-box;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+button,
+input,
+select,
+textarea {
+  letter-spacing: 0;
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+  background: color-mix(in srgb, var(--color-mist) 36%, transparent);
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  background-clip: padding-box;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+  background: color-mix(in srgb, var(--color-mist) 58%, transparent);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Mantine skin: all feature pages inherit the Cirrus system. */
+.mantine-Paper-root,
+.mantine-Card-root,
+.mantine-Modal-content,
+.mantine-Popover-dropdown,
+.mantine-Menu-dropdown {
+  background: var(--color-cloud) !important;
+  color: var(--text-strong) !important;
+  border-color: var(--color-edge) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-tier-1) !important;
+}
+
+.mantine-Paper-root[data-with-border],
+.mantine-Card-root[data-with-border],
+.mantine-Popover-dropdown,
+.mantine-Menu-dropdown {
+  border: var(--border-hairline) !important;
+}
+
+.mantine-Drawer-content {
+  background: var(--color-cloud) !important;
+  color: var(--text-strong) !important;
+  border-left: var(--border-hairline);
+  box-shadow: var(--shadow-tier-2) !important;
+}
+
+.mantine-Drawer-header {
+  min-height: 60px;
+  padding: 16px 20px 10px;
+  border-bottom: var(--border-hairline);
+  background: var(--color-cloud);
+}
+
+.mantine-Drawer-title,
+.mantine-Modal-title,
+.mantine-Title-root {
+  font-family: var(--font-display) !important;
+  color: var(--text-strong) !important;
+  letter-spacing: 0 !important;
+}
+
+.mantine-Drawer-body {
+  background: var(--color-cloud);
+}
+
+.mantine-Text-root {
+  color: inherit;
+}
+
+.mantine-Text-root[data-c="dimmed"],
+.mantine-Input-label,
+.mantine-Input-description {
+  color: var(--text-muted) !important;
+}
+
+.mantine-Input-label {
+  font-size: var(--fs-label) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+.mantine-TextInput-input,
+.mantine-Textarea-input,
+.mantine-Select-input,
+.mantine-PasswordInput-input,
+.mantine-NumberInput-input {
+  min-height: 44px;
+  background: var(--color-cloud) !important;
+  color: var(--text-strong) !important;
+  border: var(--border-hairline) !important;
+  border-radius: var(--radius-pill) !important;
+  font-size: var(--fs-body) !important;
+  box-shadow: none !important;
+}
+
+.mantine-Textarea-input {
+  border-radius: var(--radius-tile) !important;
+}
+
+.mantine-TextInput-input::placeholder,
+.mantine-Textarea-input::placeholder,
+.mantine-Select-input::placeholder {
+  color: var(--text-soft) !important;
+}
+
+.mantine-TextInput-input:focus,
+.mantine-Textarea-input:focus,
+.mantine-Select-input:focus,
+.mantine-PasswordInput-input:focus,
+.mantine-NumberInput-input:focus {
+  border-color: var(--color-signal) !important;
+  box-shadow: var(--focus-ring) !important;
+}
+
+.mantine-Button-root {
+  min-height: 44px;
+  border-radius: var(--radius-pill) !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--fs-body) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  transition:
+    transform var(--dur-quick) var(--ease-soft),
+    background-color var(--dur-base) var(--ease-soft),
+    color var(--dur-base) var(--ease-soft),
+    box-shadow var(--dur-base) var(--ease-soft) !important;
+}
+
+.mantine-Button-root:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.mantine-Button-root:focus-visible,
+.mantine-ActionIcon-root:focus-visible,
+.mantine-SegmentedControl-label:focus-visible {
+  outline: none !important;
+  box-shadow: var(--focus-ring) !important;
+}
+
+.mantine-Button-root[data-variant="default"],
+.mantine-Button-root[data-variant="light"],
+.mantine-Button-root[data-variant="subtle"] {
+  background: var(--color-cloud) !important;
+  color: var(--text-strong) !important;
+  border: var(--border-hairline) !important;
+}
+
+.mantine-Button-root[data-variant="default"]:hover:not(:disabled),
+.mantine-Button-root[data-variant="light"]:hover:not(:disabled),
+.mantine-Button-root[data-variant="subtle"]:hover:not(:disabled) {
+  background: var(--surface-sunken) !important;
+}
+
+.mantine-ActionIcon-root {
+  border-radius: var(--radius-pill) !important;
+  background: var(--color-cloud) !important;
+  color: var(--text-strong) !important;
+  border: var(--border-hairline) !important;
+}
+
+.mantine-ActionIcon-root[data-variant="filled"] {
+  background: var(--color-ink) !important;
+  color: var(--color-cloud) !important;
+  border-color: var(--color-ink) !important;
+}
+
+.mantine-ActionIcon-root[data-variant="subtle"]:hover,
+.mantine-ActionIcon-root[data-variant="light"]:hover {
+  background: var(--surface-sunken) !important;
+}
+
+.mantine-ThemeIcon-root {
+  border-radius: var(--radius-pill) !important;
+  background: var(--color-ink) !important;
+  color: var(--color-cloud) !important;
+}
+
+.mantine-Badge-root {
+  min-height: 24px;
+  padding-inline: 10px;
+  border-radius: var(--radius-pill) !important;
+  border: var(--border-hairline) !important;
+  background: var(--color-cloud) !important;
+  color: var(--text-strong) !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--fs-small) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.mantine-Badge-root[data-variant="filled"] {
+  background: var(--color-ink) !important;
+  color: var(--color-cloud) !important;
+  border-color: var(--color-ink) !important;
+}
+
+.mantine-SegmentedControl-root {
+  padding: 4px;
+  border-radius: var(--radius-pill) !important;
+  background: var(--surface-sunken) !important;
+  border: var(--border-hairline) !important;
+}
+
+.mantine-SegmentedControl-indicator {
+  border-radius: var(--radius-pill) !important;
+  background: var(--color-ink) !important;
+  box-shadow: var(--shadow-tier-2) !important;
+}
+
+.mantine-SegmentedControl-label {
+  height: 32px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill) !important;
+  color: var(--text-strong) !important;
+  font-size: var(--fs-body) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+.mantine-SegmentedControl-input:checked + .mantine-SegmentedControl-label {
+  color: var(--color-cloud) !important;
+}
+
+.mantine-Alert-root {
+  border: var(--border-hairline) !important;
+  border-radius: var(--radius-card) !important;
+  background: var(--color-cloud) !important;
+  color: var(--text-strong) !important;
+  box-shadow: var(--shadow-tier-1);
+}
+
+.mantine-Code-root,
+code {
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken) !important;
+  color: var(--text-strong) !important;
+}
+
+.mantine-Progress-root {
+  border-radius: var(--radius-pill) !important;
+  background: var(--surface-sunken) !important;
+}
+
+/* App-specific Cirrus surfaces. */
+.agent-copilot-system {
+  --agent-panel-bg: var(--surface-page);
+  --agent-card-bg: var(--color-cloud);
+  --agent-soft-bg: var(--surface-sunken);
+  --agent-text: var(--text-strong);
+  --agent-muted: var(--text-muted);
+  --agent-border: var(--color-edge);
+  color: var(--agent-text);
+  font-family: var(--font-sans);
+}
+
+.agent-copilot-card,
+.agent-copilot-panel,
+.agent-copilot-session-list {
+  border: var(--border-hairline);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-tier-1);
+  background: var(--color-cloud);
+}
+
+.agent-copilot-title-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--color-cloud);
+  background: var(--color-ink);
+  border-radius: var(--radius-pill);
+  flex: 0 0 auto;
+}
+
+.device-target-banner.mantine-Paper-root {
+  border-radius: var(--radius-tile) !important;
+  box-shadow: none !important;
+}
+
+.agent-copilot-mode-switch.mantine-SegmentedControl-root {
+  width: 100%;
+}
+
+.agent-copilot-session-card,
+.agent-copilot-evidence-session,
+.agent-copilot-evidence-item,
+.agent-copilot-message,
+.agent-copilot-scribe-active-strip {
+  border: var(--border-hairline);
+  border-radius: var(--radius-tile);
+  background: var(--color-cloud);
+}
+
+.agent-copilot-message-user,
+.agent-copilot-session-card.is-active,
+.agent-copilot-scribe-active-strip {
+  background: var(--surface-sunken);
+}
+
+.agent-copilot-message-command {
+  background: var(--surface-page);
+}
+
+.agent-copilot-evidence-item pre,
+.agent-copilot-message pre,
+.agent-copilot-code,
+.agent-copilot-system code {
+  font-family: var(--font-sans);
+  font-size: var(--fs-small);
+}
+
+.agent-copilot-scribe-agent-composer {
+  border-top: var(--border-hairline) !important;
+}
+
+.settings-section-card,
+.apk-install-card {
+  border: var(--border-hairline) !important;
+  border-radius: var(--radius-card) !important;
+  background: var(--color-cloud) !important;
+  box-shadow: var(--shadow-tier-1);
+}
+
+.apk-install-page {
+  background: transparent !important;
+}
+
+.apk-install-page button {
+  border-radius: var(--radius-pill) !important;
+}
+
+.apk-install-page textarea,
+.apk-install-page input {
+  border-color: var(--color-edge) !important;
+  border-radius: var(--radius-tile) !important;
+  background: var(--color-cloud) !important;
+  color: var(--text-strong) !important;
+}
+
+.apk-install-queue-panel > div {
+  border: var(--border-hairline) !important;
+  border-radius: var(--radius-card) !important;
+  background: var(--color-cloud) !important;
+}
+
+.apk-install-action-bar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--color-cloud) 22%) !important;
+  border-top: var(--border-hairline) !important;
+}
+
+.app-page-header {
+  border: var(--border-hairline) !important;
+  border-radius: var(--radius-card) !important;
+  background: var(--color-cloud) !important;
+  box-shadow: var(--shadow-tier-1) !important;
+}
+
+/* Legacy Tailwind palette bridge for pages that still use utility classes. */
+.bg-white,
+.bg-gray-50,
+.bg-gray-100,
+.bg-slate-50 {
+  background-color: var(--color-cloud) !important;
+}
+
+.bg-gray-0,
+.bg-blue-0,
+.bg-red-0,
+.bg-yellow-0,
+.bg-green-0,
+.bg-blue-50,
+.bg-red-50,
+.bg-yellow-50,
+.bg-green-50,
+.bg-orange-50 {
+  background-color: var(--surface-sunken) !important;
+}
+
+.bg-blue-600,
+.hover\:bg-blue-700:hover {
+  background-color: var(--color-ink) !important;
+}
+
+.bg-red-600,
+.hover\:bg-red-700:hover {
+  background-color: var(--color-citrus) !important;
+}
+
+.bg-green-600,
+.hover\:bg-green-700:hover {
+  background-color: var(--color-meadow) !important;
+}
+
+.text-white {
+  color: var(--color-cloud) !important;
+}
+
+.text-gray-400,
+.text-gray-500,
+.text-slate-500 {
+  color: var(--text-muted) !important;
+}
+
+.text-gray-600,
+.text-gray-700,
+.text-gray-800,
+.text-gray-900,
+.text-blue-950 {
+  color: var(--text-strong) !important;
+}
+
+.text-blue-500,
+.text-blue-600,
+.hover\:text-blue-700:hover {
+  color: var(--color-signal) !important;
+}
+
+.text-red-500,
+.text-red-600,
+.hover\:text-red-600:hover {
+  color: var(--color-citrus) !important;
+}
+
+.text-green-600,
+.text-green-700,
+.text-green-800 {
+  color: var(--color-meadow) !important;
+}
+
+.border-gray-100,
+.border-gray-200,
+.border-gray-300,
+.border-blue-400,
+.border-red-200,
+.border-green-200 {
+  border-color: var(--color-edge) !important;
+}
+
+.rounded,
+.rounded-md {
+  border-radius: var(--radius-tile) !important;
+}
+
+.rounded-lg,
+.rounded-xl {
+  border-radius: var(--radius-card) !important;
+}
+
+.rounded-full {
+  border-radius: var(--radius-pill) !important;
+}
+
+.shadow-lg,
+.shadow-xl {
+  box-shadow: var(--shadow-tier-2) !important;
+}
+
+.focus\:ring-blue-500:focus,
+.focus\:ring-2:focus {
+  --tw-ring-color: rgba(46, 125, 239, 0.28) !important;
 }

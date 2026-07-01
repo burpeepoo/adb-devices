@@ -42,7 +42,7 @@ export default function AppUpdatePrompt({ updater }: Props) {
     >
       <Stack gap="md">
         <Group gap="sm" align="flex-start" wrap="nowrap">
-          <IconRocket size={22} color="var(--mantine-color-blue-6)" />
+          <IconRocket size={22} color="var(--color-ink)" />
           <Stack gap={4} style={{ minWidth: 0 }}>
             <Text fw={600}>
               {t("updates.available", {

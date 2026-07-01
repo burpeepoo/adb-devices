@@ -12,13 +12,14 @@ export default function CommandOutput({ title, action, children, maxHeight = 220
   return (
     <Box
       style={{
-        border: "1px solid var(--mantine-color-gray-3)",
-        borderRadius: "var(--mantine-radius-md)",
+        border: "var(--border-hairline)",
+        borderRadius: "var(--radius-card)",
         overflow: "hidden",
-        background: "var(--mantine-color-white)",
+        background: "var(--color-cloud)",
+        boxShadow: "var(--shadow-tier-1)",
       }}
     >
-      <Group justify="space-between" px="sm" py={7} style={{ borderBottom: "1px solid var(--mantine-color-gray-2)" }}>
+      <Group justify="space-between" px="md" py={10} style={{ borderBottom: "var(--border-hairline)" }}>
         <Text size="xs" fw={600} c="dimmed">
           {title}
         </Text>
@@ -33,8 +34,8 @@ export default function CommandOutput({ title, action, children, maxHeight = 220
           overflow: "auto",
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
-          background: "#111827",
-          color: "#e5f0ff",
+          background: "var(--surface-sunken)",
+          color: "var(--text-strong)",
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
           fontSize: 12,
           lineHeight: 1.6,

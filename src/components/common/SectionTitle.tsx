@@ -9,10 +9,10 @@ interface Props {
   color?: string;
 }
 
-export default function SectionTitle({ icon, label, description, mb = 0, color = "blue" }: Props) {
+export default function SectionTitle({ icon, label, description, mb = 0, color = "ink" }: Props) {
   return (
     <Group gap={8} mb={mb} wrap="nowrap" align={description ? "flex-start" : "center"}>
-      <ThemeIcon variant="light" color={color} size={28} radius="md" style={{ flex: "0 0 auto" }}>
+      <ThemeIcon variant="filled" color={color} size={36} radius="xl" style={{ flex: "0 0 auto" }}>
         {icon}
       </ThemeIcon>
       <div style={{ minWidth: 0 }}>

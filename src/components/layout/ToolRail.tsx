@@ -1,18 +1,19 @@
 import { Indicator, Stack, Tooltip } from "@mantine/core";
 import {
   IconApps,
-  IconActivityHeartbeat,
-  IconRobot,
+  IconGauge,
   IconBrandGithub,
   IconCamera,
   IconClipboard,
   IconDeviceMobileCode,
   IconDevicesPc,
   IconListDetails,
+  IconPackage,
   IconPhotoUp,
   IconPlugConnected,
   IconSettings,
   IconTerminal2,
+  IconTestPipe,
   IconVideo,
 } from "@tabler/icons-react";
 import type { TabKey } from "../../types";
@@ -46,9 +47,9 @@ export const toolIcons: Record<TabKey, ToolConfig["icon"]> = {
   imageCast: IconPhotoUp,
   clipboard: IconClipboard,
   logcat: IconListDetails,
-  agent: IconRobot,
-  performance: IconActivityHeartbeat,
-  packages: IconDeviceMobileCode,
+  agent: IconTestPipe,
+  performance: IconGauge,
+  packages: IconPackage,
 };
 
 export default function ToolRail({
@@ -62,7 +63,7 @@ export default function ToolRail({
   onOpenGithub,
 }: Props) {
   return (
-    <Stack h="100%" align="stretch" gap={6} p={8}>
+    <Stack className="rail-card" h="100%" align="stretch" gap={4} p={8}>
       {tools.map((tool) => {
         const Icon = tool.icon;
         const active = tool.key === activeTool;

@@ -223,6 +223,7 @@ export interface AppSettings {
   languagePreference?: LanguagePreference;
   autoCheckUpdates?: boolean;
   agentCli?: AgentCliSettings;
+  agentProviders?: AgentProviderSettings;
 }
 
 export type LanguagePreference = "system" | "en-US" | "zh-CN";
@@ -244,6 +245,23 @@ export interface AgentCliSettings {
   globalProfileId: string;
   profiles: AgentCliProfile[];
   perDeviceProfileIds: Record<string, string>;
+}
+
+export type AgentApiProviderKind = "openai_compatible" | "anthropic_api";
+
+export interface AgentApiProviderConfig {
+  id: string;
+  kind: AgentApiProviderKind;
+  name: string;
+  baseUrl: string;
+  model: string;
+  apiKey: string;
+  enabled: boolean;
+}
+
+export interface AgentProviderSettings {
+  defaultProviderId: string;
+  apiProviders: AgentApiProviderConfig[];
 }
 
 export type AndroidAgentSkillId =
@@ -294,7 +312,19 @@ export interface AgentCopilotMessage {
   skillId?: AndroidAgentSkillId;
   command?: string;
   ok?: boolean;
+  thinking?: boolean;
+  approval?: AgentApprovalRequest;
   attachments?: AgentCopilotAttachment[];
+}
+
+export interface AgentApprovalRequest {
+  id: string;
+  tool: string;
+  command: string;
+  risk: "low" | "medium" | "high";
+  reason: string;
+  status: "pending" | "running" | "approved" | "denied";
+  evidenceKind?: EvidenceSessionKind;
 }
 
 export interface AgentCopilotSession {
@@ -307,6 +337,62 @@ export interface AgentCopilotSession {
   skillId: AndroidAgentSkillId;
   cliProfileId: string;
   messages: AgentCopilotMessage[];
+}
+
+export type EvidenceSessionKind = "walkthrough" | "bug_repro";
+export type EvidenceSessionStatus = "active" | "closed";
+export type EvidenceArtifactType =
+  | "screenshot"
+  | "recording"
+  | "logcat"
+  | "note"
+  | "issue"
+  | "remote_audit"
+  | "screen_state"
+  | "agent_note";
+export type EvidenceScribeIntensity = "quiet" | "key_moments" | "live";
+
+export interface EvidenceScribeState {
+  enabled: boolean;
+  intensity: EvidenceScribeIntensity;
+  goal: string;
+  agentActive?: boolean;
+  agentStartedAt?: number | null;
+  agentStoppedAt?: number | null;
+  lastReviewedArtifactId?: string | null;
+  coverageSummary?: string;
+  issuesSummary?: string;
+  gapsSummary?: string;
+  nextAction?: string;
+}
+
+export interface EvidenceArtifact {
+  id: string;
+  type: EvidenceArtifactType;
+  title: string;
+  createdAt: number;
+  body?: string;
+  path?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface EvidenceSession {
+  id: string;
+  kind: EvidenceSessionKind;
+  status: EvidenceSessionStatus;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  closedAt?: number;
+  deviceKey: string | null;
+  deviceSerial: string | null;
+  capturePolicy: {
+    screenshots: boolean;
+    remoteAudit: boolean;
+    logcatOnIssue: boolean;
+  };
+  scribe?: EvidenceScribeState;
+  artifacts: EvidenceArtifact[];
 }
 
 export interface PairConnectSettings {

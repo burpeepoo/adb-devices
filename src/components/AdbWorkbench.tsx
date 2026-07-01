@@ -1426,7 +1426,7 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
               {t(`workbench.risk.${currentRisk}`)}
             </span>
           </div>
-          <pre className="mt-3 max-h-32 overflow-auto rounded-lg bg-gray-950 p-3 text-xs leading-5 text-gray-100">
+          <pre className="mt-3 max-h-32 overflow-auto rounded-lg bg-gray-50 p-3 text-xs leading-5 text-gray-800">
             {commandPreview(currentCommand || "<empty>", deviceSerial)}
           </pre>
           {!deviceSerial && <DeviceTargetBanner target={deviceTarget} className="mt-2" />}
@@ -1475,11 +1475,11 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
                   <div className="text-xs text-gray-500">
                     {t("workbench.exitCode")}: {result.exit_code ?? "-"}
                   </div>
-                  <pre className="max-h-52 overflow-auto whitespace-pre-wrap rounded-md bg-gray-950 p-3 text-xs leading-5 text-gray-100">
+                  <pre className="max-h-52 overflow-auto whitespace-pre-wrap rounded-md bg-gray-50 p-3 text-xs leading-5 text-gray-800">
                     {result.stdout || result.stderr || t("workbench.noOutput")}
                   </pre>
                   {result.stderr && result.stdout && (
-                    <pre className="max-h-32 overflow-auto whitespace-pre-wrap rounded-md bg-red-950 p-3 text-xs leading-5 text-red-100">
+                    <pre className="max-h-32 overflow-auto whitespace-pre-wrap rounded-md bg-red-50 p-3 text-xs leading-5 text-red-600">
                       {result.stderr}
                     </pre>
                   )}

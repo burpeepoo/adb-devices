@@ -2,10 +2,10 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { invoke } from "@tauri-apps/api/core";
 import { Badge, Button, Group, Paper, Select, Stack, Table, Text } from "@mantine/core";
 import {
-  IconActivityHeartbeat,
   IconChevronDown,
   IconChevronRight,
   IconDownload,
+  IconGauge,
   IconPlayerPause,
   IconPlayerPlay,
   IconPinned,
@@ -509,7 +509,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
         <Stack gap="md">
           <Group justify="space-between" align="flex-start" gap="md">
             <SectionTitle
-              icon={<IconActivityHeartbeat size={17} />}
+              icon={<IconGauge size={17} />}
               label={t("performance.title")}
               description={running ? t("performance.running") : t("performance.stopped")}
             />
@@ -881,7 +881,7 @@ function TrendSection({
     {
       key: "processCpu",
       title: t("performance.trendProcessCpu"),
-      color: "#2563eb",
+      color: "var(--color-signal)",
       zeroBase: true,
       valueOf: (point) => point.processCpuPercent,
       formatValue: formatPercent,
@@ -889,7 +889,7 @@ function TrendSection({
     {
       key: "systemCpu",
       title: t("performance.trendSystemCpu"),
-      color: "#16a34a",
+      color: "var(--color-meadow)",
       zeroBase: true,
       valueOf: (point) => point.systemCpuPercent,
       formatValue: formatPercent,
@@ -897,7 +897,7 @@ function TrendSection({
     {
       key: "gpu",
       title: t("performance.trendGpu"),
-      color: "#0d9488",
+      color: "var(--color-signal)",
       emptyLabel: gpuEmptyLabel,
       zeroBase: true,
       valueOf: (point) => point.gpuUsagePercent,
@@ -906,21 +906,21 @@ function TrendSection({
     {
       key: "rss",
       title: t("performance.trendRss"),
-      color: "#9333ea",
+      color: "var(--color-citrus)",
       valueOf: (point) => point.rssMb,
       formatValue: formatMb,
     },
     {
       key: "memory",
       title: t("performance.trendMemory"),
-      color: "#0891b2",
+      color: "var(--color-meadow)",
       valueOf: (point) => point.memoryUsedGb,
       formatValue: formatGb,
     },
     {
       key: "p95",
       title: t("performance.trendP95"),
-      color: "#ea580c",
+      color: "var(--color-citrus)",
       referenceValue: 16.67,
       valueOf: (point) => point.p95FrameMs,
       formatValue: formatMs,
@@ -928,7 +928,7 @@ function TrendSection({
     {
       key: "network",
       title: t("performance.trendNetwork"),
-      color: "#475569",
+      color: "var(--color-mist)",
       zeroBase: true,
       valueOf: (point) => point.networkKbPerSecond,
       formatValue: formatKilobytesPerSecond,
@@ -1042,11 +1042,11 @@ function LineChart({
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="h-28 w-full rounded-md border border-gray-200 bg-gray-50" role="img" aria-label={ariaLabel} preserveAspectRatio="none">
-      <line x1={paddingX} y1={paddingY} x2={paddingX} y2={height - paddingY} stroke="#e5e7eb" />
-      <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="#e5e7eb" />
-      <line x1={paddingX} y1={paddingY + plotHeight / 2} x2={width - paddingX} y2={paddingY + plotHeight / 2} stroke="#e5e7eb" strokeDasharray="4 6" />
+      <line x1={paddingX} y1={paddingY} x2={paddingX} y2={height - paddingY} stroke="var(--color-edge)" />
+      <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="var(--color-edge)" />
+      <line x1={paddingX} y1={paddingY + plotHeight / 2} x2={width - paddingX} y2={paddingY + plotHeight / 2} stroke="var(--color-edge)" strokeDasharray="4 6" />
       {referenceY !== null && (
-        <line x1={paddingX} y1={referenceY} x2={width - paddingX} y2={referenceY} stroke="#dc2626" strokeDasharray="6 6" />
+        <line x1={paddingX} y1={referenceY} x2={width - paddingX} y2={referenceY} stroke="var(--color-citrus)" strokeDasharray="6 6" />
       )}
       <path d={path} fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" vectorEffect="non-scaling-stroke" />
     </svg>

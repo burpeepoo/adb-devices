@@ -1,29 +1,38 @@
 .app-shell-layout {
   display: grid;
-  grid-template-rows: 1fr 28px;
+  grid-template-rows: minmax(0, 1fr) 28px;
   height: 100vh;
   min-height: 0;
-  background: var(--mantine-color-gray-0);
-  color: var(--mantine-color-gray-9);
+  background-color: var(--surface-page);
+  background-image:
+    radial-gradient(62% 38% at 18% 78%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 62%),
+    radial-gradient(52% 34% at 82% 70%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(48% 30% at 50% 18%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0) 60%),
+    linear-gradient(180deg, var(--color-horizon) 0%, var(--color-sky) 78%);
+  color: var(--text-strong);
 }
 
 .app-shell-layout__body {
   min-height: 0;
   display: grid;
-  grid-template-columns: 176px 292px minmax(0, 1fr);
+  grid-template-columns: 196px 304px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 12px 0;
 }
 
 .app-shell-layout__rail {
   min-height: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  background: #111827;
+  min-width: 0;
 }
 
 .app-shell-layout__devices {
   min-width: 0;
   min-height: 0;
-  border-right: 1px solid var(--mantine-color-gray-3);
-  background: var(--mantine-color-gray-0);
+  overflow: hidden;
+  border: var(--border-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-cloud);
+  box-shadow: var(--shadow-tier-1);
 }
 
 .app-shell-layout__workspace {
@@ -38,15 +47,17 @@
   min-height: 0;
   flex: 1;
   overflow: auto;
-  padding: 16px;
+  padding: 12px 0 12px;
 }
 
 @media (max-width: 940px) {
   .app-shell-layout__body {
-    grid-template-columns: 156px 240px minmax(0, 1fr);
+    grid-template-columns: 176px 260px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px 10px 0;
   }
 
   .app-shell-layout__content {
-    padding: 12px;
+    padding: 10px 0 10px;
   }
 }

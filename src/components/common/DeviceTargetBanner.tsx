@@ -19,17 +19,19 @@ export default function DeviceTargetBanner({ target, className }: Props) {
   return (
     <Paper
       withBorder
-      radius="md"
-      p="sm"
-      className={className}
-      bg={ready ? "green.0" : "yellow.0"}
-      style={{ borderColor: ready ? "var(--mantine-color-green-2)" : "var(--mantine-color-yellow-3)" }}
+      px="sm"
+      py="xs"
+      className={`device-target-banner${className ? ` ${className}` : ""}`}
+      style={{
+        background: "var(--color-cloud)",
+        borderColor: ready ? "var(--color-edge)" : "var(--color-citrus)",
+      }}
     >
       <Group gap="sm" align="flex-start" wrap="nowrap">
-        {ready ? <IconDeviceMobile size={18} /> : <IconAlertTriangle size={18} />}
+        {ready ? <IconDeviceMobile size={18} color="var(--color-ink)" /> : <IconAlertTriangle size={18} color="var(--color-citrus)" />}
         <Stack gap={3} style={{ minWidth: 0, flex: 1 }}>
           <Group gap="xs" wrap="nowrap">
-            <Text size="xs" fw={700} c={ready ? "green.9" : "yellow.9"}>
+            <Text size="xs" fw={700} style={{ color: ready ? "var(--text-strong)" : "var(--color-citrus)" }}>
               {t("deviceTarget.title")}
             </Text>
             <Badge size="xs" color={ready ? "green" : "yellow"} variant="light">
@@ -49,7 +51,7 @@ export default function DeviceTargetBanner({ target, className }: Props) {
               </Text>
             </>
           ) : (
-            <Text size="sm" c="yellow.9">
+            <Text size="sm" style={{ color: "var(--color-citrus)" }}>
               {t(messageKey, { count: target.onlineDeviceCount })}
             </Text>
           )}

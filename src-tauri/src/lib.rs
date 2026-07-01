@@ -81,6 +81,8 @@ pub fn run() {
             commands::agent::adb_agent_stop,
             commands::agent::adb_agent_sample,
             commands::agent_cli::agent_cli_analyze,
+            commands::agent_cli::agent_cli_probe,
+            commands::evidence::export_evidence_package,
             commands::image_cast::read_image_preview_data_url,
             commands::image_cast::adb_open_reference_image,
             commands::image_cast::adb_push_reference_image,
