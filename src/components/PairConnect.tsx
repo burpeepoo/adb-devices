@@ -1255,12 +1255,12 @@ function MdnsRow({
             <Text size="sm" fw={600} truncate>
               {device.service_name}
             </Text>
-            <Badge color="green" size="sm" variant="light">
+            <Text className="device-inline-status device-inline-status--positive" size="xs" fw={600}>
               {t('pairConnect.connectable')}
-            </Badge>
-            <Badge color={connected ? "blue" : "gray"} size="sm" variant="light">
+            </Text>
+            <Text className={`device-inline-status${connected ? " device-inline-status--positive" : ""}`} size="xs" fw={600}>
               {connected ? t('pairConnect.connected') : t('pairConnect.notConnected')}
-            </Badge>
+            </Text>
           </Group>
           <Text size="xs" c="dimmed" mt={4} truncate>
           {device.address} · {device.service_type}
@@ -1289,12 +1289,12 @@ function ConnectedAdbDeviceRow({ device }: { device: DeviceInfo }) {
             <Text size="sm" fw={600} truncate>
               {title}
             </Text>
-            <Badge color="blue" size="sm" variant="light">
+            <Text className="device-inline-status device-inline-status--positive" size="xs" fw={600}>
               {t('pairConnect.connected')}
-            </Badge>
-            <Badge color="gray" size="sm" variant="light">
+            </Text>
+            <Text className="device-inline-status" size="xs" fw={600}>
               {t('pairConnect.adbConnected')}
-            </Badge>
+            </Text>
           </Group>
           <Text size="xs" c="dimmed" mt={4} truncate>
             {subtitle}
@@ -1545,13 +1545,13 @@ function WirelessRecoverySteps({
           <div key={step.id} className="px-3 py-2">
             <Group gap="xs" justify="space-between" align="flex-start" wrap="nowrap">
               <div style={{ minWidth: 0 }}>
-                <Group gap={6} wrap="nowrap">
-                  <Text size="sm" fw={600} c="gray.8" style={{ minWidth: 20, textAlign: "center" }}>
+                <Group className="wireless-recovery-step-meta" gap={8} wrap="nowrap">
+                  <Text className="wireless-recovery-step-index" size="sm" fw={600}>
                     {index + 1}
                   </Text>
-                  <Badge size="xs" color={recoveryStateColor(step.state)} variant="light">
+                  <Text className={`wireless-recovery-step-state wireless-recovery-step-state--${step.state}`} size="xs" fw={600}>
                     {t(`pairConnect.recovery.states.${step.state}`)}
-                  </Badge>
+                  </Text>
                 </Group>
                 <Text size="sm" fw={700} mt={5}>
                   {t(`pairConnect.recovery.steps.${step.id}.title`)}
@@ -1651,14 +1651,6 @@ function recoveryAction(
     );
   }
   return null;
-}
-
-function recoveryStateColor(state: WirelessRecoveryStep["state"]) {
-  if (state === "done") return "green";
-  if (state === "recommended") return "blue";
-  if (state === "warning") return "yellow";
-  if (state === "danger") return "red";
-  return "gray";
 }
 
 function PairRepairAction({

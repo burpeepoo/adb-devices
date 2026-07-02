@@ -48,16 +48,42 @@ test("keeps host identity reset locked behind safe repair", () => {
 
 test("wireless recovery ladder steps do not render as bordered cards", () => {
   const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
+  const indexCss = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
   const componentStart = source.indexOf("function WirelessRecoverySteps");
   const componentEnd = source.indexOf("function recoveryAction");
   const componentSource = source.slice(componentStart, componentEnd);
 
   assert.match(componentSource, /<div key=\{step\.id\} className="px-3 py-2">/);
-  assert.match(componentSource, /<Text size="sm" fw=\{600\} c="gray\.8"/);
+  assert.match(componentSource, /<Text className="wireless-recovery-step-index" size="sm" fw=\{600\}>/);
+  assert.match(componentSource, /className="wireless-recovery-step-index"/);
+  assert.match(componentSource, /wireless-recovery-step-state--\$\{step\.state\}/);
+  assert.match(indexCss, /\.wireless-recovery-step-state/);
   assert.doesNotMatch(componentSource, /rounded-md border border-gray-200 bg-white/);
   assert.doesNotMatch(componentSource, /<Badge size="xs" color="gray" variant="light">\s*\{index \+ 1\}/);
+  assert.doesNotMatch(componentSource, /<Badge[\s\S]*pairConnect\.recovery\.states/);
+});
+
+test("device connection row statuses are inline text instead of badge chips", () => {
+  const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
+  const indexCss = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
+  const mdnsRow = componentSlice(source, "function MdnsRow", "function ConnectedAdbDeviceRow");
+  const connectedRow = componentSlice(source, "function ConnectedAdbDeviceRow", "function isMdnsDeviceConnected");
+
+  assert.match(mdnsRow, /device-inline-status device-inline-status--positive/);
+  assert.match(connectedRow, /device-inline-status device-inline-status--positive/);
+  assert.match(indexCss, /\.device-inline-status::before/);
+  assert.doesNotMatch(mdnsRow, /<Badge[\s\S]*pairConnect\.(connectable|connected|notConnected)/);
+  assert.doesNotMatch(connectedRow, /<Badge[\s\S]*pairConnect\.(connected|adbConnected)/);
 });
 
 function recent(ip: string, port: string): RecentConnectEndpoint {
   return { ip, port, lastConnectedAt: 1000 };
+}
+
+function componentSlice(source: string, startMarker: string, endMarker: string) {
+  const start = source.indexOf(startMarker);
+  const end = source.indexOf(endMarker);
+  assert.ok(start >= 0, `${startMarker} should exist`);
+  assert.ok(end > start, `${endMarker} should appear after ${startMarker}`);
+  return source.slice(start, end);
 }

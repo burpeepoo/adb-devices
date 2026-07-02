@@ -1,28 +1,16 @@
 import { Indicator, Stack, Tooltip } from "@mantine/core";
 import {
-  IconApps,
-  IconGauge,
   IconBrandGithub,
-  IconCamera,
-  IconClipboard,
-  IconDeviceMobileCode,
-  IconDevicesPc,
-  IconListDetails,
-  IconPackage,
-  IconPhotoUp,
-  IconPlugConnected,
   IconSettings,
-  IconTerminal2,
-  IconTestPipe,
-  IconVideo,
 } from "@tabler/icons-react";
 import type { TabKey } from "../../types";
+import type { ToolIcon } from "../../toolMetadata";
 import "./ToolRail.css";
 
 interface ToolConfig {
   key: TabKey;
   label: string;
-  icon: typeof IconPlugConnected;
+  icon: ToolIcon;
 }
 
 interface Props {
@@ -35,22 +23,6 @@ interface Props {
   onOpenSettings: () => void;
   onOpenGithub: () => void;
 }
-
-export const toolIcons: Record<TabKey, ToolConfig["icon"]> = {
-  pair: IconPlugConnected,
-  workbench: IconTerminal2,
-  install: IconApps,
-  screenshot: IconCamera,
-  record: IconVideo,
-  mirror: IconDevicesPc,
-  remote: IconDeviceMobileCode,
-  imageCast: IconPhotoUp,
-  clipboard: IconClipboard,
-  logcat: IconListDetails,
-  agent: IconTestPipe,
-  performance: IconGauge,
-  packages: IconPackage,
-};
 
 export default function ToolRail({
   tools,

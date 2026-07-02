@@ -28,7 +28,7 @@ export default function DeviceTargetBanner({ target, className }: Props) {
       }}
     >
       <Group gap="sm" align="flex-start" wrap="nowrap">
-        {ready ? <IconDeviceMobile size={18} color="var(--color-ink)" /> : <IconAlertTriangle size={18} color="var(--color-citrus)" />}
+        {ready ? <IconDeviceMobile size={18} color="var(--color-indigo)" /> : <IconAlertTriangle size={18} color="var(--color-citrus)" />}
         <Stack gap={3} style={{ minWidth: 0, flex: 1 }}>
           <Group gap="xs" wrap="nowrap">
             <Text size="xs" fw={700} style={{ color: ready ? "var(--text-strong)" : "var(--color-citrus)" }}>

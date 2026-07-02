@@ -9,7 +9,7 @@ fi
 
 args=()
 for arg in "$@"; do
-    if [[ "$arg" == "--timestamp" ]]; then
+    if [[ "$arg" == "--timestamp" || "$arg" == --timestamp=* ]]; then
         args+=("--timestamp=$APPLE_CODESIGN_TIMESTAMP_URL")
     else
         args+=("$arg")

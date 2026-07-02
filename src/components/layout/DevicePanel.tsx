@@ -121,7 +121,7 @@ export default function DevicePanel({
 
 function DeviceSection({ label }: { label: string }) {
   return (
-    <Text size="xs" fw={500} c="dimmed" px={4} pt={8}>
+    <Text size="xs" fw={600} c="dimmed" px={4} pt={8} style={{ fontFamily: "var(--font-mono)", letterSpacing: "var(--tracking-wide)", textTransform: "uppercase" }}>
       {label}
     </Text>
   );
@@ -158,7 +158,7 @@ function DeviceRow({
     <Box
       p="xs"
       style={{
-        border: selected ? "1px solid var(--color-ink)" : "1px solid transparent",
+        border: selected ? "1px solid var(--color-indigo)" : "1px solid transparent",
         borderRadius: "var(--radius-tile)",
         background: selected ? "var(--surface-sunken)" : "var(--color-cloud)",
         opacity: online ? 1 : 0.6,

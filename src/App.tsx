@@ -11,6 +11,7 @@ import { useDevices } from "./hooks/useDevices";
 import { useAppUpdater } from "./hooks/useAppUpdater";
 import { isAutoUpdateCheckEnabled } from "./updaterPolicy";
 import { markTabVisited, TAB_KEYS } from "./tabState";
+import { toolIcons, toolLabelKeys } from "./toolMetadata";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import { deviceIdentityKey, setDeviceNote, type DeviceNotes } from "./deviceNotes";
 import { normalizeAgentCliSettings } from "./agentCliSettings";
@@ -24,7 +25,7 @@ import AppShellLayout from "./components/layout/AppShellLayout";
 import DevicePanel from "./components/layout/DevicePanel";
 import PageHeader from "./components/layout/PageHeader";
 import StatusBar from "./components/layout/StatusBar";
-import ToolRail, { toolIcons } from "./components/layout/ToolRail";
+import ToolRail from "./components/layout/ToolRail";
 import AdbSetup from "./components/AdbSetup";
 import DeviceConsole from "./components/DeviceConsole";
 import AdbWorkbench from "./components/AdbWorkbench";
@@ -82,21 +83,9 @@ export default function App() {
     autoCheckEnabled: settingsLoaded && isAutoUpdateCheckEnabled(settings.autoCheckUpdates),
   });
 
-  const TAB_LABELS: Record<TabKey, string> = {
-    pair: t('tabs.pairConnect'),
-    workbench: t('tabs.workbench'),
-    install: t('tabs.apkInstall'),
-    screenshot: t('tabs.screenshot'),
-    record: t('tabs.screenRecord'),
-    mirror: t('tabs.screenMirror'),
-    remote: t('tabs.remoteControl'),
-    imageCast: t('tabs.imageCast'),
-    clipboard: t('tabs.clipboard'),
-    logcat: t('tabs.logcat'),
-    agent: t('tabs.agent'),
-    performance: t('tabs.performance'),
-    packages: t('tabs.packageList'),
-  };
+  const TAB_LABELS: Record<TabKey, string> = Object.fromEntries(
+    TAB_KEYS.map((key) => [key, t(toolLabelKeys[key])]),
+  ) as Record<TabKey, string>;
   const tools = TAB_KEYS.map((key) => ({
     key,
     label: TAB_LABELS[key],

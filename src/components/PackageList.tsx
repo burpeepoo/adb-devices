@@ -2,10 +2,10 @@ import { useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { ExportedApk, PackageInfo } from "../types";
 import { useTranslation } from "react-i18next";
-import { IconPackage } from "@tabler/icons-react";
 import SectionTitle from "./common/SectionTitle";
 import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
+import { toolIcons, toolLabelKeys } from "../toolMetadata";
 
 interface Props {
   deviceTarget: DeviceTargetState;
@@ -16,6 +16,7 @@ type SortDirection = "asc" | "desc";
 
 export default function PackageList({ deviceTarget }: Props) {
   const { t } = useTranslation();
+  const PackageIcon = toolIcons.packages;
   const [packages, setPackages] = useState<PackageInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -115,7 +116,7 @@ export default function PackageList({ deviceTarget }: Props) {
   return (
     <div className="card card-flush h-full flex flex-col">
       <div className="p-6 border-b border-gray-200">
-        <SectionTitle icon={<IconPackage size={17} />} label={t('tabs.packageList')} mb="sm" />
+        <SectionTitle icon={<PackageIcon size={17} />} label={t(toolLabelKeys.packages)} mb="sm" />
         <DeviceTargetBanner target={deviceTarget} className="mb-3" />
         <div className="flex gap-2 mb-2">
           <button

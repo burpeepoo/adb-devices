@@ -3,12 +3,10 @@
   grid-template-rows: minmax(0, 1fr) 28px;
   height: 100vh;
   min-height: 0;
-  background-color: var(--surface-page);
+  background-color: var(--color-paper);
   background-image:
-    radial-gradient(62% 38% at 18% 78%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 62%),
-    radial-gradient(52% 34% at 82% 70%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 60%),
-    radial-gradient(48% 30% at 50% 18%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0) 60%),
-    linear-gradient(180deg, var(--color-horizon) 0%, var(--color-sky) 78%);
+    radial-gradient(900px 460px at 94% -10%, rgba(139, 114, 240, 0.12) 0%, rgba(139, 114, 240, 0) 64%),
+    radial-gradient(760px 420px at -12% 26%, rgba(71, 39, 181, 0.07) 0%, rgba(71, 39, 181, 0) 66%);
   color: var(--text-strong);
 }
 
@@ -16,8 +14,8 @@
   min-height: 0;
   display: grid;
   grid-template-columns: 196px 304px minmax(0, 1fr);
-  gap: 12px;
-  padding: 12px 12px 0;
+  gap: 14px;
+  padding: 14px 14px 0;
 }
 
 .app-shell-layout__rail {
@@ -32,7 +30,7 @@
   border: var(--border-hairline);
   border-radius: var(--radius-card);
   background: var(--color-cloud);
-  box-shadow: var(--shadow-tier-1);
+  box-shadow: none;
 }
 
 .app-shell-layout__workspace {
@@ -47,17 +45,17 @@
   min-height: 0;
   flex: 1;
   overflow: auto;
-  padding: 12px 0 12px;
+  padding: 14px 0 14px;
 }
 
 @media (max-width: 940px) {
   .app-shell-layout__body {
     grid-template-columns: 176px 260px minmax(0, 1fr);
-    gap: 10px;
-    padding: 10px 10px 0;
+    gap: 12px;
+    padding: 12px 12px 0;
   }
 
   .app-shell-layout__content {
-    padding: 10px 0 10px;
+    padding: 12px 0 12px;
   }
 }

@@ -103,6 +103,7 @@ Timestamp gotcha:
 
 - Local DNS/proxy can break Apple timestamping.
 - `APPLE_CODESIGN_TIMESTAMP_URL` activates `scripts/release-shims/codesign`.
+- When `APPLE_CODESIGN_TIMESTAMP_URL` is set, `scripts/build-dmg.sh` uses Tauri `--no-sign`, signs the generated app bundle with that timestamp URL, verifies it, then rebuilds the updater archive and signature from the signed bundle.
 - `PRODUCTBUILD_TIMESTAMP_MODE=none` is used for productbuild timestamp issues.
 
 ## Updater Feed

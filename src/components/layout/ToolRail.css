@@ -4,7 +4,7 @@
   background: var(--color-cloud);
   border: var(--border-hairline);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-tier-1);
+  box-shadow: none;
 }
 
 .tool-rail__button {
@@ -29,16 +29,16 @@
 }
 
 .tool-rail__button:hover {
-  color: var(--text-strong);
+  color: var(--color-indigo);
   background: var(--surface-sunken);
-  border-color: var(--color-edge);
+  border-color: rgba(71, 39, 181, 0.1);
 }
 
 .tool-rail__button[data-active="true"] {
-  color: var(--color-cloud);
-  background: var(--color-ink);
-  border-color: var(--color-ink);
-  box-shadow: var(--shadow-tier-2);
+  color: var(--color-white);
+  background: var(--color-royal);
+  border-color: var(--color-royal);
+  box-shadow: none;
 }
 
 .tool-rail__button--utility {
@@ -51,6 +51,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--fs-body);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0;
 }

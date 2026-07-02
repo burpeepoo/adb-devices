@@ -91,7 +91,7 @@
     "version": "ADB Manager v{{version}}"
   },
   "agent": {
-    "title": "Android Device Copilot",
+    "title": "Agent 实验室",
     "lab": "实验室",
     "openCopilot": "打开 Copilot",
     "drawerTitle": "Copilot",
@@ -161,6 +161,7 @@
     "runtimeProbeApiSection": "模型 API",
     "runtimeProbeCliReady": "可用：{{command}}",
     "runtimeProbeCliMissing": "不可用：{{message}}",
+    "runtimeProbeCliCommandMissing": "未找到本机 CLI 命令。请在设置里确认已安装，并填写可直接执行的命令名或完整路径。",
     "runtimeProbeApiReady": "已配置：{{model}}",
     "runtimeProbeApiMissing": "未启用或缺少 Base URL、模型或 API Key",
     "runtimeProbeNoCli": "还没有配置 CLI 命令。",
@@ -231,7 +232,7 @@
     "evidenceStarted": "已开始 {{kind}} 证据记录。",
     "evidenceApprovalReason": "Agent 请求开启一条证据记录。",
     "evidenceArtifactCount": "{{count}} 条证据",
-    "evidenceActiveStatus": "记录中",
+    "evidenceActiveStatus": "{{kind}}进行中",
     "evidenceTimelineTitle": "已记录内容",
     "evidenceHistoryTitle": "最近记录",
     "evidenceHistoryEmpty": "暂无最近记录",
@@ -265,7 +266,7 @@
       "live": "实时陪跑"
     },
     "scribeReviewing": "Agent 正在整理",
-    "scribeActiveStrip": "QA Scribe 记录中 · {{count}} 条证据",
+    "scribeActiveStrip": "{{kind}}进行中 · 已保存 {{count}} 条证据",
     "scribeOpenMode": "查看",
     "scribeAgentStart": "开始 Agent 走查",
     "bugReproAgentStart": "开始 Agent 复现",

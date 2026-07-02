@@ -1,0 +1,5 @@
+en-US:
+ADB Manager 2.0.2 refreshes the desktop shell with the Marque design system and shared tool metadata, so navigation, feature headers, Copilot surfaces, and contextual drawers use consistent icons and labels. Android Device Copilot chat now keeps suggestions focused on new conversations, keeps active QA Scribe context visible while chatting, and gives clearer guidance when a configured local Agent CLI command cannot be found. The release also tightens compact layouts across setup, pairing, package list, image cast, performance, settings, status bar, command output, and device target surfaces.
+
+zh-CN:
+ADB Manager 2.0.2 将桌面外壳刷新为 Marque 设计系统，并新增共享工具元数据，让导航、功能标题、Copilot 表面和上下文抽屉使用一致的图标与文案。Android Device Copilot 对话现在只在新对话中聚焦展示提示句，在聊天时持续显示正在进行的 QA Scribe 上下文，并在本地 Agent CLI 命令找不到时给出更明确的安装或路径提示。本次版本也收紧了设置、配对、安装包列表、投屏图片、性能采样、状态栏、命令输出和设备目标等紧凑布局。

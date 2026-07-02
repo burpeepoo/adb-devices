@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-07-02
+
+### Added
+
+- Added shared tool metadata so the tool rail, feature headers, Copilot drawer, and contextual Agent surfaces use one icon and label contract.
+
+### Changed
+
+- Changed the app shell and feature surfaces to the Marque design system, with denser page spacing, updated navigation treatment, refreshed command output styling, and unified tool headers.
+- Changed Android Device Copilot chat mode to keep prompt suggestions focused on new conversations, keep active QA Scribe context visible, and improve the conversation composer layout.
+- Changed Agent runtime health messaging so missing local CLI commands are reported with a direct installation/path hint instead of a generic probe failure.
+
+### Fixed
+
+- Fixed several compact layout edges across setup, pairing, package list, image cast, performance, settings, status bar, and device target surfaces so labels and controls stay readable in the refreshed shell.
+
 ## [2.0.1] - 2026-07-01
 
 ### Added

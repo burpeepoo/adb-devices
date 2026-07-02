@@ -1,6 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 @import "./styles/system.css";
 
@@ -63,7 +61,7 @@ textarea {
   background-clip: padding-box;
 }
 
-/* Mantine skin: all feature pages inherit the Cirrus system. */
+/* Mantine skin: all feature pages inherit the Marque system. */
 .mantine-Paper-root,
 .mantine-Card-root,
 .mantine-Modal-content,
@@ -73,7 +71,7 @@ textarea {
   color: var(--text-strong) !important;
   border-color: var(--color-edge) !important;
   border-radius: var(--radius-card) !important;
-  box-shadow: var(--shadow-tier-1) !important;
+  box-shadow: none !important;
 }
 
 .mantine-Paper-root[data-with-border],
@@ -122,7 +120,9 @@ textarea {
 .mantine-Input-label {
   font-size: var(--fs-label) !important;
   font-weight: 500 !important;
-  letter-spacing: 0 !important;
+  letter-spacing: var(--tracking-wide) !important;
+  text-transform: uppercase;
+  font-family: var(--font-mono) !important;
 }
 
 .mantine-TextInput-input,
@@ -134,7 +134,7 @@ textarea {
   background: var(--color-cloud) !important;
   color: var(--text-strong) !important;
   border: var(--border-hairline) !important;
-  border-radius: var(--radius-pill) !important;
+  border-radius: var(--radius-input) !important;
   font-size: var(--fs-body) !important;
   box-shadow: none !important;
 }
@@ -162,8 +162,8 @@ textarea {
   min-height: 44px;
   border-radius: var(--radius-pill) !important;
   font-family: var(--font-sans) !important;
-  font-size: var(--fs-body) !important;
-  font-weight: 500 !important;
+  font-size: var(--fs-small) !important;
+  font-weight: 600 !important;
   letter-spacing: 0 !important;
   transition:
     transform var(--dur-quick) var(--ease-soft),
@@ -176,6 +176,17 @@ textarea {
   transform: translateY(-1px);
 }
 
+.mantine-Button-root[data-variant="filled"] {
+  background: var(--color-indigo) !important;
+  color: var(--color-white) !important;
+  border: 1.5px solid var(--color-indigo) !important;
+}
+
+.mantine-Button-root[data-variant="filled"]:hover:not(:disabled) {
+  background: var(--color-indigo-deep) !important;
+  border-color: var(--color-indigo-deep) !important;
+}
+
 .mantine-Button-root:focus-visible,
 .mantine-ActionIcon-root:focus-visible,
 .mantine-SegmentedControl-label:focus-visible {
@@ -186,28 +197,29 @@ textarea {
 .mantine-Button-root[data-variant="default"],
 .mantine-Button-root[data-variant="light"],
 .mantine-Button-root[data-variant="subtle"] {
-  background: var(--color-cloud) !important;
-  color: var(--text-strong) !important;
-  border: var(--border-hairline) !important;
+  background: transparent !important;
+  color: var(--color-indigo) !important;
+  border: 1.5px solid var(--color-indigo) !important;
 }
 
 .mantine-Button-root[data-variant="default"]:hover:not(:disabled),
 .mantine-Button-root[data-variant="light"]:hover:not(:disabled),
 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled) {
-  background: var(--surface-sunken) !important;
+  background: var(--color-indigo) !important;
+  color: var(--color-white) !important;
 }
 
 .mantine-ActionIcon-root {
   border-radius: var(--radius-pill) !important;
-  background: var(--color-cloud) !important;
-  color: var(--text-strong) !important;
+  background: transparent !important;
+  color: var(--color-indigo) !important;
   border: var(--border-hairline) !important;
 }
 
 .mantine-ActionIcon-root[data-variant="filled"] {
-  background: var(--color-ink) !important;
-  color: var(--color-cloud) !important;
-  border-color: var(--color-ink) !important;
+  background: var(--color-royal) !important;
+  color: var(--color-white) !important;
+  border-color: var(--color-royal) !important;
 }
 
 .mantine-ActionIcon-root[data-variant="subtle"]:hover,
@@ -217,41 +229,42 @@ textarea {
 
 .mantine-ThemeIcon-root {
   border-radius: var(--radius-pill) !important;
-  background: var(--color-ink) !important;
-  color: var(--color-cloud) !important;
+  background: var(--color-royal) !important;
+  color: var(--color-white) !important;
 }
 
 .mantine-Badge-root {
-  min-height: 24px;
-  padding-inline: 10px;
+  min-height: 26px;
+  padding-inline: 12px;
   border-radius: var(--radius-pill) !important;
-  border: var(--border-hairline) !important;
-  background: var(--color-cloud) !important;
-  color: var(--text-strong) !important;
+  border: 1px solid rgba(71, 39, 181, 0.08) !important;
+  background: var(--surface-sunken) !important;
+  color: var(--color-indigo) !important;
   font-family: var(--font-sans) !important;
-  font-size: var(--fs-small) !important;
-  font-weight: 500 !important;
-  letter-spacing: 0 !important;
+  font-size: var(--fs-label) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
   text-transform: none !important;
 }
 
 .mantine-Badge-root[data-variant="filled"] {
-  background: var(--color-ink) !important;
-  color: var(--color-cloud) !important;
-  border-color: var(--color-ink) !important;
+  background: var(--color-royal) !important;
+  color: var(--color-white) !important;
+  border-color: transparent !important;
 }
 
 .mantine-SegmentedControl-root {
   padding: 4px;
   border-radius: var(--radius-pill) !important;
   background: var(--surface-sunken) !important;
-  border: var(--border-hairline) !important;
+  border: 0 !important;
 }
 
 .mantine-SegmentedControl-indicator {
   border-radius: var(--radius-pill) !important;
-  background: var(--color-ink) !important;
-  box-shadow: var(--shadow-tier-2) !important;
+  background: var(--color-paper) !important;
+  box-shadow: 0 1px 2px rgba(26, 26, 46, 0.08),
+    0 8px 20px -12px rgba(71, 39, 181, 0.35) !important;
 }
 
 .mantine-SegmentedControl-label {
@@ -260,14 +273,14 @@ textarea {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-pill) !important;
-  color: var(--text-strong) !important;
-  font-size: var(--fs-body) !important;
-  font-weight: 500 !important;
+  color: var(--text-muted) !important;
+  font-size: var(--fs-small) !important;
+  font-weight: 600 !important;
   letter-spacing: 0 !important;
 }
 
 .mantine-SegmentedControl-input:checked + .mantine-SegmentedControl-label {
-  color: var(--color-cloud) !important;
+  color: var(--color-indigo) !important;
 }
 
 .mantine-Alert-root {
@@ -275,7 +288,7 @@ textarea {
   border-radius: var(--radius-card) !important;
   background: var(--color-cloud) !important;
   color: var(--text-strong) !important;
-  box-shadow: var(--shadow-tier-1);
+  box-shadow: none;
 }
 
 .mantine-Code-root,
@@ -290,7 +303,7 @@ code {
   background: var(--surface-sunken) !important;
 }
 
-/* App-specific Cirrus surfaces. */
+/* App-specific Marque surfaces. */
 .agent-copilot-system {
   --agent-panel-bg: var(--surface-page);
   --agent-card-bg: var(--color-cloud);
@@ -307,7 +320,7 @@ code {
 .agent-copilot-session-list {
   border: var(--border-hairline);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-tier-1);
+  box-shadow: none;
   background: var(--color-cloud);
 }
 
@@ -317,10 +330,78 @@ code {
   justify-content: center;
   width: 40px;
   height: 40px;
-  color: var(--color-cloud);
-  background: var(--color-ink);
+  color: var(--color-white);
+  background: var(--color-indigo);
   border-radius: var(--radius-pill);
   flex: 0 0 auto;
+}
+
+.agent-copilot-title-badge--compact {
+  width: 28px;
+  height: 28px;
+}
+
+.agent-copilot-panel {
+  overflow: hidden;
+}
+
+.agent-copilot-drawer-layout {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.agent-copilot-drawer-header,
+.agent-copilot-runtime-section,
+.agent-copilot-context-strip,
+.agent-copilot-mode-switch.mantine-SegmentedControl-root,
+.agent-copilot-mode-footer {
+  flex: 0 0 auto;
+}
+
+.agent-copilot-apk-strip,
+.agent-copilot-cli-strip,
+.agent-copilot-scribe-summary,
+.agent-copilot-empty-state {
+  border: var(--border-hairline);
+  border-radius: var(--radius-tile);
+  background: var(--surface-sunken);
+}
+
+.agent-copilot-apk-strip,
+.agent-copilot-cli-strip {
+  padding: var(--space-sm) var(--space-md);
+}
+
+.agent-copilot-cli-strip .mantine-Select-root {
+  min-width: 0;
+}
+
+.agent-copilot-scribe-summary,
+.agent-copilot-empty-state {
+  padding: var(--space-md);
+}
+
+.agent-copilot-mode-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.agent-copilot-mode-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.agent-copilot-mode-scroll .mantine-ScrollArea-viewport {
+  min-height: 0;
+}
+
+.agent-copilot-mode-footer {
+  padding-top: var(--space-sm);
+  border-top: var(--border-hairline);
 }
 
 .device-target-banner.mantine-Paper-root {
@@ -346,10 +427,15 @@ code {
 .agent-copilot-session-card.is-active,
 .agent-copilot-scribe-active-strip {
   background: var(--surface-sunken);
+  border-color: rgba(71, 39, 181, 0.14);
+}
+
+.agent-copilot-scribe-active-strip {
+  box-shadow: none !important;
 }
 
 .agent-copilot-message-command {
-  background: var(--surface-page);
+  background: var(--surface-sunken);
 }
 
 .agent-copilot-evidence-item pre,
@@ -360,16 +446,12 @@ code {
   font-size: var(--fs-small);
 }
 
-.agent-copilot-scribe-agent-composer {
-  border-top: var(--border-hairline) !important;
-}
-
 .settings-section-card,
 .apk-install-card {
   border: var(--border-hairline) !important;
   border-radius: var(--radius-card) !important;
   background: var(--color-cloud) !important;
-  box-shadow: var(--shadow-tier-1);
+  box-shadow: none;
 }
 
 .apk-install-page {
@@ -388,6 +470,43 @@ code {
   color: var(--text-strong) !important;
 }
 
+.wireless-recovery-step-meta {
+  color: var(--text-muted);
+}
+
+.wireless-recovery-step-index {
+  min-width: 20px;
+  color: var(--text-muted) !important;
+  text-align: center;
+}
+
+.wireless-recovery-step-state {
+  color: var(--text-muted) !important;
+  line-height: 1.3;
+}
+
+.device-inline-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-muted) !important;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.device-inline-status::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  content: "";
+  opacity: 0.55;
+}
+
+.device-inline-status--positive {
+  color: color-mix(in srgb, var(--color-meadow) 76%, var(--color-ink)) !important;
+}
+
 .apk-install-queue-panel > div {
   border: var(--border-hairline) !important;
   border-radius: var(--radius-card) !important;
@@ -395,7 +514,7 @@ code {
 }
 
 .apk-install-action-bar {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--color-cloud) 22%) !important;
+  background: linear-gradient(180deg, rgba(250, 250, 252, 0), var(--color-cloud) 22%) !important;
   border-top: var(--border-hairline) !important;
 }
 
@@ -403,7 +522,7 @@ code {
   border: var(--border-hairline) !important;
   border-radius: var(--radius-card) !important;
   background: var(--color-cloud) !important;
-  box-shadow: var(--shadow-tier-1) !important;
+  box-shadow: none !important;
 }
 
 /* Legacy Tailwind palette bridge for pages that still use utility classes. */
@@ -429,7 +548,7 @@ code {
 
 .bg-blue-600,
 .hover\:bg-blue-700:hover {
-  background-color: var(--color-ink) !important;
+  background-color: var(--color-indigo) !important;
 }
 
 .bg-red-600,
@@ -443,7 +562,7 @@ code {
 }
 
 .text-white {
-  color: var(--color-cloud) !important;
+  color: var(--color-white) !important;
 }
 
 .text-gray-400,
@@ -463,7 +582,7 @@ code {
 .text-blue-500,
 .text-blue-600,
 .hover\:text-blue-700:hover {
-  color: var(--color-signal) !important;
+  color: var(--color-indigo) !important;
 }
 
 .text-red-500,
@@ -508,5 +627,5 @@ code {
 
 .focus\:ring-blue-500:focus,
 .focus\:ring-2:focus {
-  --tw-ring-color: rgba(46, 125, 239, 0.28) !important;
+  --tw-ring-color: rgba(139, 114, 240, 0.42) !important;
 }

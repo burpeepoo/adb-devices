@@ -16,7 +16,7 @@ export default function CommandOutput({ title, action, children, maxHeight = 220
         borderRadius: "var(--radius-card)",
         overflow: "hidden",
         background: "var(--color-cloud)",
-        boxShadow: "var(--shadow-tier-1)",
+        boxShadow: "none",
       }}
     >
       <Group justify="space-between" px="md" py={10} style={{ borderBottom: "var(--border-hairline)" }}>

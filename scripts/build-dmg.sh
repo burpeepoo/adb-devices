@@ -27,6 +27,11 @@ fi
 : "${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:=}"
 export TAURI_SIGNING_PRIVATE_KEY_PASSWORD
 
+if [[ -n "${APPLE_CODESIGN_TIMESTAMP_URL:-}" && -z "${APPLE_SIGNING_IDENTITY:-}" ]]; then
+    echo "Error: APPLE_SIGNING_IDENTITY is required when APPLE_CODESIGN_TIMESTAMP_URL is set." >&2
+    exit 1
+fi
+
 normalize_arch() {
     case "${1:-}" in
         "" | native)
@@ -80,6 +85,36 @@ copy_updater_artifacts() {
     cp "$app_signature" "$UPDATER_DIR/$updater_name.sig"
 }
 
+sign_app_bundle_with_timestamp_url() {
+    local app_src="$1"
+    local candidate
+
+    echo "Signing app bundle with custom timestamp URL..."
+    while IFS= read -r -d '' candidate; do
+        if file "$candidate" | grep -q 'Mach-O'; then
+            codesign --force --options runtime --timestamp="$APPLE_CODESIGN_TIMESTAMP_URL" --sign "$APPLE_SIGNING_IDENTITY" "$candidate"
+        fi
+    done < <(find "$app_src/Contents" -type f -print0)
+
+    codesign --force --options runtime --timestamp="$APPLE_CODESIGN_TIMESTAMP_URL" --sign "$APPLE_SIGNING_IDENTITY" "$app_src"
+    codesign --verify --deep --strict --verbose=2 "$app_src"
+}
+
+rebuild_updater_artifact() {
+    local app_src="$1"
+    local target="$2"
+    local bundle_dir
+    local app_archive
+
+    bundle_dir="src-tauri/target/${target}/release/bundle/macos"
+    app_archive="$bundle_dir/ADB Manager.app.tar.gz"
+
+    echo "Rebuilding updater archive after manual signing..."
+    rm -f "$app_archive" "$app_archive.sig"
+    tar -C "$bundle_dir" -czf "$app_archive" "$(basename "$app_src")"
+    npx tauri signer sign "$app_archive" | awk 'found && NF { print; exit } /^Public signature:$/ { found = 1 }' > "$app_archive.sig"
+}
+
 build_one() {
     local arch="$1"
     local target
@@ -104,11 +139,19 @@ build_one() {
     echo "[1/3] Building app bundle..."
     find "src-tauri/target/${target}/release/bundle/macos" "$DMG_DIR" \
         -maxdepth 1 -name 'rw.*.dmg' -type f -delete 2>/dev/null || true
-    npx tauri build --bundles app --target "$target"
+    if [[ -n "${APPLE_CODESIGN_TIMESTAMP_URL:-}" ]]; then
+        npx tauri build --bundles app --target "$target" --no-sign
+    else
+        npx tauri build --bundles app --target "$target"
+    fi
 
     if [[ ! -d "$app_src" ]]; then
         echo "Error: app bundle was not generated: $app_src" >&2
         exit 1
+    fi
+    if [[ -n "${APPLE_CODESIGN_TIMESTAMP_URL:-}" ]]; then
+        sign_app_bundle_with_timestamp_url "$app_src"
+        rebuild_updater_artifact "$app_src" "$target"
     fi
     copy_updater_artifacts "$arch" "$target"
 

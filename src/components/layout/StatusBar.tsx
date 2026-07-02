@@ -16,7 +16,7 @@ export default function StatusBar({ adbReadyLabel, countLabel, autoRefreshLabel 
       justify="space-between"
       style={{
         borderTop: "var(--border-hairline)",
-        background: "var(--color-cloud)",
+        background: "var(--color-paper)",
       }}
     >
       <Group gap="xs">

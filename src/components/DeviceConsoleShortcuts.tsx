@@ -1,7 +1,7 @@
 import { Button, SimpleGrid } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import type { TabKey } from "../types";
-import { toolIcons } from "./layout/ToolRail";
+import { toolIcons, toolLabelKeys } from "../toolMetadata";
 
 interface Props {
   onSelectTool: (tool: TabKey) => void;
@@ -21,22 +21,6 @@ const SHORTCUT_TABS: TabKey[] = [
   "packages",
 ];
 
-const TAB_LABEL_KEYS: Record<TabKey, string> = {
-  pair: "tabs.pairConnect",
-  workbench: "tabs.workbench",
-  install: "tabs.apkInstall",
-  screenshot: "tabs.screenshot",
-  record: "tabs.screenRecord",
-  mirror: "tabs.screenMirror",
-  remote: "tabs.remoteControl",
-  imageCast: "tabs.imageCast",
-  clipboard: "tabs.clipboard",
-  logcat: "tabs.logcat",
-  agent: "tabs.agent",
-  performance: "tabs.performance",
-  packages: "tabs.packageList",
-};
-
 export default function DeviceConsoleShortcuts({ onSelectTool }: Props) {
   const { t } = useTranslation();
 
@@ -54,7 +38,7 @@ export default function DeviceConsoleShortcuts({ onSelectTool }: Props) {
             justify="flex-start"
             h={42}
           >
-            {t(TAB_LABEL_KEYS[tab])}
+            {t(toolLabelKeys[tab])}
           </Button>
         );
       })}

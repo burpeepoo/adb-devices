@@ -95,15 +95,16 @@ test("performance panel contains the optional Agent mode controls and source dis
 test("android device copilot is a dedicated experimental workspace tab", () => {
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   const tabState = readFileSync(new URL("../src/tabState.ts", import.meta.url), "utf8");
-  const toolRail = readFileSync(new URL("../src/components/layout/ToolRail.tsx", import.meta.url), "utf8");
+  const toolMetadata = readFileSync(new URL("../src/toolMetadata.ts", import.meta.url), "utf8");
   const copilot = readFileSync(new URL("../src/components/AgentCopilot.tsx", import.meta.url), "utf8");
 
   assert.match(tabState, /"agent"/);
   assert.match(app, /<AgentCopilot/);
-  assert.match(toolRail, /IconTestPipe/);
-  assert.match(toolRail, /performance: IconGauge/);
-  assert.match(toolRail, /packages: IconPackage/);
-  assert.match(copilot, /IconTestPipe/);
+  assert.match(toolMetadata, /agent: IconRobot/);
+  assert.match(toolMetadata, /performance: IconActivityHeartbeat/);
+  assert.match(toolMetadata, /packages: IconPackages/);
+  assert.match(copilot, /toolIcons\.agent/);
+  assert.match(copilot, /toolLabelKeys\.agent/);
   assert.match(copilot, /STORE_KEYS\.agentCopilotSessions/);
   assert.match(copilot, /adb_workbench_execute/);
   assert.match(copilot, /agent\.lab/);
@@ -111,7 +112,7 @@ test("android device copilot is a dedicated experimental workspace tab", () => {
 
 test("android device copilot keeps lab badge below the title row", () => {
   const copilot = readFileSync(new URL("../src/components/AgentCopilot.tsx", import.meta.url), "utf8");
-  const titleIndex = copilot.indexOf('t("agent.title")');
+  const titleIndex = copilot.indexOf("t(toolLabelKeys.agent)");
   const badgeRowIndex = copilot.indexOf('className="agent-copilot-badge-row"');
   const labIndex = copilot.indexOf('t("agent.lab")');
 
@@ -137,7 +138,10 @@ test("android device copilot has a persistent contextual drawer entry", () => {
   assert.match(app, /contextLabel=\{TAB_LABELS\[activeTab\]\}/);
   assert.match(copilot, /surface = "workspace"/);
   assert.match(copilot, /drawerSurface/);
-  assert.match(copilot, /AgentApkStatusCard/);
+  assert.match(copilot, /AgentApkStatusStrip/);
+  assert.match(copilot, /agent-copilot-apk-strip/);
+  assert.match(copilot, /agent-copilot-cli-strip/);
+  assert.match(copilot, /agent-copilot-drawer-layout/);
   assert.match(copilot, /refreshAgentApkStatus/);
   assert.match(copilot, /installAgentApk/);
   assert.match(copilot, /adb_agent_status/);
@@ -157,7 +161,7 @@ test("android device copilot has a persistent contextual drawer entry", () => {
   assert.match(en.agent.agentApkInstallAction, /Install and start/);
 });
 
-test("android device copilot is wired to the Cirrus design system", () => {
+test("android device copilot is wired to the Marque design system", () => {
   const indexCss = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
   const systemCss = readFileSync(new URL("../src/styles/system.css", import.meta.url), "utf8");
   const main = readFileSync(new URL("../src/main.tsx", import.meta.url), "utf8");
@@ -167,33 +171,39 @@ test("android device copilot is wired to the Cirrus design system", () => {
 
   assert.match(indexCss, /@import "\.\/styles\/system\.css";/);
   assert.equal((indexCss.match(/system\.css/g) ?? []).length, 1);
-  assert.match(systemCss, /Cirrus/);
-  assert.match(systemCss, /--color-sky: #edf2f7/);
-  assert.match(systemCss, /--color-cloud: #ffffff/);
-  assert.match(systemCss, /--color-ink: #0e1116/);
-  assert.match(systemCss, /--radius-pill: 16px/);
-  assert.match(systemCss, /--radius-card: 16px/);
-  assert.match(systemCss, /--radius-tile: 10px/);
-  assert.match(systemCss, /--radius-xl: 18px/);
-  assert.doesNotMatch(systemCss, /--radius-pill: 999px/);
-  assert.match(systemCss, /--shadow-tier-1: 0 1px 2px rgba\(14, 17, 22, 0\.06\)/);
-  assert.match(systemCss, /0 8px 18px -16px rgba\(14, 17, 22, 0\.22\)/);
-  assert.doesNotMatch(systemCss, /0 20px 40px -24px/);
-  assert.match(indexCss, /all feature pages inherit the Cirrus system/);
+  assert.match(systemCss, /Marque/);
+  assert.match(systemCss, /--color-paper: #fafafc/);
+  assert.match(systemCss, /--color-veil: #eee9fb/);
+  assert.match(systemCss, /--color-indigo: #4727b5/);
+  assert.match(systemCss, /--color-royal: #2a1574/);
+  assert.match(systemCss, /--font-display: "Plus Jakarta Sans"/);
+  assert.match(systemCss, /--font-mono: "JetBrains Mono"/);
+  assert.match(systemCss, /--radius-pill: 999px/);
+  assert.match(systemCss, /--radius-card: 14px/);
+  assert.match(systemCss, /--radius-tile: 12px/);
+  assert.match(systemCss, /--radius-xl: 20px/);
+  assert.match(systemCss, /0 24px 48px -28px rgba\(71, 39, 181, 0\.22\)/);
+  assert.match(systemCss, /0 36px 60px -28px rgba\(71, 39, 181, 0\.32\)/);
+  assert.match(indexCss, /all feature pages inherit the Marque system/);
   assert.match(indexCss, /Legacy Tailwind palette bridge/);
   assert.doesNotMatch(systemCss, /letter-spacing: -/);
-  assert.match(main, /primaryColor: "ink"/);
+  assert.match(main, /primaryColor: "violet"/);
   assert.match(main, /fontFamily: "var\(--font-sans\)"/);
-  assert.match(main, /fontFamilyMonospace: "var\(--font-sans\)"/);
-  assert.match(main, /xl: "16px"/);
-  assert.match(appShellCss, /var\(--surface-page\)/);
-  assert.match(appShellCss, /var\(--color-horizon\)/);
+  assert.match(main, /fontFamilyMonospace: "var\(--font-mono\)"/);
+  assert.match(main, /xl: "999px"/);
+  assert.match(appShellCss, /var\(--color-paper\)/);
+  assert.match(appShellCss, /rgba\(139, 114, 240, 0\.12\)/);
   assert.match(toolRailCss, /rail-card/);
-  assert.match(toolRailCss, /var\(--color-ink\)/);
+  assert.match(toolRailCss, /var\(--color-royal\)/);
   assert.match(copilot, /className="agent-copilot-system"/);
   assert.match(copilot, /agent-copilot-card agent-copilot-panel/);
   assert.match(copilot, /agent-copilot-card agent-copilot-session-list/);
   assert.match(copilot, /agent-copilot-title-badge/);
+  assert.match(copilot, /agent-copilot-drawer-layout/);
+  assert.match(copilot, /agent-copilot-mode-body/);
+  assert.match(copilot, /agent-copilot-mode-footer/);
+  assert.match(copilot, /agent-copilot-apk-strip/);
+  assert.match(copilot, /agent-copilot-cli-strip/);
   assert.match(copilot, /agent-copilot-evidence-item/);
   assert.match(copilot, /agent-copilot-message-/);
 });
@@ -204,8 +214,11 @@ test("workspace UI does not reintroduce the previous blue gray shell styling", (
   const forbiddenPatterns = [
     /Mossforge/,
     /Manrope/,
-    /JetBrains/,
+    /Inter Tight/,
+    /Instrument Serif/,
     /#111827/,
+    /#edf2f7/,
+    /#0e1116/,
     /mantine-color-/,
     /letter-spacing:\s*-/,
     /--tracking-tight:\s*-/,
@@ -245,7 +258,8 @@ test("android device copilot uses user-facing evidence without manual template r
   const zh = JSON.parse(readFileSync(new URL("../src/locales/zh-CN.json", import.meta.url), "utf8"));
   const en = JSON.parse(readFileSync(new URL("../src/locales/en-US.json", import.meta.url), "utf8"));
 
-  assert.match(copilot, /agent\.evidencePanelTitle/);
+  assert.match(copilot, /agent\.evidenceKind/);
+  assert.match(copilot, /agent\.evidenceIdleHint/);
   assert.doesNotMatch(copilot, /evidenceChecklistDraftLabel|evidenceStartChecklist|checklistDraft|parseChecklistItems|updateChecklistStatus/);
   assert.match(zh.agent.evidencePanelTitle, /证据记录/);
   assert.match(zh.agent.evidenceStartWalkthrough, /功能走查/);
@@ -267,6 +281,8 @@ test("android device copilot shows five random prompt suggestions that auto-send
   assert.match(copilot, /agent\.promptSuggestions/);
   assert.match(copilot, /pickRandomPromptSuggestions/);
   assert.match(copilot, /refreshPromptSuggestions/);
+  assert.match(copilot, /const showPromptSuggestions =/);
+  assert.match(copilot, /activeMessages\.length <= 1/);
   assert.match(copilot, /className="agent-copilot-prompt-suggestions"/);
   assert.match(copilot, /handleSuggestedPrompt/);
   assert.match(copilot, /setDraft\(prompt\)/);
@@ -424,6 +440,8 @@ test("android device copilot supports evidence sessions for walkthroughs and rep
   assert.match(en.agent.evidencePackageExported, /Evidence package exported/);
   assert.equal("evidenceEnd" in en.agent, false);
   assert.equal("evidenceExported" in en.agent, false);
+  assert.match(zh.agent.evidenceActiveStatus, /\{\{kind\}\}进行中/);
+  assert.match(en.agent.evidenceActiveStatus, /\{\{kind\}\} in progress/);
   assert.match(zh.agent.evidenceIssueLogcat, /Logcat/);
   assert.match(en.agent.evidenceStartRecording, /recording/);
   assert.equal("checklist" in zh.agent.evidenceKind, false);
@@ -447,27 +465,39 @@ test("android device copilot separates chat, walkthrough, and bug repro modes", 
   assert.match(copilot, /agent\.copilotModeChat/);
   assert.match(copilot, /agent\.copilotModeWalkthrough/);
   assert.match(copilot, /agent\.copilotModeBugRepro/);
+  const renderedModeSwitchIndex = copilot.indexOf("{copilotModeSwitch}");
+  const runtimeSectionIndex = copilot.indexOf('className="agent-copilot-runtime-section"');
+  assert.ok(renderedModeSwitchIndex >= 0);
+  assert.ok(runtimeSectionIndex >= 0);
+  assert.ok(renderedModeSwitchIndex < runtimeSectionIndex);
   assert.match(copilot, /const chatConversationPanel =/);
   assert.match(copilot, /const scribePanel =/);
+  assert.match(copilot, /const chatComposer =/);
+  assert.match(copilot, /const scribeFooter =/);
   assert.match(copilot, /const scribeActiveStrip =/);
   assert.match(copilot, /agent\.scribeActiveStrip/);
   assert.match(copilot, /agent\.scribeOpenMode/);
   assert.match(copilot, /setCopilotMode\(copilotModeForEvidenceKind\(kind\)\)/);
   assert.match(copilot, /setCopilotMode\(copilotModeForEvidenceKind\(activeEvidenceSessionForDevice\.kind\)\)/);
   assert.match(copilot, /copilotMode === "chat" \? chatConversationPanel : scribePanel/);
+  assert.match(copilot, /copilotMode === "chat" \? chatComposer : scribeFooter/);
+  assert.match(copilot, /className="agent-copilot-mode-body"/);
+  assert.match(copilot, /className="agent-copilot-mode-footer"/);
   assert.ok(copilot.indexOf("const scribePanel =") < copilot.indexOf("<EvidenceRecordTimeline"));
   assert.ok(copilot.indexOf("const scribeActiveStrip =") < copilot.indexOf("const chatConversationPanel ="));
   assert.match(zh.agent.copilotModeChat, /对话/);
   assert.match(zh.agent.copilotModeWalkthrough, /走查/);
   assert.match(zh.agent.copilotModeBugRepro, /Bug 复现/);
   assert.match(zh.agent.bugReproPanelTitle, /Bug Repro/);
-  assert.match(zh.agent.scribeActiveStrip, /记录中/);
+  assert.match(zh.agent.scribeActiveStrip, /\{\{kind\}\}进行中/);
+  assert.match(zh.agent.scribeActiveStrip, /已保存/);
   assert.match(zh.agent.scribeOpenMode, /查看/);
   assert.match(en.agent.copilotModeChat, /Chat/);
   assert.match(en.agent.copilotModeWalkthrough, /Walkthrough/);
   assert.match(en.agent.copilotModeBugRepro, /Bug repro/);
   assert.match(en.agent.bugReproPanelTitle, /Bug Repro/);
-  assert.match(en.agent.scribeActiveStrip, /recording/i);
+  assert.match(en.agent.scribeActiveStrip, /\{\{kind\}\} in progress/);
+  assert.match(en.agent.scribeActiveStrip, /saved/i);
   assert.match(en.agent.scribeOpenMode, /View/);
 });
 
@@ -490,8 +520,8 @@ test("android device copilot starts and stops QA scribe agent walkthroughs", () 
   assert.doesNotMatch(copilot, /const sendScribePrompt = useCallback/);
   assert.doesNotMatch(copilot, /const handleScribeAgentKeyDown = useCallback/);
   assert.doesNotMatch(copilot, /agent\.scribeAgentSend/);
-  assert.match(copilot, /className="agent-copilot-scribe-scroll"/);
-  assert.match(copilot, /className="agent-copilot-scribe-agent-composer"/);
+  assert.match(copilot, /agent-copilot-scribe-scroll/);
+  assert.match(copilot, /className="agent-copilot-mode-footer"/);
   assert.match(copilot, /setCopilotMode\("chat"\)/);
   assert.match(copilot, /await submitPrompt\(/);
   assert.match(copilot, /await closeEvidenceSession\(updatedSession \?\? sessionForReport\)/);
@@ -636,6 +666,12 @@ test("agent runtime providers are configured in full settings and probed from co
   assert.match(copilot, /AgentRuntimeProbeModal/);
   assert.match(copilot, /agent\.runtimeProbeTitle/);
   assert.match(copilot, /opened=\{runtimeProbeModalOpen\}/);
+  assert.match(copilot, /AGENT_RUNTIME_PROBE_MODAL_Z_INDEX = 1200/);
+  assert.match(copilot, /zIndex=\{AGENT_RUNTIME_PROBE_MODAL_Z_INDEX\}/);
+  assert.doesNotMatch(copilot, /closeOnClickOutside=\{!running\}/);
+  assert.doesNotMatch(copilot, /closeOnEscape=\{!running\}/);
+  assert.doesNotMatch(copilot, /<Button onClick=\{onClose\} disabled=\{running\}>/);
+  assert.match(copilot, /buildAgentRuntimeProbeCliMissingMessage\(String\(error\), t\)/);
   assert.match(lib, /commands::agent_cli::agent_cli_probe/);
   assert.match(agentCliBackend, /pub async fn agent_cli_probe/);
   assert.match(agentCliBackend, /Duration::from_secs\(3\)/);
@@ -644,10 +680,12 @@ test("agent runtime providers are configured in full settings and probed from co
   assert.match(zh.settings.agentProviderApiKey, /API Key/);
   assert.match(zh.agent.runtimeProbeTitle, /检测 Agent 运行环境/);
   assert.match(zh.agent.runtimeProbeAction, /健康检测/);
+  assert.match(zh.agent.runtimeProbeCliCommandMissing, /未找到本机 CLI 命令/);
   assert.match(en.settings.agentProviderTitle, /Agent runtime/);
   assert.match(en.settings.agentProviderApiKey, /API Key/);
   assert.match(en.agent.runtimeProbeTitle, /Checking Agent runtime/);
   assert.match(en.agent.runtimeProbeAction, /Health check/);
+  assert.match(en.agent.runtimeProbeCliCommandMissing, /local CLI command was not found/);
 });
 
 function collectFiles(root: URL): URL[] {

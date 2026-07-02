@@ -47,8 +47,8 @@
     "clipboard": "Clipboard",
     "logcat": "Logcat",
     "agent": "Agent Lab",
-    "performance": "Performance",
-    "packageList": "Packages"
+    "performance": "Performance Sampling",
+    "packageList": "Package Manager"
   },
   "settings": {
     "title": "Settings",
@@ -91,7 +91,7 @@
     "version": "ADB Manager v{{version}}"
   },
   "agent": {
-    "title": "Android Device Copilot",
+    "title": "Agent Lab",
     "lab": "Lab",
     "openCopilot": "Open Copilot",
     "drawerTitle": "Copilot",
@@ -161,6 +161,7 @@
     "runtimeProbeApiSection": "Model API",
     "runtimeProbeCliReady": "Available: {{command}}",
     "runtimeProbeCliMissing": "Unavailable: {{message}}",
+    "runtimeProbeCliCommandMissing": "The local CLI command was not found. Check that it is installed, or use an executable command name or full path in Settings.",
     "runtimeProbeApiReady": "Configured: {{model}}",
     "runtimeProbeApiMissing": "Not enabled, or missing Base URL, model, or API Key",
     "runtimeProbeNoCli": "No CLI command is configured yet.",
@@ -231,7 +232,7 @@
     "evidenceStarted": "Started {{kind}} evidence record.",
     "evidenceApprovalReason": "The agent requested an evidence record.",
     "evidenceArtifactCount": "{{count}} evidence items",
-    "evidenceActiveStatus": "Recording",
+    "evidenceActiveStatus": "{{kind}} in progress",
     "evidenceTimelineTitle": "Recorded items",
     "evidenceHistoryTitle": "Recent records",
     "evidenceHistoryEmpty": "No recent records",
@@ -265,7 +266,7 @@
       "live": "Live copilot"
     },
     "scribeReviewing": "Agent is reviewing",
-    "scribeActiveStrip": "QA Scribe recording · {{count}} evidence items",
+    "scribeActiveStrip": "{{kind}} in progress · {{count}} evidence items saved",
     "scribeOpenMode": "View",
     "scribeAgentStart": "Start Agent walkthrough",
     "bugReproAgentStart": "Start Agent repro",

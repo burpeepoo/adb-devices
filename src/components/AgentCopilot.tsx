@@ -22,7 +22,6 @@ import {
   IconActivityHeartbeat,
   IconPaperclip,
   IconPlus,
-  IconTestPipe,
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
@@ -36,12 +35,12 @@ import {
 } from "../agentProviderSettings";
 import {
   ANDROID_AGENT_SKILLS,
-  findAndroidAgentSkill,
   recommendAndroidAgentSkill,
 } from "../androidAgentSkills";
 import type { DeviceTargetState } from "../deviceTarget";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
 import { mergePerformanceAgentSample, normalizePerformanceAgentStatus } from "../performanceSampling";
+import { toolIcons, toolLabelKeys } from "../toolMetadata";
 import type {
   AgentCopilotAttachment,
   AgentApprovalRequest,
@@ -151,6 +150,21 @@ const DEFAULT_CONTEXT_TOOL_RESULT_LIMIT = 5;
 const EVIDENCE_TIMELINE_PROMPT_LIMIT = 20;
 const SCRIBE_LIVE_INTERVAL_MS = 15_000;
 const DEFAULT_SCRIBE_INTENSITY: EvidenceScribeIntensity = "key_moments";
+const AGENT_RUNTIME_PROBE_MODAL_Z_INDEX = 1200;
+const AGENT_RUNTIME_PROBE_COMMAND_MISSING_PATTERN =
+  /no such file or directory|os error 2|command not found|not found/i;
+
+function buildAgentRuntimeProbeCliMissingMessage(
+  rawMessage: string,
+  t: ReturnType<typeof useTranslation>["t"],
+): string {
+  if (AGENT_RUNTIME_PROBE_COMMAND_MISSING_PATTERN.test(rawMessage)) {
+    return t("agent.runtimeProbeCliCommandMissing");
+  }
+  return t("agent.runtimeProbeCliMissing", {
+    message: trimForPrompt(rawMessage, 240),
+  });
+}
 
 function evidenceKindForCopilotMode(mode: CopilotMode): EvidenceSessionKind | null {
   return mode === "walkthrough" || mode === "bug_repro" ? mode : null;
@@ -162,6 +176,7 @@ function copilotModeForEvidenceKind(kind: EvidenceSessionKind): CopilotMode {
 
 export default function AgentCopilot({ deviceTarget, settings, onSettingsChange, surface = "workspace", contextLabel, drawerOpen = true }: Props) {
   const { t, i18n } = useTranslation();
+  const AgentIcon = toolIcons.agent;
   const [sessions, setSessions] = useState<AgentCopilotSession[]>([]);
   const [evidenceSessions, setEvidenceSessions] = useState<EvidenceSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -204,7 +219,6 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
     () => recommendAndroidAgentSkill(draft, pendingAttachments),
     [draft, pendingAttachments],
   );
-  const activeSkill = activeSession ? findAndroidAgentSkill(activeSession.skillId) : recommendedSkill;
   const promptSuggestionPool = useMemo(
     () => normalizePromptSuggestions(t("agent.promptSuggestions", { returnObjects: true }) as unknown),
     [i18n.resolvedLanguage, t],
@@ -335,9 +349,10 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
               ok: result.ok,
               message: result.ok
                 ? t("agent.runtimeProbeCliReady", { command: result.command || profile.command })
-                : t("agent.runtimeProbeCliMissing", {
-                    message: trimForPrompt(result.stderr || result.stdout || `exit ${result.exitCode ?? "-"}`, 240),
-                  }),
+                : buildAgentRuntimeProbeCliMissingMessage(
+                    result.stderr || result.stdout || `exit ${result.exitCode ?? "-"}`,
+                    t,
+                  ),
             };
           } catch (error) {
             return {
@@ -345,7 +360,7 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
               name: profile.name,
               command: profile.command,
               ok: false,
-              message: t("agent.runtimeProbeCliMissing", { message: trimForPrompt(String(error), 240) }),
+              message: buildAgentRuntimeProbeCliMissingMessage(String(error), t),
             };
           }
         }),
@@ -1725,10 +1740,10 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
       <Group justify="space-between" gap="xs" mb="sm" wrap="nowrap">
         <Group gap="xs" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
           <span className="agent-copilot-title-badge">
-            <IconTestPipe size={20} />
+            <AgentIcon size={20} />
           </span>
           <Title order={4} style={{ minWidth: 0, lineHeight: 1.25 }}>
-            {t("agent.title")}
+            {t(toolLabelKeys.agent)}
           </Title>
         </Group>
         <ActionIcon
@@ -1825,7 +1840,10 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
             {t(`agent.evidenceKind.${activeEvidenceSessionForDevice.kind}`)}
           </Badge>
           <Text size="xs" c="dimmed" lineClamp={1}>
-            {t("agent.scribeActiveStrip", { count: activeEvidenceSessionForDevice.artifacts.length })}
+            {t("agent.scribeActiveStrip", {
+              kind: t(`agent.evidenceKind.${activeEvidenceSessionForDevice.kind}`),
+              count: activeEvidenceSessionForDevice.artifacts.length,
+            })}
           </Text>
           {scribeRunning ? (
             <Badge size="xs" color="blue" variant="light">
@@ -1845,11 +1863,74 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
     </Paper>
   ) : null;
 
+  const activeMessages = activeSession?.messages ?? [];
+  const showPromptSuggestions =
+    copilotMode === "chat" &&
+    visiblePromptSuggestions.length > 0 &&
+    activeMessages.length <= 1 &&
+    !draft.trim() &&
+    pendingAttachments.length === 0;
+  const pendingAttachmentBadges = pendingAttachments.length ? (
+    <Group gap={6}>
+      {pendingAttachments.map((attachment) => (
+        <Badge
+          key={attachment.id}
+          variant="light"
+          color="gray"
+          rightSection={
+            <ActionIcon
+              size="xs"
+              variant="transparent"
+              color="gray"
+              aria-label={t("agent.removeAttachment")}
+              onClick={() => removePendingAttachment(attachment.id)}
+            >
+              <IconX size={10} />
+            </ActionIcon>
+          }
+        >
+          {attachment.name}
+        </Badge>
+      ))}
+    </Group>
+  ) : null;
+  const promptSuggestionChips = showPromptSuggestions ? (
+    <Group className="agent-copilot-prompt-suggestions" gap={6} wrap="wrap">
+      {visiblePromptSuggestions.map((prompt) => (
+        <Button
+          key={prompt}
+          size="xs"
+          variant="light"
+          color="gray"
+          disabled={running}
+          onClick={() => void handleSuggestedPrompt(prompt)}
+          styles={{
+            root: {
+              height: "auto",
+              minHeight: 28,
+              maxWidth: "100%",
+              paddingTop: 4,
+              paddingBottom: 4,
+            },
+            label: {
+              whiteSpace: "normal",
+              overflowWrap: "anywhere",
+              textAlign: "left",
+              lineHeight: 1.25,
+            },
+          }}
+        >
+          {prompt}
+        </Button>
+      ))}
+    </Group>
+  ) : null;
+
   const chatConversationPanel = (
-    <>
-      <ScrollArea viewportRef={messageViewportRef} style={{ flex: 1 }}>
-        <Stack gap="sm" pr="xs">
-          {(activeSession?.messages ?? []).map((message) => (
+    <ScrollArea viewportRef={messageViewportRef} className="agent-copilot-mode-scroll agent-copilot-chat-scroll">
+      <Stack gap="sm" pr="xs" style={{ minHeight: "100%" }}>
+        {activeMessages.length ? (
+          activeMessages.map((message) => (
             <MessageBubble
               key={message.id}
               message={message}
@@ -1864,90 +1945,47 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
                   : undefined
               }
             />
-          ))}
-        </Stack>
-      </ScrollArea>
-
-      <Stack gap="xs" mt="sm">
-        {scribeActiveStrip}
-        {visiblePromptSuggestions.length ? (
-          <Group className="agent-copilot-prompt-suggestions" gap={6} wrap="wrap">
-            {visiblePromptSuggestions.map((prompt) => (
-              <Button
-                key={prompt}
-                size="xs"
-                variant="light"
-                color="gray"
-                disabled={running}
-                onClick={() => void handleSuggestedPrompt(prompt)}
-                styles={{
-                  root: {
-                    height: "auto",
-                    minHeight: 28,
-                    maxWidth: "100%",
-                    paddingTop: 4,
-                    paddingBottom: 4,
-                  },
-                  label: {
-                    whiteSpace: "normal",
-                    overflowWrap: "anywhere",
-                    textAlign: "left",
-                    lineHeight: 1.25,
-                  },
-                }}
-              >
-                {prompt}
-              </Button>
-            ))}
-          </Group>
-        ) : null}
-        {pendingAttachments.length ? (
-          <Group gap={6}>
-            {pendingAttachments.map((attachment) => (
-              <Badge
-                key={attachment.id}
-                variant="light"
-                color="gray"
-                rightSection={
-                  <ActionIcon
-                    size="xs"
-                    variant="transparent"
-                    color="gray"
-                    aria-label={t("agent.removeAttachment")}
-                    onClick={() => removePendingAttachment(attachment.id)}
-                  >
-                    <IconX size={10} />
-                  </ActionIcon>
-                }
-              >
-                {attachment.name}
-              </Badge>
-            ))}
-          </Group>
-        ) : null}
-        <Group align="flex-end" gap="sm" wrap="nowrap">
-          <input ref={fileInputRef} type="file" multiple hidden onChange={handleFilesSelected} />
-          <Tooltip label={t("agent.attachFiles")}>
-            <ActionIcon variant="light" size="lg" aria-label={t("agent.attachFiles")} onClick={() => fileInputRef.current?.click()}>
-              <IconPaperclip size={18} />
-            </ActionIcon>
-          </Tooltip>
-          <Textarea
-            autosize
-            minRows={drawerSurface ? 1 : 2}
-            maxRows={drawerSurface ? 4 : 5}
-            value={draft}
-            placeholder={t("agent.promptPlaceholder")}
-            onChange={(event) => setDraft(event.currentTarget.value)}
-            onKeyDown={handleComposerKeyDown}
-            style={{ flex: 1 }}
-          />
-          <Button onClick={() => void handlePrompt()} disabled={running || (!draft.trim() && pendingAttachments.length === 0)}>
-            {t("agent.send")}
-          </Button>
-        </Group>
+          ))
+        ) : (
+          <Stack className="agent-copilot-empty-state" gap="xs">
+            <Text size="sm" fw={700}>
+              {t("agent.conversationTitle")}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {t("agent.promptPlaceholder")}
+            </Text>
+          </Stack>
+        )}
+        {promptSuggestionChips}
       </Stack>
-    </>
+    </ScrollArea>
+  );
+
+  const chatComposer = (
+    <Stack className="agent-copilot-mode-footer" gap="xs">
+      {pendingAttachmentBadges}
+      <Group align="flex-end" gap="sm" wrap="nowrap">
+        <input ref={fileInputRef} type="file" multiple hidden onChange={handleFilesSelected} />
+        <Tooltip label={t("agent.attachFiles")}>
+          <ActionIcon variant="light" size="lg" aria-label={t("agent.attachFiles")} onClick={() => fileInputRef.current?.click()}>
+            <IconPaperclip size={18} />
+          </ActionIcon>
+        </Tooltip>
+        <Textarea
+          autosize
+          minRows={drawerSurface ? 1 : 2}
+          maxRows={drawerSurface ? 4 : 5}
+          value={draft}
+          placeholder={t("agent.promptPlaceholder")}
+          onChange={(event) => setDraft(event.currentTarget.value)}
+          onKeyDown={handleComposerKeyDown}
+          style={{ flex: 1 }}
+        />
+        <Button onClick={() => void handlePrompt()} disabled={running || (!draft.trim() && pendingAttachments.length === 0)}>
+          {t("agent.send")}
+        </Button>
+      </Group>
+    </Stack>
   );
 
   const evidenceModeTitle =
@@ -1966,91 +2004,43 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
     activeEvidenceSession?.kind === "bug_repro" ? t("agent.bugReproAgentActiveHint") : t("agent.scribeAgentActiveHint");
 
   const scribePanel = (
-    <>
-      <ScrollArea className="agent-copilot-scribe-scroll" style={{ flex: 1, minHeight: 0 }}>
-        <Stack gap="sm" pr="xs" style={{ minHeight: "100%", height: "100%" }}>
+    <ScrollArea className="agent-copilot-mode-scroll agent-copilot-scribe-scroll">
+      <Stack gap="sm" pr="xs" style={{ minHeight: "100%" }}>
         {activeEvidenceSession ? (
           <>
-            <Group justify="space-between" gap="xs" wrap="wrap">
-              <Group gap="xs" wrap="wrap">
-                <Text size="xs" fw={700}>
-                  {t("agent.evidencePanelTitle")}
-                </Text>
-                <Badge color="green" variant="light">
-                  {t(`agent.evidenceKind.${activeEvidenceSession.kind}`)}
-                </Badge>
-                <Text size="xs" c="dimmed">
-                  {t("agent.evidenceArtifactCount", { count: activeEvidenceSession.artifacts.length })}
-                </Text>
-                {scribeRunning ? (
-                  <Badge size="xs" color="blue" variant="dot">
-                    {t("agent.scribeReviewing")}
+            <Stack className="agent-copilot-scribe-summary" gap={6}>
+              <Group justify="space-between" gap="xs" wrap="wrap">
+                <Group gap={6} wrap="wrap">
+                  <Badge size="xs" color={activeEvidenceSession.kind === "bug_repro" ? "red" : "green"} variant="light">
+                    {t(`agent.evidenceKind.${activeEvidenceSession.kind}`)}
                   </Badge>
-                ) : null}
-              </Group>
-              <Group gap={6} wrap="wrap">
-                <Button size="xs" variant="default" onClick={() => void captureEvidenceScreenshot()}>
-                  {t("agent.evidenceCaptureScreenshot")}
-                </Button>
-                <Button size="xs" variant="default" onClick={() => void attachRemoteAuditSnapshot()}>
-                  {t("agent.evidenceAttachRemoteAudit")}
-                </Button>
-                {activeEvidenceSession.kind === "bug_repro" ? (
-                  evidenceRecording ? (
-                    <Button size="xs" variant="default" color="red" onClick={() => void stopEvidenceRecording()}>
-                      {t("agent.evidenceStopRecording")}
-                    </Button>
-                  ) : (
-                    <Button size="xs" variant="default" onClick={() => void startEvidenceRecording()}>
-                      {t("agent.evidenceStartRecording")}
-                    </Button>
-                  )
-                ) : null}
-                <Button size="xs" variant="default" color="red" onClick={() => void markEvidenceIssue()}>
-                  {t("agent.evidenceMarkIssue")}
-                </Button>
-                <Button size="xs" variant="default" onClick={() => void exportEvidenceReport()}>
-                  {t("agent.evidenceExport")}
-                </Button>
-              </Group>
-            </Group>
-            {activeEvidenceScribe ? (
-              <Stack gap={6}>
-                <Group justify="space-between" gap="xs" wrap="wrap">
-                  <Text size="xs" fw={700}>
-                    {t("agent.scribePanelTitle")}
-                  </Text>
+                  <Badge size="xs" color="gray" variant="light">
+                    {t("agent.evidenceArtifactCount", { count: activeEvidenceSession.artifacts.length })}
+                  </Badge>
+                  {scribeRunning ? (
+                    <Badge size="xs" color="blue" variant="dot">
+                      {t("agent.scribeReviewing")}
+                    </Badge>
+                  ) : null}
+                </Group>
+                {activeEvidenceScribe ? (
                   <SegmentedControl
                     size="xs"
                     value={activeEvidenceScribe.intensity}
                     data={scribeIntensityOptions}
                     onChange={(value) => void updateActiveScribeIntensity(value as EvidenceScribeIntensity)}
                   />
-                </Group>
-                <Text size="xs" c="dimmed" lineClamp={drawerSurface ? 2 : 1}>
-                  {activeEvidenceScribe.goal || activeEvidenceGoalEmpty}
-                </Text>
-                {activeEvidenceScribe.nextAction ? (
-                  <Text size="xs" c="dimmed" lineClamp={2}>
-                    {t("agent.scribeNextAction", { action: activeEvidenceScribe.nextAction })}
-                  </Text>
                 ) : null}
-              </Stack>
-            ) : null}
-            <Group align="flex-end" gap="xs" wrap="nowrap">
-              <Textarea
-                autosize
-                minRows={1}
-                maxRows={drawerSurface ? 2 : 3}
-                value={evidenceNoteDraft}
-                placeholder={t("agent.evidenceNotePlaceholder")}
-                onChange={(event) => setEvidenceNoteDraft(event.currentTarget.value)}
-                style={{ flex: 1 }}
-              />
-              <Button size="xs" variant="light" disabled={!evidenceNoteDraft.trim()} onClick={() => void addEvidenceNote()}>
-                {t("agent.evidenceAddNote")}
-              </Button>
-            </Group>
+              </Group>
+              <Text size="xs" c="dimmed" lineClamp={drawerSurface ? 2 : 1}>
+                {activeEvidenceScribe?.goal || activeEvidenceGoalEmpty}
+              </Text>
+              {activeEvidenceScribe?.nextAction ? (
+                <Text size="xs" c="dimmed" lineClamp={2}>
+                  {t("agent.scribeNextAction", { action: activeEvidenceScribe.nextAction })}
+                </Text>
+              ) : null}
+            </Stack>
             <EvidenceRecordTimeline
               session={activeEvidenceSession}
               locale={i18n.resolvedLanguage}
@@ -2060,12 +2050,9 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
             />
           </>
         ) : (
-          <Stack gap="sm" style={{ flex: 1, minHeight: 0 }}>
-            <Group justify="space-between" gap="xs" wrap="wrap">
+          <>
+            <Stack className="agent-copilot-scribe-summary" gap={6}>
               <Group gap={6} wrap="wrap">
-                <Text size="xs" fw={700}>
-                  {t("agent.evidencePanelTitle")}
-                </Text>
                 <Badge size="xs" color={visibleEvidenceKind === "bug_repro" ? "red" : "green"} variant="light">
                   {t(`agent.evidenceKind.${visibleEvidenceKind}`)}
                 </Badge>
@@ -2073,95 +2060,105 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
                   {t("agent.evidenceIdleStatus")}
                 </Badge>
               </Group>
-              <Group gap={6} wrap="wrap">
-                <Button size="xs" variant="filled" onClick={() => void startEvidenceFromUi(visibleEvidenceKind)}>
-                  {evidenceModeStartLabel}
-                </Button>
-              </Group>
-            </Group>
-            <Text size="xs" c="dimmed" lineClamp={drawerSurface ? 2 : 1}>
-              {t("agent.evidenceIdleHint")}
-            </Text>
-            <Stack gap={6}>
-              <Textarea
-                autosize
-                minRows={1}
-                maxRows={drawerSurface ? 2 : 3}
-                value={evidenceGoalDraft}
-                placeholder={evidenceGoalPlaceholder}
-                onChange={(event) => setEvidenceGoalDraft(event.currentTarget.value)}
-              />
-              <Group justify="space-between" gap="xs" wrap="wrap">
-                <Text size="xs" fw={700}>
-                  {t("agent.scribeIntensityLabel")}
-                </Text>
-                <SegmentedControl
-                  size="xs"
-                  value={evidenceIntensityDraft}
-                  data={scribeIntensityOptions}
-                  onChange={(value) => setEvidenceIntensityDraft(value as EvidenceScribeIntensity)}
-                />
-              </Group>
+              <Text size="xs" c="dimmed" lineClamp={drawerSurface ? 3 : 2}>
+                {t("agent.evidenceIdleHint")}
+              </Text>
             </Stack>
             <EvidenceRecordHistory sessions={recentEvidenceSessions} locale={i18n.resolvedLanguage} dense={drawerSurface} fill t={t} />
-          </Stack>
+          </>
         )}
-        </Stack>
-      </ScrollArea>
-      {activeEvidenceSession ? (
-        <Stack
-          className="agent-copilot-scribe-agent-composer"
-          gap={6}
-          mt="sm"
-          pt="sm"
-        >
-          {pendingAttachments.length ? (
-            <Group gap={6}>
-              {pendingAttachments.map((attachment) => (
-                <Badge
-                  key={attachment.id}
-                  variant="light"
-                  color="gray"
-                  rightSection={
-                    <ActionIcon
-                      size="xs"
-                      variant="transparent"
-                      color="gray"
-                      aria-label={t("agent.removeAttachment")}
-                      onClick={() => removePendingAttachment(attachment.id)}
-                    >
-                      <IconX size={10} />
-                    </ActionIcon>
-                  }
-                >
-                  {attachment.name}
-                </Badge>
-              ))}
-            </Group>
-          ) : null}
-          <Group align="flex-end" gap="sm" wrap="nowrap">
-            <input ref={fileInputRef} type="file" multiple hidden onChange={handleFilesSelected} />
-            <Tooltip label={t("agent.attachFiles")}>
-              <ActionIcon variant="light" size="lg" aria-label={t("agent.attachFiles")} onClick={() => fileInputRef.current?.click()}>
-                <IconPaperclip size={18} />
-              </ActionIcon>
-            </Tooltip>
-            <Text size="xs" c="dimmed" style={{ flex: 1 }}>
-              {activeEvidenceScribe?.agentActive ? activeEvidenceAgentActiveHint : activeEvidenceAgentIdleHint}
-            </Text>
-            {activeEvidenceScribe?.agentActive ? (
-              <Button color="red" onClick={() => void stopScribeAgentRun()} disabled={scribeRunning}>
-                {t("agent.scribeAgentStop")}
-              </Button>
-            ) : (
-              <Button onClick={() => void startScribeAgentRun()} disabled={running}>
-                {activeEvidenceAgentStartLabel}
-              </Button>
-            )}
-          </Group>
-        </Stack>
-      ) : null}
-    </>
+      </Stack>
+    </ScrollArea>
+  );
+
+  const scribeFooter = activeEvidenceSession ? (
+    <Stack className="agent-copilot-mode-footer" gap="xs">
+      <Group gap={6} wrap="wrap">
+        <Button size="xs" variant="default" onClick={() => void captureEvidenceScreenshot()}>
+          {t("agent.evidenceCaptureScreenshot")}
+        </Button>
+        <Button size="xs" variant="default" onClick={() => void attachRemoteAuditSnapshot()}>
+          {t("agent.evidenceAttachRemoteAudit")}
+        </Button>
+        {activeEvidenceSession.kind === "bug_repro" ? (
+          evidenceRecording ? (
+            <Button size="xs" variant="default" color="red" onClick={() => void stopEvidenceRecording()}>
+              {t("agent.evidenceStopRecording")}
+            </Button>
+          ) : (
+            <Button size="xs" variant="default" onClick={() => void startEvidenceRecording()}>
+              {t("agent.evidenceStartRecording")}
+            </Button>
+          )
+        ) : null}
+        <Button size="xs" variant="default" color="red" onClick={() => void markEvidenceIssue()}>
+          {t("agent.evidenceMarkIssue")}
+        </Button>
+        <Button size="xs" variant="default" onClick={() => void exportEvidenceReport()}>
+          {t("agent.evidenceExport")}
+        </Button>
+      </Group>
+      <Group align="flex-end" gap="xs" wrap="nowrap">
+        <Textarea
+          autosize
+          minRows={1}
+          maxRows={drawerSurface ? 2 : 3}
+          value={evidenceNoteDraft}
+          placeholder={t("agent.evidenceNotePlaceholder")}
+          onChange={(event) => setEvidenceNoteDraft(event.currentTarget.value)}
+          style={{ flex: 1 }}
+        />
+        <Button size="xs" variant="light" disabled={!evidenceNoteDraft.trim()} onClick={() => void addEvidenceNote()}>
+          {t("agent.evidenceAddNote")}
+        </Button>
+      </Group>
+      {pendingAttachmentBadges}
+      <Group align="center" gap="sm" wrap="nowrap">
+        <input ref={fileInputRef} type="file" multiple hidden onChange={handleFilesSelected} />
+        <Tooltip label={t("agent.attachFiles")}>
+          <ActionIcon variant="light" size="lg" aria-label={t("agent.attachFiles")} onClick={() => fileInputRef.current?.click()}>
+            <IconPaperclip size={18} />
+          </ActionIcon>
+        </Tooltip>
+        <Text size="xs" c="dimmed" style={{ flex: 1 }}>
+          {activeEvidenceScribe?.agentActive ? activeEvidenceAgentActiveHint : activeEvidenceAgentIdleHint}
+        </Text>
+        {activeEvidenceScribe?.agentActive ? (
+          <Button color="red" onClick={() => void stopScribeAgentRun()} disabled={scribeRunning}>
+            {t("agent.scribeAgentStop")}
+          </Button>
+        ) : (
+          <Button color="blue" onClick={() => void startScribeAgentRun()} disabled={running}>
+            {activeEvidenceAgentStartLabel}
+          </Button>
+        )}
+      </Group>
+    </Stack>
+  ) : (
+    <Stack className="agent-copilot-mode-footer" gap="xs">
+      <Textarea
+        autosize
+        minRows={1}
+        maxRows={drawerSurface ? 2 : 3}
+        value={evidenceGoalDraft}
+        placeholder={evidenceGoalPlaceholder}
+        onChange={(event) => setEvidenceGoalDraft(event.currentTarget.value)}
+      />
+      <Group justify="space-between" gap="xs" wrap="wrap">
+        <Text size="xs" fw={700}>
+          {t("agent.scribeIntensityLabel")}
+        </Text>
+        <SegmentedControl
+          size="xs"
+          value={evidenceIntensityDraft}
+          data={scribeIntensityOptions}
+          onChange={(value) => setEvidenceIntensityDraft(value as EvidenceScribeIntensity)}
+        />
+      </Group>
+      <Button color="blue" onClick={() => void startEvidenceFromUi(visibleEvidenceKind)}>
+        {evidenceModeStartLabel}
+      </Button>
+    </Stack>
   );
 
   const conversationPanel = (
@@ -2170,92 +2167,84 @@ export default function AgentCopilot({ deviceTarget, settings, onSettingsChange,
       withBorder={!drawerSurface}
       radius={drawerSurface ? 0 : "md"}
       p={drawerSurface ? 0 : "md"}
-      style={{ minHeight: 0, height: "100%", display: "flex", flexDirection: "column", border: drawerSurface ? 0 : undefined }}
+      style={{ minHeight: 0, height: "100%", border: drawerSurface ? 0 : undefined, borderRadius: drawerSurface ? 0 : undefined }}
     >
-      <Group justify="space-between" gap="sm" wrap="nowrap">
-        <Stack gap={2} style={{ minWidth: 0 }}>
-          <Group gap="xs" wrap="nowrap">
-            {copilotMode !== "chat" ? (
-              <span className="agent-copilot-title-badge">
-                <IconTestPipe size={20} />
-              </span>
-            ) : null}
-            <Title order={drawerSurface ? 4 : 3}>{copilotMode === "chat" ? activeConversationTitle : evidenceModeTitle}</Title>
-            {copilotMode === "chat" && activeSkill.requiresAgentApk ? (
-              <Badge color="blue" variant="light">
-                {t("agent.agentApk")}
+      <Stack className="agent-copilot-drawer-layout" gap="sm">
+        <Group className="agent-copilot-drawer-header" justify="space-between" gap="sm" wrap="nowrap">
+          <Stack gap={2} style={{ minWidth: 0 }}>
+            <Group gap="xs" wrap="nowrap">
+              {copilotMode !== "chat" ? (
+                <span className="agent-copilot-title-badge agent-copilot-title-badge--compact">
+                  <AgentIcon size={16} />
+                </span>
+              ) : null}
+              <Title order={drawerSurface ? 4 : 3} lineClamp={1}>
+                {copilotMode === "chat" ? activeConversationTitle : evidenceModeTitle}
+              </Title>
+              <Badge color="gray" variant="light">
+                {copilotMode === "chat" ? t("agent.conversationBadge") : t(`agent.evidenceKind.${visibleEvidenceKind}`)}
               </Badge>
-            ) : null}
-            <Badge color="gray" variant="light">
-              {copilotMode === "chat" ? t("agent.conversationBadge") : t(`agent.evidenceKind.${visibleEvidenceKind}`)}
-            </Badge>
+            </Group>
+            <Text size="xs" c="dimmed" lineClamp={1}>
+              {t("agent.contextLine", {
+                device: deviceTarget.label || t("agent.noDevice"),
+                cli: cliConfigured ? cliProfile.name : t("agent.cliMissing"),
+              })}
+              {" · "}
+              {t("agent.drawerContext", { context: currentContextLabel })}
+            </Text>
+          </Stack>
+          {drawerSurface ? (
+            <ActionIcon
+              variant="light"
+              aria-label={t("agent.newSession")}
+              onClick={() => void createSession(recommendedSkill)}
+              style={{ flex: "0 0 auto" }}
+            >
+              <IconPlus size={16} />
+            </ActionIcon>
+          ) : null}
+        </Group>
+
+        {copilotModeSwitch}
+
+        <Stack className="agent-copilot-runtime-section" gap={8}>
+          <AgentApkStatusStrip
+            status={agentApkStatus}
+            deviceReady={Boolean(deviceTarget.serial)}
+            busy={agentApkBusy}
+            onRefresh={() => void refreshAgentApkStatus()}
+            onInstall={() => void installAgentApk()}
+          />
+          <Group className="agent-copilot-cli-strip" gap="sm" wrap="nowrap">
+            <Select
+              aria-label={t("agent.deviceCliOverride")}
+              value={deviceKey ? agentCli.perDeviceProfileIds[deviceKey] || "__global__" : "__global__"}
+              onChange={updateCurrentDeviceProfile}
+              data={[{ value: "__global__", label: t("agent.cliUseGlobal") }, ...profileOptions]}
+              disabled={!deviceKey}
+              size="sm"
+              style={{ flex: 1 }}
+            />
+            <Button
+              variant="light"
+              leftSection={<IconActivityHeartbeat size={16} />}
+              onClick={() => void runAgentRuntimeProbe()}
+              loading={runtimeProbeRunning}
+              style={{ flex: "0 0 auto" }}
+            >
+              {t("agent.runtimeProbeAction")}
+            </Button>
           </Group>
-          <Text size="xs" c="dimmed" lineClamp={1}>
-            {t("agent.contextLine", {
-              device: deviceTarget.label || t("agent.noDevice"),
-              cli: cliConfigured ? cliProfile.name : t("agent.cliMissing"),
-            })}
-          </Text>
-          <Text size="xs" c="dimmed" lineClamp={1}>
-            {t("agent.drawerContext", { context: currentContextLabel })}
-          </Text>
         </Stack>
-        {drawerSurface ? (
-          <ActionIcon
-            variant="light"
-            aria-label={t("agent.newSession")}
-            onClick={() => void createSession(recommendedSkill)}
-            style={{ flex: "0 0 auto" }}
-          >
-            <IconPlus size={16} />
-          </ActionIcon>
-        ) : null}
-      </Group>
 
-      <Divider my="sm" />
+        {copilotMode === "chat" && scribeActiveStrip ? <div className="agent-copilot-context-strip">{scribeActiveStrip}</div> : null}
 
-      {drawerSurface ? (
-        <AgentApkStatusCard
-          status={agentApkStatus}
-          deviceReady={Boolean(deviceTarget.serial)}
-          busy={agentApkBusy}
-          onRefresh={() => void refreshAgentApkStatus()}
-          onInstall={() => void installAgentApk()}
-        />
-      ) : null}
-
-      <Group align="end" gap="sm" wrap="nowrap" mb="sm">
-        <Select
-          label={t("agent.deviceCliOverride")}
-          value={deviceKey ? agentCli.perDeviceProfileIds[deviceKey] || "__global__" : "__global__"}
-          onChange={updateCurrentDeviceProfile}
-          data={[{ value: "__global__", label: t("agent.cliUseGlobal") }, ...profileOptions]}
-          disabled={!deviceKey}
-          style={{ flex: 1 }}
-        />
-        <Button
-          variant="light"
-          leftSection={<IconActivityHeartbeat size={16} />}
-          onClick={() => void runAgentRuntimeProbe()}
-          loading={runtimeProbeRunning}
-          style={{ flex: "0 0 auto" }}
-        >
-          {t("agent.runtimeProbeAction")}
-        </Button>
-        {!drawerSurface ? (
-          <Text size="xs" c="dimmed" style={{ flex: 1, paddingBottom: 8 }}>
-            {t("agent.contextLine", {
-              device: deviceTarget.label || t("agent.noDevice"),
-              cli: cliConfigured ? cliProfile.name : t("agent.cliMissing"),
-            })}
-          </Text>
-        ) : null}
-      </Group>
-
-      {copilotModeSwitch}
-      <Divider my="sm" />
-
-      {copilotMode === "chat" ? chatConversationPanel : scribePanel}
+        <div className="agent-copilot-mode-body">
+          {copilotMode === "chat" ? chatConversationPanel : scribePanel}
+        </div>
+        {copilotMode === "chat" ? chatComposer : scribeFooter}
+      </Stack>
     </Paper>
   );
 
@@ -2310,8 +2299,9 @@ function AgentRuntimeProbeModal({
       title={t("agent.runtimeProbeTitle")}
       centered
       size="lg"
-      closeOnClickOutside={!running}
-      closeOnEscape={!running}
+      zIndex={AGENT_RUNTIME_PROBE_MODAL_Z_INDEX}
+      closeOnClickOutside
+      closeOnEscape
       overlayProps={{ blur: 2 }}
     >
       <Stack gap="md">
@@ -2382,7 +2372,7 @@ function AgentRuntimeProbeModal({
           <Button variant="default" disabled={running} onClick={onRetry}>
             {t("agent.runtimeProbeRetry")}
           </Button>
-          <Button onClick={onClose} disabled={running}>
+          <Button onClick={onClose}>
             {t("agent.runtimeProbeContinue")}
           </Button>
         </Group>
@@ -2419,7 +2409,7 @@ function RuntimeProbeRow({
   );
 }
 
-function AgentApkStatusCard({
+function AgentApkStatusStrip({
   status,
   deviceReady,
   busy,
@@ -2444,41 +2434,31 @@ function AgentApkStatusCard({
       ? t("agent.agentApkRepairAction")
       : t("agent.agentApkInstallAction");
   return (
-    <Paper withBorder radius="md" p="xs" mb="sm" bg={agentApkCardBackground(status, deviceReady)}>
-      <Group justify="space-between" gap="sm" wrap="nowrap" align="center">
-        <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
-          <Group gap={6} wrap="nowrap">
-            <Text size="xs" fw={700}>
-              {t("agent.agentApkCardTitle")}
-            </Text>
-            <Badge size="xs" color={agentApkStatusColor(status, deviceReady)} variant="light">
-              {agentApkStatusLabel(status, deviceReady, t)}
-            </Badge>
-          </Group>
-          <Text size="xs" c="dimmed" lineClamp={2}>
-            {agentApkStatusDescription(status, deviceReady, t)}
+    <Group className="agent-copilot-apk-strip" justify="space-between" gap="sm" wrap="nowrap" align="center">
+      <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
+        <Group gap={6} wrap="nowrap">
+          <Text size="xs" fw={700}>
+            {t("agent.agentApkCardTitle")}
           </Text>
-          {status?.version_name || status?.bundled_version_name ? (
-            <Text size="xs" c="dimmed" lineClamp={1}>
-              {t("agent.agentApkVersionLine", {
-                installed: status.version_name || "-",
-                bundled: status.bundled_version_name || "-",
-              })}
-            </Text>
-          ) : null}
-        </Stack>
-        <Group gap={6} wrap="nowrap" style={{ flex: "0 0 auto" }}>
-          {canInstall ? (
-            <Button size="xs" variant="filled" loading={busy} onClick={onInstall}>
-              {installLabel}
-            </Button>
-          ) : null}
-          <Button size="xs" variant="default" disabled={!deviceReady || busy} onClick={onRefresh}>
-            {t("agent.agentApkRefreshAction")}
-          </Button>
+          <Badge size="xs" color={agentApkStatusColor(status, deviceReady)} variant="light">
+            {agentApkStatusLabel(status, deviceReady, t)}
+          </Badge>
         </Group>
+        <Text size="xs" c="dimmed" lineClamp={1}>
+          {agentApkStatusDescription(status, deviceReady, t)}
+        </Text>
+      </Stack>
+      <Group gap={6} wrap="nowrap" style={{ flex: "0 0 auto" }}>
+        {canInstall ? (
+          <Button size="xs" variant="filled" loading={busy} onClick={onInstall}>
+            {installLabel}
+          </Button>
+        ) : null}
+        <Button size="xs" variant="default" disabled={!deviceReady || busy} onClick={onRefresh}>
+          {t("agent.agentApkRefreshAction")}
+        </Button>
       </Group>
-    </Paper>
+    </Group>
   );
 }
 
@@ -2504,7 +2484,7 @@ function EvidenceRecordTimeline({
             {t("agent.evidenceTimelineTitle")}
           </Text>
           <Badge size="xs" color="blue" variant="light">
-            {t("agent.evidenceActiveStatus")}
+            {t("agent.evidenceActiveStatus", { kind: t(`agent.evidenceKind.${session.kind}`) })}
           </Badge>
         </Group>
         <Text size="xs" c="dimmed">
@@ -3706,14 +3686,6 @@ function agentApkStatusColor(status: PerformanceAgentStatusResponse | null, devi
   if (status.update_available || status.status === "update_available" || status.status === "permission_limited") return "yellow";
   if (status.status === "connected") return "green";
   return "blue";
-}
-
-function agentApkCardBackground(status: PerformanceAgentStatusResponse | null, deviceReady: boolean) {
-  if (!deviceReady || !status) return "gray.0";
-  if (!status.installed || status.status === "missing" || status.status === "failed") return "red.0";
-  if (status.update_available || status.status === "update_available" || status.status === "permission_limited") return "yellow.0";
-  if (status.status === "connected") return "green.0";
-  return "blue.0";
 }
 
 function classifyAgentCommandRisk(command: string): AgentApprovalRequest["risk"] {

@@ -5,7 +5,6 @@ import {
   IconChevronDown,
   IconChevronRight,
   IconDownload,
-  IconGauge,
   IconPlayerPause,
   IconPlayerPlay,
   IconPinned,
@@ -20,6 +19,7 @@ import SectionTitle from "./common/SectionTitle";
 import type { DeviceTargetState } from "../deviceTarget.ts";
 import type { PerformanceAgentStatusResponse, PerformanceSample, PerformanceStreamSnapshot } from "../types";
 import type { PerformanceGpuDiagnostic, PerformanceTrendPoint } from "../performanceSampling.ts";
+import { toolIcons, toolLabelKeys } from "../toolMetadata";
 import {
   buildPerformanceCsvExport,
   buildPerformanceDisplaySnapshot,
@@ -55,6 +55,7 @@ interface AlertItem {
 
 export default function PerformancePanel({ deviceTarget, active }: Props) {
   const { t } = useTranslation();
+  const PerformanceIcon = toolIcons.performance;
   const [running, setRunning] = useState(false);
   const [samples, setSamples] = useState<PerformanceSample[]>([]);
   const [lockedPackage, setLockedPackage] = useState<string | null>(null);
@@ -509,8 +510,8 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
         <Stack gap="md">
           <Group justify="space-between" align="flex-start" gap="md">
             <SectionTitle
-              icon={<IconGauge size={17} />}
-              label={t("performance.title")}
+              icon={<PerformanceIcon size={17} />}
+              label={t(toolLabelKeys.performance)}
               description={running ? t("performance.running") : t("performance.stopped")}
             />
             <Group gap="xs">

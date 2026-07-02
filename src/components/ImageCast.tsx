@@ -227,9 +227,9 @@ export default function ImageCast({ deviceTarget, active }: Props) {
                     borderRadius: "var(--radius-pill)",
                     display: "grid",
                     placeItems: "center",
-                    background: "var(--color-ink)",
-                    color: "var(--color-cloud)",
-                    border: "1px solid var(--color-ink)",
+                    background: "var(--color-indigo)",
+                    color: "var(--color-white)",
+                    border: "1px solid var(--color-indigo)",
                     flex: "0 0 auto",
                   }}
                 >

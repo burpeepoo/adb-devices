@@ -1,397 +1,335 @@
 ---
 version: alpha
-name: Cirrus
-description: A minimalist SaaS design system staged on a cloudy sky background, with pill geometry on every control and a single italic serif accent per hero.
+name: Marque
+description: Editorial brand identity and design-system handbook with deep violet ink, lavender paper surfaces, and confident geometric display type.
+theme: light
 colors:
-  primary: "#0E1116"
-  secondary: "#FFFFFF"
-  tertiary: "#2E7DEF"
-  neutral: "#5B6472"
-  surface: "#FFFFFF"
-  surface-page: "#EDF2F7"
-  surface-horizon: "#B8D4F1"
-  surface-sunken: "#F3F6FA"
-  on-surface: "#0E1116"
-  on-surface-muted: "#5B6472"
+  paper: "#FAFAFC"
+  veil: "#EEE9FB"
+  veil-deep: "#E3DCF6"
+  ink: "#1A1A2E"
+  ink-soft: "#2A2A3E"
+  primary: "#4727B5"
+  primary-hover: "#3A1F9A"
+  secondary: "#2A1574"
+  tertiary: "#8B72F0"
+  neutral: "#6B6680"
+  surface: "#FAFAFC"
+  surface-raised: "#EEE9FB"
+  on-surface: "#1A1A2E"
   on-primary: "#FFFFFF"
-  border: "#E3E8EE"
-  border-soft: "#EEF2F6"
-  focus: "#2E7DEF"
-  accent-signal: "#2E7DEF"
-  accent-citrus: "#FF7A3D"
-  accent-meadow: "#2BC48A"
-  error: "#FF7A3D"
+  border: "#E5E1EF"
+  border-strong: "#D6CFE8"
+  focus: "#8B72F0"
+  error: "#B54727"
+  success: "#1F7A4C"
 typography:
-  font-display: "Inter Tight, Inter, system-ui, sans-serif"
-  font-sans: "Inter, system-ui, sans-serif"
-  font-serif: "Instrument Serif, Iowan Old Style, Georgia, serif"
-  hero:
-    fontFamily: "{typography.font-display}"
-    fontWeight: 700
-    fontSize: "clamp(56px, 6.4vw, 88px)"
+  display-xl:
+    fontFamily: Plus Jakarta Sans
+    fontWeight: 800
+    fontSize: 112px
     lineHeight: 1.02
-    letterSpacing: "0"
+    letterSpacing: -0.025em
+  display-lg:
+    fontFamily: Plus Jakarta Sans
+    fontWeight: 800
+    fontSize: 84px
+    lineHeight: 1.02
+    letterSpacing: -0.025em
   display-md:
-    fontFamily: "{typography.font-display}"
-    fontWeight: 700
-    fontSize: "clamp(40px, 4vw, 56px)"
-    lineHeight: 1.06
-    letterSpacing: "0"
+    fontFamily: Plus Jakarta Sans
+    fontWeight: 800
+    fontSize: 56px
+    lineHeight: 1.02
+    letterSpacing: -0.025em
   headline-lg:
-    fontFamily: "{typography.font-display}"
+    fontFamily: Plus Jakarta Sans
     fontWeight: 700
-    fontSize: "40px"
-    lineHeight: 1.18
-    letterSpacing: "0"
+    fontSize: 44px
+    lineHeight: 1.12
+    letterSpacing: -0.015em
   headline-md:
-    fontFamily: "{typography.font-display}"
-    fontWeight: 600
-    fontSize: "28px"
-    lineHeight: 1.22
-    letterSpacing: "0"
+    fontFamily: Plus Jakarta Sans
+    fontWeight: 700
+    fontSize: 32px
+    lineHeight: 1.12
+    letterSpacing: -0.015em
   headline-sm:
-    fontFamily: "{typography.font-display}"
+    fontFamily: Plus Jakarta Sans
+    fontWeight: 700
+    fontSize: 24px
+    lineHeight: 1.12
+  title:
+    fontFamily: Plus Jakarta Sans
     fontWeight: 600
-    fontSize: "20px"
+    fontSize: 20px
     lineHeight: 1.3
-    letterSpacing: "0"
   body-lg:
-    fontFamily: "{typography.font-sans}"
+    fontFamily: Inter
     fontWeight: 400
-    fontSize: "17px"
-    lineHeight: 1.55
+    fontSize: 18px
+    lineHeight: 1.6
   body-md:
-    fontFamily: "{typography.font-sans}"
+    fontFamily: Inter
     fontWeight: 400
-    fontSize: "15px"
-    lineHeight: 1.55
+    fontSize: 16px
+    lineHeight: 1.6
   body-sm:
-    fontFamily: "{typography.font-sans}"
+    fontFamily: Inter
     fontWeight: 400
-    fontSize: "13px"
-    lineHeight: 1.45
+    fontSize: 14px
+    lineHeight: 1.55
   label-sm:
-    fontFamily: "{typography.font-sans}"
+    fontFamily: JetBrains Mono
     fontWeight: 500
-    fontSize: "12px"
-    lineHeight: 1.3
-    letterSpacing: "0.01em"
-  accent-italic:
-    fontFamily: "{typography.font-serif}"
-    fontStyle: italic
+    fontSize: 12px
+    lineHeight: 1.4
+    letterSpacing: 0.12em
+    textTransform: uppercase
+  mono-md:
+    fontFamily: JetBrains Mono
     fontWeight: 400
-    fontSize: "1.04em"
-    letterSpacing: "0"
+    fontSize: 14px
+    lineHeight: 1.5
 rounded:
-  none: "0px"
-  sm: "8px"
-  md: "10px"
-  lg: "16px"
-  xl: "18px"
-  check: "6px"
-  full: "16px"
+  none: 0px
+  xs: 4px
+  sm: 8px
+  md: 12px
+  lg: 14px
+  xl: 20px
+  2xl: 28px
+  3xl: 36px
+  full: 999px
 spacing:
-  xs: "4px"
-  sm: "8px"
-  md: "16px"
-  lg: "24px"
-  xl: "32px"
-  2xl: "48px"
-  3xl: "64px"
-  4xl: "96px"
-  container-pad: "32px"
-  container-max: "1240px"
+  xs: 4px
+  sm: 8px
+  md: 16px
+  lg: 24px
+  xl: 40px
+  2xl: 72px
+  3xl: 128px
+  gutter: 24px
+  container: 1200px
 elevation:
-  tier-1: "0 1px 2px rgba(14,17,22,0.06)"
-  tier-2: "0 1px 3px rgba(14,17,22,0.08), 0 8px 18px -16px rgba(14,17,22,0.22)"
-  focus-ring: "0 0 0 3px rgba(46,125,239,0.28)"
+  flat: none
+  card: 0 24px 48px -28px rgba(71,39,181,0.22), 0 2px 6px -2px rgba(26,26,46,0.06)
+  lift: 0 36px 60px -28px rgba(71,39,181,0.32), 0 4px 12px -4px rgba(26,26,46,0.08)
+  focus-ring: 0 0 0 2px #FAFAFC, 0 0 0 4px #8B72F0
 components:
   button-primary:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
-    typography: "{typography.body-md}"
+    typography: "{typography.body-sm}"
     rounded: "{rounded.full}"
-    height: "44px"
-    padding: "0 22px"
+    height: 44px
+    padding: 0 24px
   button-primary-hover:
-    backgroundColor: "#1A1F28"
+    backgroundColor: "{colors.primary-hover}"
     textColor: "{colors.on-primary}"
   button-secondary:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.on-surface}"
-    typography: "{typography.body-md}"
+    backgroundColor: "transparent"
+    textColor: "{colors.primary}"
     rounded: "{rounded.full}"
-    height: "44px"
-    padding: "0 22px"
-    borderColor: "{colors.border}"
+    height: 44px
+    padding: 0 24px
+    border: 1.5px solid {colors.primary}
   button-secondary-hover:
-    backgroundColor: "{colors.surface-sunken}"
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+  button-ghost:
+    backgroundColor: "transparent"
     textColor: "{colors.on-surface}"
+    rounded: "{rounded.full}"
+    height: 44px
+    padding: 0 16px
   input-field:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.on-surface}"
     typography: "{typography.body-md}"
-    rounded: "{rounded.full}"
-    height: "44px"
-    padding: "0 18px"
-    borderColor: "{colors.border}"
+    rounded: "{rounded.md}"
+    padding: 14px 16px
+    border: 1px solid {colors.border}
   input-field-focus:
-    borderColor: "{colors.focus}"
-    boxShadow: "{elevation.focus-ring}"
+    border: 1px solid {colors.primary}
+    elevation: "{elevation.focus-ring}"
   card:
     backgroundColor: "{colors.surface}"
+    textColor: "{colors.on-surface}"
     rounded: "{rounded.lg}"
-    padding: "32px"
-    borderColor: "{colors.border}"
-    boxShadow: "{elevation.tier-1}"
-  card-flush:
-    backgroundColor: "{colors.surface}"
+    padding: 32px
+    border: 1px solid {colors.border}
+  card-veil:
+    backgroundColor: "{colors.surface-raised}"
     rounded: "{rounded.lg}"
-    padding: "0px"
-    borderColor: "{colors.border}"
-    boxShadow: "{elevation.tier-1}"
-  slab:
-    backgroundColor: "{colors.surface}"
-    rounded: "{rounded.xl}"
-    padding: "28px"
-    borderColor: "{colors.border}"
-    boxShadow: "{elevation.tier-2}"
+    padding: 32px
+  card-hero:
+    backgroundColor: "{colors.secondary}"
+    textColor: "{colors.on-primary}"
+    rounded: "{rounded.3xl}"
+    padding: 72px
   checkbox:
     backgroundColor: "{colors.surface}"
-    borderColor: "{colors.border}"
-    rounded: "{rounded.check}"
-    size: "18px"
+    rounded: "{rounded.xs}"
+    size: 18px
+    border: 1.5px solid {colors.border-strong}
   checkbox-checked:
     backgroundColor: "{colors.primary}"
-    borderColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
+    border: 1.5px solid {colors.primary}
+  tabs-track:
+    backgroundColor: "{colors.surface-raised}"
+    rounded: "{rounded.full}"
+    padding: 4px
   tabs-active:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    rounded: "{rounded.full}"
-    height: "36px"
-    padding: "0 16px"
-    boxShadow: "{elevation.tier-2}"
-  tabs-inactive:
-    backgroundColor: "transparent"
-    textColor: "{colors.on-surface}"
-    rounded: "{rounded.full}"
-    height: "36px"
-    padding: "0 16px"
-  chip:
     backgroundColor: "{colors.surface}"
-    textColor: "{colors.on-surface}"
-    typography: "{typography.body-sm}"
+    textColor: "{colors.primary}"
     rounded: "{rounded.full}"
-    height: "28px"
-    padding: "0 12px"
-    borderColor: "{colors.border}"
-  rail-item:
-    backgroundColor: "transparent"
-    textColor: "{colors.on-surface-muted}"
+    height: 36px
+    padding: 0 20px
+  tag:
+    backgroundColor: "{colors.surface-raised}"
+    textColor: "{colors.primary}"
     rounded: "{rounded.full}"
-    size: "40px"
-  rail-item-active:
-    backgroundColor: "{colors.primary}"
+    height: 26px
+    padding: 0 12px
+    typography: "{typography.label-sm}"
+  tag-solid:
+    backgroundColor: "{colors.secondary}"
     textColor: "{colors.on-primary}"
-  nav-link-active:
-    backgroundColor: "{colors.surface-sunken}"
-    textColor: "{colors.on-surface}"
     rounded: "{rounded.full}"
-    padding: "8px 16px"
 ---
 
 ## Overview
 
-Cirrus treats the page as **open sky**. Content is staged on a soft, cloudy gradient — Horizon blue blended down into Sky, with three off-center cloud overlays drifting through. Every surface that holds content floats above that sky as a crisp white pill-radius card with a hairline border and a whisper-soft shadow. The page should feel like an early-morning window: weightless, quiet, expensive.
+Marque is an editorial brand-identity handbook turned into a working design system. It reads like a printed brand book: oversized geometric display headlines lead every page, generous lavender margins frame editorial blocks, and a single deep-violet "signature" surface anchors each section's brand voice. The product should feel curated, opinionated, and quietly luxurious — the same register as a premium identity guidelines deck — while remaining a fully functional product UI.
 
-The product feel is **calm, editorial SaaS**. Restraint is the texture. Whitespace is the brand. The system avoids: heavy gradients, glass blur on flat regions, decorative pills and badges, dense metadata clutter, all-caps micro-labels, and any sense of "filling" the layout. If a space feels empty, that is correct — leave it empty.
+### ADB Manager Adaptation
 
-Two motifs do all of the talking:
+This project applies Marque to a dense desktop operations tool, not a marketing site. Keep the Marque palette, type families, paper/veil layering, indigo primary controls, royal signature surfaces, and flatter card treatment. For app UI, do not use viewport-scaled font sizing or negative letter spacing; use fixed token sizes and `letter-spacing: 0` unless a form-bound mono label needs modest positive tracking.
 
-1. **The cloudy sky background.** It is the signature; it is non-negotiable. Every preview hero and the cover share the exact same recipe so the system is recognizable before any text loads.
-2. **The italic serif accent.** Exactly one phrase per hero is set in Instrument Serif italic at the same optical size as the surrounding sans, colored slightly down to Mist. It is the system's only ornament.
+The emotional target is *confident calm*: surfaces breathe, the type does the heavy lifting, and a small repertoire of decorative motifs (concentric stripes and a striped orb mark) recurs as a recognizable thread. The system should feel like a publication, not a SaaS dashboard. Avoid: glassmorphism, gradients on text, soft neumorphism, busy backgrounds, decorative drop shadows, or a colorful multi-hue palette. The palette is monochromatic violet with one warm-white paper, and that restraint is the brand.
 
-Essential traits to preserve from the source direction: open-sky canvas, pill geometry on every interactive control, obsidian-black primary CTAs against white surfaces, a tri-color data accent of Signal Blue, Citrus, and Meadow, and a strict editorial typography pairing of Inter Tight (display) with Instrument Serif italic (single accent).
-
-What Cirrus should never feel like: a generic blue-gradient SaaS template, a heavy glassmorphism dashboard, a content-dense admin panel, or a marketing page padded with decorative metadata.
+Essential traits to preserve from the brief: (1) oversized confident display type as the primary graphic element, (2) the striped orb signature mark used sparingly as an ornament, (3) editorial card-stack composition on a lavender-tinted paper canvas, (4) one rare deep-violet hero block per page to carry brand voice in white type, and (5) sections that lead with the heading itself — never a kicker or eyebrow label above an `h1`/`h2`.
 
 ## Colors
 
-Cirrus is a six-color system with three accent reserves for data. Every interaction uses Ink on Cloud or Cloud on Ink. The accents never touch typography, surfaces, or borders.
+The system runs on a single hue family: a warm violet stretched from `#FAFAFC` paper to `#1A1A2E` ink, with `#4727B5` indigo as the primary brand color and `#2A1574` royal as the deep signature block. The palette is intentionally narrow so that the deep violet block reads as a brand statement rather than another surface.
 
-- **Sky `#EDF2F7`** — the only page background. Always blended with the cloud overlay recipe, never used flat in product chrome.
-- **Horizon `#B8D4F1`** — the top of the sky gradient and the ambient halo behind floating panels. Never used as a fill or accent.
-- **Cloud `#FFFFFF`** — the single surface color for cards, inputs, popovers, the nav pill, and the icon rail. There is no second surface tier; depth comes from elevation, not tint.
-- **Ink `#0E1116`** — primary text, headline color, and the fill for primary CTAs, active tabs, active rail items, and checked checkboxes. Ink is the system's strongest gesture; use it deliberately.
-- **Mist `#5B6472`** — every secondary label, body subdued text, muted icon, and the color of the italic serif accent. Pair Mist with Ink in the same line to create a quiet hierarchy.
-- **Edge `#E3E8EE`** — the only border tone. Use it as a 1px hairline on every floating surface, every input, every divider, and every dashed chart grid.
+Roles:
 
-Data accents (chart fills, KPI deltas, focus ring only):
+- `paper` (`#FAFAFC`) — the canvas. Every page starts here. Carries a faint lavender cast that ties it to the brand without competing with content.
+- `veil` (`#EEE9FB`) — the lavender surface used for cards, swatches, quote blocks, and segmented tab tracks. Pairs with paper to create quiet layered density.
+- `ink` (`#1A1A2E`) — body type, headings, and high-contrast foreground on paper/veil. Slightly cooler than pure black, sitting in the brand's color temperature.
+- `indigo` (`#4727B5`) — the primary brand violet. Used for the brand mark, primary buttons, key links, focus rings on indigo accents, and chart strokes.
+- `royal` (`#2A1574`) — the deep signature surface. Reserved for one hero/feature block per page. Carries the brand voice in white display type and is the visual anchor.
+- `halo` (`#8B72F0`) — secondary accent. Used for focus rings, chart accent, and small highlights inside the royal hero (it reads well on both paper and royal).
+- `whisper` (`#6B6680`) — captions, metadata, supporting prose, inactive tab labels.
+- `hairline` (`#E5E1EF`) — borders, dividers, quiet rules.
 
-- **Signal Blue `#2E7DEF`** — primary data series and focus ring.
-- **Citrus `#FF7A3D`** — secondary data series and warm callouts.
-- **Meadow `#2BC48A`** — tertiary data series and positive deltas.
+Contrast: ink-on-paper passes WCAG AA at every size; whisper-on-paper passes AA only at body sizes and larger — never use it for small labels. White on royal is the default for the deep block; never place ink on royal. Indigo on paper passes AA for body text and large headings.
 
-Contrast notes: Ink on Cloud passes AAA at body sizes. Mist on Cloud is intended for secondary text only and stays at body size or larger; never use Mist for small interactive labels under 13px. Signal Blue on Cloud is reserved for links and focus ring, not large fills.
+Do not introduce a second hue. If a status color is needed, use the supplied `error` and `success` values, but treat them as rare diagnostics, not brand colors.
 
 ## Typography
 
-Three families, with a strict role for each.
+Three families, used in narrow roles:
 
-- **Inter Tight** — display and headline weights at 600 and 700. Used for `display-hero`, `display-md`, `headline-lg`, `headline-md`, `headline-sm`, and the card title. Headlines run tight through line-height, while letter spacing stays `0`. Inter Tight is the only family allowed at display sizes.
-- **Inter** — every body weight, label, metric, nav link, button label, input value, and numeral. Always tabular for numerics (`font-variant-numeric: tabular-nums`). Body sits at 15-17px; small labels never go below 12px.
-- **Instrument Serif italic** — the signature accent. Used **exactly once per hero**, slipped inside the headline as a single phrase. Set at `1.04em` against its surrounding sans for optical balance, colored Mist (`#5B6472`) so it whispers next to the Ink headline. Never use Instrument Serif outside a hero headline. Never set it upright. Never use it for body, captions, or labels.
+- **Plus Jakarta Sans** (display, 700/800) — every heading, hero number, and oversized brand statement. Tight tracking (`-0.025em` for display, `-0.015em` for headlines) and near-1.0 line height. This is the brand voice.
+- **Inter** (body, 400/500/600/700) — all body copy, controls, labels-as-prose, and supporting text. Used at 16–18px with relaxed 1.6 line height for editorial readability.
+- **JetBrains Mono** (mono, 400/500) — token codes, hex values, numeric metadata, uppercase tracked labels (the `.label` class). The mono treatment is what gives Marque its "brand book specimen sheet" feel.
 
-Hierarchy is built from **scale and weight contrast alone**. No all-caps labels, no small-caps eyebrows, no monospace micro-tags, no underlines except on hover for inline text links.
+The display family is treated as a graphic element: lead with display type, let it set the cadence of the page, and pair it with airy white space. Section headings sit at `headline-lg` (44px) or `headline-md` (32px). Body copy never exceeds 64ch.
 
-Spacing for headlines: leave at least one full body-line of breathing room above and below a hero or section heading. Hero subtext is constrained to 56 characters per line for measure.
+**Eyebrows/kickers are forbidden.** Do not place a short label, category tag, or all-caps line directly above a heading. The heading itself opens every section. Uppercase tracked labels in JetBrains Mono are used for column captions, swatch names, and stat labels — never as a kicker above an `h1`/`h2`.
 
 ## Layout
 
-Cirrus is a **centered editorial grid** stacked over a single full-bleed sky. There is no wallpaper, no second background. The whole page sits inside a `1240px` max container with `32px` horizontal padding.
+The system is built on a 1200px default container with 32px outer padding. A wider 1320px container exists for galleries; a narrow 720–880px container is used for prose-heavy reading pages.
 
-### Page rhythm
+**Page rhythm.** Sections breathe at 96–128px vertical padding (`section`) by default. Tighter sections (`section-tight`) drop to 72px when stacking many cards. Within sections, content stacks at 24–40px gaps. The grid system is a 12-column grid with 24px gutters; asymmetric splits (4+8, 5+7) are preferred over symmetric 6+6 because the editorial voice depends on visual hierarchy, not balance.
 
-- **Section padding:** 96px top and bottom on desktop, 64px on tighter sections. Never tighter than 48px.
-- **Vertical spacing inside sections:** stack at 24, 28, or 36px. Avoid 12-16px gaps in long-form sections; that density belongs to dashboards, not marketing.
-- **Hero rhythm:** Nav, then 80-112px of sky, then headline, then 24px gap to subtext, then 36px gap to the CTA row.
-- **Below the hero, float a single dashboard "slab"** (`border-radius: 36px`, Tier 2 shadow) that breaks halfway out of the hero section. This is the canonical Cirrus composition — sky above, slab floating into the next section.
+**Section patterns** downstream agents should reuse:
 
-### Hero pattern
+- *Hero / brand statement*: a single full-width royal `card-hero` block with oversized white display headline, short body, and one primary CTA. Place the striped orb ornament faded behind the type at top-right. One hero per page maximum.
+- *Editorial intro*: large display headline left-aligned, supporting lead paragraph (max 60ch) below, optional metadata row in mono labels. No eyebrow.
+- *Feature grid*: 2- or 3-column grid of `card` or `card-veil` blocks. Use mixed surface treatment (paper + veil) to introduce rhythm.
+- *Photo gallery / specimen sheet*: `card-photo` blocks with 4:3 ratio, 14px clipping, soft `card` shadow. Stack 2–3 across with generous gutters.
+- *Specimen / token row*: 4-up `swatch` grid for color tokens; horizontal row of `stat` blocks for numeric metadata.
+- *Empty state*: centered orb mark at quarter opacity, headline, body, single button.
 
-- Headline is **centered**, max-width 18ch, weight 700, tracked tight.
-- Inside the headline, mark exactly one phrase with `.accent-italic` (Instrument Serif italic, Mist). The phrase should be the *emotional weight* of the headline, not the verb. Example: "Manage your business with *smarter AI automation*".
-- Subtext is centered, Mist, max-width 56ch.
-- CTAs are a row of two: primary Ink pill on the left, secondary Cloud pill on the right, both 44px tall, gap 12px. Each CTA carries a single 16px Lucide icon to its left.
+**Alignment.** Lead left. Center alignment is reserved for cover/hero pages and for stat blocks. Do not center every section; the editorial cadence depends on a strong left edge.
 
-### Section patterns
-
-- **Feature grid:** Three columns of cards on desktop, single column under 880px. Each card is 28px-radius, 32px padding, Tier 1 shadow, hairline Edge border. Cards carry a 36px icon tile (Ink fill, Cloud icon), a headline-sm title, and one body-md paragraph. No bullet lists inside cards.
-- **Dashboard section:** A single slab containing a tab row (left), search/avatar row (right), title block, KPI strip with `.stat-row`, a `progress-tri` bar, and a chart card. Slab is the only place where two cards may sit visually side by side.
-- **Pricing / plan:** Three cards in a row, the middle card identical in geometry but lifted 8px with Tier 2 shadow to signal recommendation. Do not change palette to highlight; let elevation do the work.
-- **CTA banner:** A single full-width Cloud card with 40px padding, centered headline, single accent-italic phrase, and one primary CTA. Never two CTAs in a closing banner.
-
-### Asymmetry rule
-
-Cirrus is strict and centered above the fold and inside hero sections. Below the slab, prefer **left-aligned** content with a single column of text and a floating visual to the right. Centered text inside a marketing card is forbidden; centering is reserved for headers and CTAs.
-
-### Responsive behavior
-
-- At `<= 880px`, grids collapse to a single column, the nav pill collapses behind a Ink pill `Menu` button, the slab becomes full-bleed within the container and its inner stat row stacks 2x2.
-- Hero font shrinks via the `clamp()` already set on `--fs-hero`. Do not introduce a separate mobile hero scale.
+**Responsive behavior.** At ≤960px, multi-column grids collapse to 2-up; at ≤640px, to a single column. Hero padding drops from 72px to 40px. Display type scales fluidly via `clamp()` so headlines stay confident on small screens without breaking the layout.
 
 ## Elevation & Depth
 
-Cirrus has **two whisper-soft elevation tiers** and nothing else. Depth comes from the cloudy background lifting white surfaces, not from heavy shadows.
+Marque is mostly flat. Depth is a deliberate accent, never the default.
 
-- **Tier 1 — floating surface:** Cards, inputs, the nav pill, the icon rail. `0 1px 1px rgba(14,17,22,0.04), 0 20px 40px -24px rgba(14,17,22,0.18)`. This shadow should be invisible from a meter away and only register as separation up close.
-- **Tier 2 — active or hovering above sky:** The slab, active tab pill, popovers, recommended plan card. Same base plus `0 2px 6px rgba(14,17,22,0.06)`.
+- **Card shadow** (`--shadow-card`): a soft 24–48px diffuse violet-tinted shadow on key cards only — feature cards, active tab pills, the photo specimen blocks. Never on every card.
+- **Royal hero**: sits flat, no shadow. Its color does the work.
+- **Borders**: 1px hairline (`#E5E1EF`) is the default separator. Use it for quiet card outlines and table rows. Avoid heavy borders.
+- **Focus ring**: 2px paper offset + 2px halo halo (the `--focus-ring` token). Visible on all interactive elements and required for accessibility.
 
-Borders are 1px Edge hairlines on every floating surface. The combination of hairline + soft shadow is the depth language; never substitute one for the other and never use both heavily at the same time.
-
-Glassmorphism is **prohibited on flat content regions**. The only acceptable use of any backdrop tint is on the icon rail when it sits over the live sky background, and even then it is a Cloud pill with a hairline border, not a blurred translucent panel.
+No glassmorphism, no neumorphism, no glow effects, no gradient text, no inner-shadow inputs. Translucency is used only inside the royal hero for the decorative stripe/hex motifs and the ornament orb.
 
 ## Shapes
 
-Pill geometry is the system's spine. The radius scale:
+A small radius vocabulary tied to component scale:
 
-- `999px` (`rounded.full`) — buttons, inputs, search, tabs, chips, nav pill, sidebar rail, rail items, avatar pills, progress bars. **Every interactive control over the sky is a full pill.**
-- `28px` (`rounded.lg`) — cards. Soft but architectural; never replace with a smaller radius.
-- `36px` (`rounded.xl`) — the dashboard slab. Larger than a card to read as a "stage" rather than a panel.
-- `20px` (`rounded.md`) — secondary tiles, icon tiles inside cards, image frames.
-- `8px` (`rounded.check`) — checkboxes only.
+- `xs` 4px — checkbox.
+- `sm` 8px — small chips, tooltips.
+- `md` 12px — inputs, selects, textareas.
+- `lg` 14px — cards, photo blocks, swatches.
+- `xl` 20px — large modal-style panels.
+- `2xl` 28px / `3xl` 36px — the royal `card-hero` only.
+- `full` 999px — primary/secondary buttons, tags, segmented tab pills.
 
-There are **no sharp corners anywhere in the system.** A right angle is a bug.
-
-Avatars are perfect circles. Brand mark sits inside a 36px Ink pill in the nav. Logos in CTA banners scale up to 88-120px in Ink only, never tinted with an accent.
-
-Iconography is **Lucide**, one weight, stroke-width 1.75. Icons stay at 14-22px in product chrome. Never scale a Lucide glyph above 32px and never use one as a hero illustration; if a hero visual is needed, use the slab.
+Decorative motifs (used sparingly): concentric horizontal stripes and a flat hexagonal grid overlay drawn from the orb logo. Render them as inline SVG or CSS gradients **inside the royal hero only** at 8–16% white opacity. Never use them as global page backgrounds or wallpapers.
 
 ## Components
 
-### Buttons
+**Buttons.** Pill-shaped (`radius-full`), 44px default height, 24px horizontal padding. Primary fills indigo, hovers to royal. Secondary is transparent with a 1.5px indigo outline that fills on hover. Ghost is transparent ink-on-paper with a veil hover surface. On royal heroes, swap to `btn-on-royal` (white fill, royal text) or `btn-on-royal-outline` (white outline).
 
-Two variants. Both are full pills, 44px tall, 22px horizontal padding, font-weight 500. Icons sit 8px before the label at 16px.
+**Inputs.** 12px radius, hairline border on paper background, 14px vertical / 16px horizontal padding. Focus state shifts the border to indigo and adds the 2-step focus halo. Labels above inputs use the mono uppercase `field-label` (this is a label, not a kicker — it is bound to a form control, not opening a section).
 
-- **Primary:** Ink fill, Cloud text. Hover lifts to `#1A1F28`. This is the only black surface allowed in marketing chrome; do not introduce a third button color.
-- **Secondary:** Cloud fill, Ink text, Edge hairline border. Hover fills to `surface-sunken`.
-- **Ghost:** No fill, Ink text. Use only inside dense product chrome (e.g., card actions, table rows).
+**Cards.** Default `card` is paper with hairline border and 14px radius. `card-veil` swaps the background to lavender for layered editorial density. `card-elevated` adds the soft violet shadow for key emphasis. `card-photo` clips imagery at 14px with a veil background fallback. `card-hero` is the rare deep-violet panel with 36px radius, 72–96px padding, and an optional ornament orb.
 
-Size variants `btn-sm` (36px) and `btn-lg` (52px) exist; use sparingly. Icon-only buttons use `btn-icon` and stay perfectly circular.
+**Checkboxes.** 18px square with 4px radius, 1.5px hairline-strong border unchecked. Checked state fills with indigo and renders a white check glyph. Radio variant shares the same color logic with a circular shape and dot.
 
-Focus on every button is the Signal Blue ring (`focus-ring`), never an outline.
+**Tabs.** A pill segmented control: 4px-padded veil track, 36px pills. The active tab swaps to paper with a soft shadow and indigo text; inactive tabs are whisper text on a transparent surface. Use for view switching, never as a primary nav.
 
-### Inputs
+**Tags / chips.** 26px pills. Default is veil background with indigo text; `tag-solid` is royal with white text for emphasis; `tag-outline` is transparent with indigo border. Keep tag labels short (1–2 words).
 
-Pill input, Cloud surface, Edge border, 44px tall, 18px horizontal padding. Placeholder uses `text-soft` (`#8A93A3`). On focus, border switches to Signal Blue and the Signal Blue ring appears. Search inputs lead with a 16px Lucide `search` icon in Mist. Textareas keep the system feel with a 22px radius (soft rectangle, not pill) because pure pills break for multi-line.
+**Brand mark / lockup.** The striped orb is the signature element. In headers, render at 28–32px next to the wordmark "Marque" in Plus Jakarta Sans 800. On the royal hero, render at 240px+ at 12–16% white opacity as a faded ornament behind the headline. Always indigo on light surfaces, white on royal. The mark recolors via `currentColor`.
 
-### Cards
+**Icons.** **Lucide** is the chosen library (https://lucide.dev/, ISC license). Use Lucide's outline icons at 18px (24px for larger affordances) with 1.75 stroke width. Color via `currentColor` so icons inherit from their text. Pick a small consistent set per page (search, arrow-right, check, x, chevron-down, menu) and do not mix with other libraries. Load via the Lucide CDN script and call `lucide.createIcons()`.
 
-28px radius, Cloud surface, Edge hairline, Tier 1 shadow, default 32px padding. Cards are containers for content blocks, KPI tiles, charts, and feature grids. **Do not wrap every element in a card.** If a card has a single line of text inside it, the card is wrong; remove the chrome and let typography carry it.
+**Imagery.** Photography is warm, candid, and treated with rounded 14px clipping. Never duotone the photography — the palette restraint depends on photography reading as warm/human against the cool violet system. Subjects are everyday and well-lit.
 
-The `card-flush` variant removes padding so the card can host an edge-to-edge chart or media. Use `slab` for the larger, more important stage surface that breaks out of a hero.
-
-### Tabs
-
-A pill row of tabs at 36px height. The active tab is Ink-filled with Cloud text and a Tier 2 shadow lift; inactive tabs are transparent with Ink text. Tabs may carry a 14px leading icon. Never underline a tab — the pill fill is the indicator.
-
-### Checkbox
-
-18px squircle, 8px radius, 1.5px Edge border, Cloud background. Checked state fills with Ink and shows a Cloud checkmark. Focus uses the Signal Blue ring. No indeterminate dash state in this version.
-
-### Sidebar icon rail
-
-A vertical Cloud pill with hairline border and Tier 1 shadow, holding 40px circular icon buttons. Active item fills Ink with Cloud icon; hover items wash to `surface-sunken`. The rail floats inside dashboard slabs on the left edge.
-
-### Nav
-
-A single floating Cloud pill at the top of the page holding 4-5 nav links. The active link is `surface-sunken` filled, inactive links are Mist that warm to Ink on hover. The Try / Sign in CTA sits to the far right as a primary Ink pill. No second nav row, no breadcrumbs over the sky.
-
-### Chips
-
-`chip` is reserved for **real, actionable data**: status, counts, filters. Cloud fill with hairline border. The `chip-ink` variant inverts to Ink fill / Cloud text for live status tokens. No decorative chips, no eyebrow chips, no "New" / "Pro" badges over headlines.
-
-### Charts
-
-Bars use the three accents at full saturation against an Edge dashed grid. Bar tops carry a 12% Cloud overlay only; no gradient fills under areas, no purple/blue SaaS gradients, no glow. KPI deltas use Meadow for up, Citrus for down. The legend uses small Mist labels with 8px colored dots.
-
-### Avatars
-
-Perfect circles, 32 / 40 / 56px. Edge hairline border. Use real user photography or initials in Ink on `surface-sunken`. Do not stack more than three overlapping avatars in any UI.
-
-### Icon library
-
-**Lucide.** Website: https://lucide.dev/. License: ISC. Used for navigation, buttons, tabs, rail items, KPI tile labels, and inline body icons. All icons render at 14-22px in `currentColor`. Pull the library at runtime via the Lucide CDN and use `<i data-lucide="name"></i>` markup, or paste official Lucide SVG markup inline. Do not invent custom paths and do not mix in another icon set.
+**Motion.** Transitions are short and unobtrusive: 120ms for state flips (hover, focus), 200ms for surface changes (tab swap, button fill), 360ms for layout changes. Use a single easing (`cubic-bezier(0.2, 0.7, 0.3, 1)`). No bounce, no parallax, no autoplay.
 
 ## Do's and Don'ts
 
-**Do:**
+**Do**
 
-- Use the cloudy sky background on the hero of every page. It is the signature.
-- Use exactly one Instrument Serif italic phrase per hero, set inside the headline, colored Mist.
-- Make every interactive control a full pill: buttons, inputs, tabs, search, nav, chips, rail items.
-- Use Ink for primary CTAs and active states; let that be the visual heaviest weight on the page.
-- Use Edge as a 1px hairline on every floating surface, paired with a Tier 1 shadow.
-- Use the three data accents *only* inside charts, KPI deltas, and the focus ring.
-- Center the hero block above the fold; left-align body content in sections below the slab.
-- Let whitespace breathe. If a region feels empty, leave it empty.
-- Pair every primary CTA with one secondary CTA, never three.
-- Use tabular numerals for every metric, price, and counter.
+- Lead every section with its heading at `headline-lg` or `headline-md`; let the type carry the hierarchy.
+- Mix paper and veil surfaces within a page to create editorial rhythm without introducing new colors.
+- Use one royal hero block per page as the brand anchor and keep it visually quiet (flat, no shadow, one CTA).
+- Place the striped orb mark sparingly: header lockup, hero ornament, and quarter-opacity section divider. Three placements per page maximum.
+- Treat uppercase mono labels as captions for swatches, stats, and metadata rows — never above a heading.
+- Use asymmetric 12-column splits (4+8, 5+7) for editorial layouts; reserve 6+6 for true comparisons.
+- Render the striped/hex motifs only inside the royal hero, at low white opacity.
+- Pair tight display headlines with relaxed-leading body copy at 16–18px and a max measure of 60–64ch.
 
-**Don't:**
+**Don't**
 
-- Don't place an eyebrow, kicker, category label, or tag above any heading. Lead with the headline.
-- Don't use more than one italic serif phrase per page, and never set it upright or in body text.
-- Don't recolor headlines or surfaces with the data accents. Signal, Citrus, and Meadow never touch typography or fills outside charts.
-- Don't use sharp corners anywhere. A right angle on a control is a bug.
-- Don't stack heavy shadows. The sky provides ambient lift; Tier 1 and Tier 2 are the only allowed elevations.
-- Don't add decorative pills or badges ("New", "Pro", "Featured"). Pills carry real status only.
-- Don't litter the page with all-caps monospace micro-labels, coordinates, version stamps, reading times, or any other "data exhaust".
-- Don't use glass blur on flat content regions.
-- Don't introduce linear purple-to-blue SaaS gradients. The only gradient in the system is the sky itself.
-- Don't number cards (01 / 02 / 03) unless they represent a real sequential process.
-- Don't wrap single sentences in cards. Use typography and whitespace to separate content.
-- Don't fill empty regions with metadata to "make it look detailed."
-- Don't use em dashes (—) in headings or copy; rewrite with commas or periods.
-- Don't fetch Inter Tight or Instrument Serif from any provider other than Google Fonts; the imports in `system.css` are the source of truth.
+- Don't add a short label, kicker, or all-caps line directly above an `h1`/`h2`. Lead with the heading itself.
+- Don't introduce a second hue family or use ink on royal — the palette restraint is the brand.
+- Don't use the stripe or hex motifs as a global page background or under body content.
+- Don't add shadows to every card, or apply the elevated shadow to the royal hero.
+- Don't duotone photography or apply a violet color overlay to imagery; keep photos warm and natural.
+- Don't center body copy or stack every section center-aligned; lead left.
+- Don't mix icon libraries; Lucide is the only set.
+- Don't use gradients on text, glassmorphism, neumorphism, or inner-shadow inputs.
+- Don't place more than one royal hero per page, or scale the orb ornament larger than ~60% of the hero width.

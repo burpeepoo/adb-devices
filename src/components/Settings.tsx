@@ -203,7 +203,7 @@ export default function Settings({
             color: "var(--text-strong)",
             border: "var(--border-hairline)",
             borderRadius: "var(--radius-card)",
-            boxShadow: "var(--shadow-tier-1)",
+            boxShadow: "none",
           }}
         >
           <Stack gap={2}>
@@ -241,7 +241,7 @@ export default function Settings({
               border: "var(--border-hairline)",
               borderRadius: "var(--radius-card)",
               background: "var(--color-cloud)",
-              boxShadow: "var(--shadow-tier-1)",
+              boxShadow: "none",
             }}
           >
             <Stack gap={2} style={{ minWidth: 0 }}>
@@ -523,12 +523,12 @@ function SettingsNavItem({ href, label, active = false }: { href: string; label:
         display: "flex",
         alignItems: "center",
         padding: "0 16px",
-        color: active ? "var(--color-cloud)" : "var(--text-muted)",
-        background: active ? "var(--color-ink)" : "transparent",
+        color: active ? "var(--color-white)" : "var(--text-muted)",
+        background: active ? "var(--color-royal)" : "transparent",
         textDecoration: "none",
         fontSize: "var(--fs-body)",
         fontWeight: 500,
-        border: active ? "1px solid var(--color-ink)" : "1px solid transparent",
+        border: active ? "1px solid var(--color-royal)" : "1px solid transparent",
       }}
     >
       {label}

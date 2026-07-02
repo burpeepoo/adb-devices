@@ -1,63 +1,79 @@
 /* =============================================================
-   Cirrus — Design System
-   A minimalist SaaS system staged on a cloudy sky background.
-   Pill geometry on every control. One italic serif accent per hero.
+   Marque — Design System
+   Editorial violet brand-book styling adapted for the ADB Manager app.
    ============================================================= */
 
 /* -------------------------------------------------------------
    Tokens
    ------------------------------------------------------------- */
 :root {
-  /* Color */
-  --color-sky: #edf2f7;
-  --color-horizon: #b8d4f1;
-  --color-cloud: #ffffff;
-  --color-ink: #0e1116;
-  --color-mist: #5b6472;
-  --color-mist-soft: #8a93a3;
-  --color-edge: #e3e8ee;
-  --color-edge-soft: #eef2f6;
+  /* Marque palette */
+  --color-paper: #fafafc;
+  --color-veil: #eee9fb;
+  --color-veil-deep: #e3dcf6;
+  --color-ink: #1a1a2e;
+  --color-ink-soft: #2a2a3e;
+  --color-indigo: #4727b5;
+  --color-indigo-deep: #3a1f9a;
+  --color-royal: #2a1574;
+  --color-royal-ink: #1c0d57;
+  --color-halo: #8b72f0;
+  --color-halo-soft: #b6a8f5;
+  --color-whisper: #6b6680;
+  --color-hairline: #e5e1ef;
+  --color-hairline-strong: #d6cfe8;
+  --color-white: #ffffff;
+  --color-warn: #b54727;
+  --color-success: #1f7a4c;
 
-  --color-signal: #2e7def;
-  --color-citrus: #ff7a3d;
-  --color-meadow: #2bc48a;
+  /* Compatibility names used across the existing app. */
+  --color-sky: var(--color-paper);
+  --color-horizon: var(--color-veil);
+  --color-cloud: var(--color-paper);
+  --color-mist: var(--color-whisper);
+  --color-mist-soft: #8f89a3;
+  --color-edge: var(--color-hairline);
+  --color-edge-soft: rgba(71, 39, 181, 0.08);
+  --color-signal: var(--color-indigo);
+  --color-citrus: var(--color-warn);
+  --color-meadow: var(--color-success);
 
   /* Semantic surface */
-  --surface-page: var(--color-sky);
+  --surface-page: var(--color-paper);
   --surface-card: var(--color-cloud);
-  --surface-sunken: #f3f6fa;
+  --surface-sunken: var(--color-veil);
 
   /* Text */
   --text-strong: var(--color-ink);
-  --text-muted: var(--color-mist);
+  --text-muted: var(--color-whisper);
   --text-soft: var(--color-mist-soft);
-  --text-on-ink: var(--color-cloud);
+  --text-on-ink: var(--color-white);
 
   /* Type families */
-  --font-display: "Inter Tight", "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
-  --font-mono: var(--font-sans);
+  --font-serif: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-numeric: "Inter", system-ui, -apple-system, sans-serif;
 
   /* Type scale */
-  --fs-hero: clamp(56px, 6.4vw, 88px);
-  --fs-display: clamp(40px, 4vw, 56px);
-  --fs-h1: 40px;
-  --fs-h2: 28px;
-  --fs-h3: 20px;
-  --fs-body-lg: 17px;
-  --fs-body: 15px;
-  --fs-small: 13px;
+  --fs-hero: 72px;
+  --fs-display: 48px;
+  --fs-h1: 44px;
+  --fs-h2: 32px;
+  --fs-h3: 24px;
+  --fs-body-lg: 18px;
+  --fs-body: 16px;
+  --fs-small: 14px;
   --fs-label: 12px;
 
   --lh-tight: 1.02;
-  --lh-snug: 1.18;
-  --lh-body: 1.55;
+  --lh-snug: 1.12;
+  --lh-body: 1.6;
   --tracking-tight: 0;
   --tracking-snug: 0;
   --tracking-normal: 0;
-  --tracking-wide: 0.01em;
+  --tracking-wide: 0.08em;
 
   /* Spacing */
   --space-1: 4px;
@@ -66,8 +82,8 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
-  --space-7: 28px;
-  --space-8: 32px;
+  --space-7: 32px;
+  --space-8: 40px;
   --space-10: 40px;
   --space-12: 48px;
   --space-16: 64px;
@@ -75,24 +91,25 @@
   --space-24: 96px;
 
   /* Radius */
-  --radius-pill: 16px;
-  --radius-card: 16px;
-  --radius-tile: 10px;
-  --radius-input: 16px;
-  --radius-check: 6px;
+  --radius-pill: 999px;
+  --radius-card: 14px;
+  --radius-tile: 12px;
+  --radius-input: 12px;
+  --radius-check: 4px;
   --radius-sm: 8px;
 
   /* Borders */
   --border-hairline: 1px solid var(--color-edge);
   --border-soft: 1px solid var(--color-edge-soft);
 
-  /* Elevation — restrained desktop-tool layering */
-  --shadow-tier-1: 0 1px 2px rgba(14, 17, 22, 0.06);
-  --shadow-tier-2: 0 1px 3px rgba(14, 17, 22, 0.08),
-    0 8px 18px -16px rgba(14, 17, 22, 0.22);
+  /* Elevation — mostly flat, violet-tinted only where needed. */
+  --shadow-tier-1: 0 24px 48px -28px rgba(71, 39, 181, 0.22),
+    0 2px 6px -2px rgba(26, 26, 46, 0.06);
+  --shadow-tier-2: 0 36px 60px -28px rgba(71, 39, 181, 0.32),
+    0 4px 12px -4px rgba(26, 26, 46, 0.08);
 
   /* Focus */
-  --focus-ring: 0 0 0 3px rgba(46, 125, 239, 0.28);
+  --focus-ring: 0 0 0 2px var(--color-paper), 0 0 0 4px var(--color-halo);
 
   /* Layout */
   --container-max: 1240px;
@@ -105,18 +122,17 @@
   --dur-base: 220ms;
 
   /* Compatibility aliases for older app-level selectors while the UI migrates. */
-  --color-paper: var(--surface-page);
   --color-surface: var(--color-cloud);
-  --color-forest: var(--color-ink);
-  --color-moss: #1a1f28;
+  --color-forest: var(--color-royal);
+  --color-moss: var(--color-royal-ink);
   --color-lime: var(--color-signal);
-  --color-lime-pressed: #1d66c8;
-  --color-ink-muted: var(--color-mist);
+  --color-lime-pressed: var(--color-indigo-deep);
+  --color-ink-muted: var(--color-whisper);
   --color-paper-soft: var(--surface-sunken);
-  --color-on-inverse: var(--color-cloud);
+  --color-on-inverse: var(--color-white);
   --color-on-inverse-muted: var(--color-mist-soft);
   --color-border: var(--color-edge);
-  --color-border-strong: #ccd6e1;
+  --color-border-strong: var(--color-hairline-strong);
   --color-focus: var(--color-signal);
   --color-success: var(--color-meadow);
   --color-warning: var(--color-citrus);
@@ -124,7 +140,7 @@
   --radius-full: var(--radius-pill);
   --radius-lg: var(--radius-card);
   --radius-md: var(--radius-tile);
-  --radius-xl: 18px;
+  --radius-xl: 20px;
   --shadow-none: none;
   --shadow-ambient: var(--shadow-tier-1);
   --shadow-lift: var(--shadow-tier-2);
@@ -203,8 +219,8 @@ textarea {
 }
 
 ::selection {
-  background: var(--color-ink);
-  color: var(--color-cloud);
+  background: var(--color-halo);
+  color: var(--color-white);
 }
 
 /* -------------------------------------------------------------
@@ -212,7 +228,7 @@ textarea {
    ------------------------------------------------------------- */
 .display-hero {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: var(--fs-hero);
   line-height: var(--lh-tight);
   letter-spacing: var(--tracking-tight);
@@ -222,7 +238,7 @@ textarea {
 
 .display-md {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: var(--fs-display);
   line-height: 1.06;
   letter-spacing: var(--tracking-tight);
@@ -231,7 +247,7 @@ textarea {
 
 .heading-1 {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: var(--fs-h1);
   line-height: var(--lh-snug);
   letter-spacing: var(--tracking-snug);
@@ -240,7 +256,7 @@ textarea {
 
 .heading-2 {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--fs-h2);
   line-height: 1.22;
   letter-spacing: var(--tracking-snug);
@@ -249,7 +265,7 @@ textarea {
 
 .heading-3 {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--fs-h3);
   line-height: 1.3;
   letter-spacing: var(--tracking-snug);
@@ -298,9 +314,9 @@ textarea {
    Use exactly once per hero, inside the headline. */
 .accent-italic {
   font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  color: var(--color-mist);
+  font-style: normal;
+  font-weight: 800;
+  color: var(--color-indigo);
   letter-spacing: 0;
   /* Optical compensation against geometric sans neighbors */
   font-size: 1.04em;
@@ -308,44 +324,37 @@ textarea {
 }
 
 /* -------------------------------------------------------------
-   Signature background — the cloudy sky
+   Signature background — Marque paper with faint violet atmosphere
    ------------------------------------------------------------- */
 .sky {
-  background-color: var(--color-sky);
+  background-color: var(--color-paper);
   background-image:
     radial-gradient(
-      62% 38% at 18% 78%,
-      rgba(255, 255, 255, 0.95) 0%,
-      rgba(255, 255, 255, 0) 62%
+      900px 460px at 96% -8%,
+      rgba(139, 114, 240, 0.11) 0%,
+      rgba(139, 114, 240, 0) 64%
     ),
     radial-gradient(
-      52% 34% at 82% 70%,
-      rgba(255, 255, 255, 0.9) 0%,
-      rgba(255, 255, 255, 0) 60%
-    ),
-    radial-gradient(
-      48% 30% at 50% 18%,
-      rgba(255, 255, 255, 0.75) 0%,
-      rgba(255, 255, 255, 0) 60%
-    ),
-    linear-gradient(180deg, var(--color-horizon) 0%, var(--color-sky) 78%);
+      760px 420px at -12% 28%,
+      rgba(71, 39, 181, 0.07) 0%,
+      rgba(71, 39, 181, 0) 66%
+    );
   background-repeat: no-repeat;
 }
 
 .sky-soft {
-  background-color: var(--color-sky);
+  background-color: var(--color-paper);
   background-image:
     radial-gradient(
-      60% 40% at 20% 80%,
-      rgba(255, 255, 255, 0.85) 0%,
-      rgba(255, 255, 255, 0) 65%
+      760px 420px at 90% -10%,
+      rgba(139, 114, 240, 0.09) 0%,
+      rgba(139, 114, 240, 0) 64%
     ),
     radial-gradient(
-      55% 38% at 85% 30%,
-      rgba(255, 255, 255, 0.7) 0%,
-      rgba(255, 255, 255, 0) 60%
-    ),
-    linear-gradient(180deg, #cfe1f6 0%, var(--color-sky) 80%);
+      640px 360px at 0% 36%,
+      rgba(71, 39, 181, 0.05) 0%,
+      rgba(71, 39, 181, 0) 62%
+    );
   background-repeat: no-repeat;
 }
 
@@ -429,7 +438,7 @@ textarea {
   align-items: center;
   gap: 10px;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
   font-size: 18px;
   letter-spacing: 0;
   color: var(--text-strong);
@@ -441,8 +450,8 @@ textarea {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-pill);
-  background: var(--color-ink);
-  color: var(--color-cloud);
+  background: var(--color-indigo);
+  color: var(--color-white);
 }
 
 .nav-brand .brand-mark svg,
@@ -459,7 +468,7 @@ textarea {
   border: var(--border-hairline);
   border-radius: var(--radius-pill);
   padding: 6px;
-  box-shadow: var(--shadow-tier-1);
+  box-shadow: none;
 }
 
 .nav-link {
@@ -479,7 +488,7 @@ textarea {
 }
 
 .nav-link.is-active {
-  color: var(--text-strong);
+  color: var(--color-indigo);
   background: var(--surface-sunken);
 }
 
@@ -522,20 +531,21 @@ textarea {
 }
 
 .btn-primary {
-  background: var(--color-ink);
-  color: var(--color-cloud);
+  background: var(--color-indigo);
+  color: var(--color-white);
 }
 .btn-primary:hover {
-  background: #1a1f28;
+  background: var(--color-indigo-deep);
 }
 
 .btn-secondary {
-  background: var(--color-cloud);
-  color: var(--text-strong);
-  border: var(--border-hairline);
+  background: transparent;
+  color: var(--color-indigo);
+  border: var(--border-strong);
 }
 .btn-secondary:hover {
-  background: var(--surface-sunken);
+  background: var(--color-indigo);
+  color: var(--color-white);
 }
 
 .btn-ghost {
@@ -543,7 +553,7 @@ textarea {
   color: var(--text-strong);
 }
 .btn-ghost:hover {
-  background: rgba(14, 17, 22, 0.04);
+  background: var(--surface-sunken);
 }
 
 .btn-sm {
@@ -632,14 +642,24 @@ textarea {
 }
 
 /* -------------------------------------------------------------
-   Cards — compact radius, hairline border, Tier 1 shadow
+   Cards — paper and veil editorial surfaces
    ------------------------------------------------------------- */
 .card {
   background: var(--surface-card);
   border: var(--border-hairline);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-tier-1);
+  box-shadow: none;
   padding: 24px;
+}
+
+.card-veil {
+  background: var(--surface-sunken);
+  border-color: rgba(71, 39, 181, 0.08);
+}
+
+.card-elevated {
+  box-shadow: var(--shadow-tier-1);
+  border-color: transparent;
 }
 
 .card-compact {
@@ -653,7 +673,7 @@ textarea {
 
 .card-title {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
   font-size: 20px;
   letter-spacing: var(--tracking-snug);
   color: var(--text-strong);
@@ -728,7 +748,7 @@ textarea {
 }
 
 /* -------------------------------------------------------------
-   Tabs — pill row, ink-filled active
+   Tabs — veil track with paper active pill
    ------------------------------------------------------------- */
 .tabs {
   display: inline-flex;
@@ -736,6 +756,7 @@ textarea {
   gap: 4px;
   padding: 6px;
   border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
 }
 
 .tab {
@@ -760,13 +781,14 @@ textarea {
 }
 
 .tab:hover {
-  background: rgba(14, 17, 22, 0.04);
+  color: var(--color-indigo);
 }
 
 .tab.is-active {
-  background: var(--color-ink);
-  color: var(--color-cloud);
-  box-shadow: var(--shadow-tier-2);
+  background: var(--color-paper);
+  color: var(--color-indigo);
+  box-shadow: 0 1px 2px rgba(26, 26, 46, 0.08),
+    0 8px 20px -12px rgba(71, 39, 181, 0.35);
 }
 
 /* -------------------------------------------------------------
@@ -786,7 +808,7 @@ textarea {
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
-  border: 1.5px solid var(--color-edge);
+  border: 1.5px solid var(--color-hairline-strong);
   border-radius: var(--radius-check);
   background: var(--color-cloud);
   display: inline-grid;
@@ -802,8 +824,8 @@ textarea {
 }
 
 .checkbox input[type="checkbox"]:checked {
-  background: var(--color-ink);
-  border-color: var(--color-ink);
+  background: var(--color-indigo);
+  border-color: var(--color-indigo);
 }
 
 .checkbox input[type="checkbox"]:checked::after {
@@ -827,7 +849,7 @@ textarea {
   background: var(--color-cloud);
   border: var(--border-hairline);
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-tier-1);
+  box-shadow: none;
 }
 
 .rail-item {
@@ -850,8 +872,8 @@ textarea {
   color: var(--text-strong);
 }
 .rail-item.is-active {
-  background: var(--color-ink);
-  color: var(--color-cloud);
+  background: var(--color-royal);
+  color: var(--color-white);
 }
 
 /* -------------------------------------------------------------
@@ -879,18 +901,18 @@ textarea {
   gap: 6px;
   padding: 6px 12px;
   border-radius: var(--radius-pill);
-  background: var(--color-cloud);
+  background: var(--surface-sunken);
   border: var(--border-hairline);
   font-size: var(--fs-small);
-  font-weight: 500;
-  color: var(--text-strong);
+  font-weight: 600;
+  color: var(--color-indigo);
 }
 .chip .icon { width: 14px; height: 14px; color: var(--text-muted); }
 
 .chip-ink {
-  background: var(--color-ink);
-  color: var(--color-cloud);
-  border-color: var(--color-ink);
+  background: var(--color-royal);
+  color: var(--color-white);
+  border-color: var(--color-royal);
 }
 
 /* -------------------------------------------------------------
@@ -1002,25 +1024,29 @@ textarea {
 }
 
 /* -------------------------------------------------------------
-   Hero — composition helper
+   Marque hero — deep violet editorial block
    ------------------------------------------------------------- */
 .hero {
   position: relative;
-  padding-block: clamp(56px, 8vw, 112px) clamp(40px, 6vw, 80px);
-  text-align: center;
+  padding: 72px;
+  text-align: left;
+  background: var(--color-royal);
+  color: var(--color-white);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
 }
 
 .hero-eyebrow-slot { display: none; } /* No eyebrows. */
 
 .hero-headline {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: var(--fs-hero);
   line-height: var(--lh-tight);
   letter-spacing: var(--tracking-tight);
-  color: var(--text-strong);
-  max-width: 18ch;
-  margin: 0 auto;
+  color: var(--color-white);
+  max-width: 14ch;
+  margin: 0;
 }
 
 .hero-headline .accent-italic {
@@ -1028,11 +1054,11 @@ textarea {
 }
 
 .hero-sub {
-  margin: 24px auto 0;
+  margin: 24px 0 0;
   max-width: 56ch;
   font-size: var(--fs-body-lg);
   line-height: 1.55;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .hero-cta {
@@ -1040,19 +1066,19 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
 }
 
 /* -------------------------------------------------------------
-   Floating dashboard slab (signature composition)
+   Editorial slab
    ------------------------------------------------------------- */
 .slab {
   position: relative;
   background: var(--surface-card);
   border: var(--border-hairline);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-tier-2);
+  border-radius: var(--radius-card);
+  box-shadow: none;
   padding: 24px;
   margin-top: 40px;
 }
