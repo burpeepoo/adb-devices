@@ -111,8 +111,34 @@ rebuild_updater_artifact() {
 
     echo "Rebuilding updater archive after manual signing..."
     rm -f "$app_archive" "$app_archive.sig"
-    tar -C "$bundle_dir" -czf "$app_archive" "$(basename "$app_src")"
+    COPYFILE_DISABLE=1 tar --no-xattrs -C "$bundle_dir" -czf "$app_archive" "$(basename "$app_src")"
+    validate_updater_archive "$app_archive"
     npx tauri signer sign "$app_archive" | awk 'found && NF { print; exit } /^Public signature:$/ { found = 1 }' > "$app_archive.sig"
+}
+
+validate_updater_archive() {
+    local app_archive="$1"
+
+    python3 - "$app_archive" <<'PY'
+import sys
+import tarfile
+
+archive = sys.argv[1]
+bad = []
+with tarfile.open(archive, "r:gz") as tar:
+    for member in tar.getmembers():
+        name = member.name
+        if name.startswith("._") or "/._" in name or name.startswith("__MACOSX"):
+            bad.append(name)
+
+if bad:
+    print(f"Error: updater archive contains macOS AppleDouble metadata: {archive}", file=sys.stderr)
+    for name in bad[:20]:
+        print(f"  {name}", file=sys.stderr)
+    if len(bad) > 20:
+        print(f"  ... {len(bad) - 20} more", file=sys.stderr)
+    sys.exit(1)
+PY
 }
 
 build_one() {
