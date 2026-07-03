@@ -276,12 +276,24 @@ export function colorTemperaturePointToNativeColor(value: string) {
 
 export function colorTemperaturePointToCssColor(value: string) {
   const color = colorTemperaturePointToNativeColor(value);
-  if (color === null) return "#ffffff";
+  if (color === null) return "#FFFFFF";
+  return colorTemperatureNativeColorToCssColor(color) ?? "#FFFFFF";
+}
+
+export function colorTemperatureNativeColorToCssColor(value: number | string) {
+  const color = typeof value === "number" ? value : Number(value.trim());
+  if (!Number.isFinite(color)) return null;
   const unsignedColor = color >>> 0;
   const r = (unsignedColor >> 16) & 0xff;
   const g = (unsignedColor >> 8) & 0xff;
   const b = unsignedColor & 0xff;
-  return `#${[r, g, b].map((part) => part.toString(16).padStart(2, "0")).join("")}`;
+  return `#${[r, g, b].map((part) => part.toString(16).padStart(2, "0")).join("").toUpperCase()}`;
+}
+
+export function formatColorTemperaturePointForDisplay(value: string) {
+  const point = parseColorTemperaturePoint(value);
+  if (!point) return null;
+  return `${colorTemperaturePointToCssColor(value)} · ${formatColorTemperaturePoint(point.x, point.y)}`;
 }
 
 function firmwareDisplayPropertyTarget(key: string): DisplayCalibrationTarget {

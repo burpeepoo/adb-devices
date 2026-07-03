@@ -100,6 +100,26 @@ notarytool_submit_with_retry() {
     done
 }
 
+codesign_with_retry() {
+    local max_attempts=3
+    local attempt=1
+
+    while ((attempt <= max_attempts)); do
+        if codesign "$@"; then
+            return 0
+        fi
+
+        if ((attempt == max_attempts)); then
+            echo "Error: codesign failed after ${max_attempts} attempts." >&2
+            return 1
+        fi
+
+        echo "codesign attempt ${attempt} failed; retrying in 10 seconds..." >&2
+        sleep 10
+        attempt=$((attempt + 1))
+    done
+}
+
 echo "=== Release ADB Manager v${VERSION} ==="
 ./scripts/set-version.sh "$VERSION"
 
@@ -121,7 +141,7 @@ for binary in "${SCRCPY_BINARIES[@]}"; do
         echo "Run ./scripts/prepare-scrcpy.sh before releasing." >&2
         exit 1
     fi
-    codesign --force --options runtime "${codesign_timestamp_arg[@]}" --sign "$APPLE_SIGNING_IDENTITY" "$binary"
+    codesign_with_retry --force --options runtime "${codesign_timestamp_arg[@]}" --sign "$APPLE_SIGNING_IDENTITY" "$binary"
     codesign --verify --strict --verbose=2 "$binary"
 done
 
@@ -149,7 +169,7 @@ for dmg in "${DMGS[@]}"; do
         exit 1
     fi
 
-    codesign --force "${codesign_timestamp_arg[@]}" --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
+    codesign_with_retry --force "${codesign_timestamp_arg[@]}" --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
     codesign --verify --verbose=2 "$dmg"
 
     notarytool_submit_with_retry "$dmg"

@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-07-03
+
+### Changed
+
+- Changed Display Color temperature and color-wheel readouts to show user-friendly `#RRGGBB` color plus `x,y` coordinates while keeping the signed Settings integer available as a secondary firmware raw value.
+- Changed the ADB Manager color-wheel field to display the same `#RRGGBB · x,y` format that operators see in the current, target, and readback chips.
+
 ## [2.0.3] - 2026-07-03
 
 ### Added

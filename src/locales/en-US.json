@@ -94,6 +94,7 @@
     "source": "Source",
     "currentValue": "Current Value",
     "desiredValue": "Desired Value",
+    "firmwareRawValue": "Firmware Raw Value",
     "before": "Before",
     "after": "After",
     "select": "Select",

@@ -29,9 +29,11 @@ import {
   DISPLAY_CALIBRATION_CONTROLS,
   buildControlProfileParameter,
   clampColorTemperaturePointToNativeWheel,
+  colorTemperatureNativeColorToCssColor,
   colorTemperaturePointToCssColor,
   colorTemperaturePointToNativeColor,
   controlValueFromCandidates,
+  formatColorTemperaturePointForDisplay,
   formatColorTemperaturePoint,
   formatDisplayCalibrationTarget,
   parseColorTemperaturePoint,
@@ -860,46 +862,97 @@ function ControlBoard({
   onApply: (control: DisplayCalibrationControlDefinition, value: string) => void;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
+  const colorPointRow = rows.find((row) => row.control.id === COLOR_TEMPERATURE_POINT_CONTROL_ID) ?? null;
+  const pairedPointValues = {
+    current: colorPointRow?.currentValue ?? null,
+    desired: colorPointRow?.draftValue ?? null,
+    readback: colorPointRow?.readbackValue ?? null,
+  };
   return (
     <div className="display-calibration-control-board">
-      {rows.map((row) => (
-        <div key={row.control.id} className="display-calibration-control">
-          <div className="display-calibration-control__main">
-            <div className="display-calibration-control__title">
-              <strong>{t(row.control.labelKey)}</strong>
+      {rows.map((row) => {
+        const currentDisplay = formatControlChipValue(row.control, row.currentValue, pairedPointValues.current, t);
+        const desiredDisplay = formatControlChipValue(row.control, row.draftValue, pairedPointValues.desired, t);
+        const readbackDisplay = formatControlChipValue(row.control, row.readbackValue, pairedPointValues.readback, t);
+        return (
+          <div key={row.control.id} className="display-calibration-control">
+            <div className="display-calibration-control__main">
+              <div className="display-calibration-control__title">
+                <strong>{t(row.control.labelKey)}</strong>
+              </div>
+              <code title={formatDisplayCalibrationTarget(row.control.target)}>{row.control.parameterName}</code>
             </div>
-            <code title={formatDisplayCalibrationTarget(row.control.target)}>{row.control.parameterName}</code>
-          </div>
-          <div className="display-calibration-control__values">
-            <ReadonlyChip label={t("displayCalibration.currentValue")} value={row.currentValue ?? "-"} />
-            <ReadonlyChip label={t("displayCalibration.desiredValue")} value={row.draftValue || "-"} />
-            <ReadonlyChip label={t("displayCalibration.readback")} value={row.readbackValue ?? "-"} />
-          </div>
-          <div className="display-calibration-control__input">
-            <ControlInput
-              control={row.control}
-              value={row.draftValue}
-              disabled={busy}
-              onChange={(value, shouldApply) => onDraftChange(row.control, value, shouldApply)}
-            />
-            <button
-              className="display-calibration-action is-primary"
-              onClick={() => onApply(row.control, row.draftValue)}
-              disabled={busy || !row.draftValue.trim()}
-              type="button"
-            >
-              {row.applying ? t("displayCalibration.applying") : t("displayCalibration.apply")}
-            </button>
-          </div>
-          {row.status ? (
-            <div className={`display-calibration-control__status ${row.status.ok ? "is-ok" : "is-error"}`}>
-              {row.status.msg}
+            <div className="display-calibration-control__values">
+              <ReadonlyChip label={t("displayCalibration.currentValue")} {...currentDisplay} />
+              <ReadonlyChip label={t("displayCalibration.desiredValue")} {...desiredDisplay} />
+              <ReadonlyChip label={t("displayCalibration.readback")} {...readbackDisplay} />
             </div>
-          ) : null}
-        </div>
-      ))}
+            <div className="display-calibration-control__input">
+              <ControlInput
+                control={row.control}
+                value={row.draftValue}
+                disabled={busy}
+                onChange={(value, shouldApply) => onDraftChange(row.control, value, shouldApply)}
+              />
+              <button
+                className="display-calibration-action is-primary"
+                onClick={() => onApply(row.control, row.draftValue)}
+                disabled={busy || !row.draftValue.trim()}
+                type="button"
+              >
+                {row.applying ? t("displayCalibration.applying") : t("displayCalibration.apply")}
+              </button>
+            </div>
+            {row.status ? (
+              <div className={`display-calibration-control__status ${row.status.ok ? "is-ok" : "is-error"}`}>
+                {row.status.msg}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
+}
+
+function formatControlChipValue(
+  control: DisplayCalibrationControlDefinition,
+  rawValue: string | null,
+  pairedPointValue: string | null,
+  t: ReturnType<typeof useTranslation>["t"],
+) {
+  const value = rawValue?.trim() ?? "";
+  if (!value) return { value: "-" };
+
+  if (control.id === COLOR_TEMPERATURE_POINT_CONTROL_ID) {
+    const displayValue = formatColorTemperaturePointForDisplay(value);
+    const firmwareRawValue = colorTemperaturePointToNativeColor(value);
+    return {
+      value: displayValue ?? value,
+      detail:
+        firmwareRawValue === null
+          ? null
+          : `${t("displayCalibration.firmwareRawValue")}: ${firmwareRawValue}`,
+    };
+  }
+
+  if (control.id === COLOR_TEMPERATURE_VALUE_CONTROL_ID) {
+    const hexValue = colorTemperatureNativeColorToCssColor(value);
+    const pointValue = formatColorTemperaturePointOnly(pairedPointValue);
+    return {
+      value: hexValue ? [hexValue, pointValue].filter(Boolean).join(" · ") : value,
+      detail: hexValue ? `${t("displayCalibration.firmwareRawValue")}: ${value}` : null,
+    };
+  }
+
+  return { value };
+}
+
+function formatColorTemperaturePointOnly(value: string | null) {
+  if (!value) return null;
+  const point = parseColorTemperaturePoint(value);
+  if (!point) return null;
+  return formatColorTemperaturePoint(point.x, point.y);
 }
 
 function ControlInput({
@@ -985,6 +1038,7 @@ function ColorPointPicker({
   const left = `${(point.x / COLOR_TEMPERATURE_POINT_RANGE) * 100}%`;
   const top = `${(point.y / COLOR_TEMPERATURE_POINT_RANGE) * 100}%`;
   const swatchColor = colorTemperaturePointToCssColor(value);
+  const displayValue = formatColorTemperaturePointForDisplay(value) ?? value;
 
   const updateFromPointer = (event: PointerEvent<HTMLButtonElement>, shouldApply = false) => {
     if (disabled) return;
@@ -1032,16 +1086,18 @@ function ColorPointPicker({
           style={{ left, top, backgroundColor: swatchColor }}
         />
       </button>
-      <input className="display-calibration-input" value={value} readOnly disabled={disabled} />
+      <input className="display-calibration-input" value={displayValue} title={displayValue} readOnly disabled={disabled} />
     </div>
   );
 }
 
-function ReadonlyChip({ label, value }: { label: string; value: string }) {
+function ReadonlyChip({ label, value, detail }: { label: string; value: string; detail?: string | null }) {
+  const title = detail ? `${value}\n${detail}` : value;
   return (
     <div className="display-calibration-chip">
       <span>{label}</span>
-      <strong title={value}>{value}</strong>
+      <strong title={title}>{value}</strong>
+      {detail ? <small title={detail}>{detail}</small> : null}
     </div>
   );
 }

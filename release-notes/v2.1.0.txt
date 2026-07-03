@@ -1,0 +1,5 @@
+en-US:
+ADB Manager 2.1.0 refines Display Color calibration readouts. Color temperature and color-wheel controls now show the operator-friendly `#RRGGBB · x,y` value in the main UI, while preserving the signed Settings integer as "Firmware Raw Value" for firmware and supplier handoff. The underlying apply and export parameters are unchanged.
+
+zh-CN:
+ADB Manager 2.1.0 优化 Display Color 调色读数。色温和色环控件现在在主界面显示更容易理解的 `#RRGGBB · x,y`，同时把 signed Settings 整数保留为“固件原始值”，方便继续交给固件和供应商。底层应用到设备与导出的参数不变。

@@ -257,6 +257,18 @@
   white-space: nowrap;
 }
 
+.display-calibration-chip small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .display-calibration-control__input {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

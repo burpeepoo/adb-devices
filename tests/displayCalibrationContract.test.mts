@@ -60,8 +60,12 @@ test("display calibration is registered as a visible diagnostics workspace", () 
   assert.match(controls, /COLOR_TEMPERATURE_POINT_RANGE = 205/);
   assert.match(controls, /COLOR_TEMPERATURE_POINT_CONTROL_ID/);
   assert.match(controls, /colorTemperaturePointToNativeColor/);
+  assert.match(controls, /colorTemperatureNativeColorToCssColor/);
+  assert.match(controls, /formatColorTemperaturePointForDisplay/);
   assert.match(controls, /COLOR_TEMPERATURE_POINT_EFFECTIVE_RADIUS/);
   assert.match(component, /colorTemperaturePointToNativeColor/);
+  assert.match(component, /formatControlChipValue/);
+  assert.match(component, /displayCalibration\.firmwareRawValue/);
   assert.match(component, /display-calibration-color-wheel/);
   assert.match(component, /SHOW_CAPTURE_METRICS = false/);
   assert.match(component, /SHOW_ADVANCED_PARAMETER_SECTIONS = false/);
@@ -85,4 +89,6 @@ test("display calibration is registered as a visible diagnostics workspace", () 
   assert.match(en.displayCalibration.propertyUnset, /readback is empty/);
   assert.match(zh.displayCalibration.settingUnset, /未写入/);
   assert.match(en.displayCalibration.settingUnset, /has not written/);
+  assert.equal(zh.displayCalibration.firmwareRawValue, "固件原始值");
+  assert.equal(en.displayCalibration.firmwareRawValue, "Firmware Raw Value");
 });

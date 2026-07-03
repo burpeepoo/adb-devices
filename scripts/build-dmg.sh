@@ -85,6 +85,26 @@ copy_updater_artifacts() {
     cp "$app_signature" "$UPDATER_DIR/$updater_name.sig"
 }
 
+codesign_with_retry() {
+    local max_attempts=3
+    local attempt=1
+
+    while ((attempt <= max_attempts)); do
+        if codesign "$@"; then
+            return 0
+        fi
+
+        if ((attempt == max_attempts)); then
+            echo "Error: codesign failed after ${max_attempts} attempts." >&2
+            return 1
+        fi
+
+        echo "codesign attempt ${attempt} failed; retrying in 10 seconds..." >&2
+        sleep 10
+        attempt=$((attempt + 1))
+    done
+}
+
 sign_app_bundle_with_timestamp_url() {
     local app_src="$1"
     local candidate
@@ -92,11 +112,11 @@ sign_app_bundle_with_timestamp_url() {
     echo "Signing app bundle with custom timestamp URL..."
     while IFS= read -r -d '' candidate; do
         if file "$candidate" | grep -q 'Mach-O'; then
-            codesign --force --options runtime --timestamp="$APPLE_CODESIGN_TIMESTAMP_URL" --sign "$APPLE_SIGNING_IDENTITY" "$candidate"
+            codesign_with_retry --force --options runtime --timestamp="$APPLE_CODESIGN_TIMESTAMP_URL" --sign "$APPLE_SIGNING_IDENTITY" "$candidate"
         fi
     done < <(find "$app_src/Contents" -type f -print0)
 
-    codesign --force --options runtime --timestamp="$APPLE_CODESIGN_TIMESTAMP_URL" --sign "$APPLE_SIGNING_IDENTITY" "$app_src"
+    codesign_with_retry --force --options runtime --timestamp="$APPLE_CODESIGN_TIMESTAMP_URL" --sign "$APPLE_SIGNING_IDENTITY" "$app_src"
     codesign --verify --deep --strict --verbose=2 "$app_src"
 }
 
