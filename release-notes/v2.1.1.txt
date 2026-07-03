@@ -1,0 +1,5 @@
+en-US:
+ADB Manager 2.1.1 fixes a default-window Device Console layout issue. Tool buttons in the device utility groups now shrink within their cards instead of overlapping neighboring buttons or sections.
+
+zh-CN:
+ADB Manager 2.1.1 修复默认窗口下设备控制台的按钮布局问题。设备工具组里的按钮现在会在卡片内自适应收缩，不再和相邻按钮或区块重叠。

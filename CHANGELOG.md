@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-07-03
+
+### Fixed
+
+- Fixed the default-window Device Console tool buttons so they shrink within each tool group instead of overlapping adjacent buttons or cards.
+
 ## [2.1.0] - 2026-07-03
 
 ### Changed

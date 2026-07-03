@@ -198,10 +198,16 @@ test("device console prioritizes Scout tasks before grouped utility tools", () =
   );
   assert.match(consoleSource, /device-console-tool-grid/);
   assert.match(consoleSource, /justify="flex-start"/);
+  assert.match(consoleSource, /mih=\{40\}/);
+  assert.doesNotMatch(consoleSource, /\s+h=\{40\}/);
   assert.match(styles, /\.device-console-task-card/);
   assert.match(styles, /\.device-console-tool-group/);
-  assert.match(styles, /--device-console-tool-button-width:\s*172px/);
+  assert.match(styles, /--device-console-tool-button-max-width:\s*172px/);
+  assert.match(styles, /\.device-console-tool-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /\.device-console-tool-grid\s*\{[\s\S]*max-width:\s*calc\(\(var\(--device-console-tool-button-max-width\) \* 2\) \+ var\(--space-xs\)\)/);
   assert.match(styles, /\.device-console-tool-grid\s*\{[\s\S]*justify-content:\s*start/);
+  assert.match(styles, /\.device-console-tool-group \.mantine-Button-root\s*\{[\s\S]*width:\s*100%/);
+  assert.match(styles, /\.device-console-tool-group \.mantine-Button-root\s*\{[\s\S]*max-width:\s*var\(--device-console-tool-button-max-width\)/);
   assert.match(styles, /font-size:\s*12px !important/);
   assert.match(styles, /\.device-console-tool-group \.mantine-Button-section/);
   assert.match(styles, /flex:\s*0 0 18px/);

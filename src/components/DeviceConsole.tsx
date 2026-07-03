@@ -273,7 +273,7 @@ export default function DeviceConsole({
                       leftSection={<Icon size={16} />}
                       onClick={() => onSelectTool(tool.key)}
                       justify="flex-start"
-                      h={40}
+                      mih={40}
                     >
                       {tool.label}
                     </Button>
