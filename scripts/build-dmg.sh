@@ -141,6 +141,32 @@ if bad:
 PY
 }
 
+run_tauri_build_with_retry() {
+    local target="$1"
+    local max_attempts=3
+    local attempt=1
+    local -a command=(npx tauri build --bundles app --target "$target")
+
+    if [[ -n "${APPLE_CODESIGN_TIMESTAMP_URL:-}" ]]; then
+        command+=(--no-sign)
+    fi
+
+    while ((attempt <= max_attempts)); do
+        if "${command[@]}"; then
+            return 0
+        fi
+
+        if ((attempt == max_attempts)); then
+            echo "Error: tauri build failed after ${max_attempts} attempts for ${target}" >&2
+            return 1
+        fi
+
+        echo "tauri build attempt ${attempt} failed for ${target}; retrying in 10 seconds..." >&2
+        sleep 10
+        attempt=$((attempt + 1))
+    done
+}
+
 build_one() {
     local arch="$1"
     local target
@@ -165,11 +191,7 @@ build_one() {
     echo "[1/3] Building app bundle..."
     find "src-tauri/target/${target}/release/bundle/macos" "$DMG_DIR" \
         -maxdepth 1 -name 'rw.*.dmg' -type f -delete 2>/dev/null || true
-    if [[ -n "${APPLE_CODESIGN_TIMESTAMP_URL:-}" ]]; then
-        npx tauri build --bundles app --target "$target" --no-sign
-    else
-        npx tauri build --bundles app --target "$target"
-    fi
+    run_tauri_build_with_retry "$target"
 
     if [[ ! -d "$app_src" ]]; then
         echo "Error: app bundle was not generated: $app_src" >&2

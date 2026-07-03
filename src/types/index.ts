@@ -351,10 +351,12 @@ export type EvidenceArtifactType =
   | "screen_state"
   | "agent_note";
 export type EvidenceScribeIntensity = "quiet" | "key_moments" | "live";
+export type ScoutTaskPermissionLevel = "read_only" | "semi_auto" | "auto_execute";
 
 export interface EvidenceScribeState {
   enabled: boolean;
   intensity: EvidenceScribeIntensity;
+  permissionLevel?: ScoutTaskPermissionLevel;
   goal: string;
   agentActive?: boolean;
   agentStartedAt?: number | null;
@@ -420,6 +422,7 @@ export type TabKey =
   | "imageCast"
   | "clipboard"
   | "logcat"
+  | "displayCalibration"
   | "agent"
   | "performance"
   | "packages";

@@ -24,3 +24,23 @@ export function resolveVisibleSelectedDevice(
 
   return visibleMatch?.serial || firstVisibleOnline;
 }
+
+export function preferDeviceForIdentity(existing: DeviceInfo | undefined, candidate: DeviceInfo) {
+  if (!existing) return candidate;
+
+  if (candidate.state === "device" && existing.state !== "device") return candidate;
+  if (existing.state === "device" && candidate.state !== "device") return existing;
+
+  if (candidate.state === "device" && existing.state === "device") {
+    const candidateExecutable = isExecutableAdbSerial(candidate.serial);
+    const existingExecutable = isExecutableAdbSerial(existing.serial);
+    if (candidateExecutable && !existingExecutable) return candidate;
+    if (existingExecutable && !candidateExecutable) return existing;
+  }
+
+  return candidate;
+}
+
+export function isExecutableAdbSerial(serial: string) {
+  return !/^adb-[^-]+-.+\._adb-tls-connect\._tcp$/.test(serial);
+}

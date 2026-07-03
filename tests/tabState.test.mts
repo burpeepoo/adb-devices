@@ -6,6 +6,7 @@ test("tab order covers every workspace tab", () => {
   assert.deepEqual(TAB_KEYS, [
     "pair",
     "workbench",
+    "agent",
     "install",
     "screenshot",
     "record",
@@ -14,7 +15,7 @@ test("tab order covers every workspace tab", () => {
     "imageCast",
     "clipboard",
     "logcat",
-    "agent",
+    "displayCalibration",
     "performance",
     "packages",
   ]);

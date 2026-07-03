@@ -2,11 +2,22 @@ import { Accordion, Badge, Button, Group, Paper, SimpleGrid, Stack, Text, TextIn
 import {
   IconActivityHeartbeat,
   IconBolt,
+  IconBug,
+  IconCamera,
+  IconClipboard,
   IconDeviceMobile,
+  IconDeviceMobileCode,
   IconDeviceTablet,
   IconDeviceTv,
+  IconDevicesPc,
+  IconListDetails,
+  IconPackages,
+  IconPhotoUp,
   IconPlugConnected,
+  IconRobot,
   IconStethoscope,
+  IconTerminal2,
+  IconVideo,
 } from "@tabler/icons-react";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useMemo, useState } from "react";
@@ -15,7 +26,6 @@ import { classifyDeviceFormFactor, type DeviceFormFactor } from "../deviceFormFa
 import { deviceIdentityKey, type DeviceNotes } from "../deviceNotes";
 import type { DeviceInfo, DeviceSummary, TabKey } from "../types";
 import SectionTitle from "./common/SectionTitle";
-import DeviceConsoleShortcuts from "./DeviceConsoleShortcuts";
 import PairConnect from "./PairConnect";
 
 interface Props {
@@ -124,8 +134,8 @@ export default function DeviceConsole({
   };
 
   return (
-    <Stack maw={1040} gap="md">
-      <Paper withBorder radius="md" p="md">
+    <Stack className="device-console-root" gap="md">
+      <Paper withBorder radius="md" p="md" className="device-console-hero">
         <Group justify="space-between" gap="md" align="flex-start">
           <Group gap="sm" align="flex-start" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
             <Tooltip label={t(formFactorLabelKey(formFactor))} openDelay={70} withArrow>
@@ -209,7 +219,7 @@ export default function DeviceConsole({
           </Group>
         </Group>
 
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="sm" mt="md">
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="sm" mt="md" className="device-console-identity-grid">
           <InfoField label={t("deviceConsole.adbSerial")} value={selectedDevice.serial} />
           <InfoField label={t("deviceConsole.deviceSn")} value={selectedDevice.device_sn} />
           <InfoField label={t("deviceConsole.model")} value={selectedDevice.model} />
@@ -217,66 +227,117 @@ export default function DeviceConsole({
           <InfoField label={t("deviceConsole.connection")} value={connectionLabel(t, selectedDevice.connection_type)} />
           <InfoField label={t("deviceConsole.state")} value={selectedDevice.state} />
         </SimpleGrid>
+      </Paper>
 
-        <Accordion multiple defaultValue={["status"]} variant="contained" mt="md">
-          <Accordion.Item value="status">
-            <Accordion.Control>
-              <Group justify="space-between" gap="sm">
-                <Group gap={8} wrap="nowrap">
-                  <IconActivityHeartbeat size={16} />
-                  <span>{t("deviceConsole.status")}</span>
-                </Group>
-                {summaryLoading && (
-                  <Text size="xs" c="dimmed">
-                    {t("deviceConsole.loadingStatus")}
-                  </Text>
-                )}
+      <Paper withBorder radius="md" p="md" className="device-console-section">
+        <SectionTitle icon={<IconRobot size={17} />} label={t("deviceConsole.scoutTasks")} mb="md" />
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+          <button type="button" className="device-console-task-card" onClick={() => onSelectTool("agent")}>
+            <span className="device-console-task-icon">
+              <IconRobot size={22} />
+            </span>
+            <span className="device-console-task-copy">
+              <Text fw={850} size="lg">
+                {t("deviceConsole.taskWalkthroughTitle")}
+              </Text>
+            </span>
+          </button>
+          <button type="button" className="device-console-task-card" onClick={() => onSelectTool("agent")}>
+            <span className="device-console-task-icon">
+              <IconBug size={22} />
+            </span>
+            <span className="device-console-task-copy">
+              <Text fw={850} size="lg">
+                {t("deviceConsole.taskBugReproTitle")}
+              </Text>
+            </span>
+          </button>
+        </SimpleGrid>
+      </Paper>
+
+      <Paper withBorder radius="md" p="md" className="device-console-section">
+        <SectionTitle icon={<IconBolt size={17} />} label={t("deviceConsole.workflowTools")} mb="sm" />
+        <SimpleGrid cols={{ base: 1, lg: 3 }} spacing="md">
+          {buildToolGroups(t).map((group) => (
+            <Stack key={group.title} gap="sm" className="device-console-tool-group">
+              <Text fw={800} ta="left">
+                {group.title}
+              </Text>
+              <SimpleGrid cols={{ base: 2, sm: 3, lg: 2 }} spacing="xs" className="device-console-tool-grid">
+                {group.tools.map((tool) => {
+                  const Icon = tool.icon;
+                  return (
+                    <Button
+                      key={tool.key}
+                      variant="default"
+                      leftSection={<Icon size={16} />}
+                      onClick={() => onSelectTool(tool.key)}
+                      justify="flex-start"
+                      h={40}
+                    >
+                      {tool.label}
+                    </Button>
+                  );
+                })}
+              </SimpleGrid>
+            </Stack>
+          ))}
+        </SimpleGrid>
+      </Paper>
+
+      <Accordion multiple defaultValue={["status"]} variant="separated" className="device-console-details">
+        <Accordion.Item value="status">
+          <Accordion.Control>
+            <Group justify="space-between" gap="sm">
+              <Group gap={8} wrap="nowrap">
+                <IconActivityHeartbeat size={16} />
+                <span>{t("deviceConsole.status")}</span>
               </Group>
-            </Accordion.Control>
-            <Accordion.Panel>
-              {summaryError && (
-                <Text size="xs" c="red" mb="sm">
-                  {t("deviceConsole.statusFailed")}
+              {summaryLoading && (
+                <Text size="xs" c="dimmed">
+                  {t("deviceConsole.loadingStatus")}
                 </Text>
               )}
-              <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="sm">
-                <InfoField label={t("deviceConsole.android")} value={androidSummary(summary)} />
-                <InfoField label={t("deviceConsole.signature")} value={signatureSummary(summary, t)} />
-                <InfoField label={t("deviceConsole.battery")} value={batterySummary(summary, t)} />
-                <InfoField label={t("deviceConsole.display")} value={displaySummary(summary)} />
-                <InfoField label={t("deviceConsole.physicalSize")} value={summary?.display_physical_size_mm} />
-                <InfoField label={t("deviceConsole.storage")} value={summary?.storage} />
-                <InfoField label={t("deviceConsole.foregroundApp")} value={summary?.foreground_app} />
-              </SimpleGrid>
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item value="diagnostics">
-            <Accordion.Control>
-              <Group gap={8} wrap="nowrap">
-                <IconStethoscope size={16} />
-                <span>{t("deviceConsole.diagnostics")}</span>
-              </Group>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-                <InfoField label={t("deviceConsole.securityPatch")} value={summary?.security_patch} />
-                <InfoField label={t("deviceConsole.selinux")} value={summary?.selinux} />
-                <InfoField label={t("deviceConsole.uptime")} value={summary?.uptime} />
-                <InfoField label={t("deviceConsole.cpuAbi")} value={summary?.cpu_abi} />
-                <InfoField label={t("deviceConsole.verifiedBoot")} value={summary?.verified_boot_state} />
-                <InfoField label={t("deviceConsole.vbmeta")} value={summary?.vbmeta_device_state} />
-                <InfoField label={t("deviceConsole.bootloader")} value={summary?.bootloader_state} />
-                <InfoField label={t("deviceConsole.buildFingerprint")} value={summary?.build_fingerprint} />
-              </SimpleGrid>
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
-      </Paper>
-
-      <Paper withBorder radius="md" p="md">
-        <SectionTitle icon={<IconBolt size={17} />} label={t("deviceConsole.shortcuts")} mb="sm" />
-        <DeviceConsoleShortcuts onSelectTool={onSelectTool} />
-      </Paper>
+            </Group>
+          </Accordion.Control>
+          <Accordion.Panel>
+            {summaryError && (
+              <Text size="xs" c="red" mb="sm">
+                {t("deviceConsole.statusFailed")}
+              </Text>
+            )}
+            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="sm">
+              <InfoField label={t("deviceConsole.android")} value={androidSummary(summary)} />
+              <InfoField label={t("deviceConsole.signature")} value={signatureSummary(summary, t)} />
+              <InfoField label={t("deviceConsole.battery")} value={batterySummary(summary, t)} />
+              <InfoField label={t("deviceConsole.display")} value={displaySummary(summary)} />
+              <InfoField label={t("deviceConsole.physicalSize")} value={summary?.display_physical_size_mm} />
+              <InfoField label={t("deviceConsole.storage")} value={summary?.storage} />
+              <InfoField label={t("deviceConsole.foregroundApp")} value={summary?.foreground_app} />
+            </SimpleGrid>
+          </Accordion.Panel>
+        </Accordion.Item>
+        <Accordion.Item value="diagnostics">
+          <Accordion.Control>
+            <Group gap={8} wrap="nowrap">
+              <IconStethoscope size={16} />
+              <span>{t("deviceConsole.diagnostics")}</span>
+            </Group>
+          </Accordion.Control>
+          <Accordion.Panel>
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+              <InfoField label={t("deviceConsole.securityPatch")} value={summary?.security_patch} />
+              <InfoField label={t("deviceConsole.selinux")} value={summary?.selinux} />
+              <InfoField label={t("deviceConsole.uptime")} value={summary?.uptime} />
+              <InfoField label={t("deviceConsole.cpuAbi")} value={summary?.cpu_abi} />
+              <InfoField label={t("deviceConsole.verifiedBoot")} value={summary?.verified_boot_state} />
+              <InfoField label={t("deviceConsole.vbmeta")} value={summary?.vbmeta_device_state} />
+              <InfoField label={t("deviceConsole.bootloader")} value={summary?.bootloader_state} />
+              <InfoField label={t("deviceConsole.buildFingerprint")} value={summary?.build_fingerprint} />
+            </SimpleGrid>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
 
       <Accordion variant="separated">
         <Accordion.Item value="connection">
@@ -293,6 +354,37 @@ export default function DeviceConsole({
       </Accordion>
     </Stack>
   );
+}
+
+function buildToolGroups(t: (key: string) => string) {
+  return [
+    {
+      title: t("deviceConsole.captureTools"),
+      tools: [
+        { key: "screenshot" as const, label: t("tabs.screenshot"), icon: IconCamera },
+        { key: "record" as const, label: t("tabs.screenRecord"), icon: IconVideo },
+        { key: "mirror" as const, label: t("tabs.screenMirror"), icon: IconDevicesPc },
+        { key: "remote" as const, label: t("tabs.remoteControl"), icon: IconDeviceMobileCode },
+      ],
+    },
+    {
+      title: t("deviceConsole.diagnosticTools"),
+      tools: [
+        { key: "workbench" as const, label: t("tabs.workbench"), icon: IconTerminal2 },
+        { key: "logcat" as const, label: t("tabs.logcat"), icon: IconListDetails },
+        { key: "performance" as const, label: t("tabs.performance"), icon: IconActivityHeartbeat },
+        { key: "clipboard" as const, label: t("tabs.clipboard"), icon: IconClipboard },
+      ],
+    },
+    {
+      title: t("deviceConsole.appTools"),
+      tools: [
+        { key: "install" as const, label: t("tabs.apkInstall"), icon: IconBolt },
+        { key: "packages" as const, label: t("tabs.packageList"), icon: IconPackages },
+        { key: "imageCast" as const, label: t("tabs.imageCast"), icon: IconPhotoUp },
+      ],
+    },
+  ];
 }
 
 function InfoField({ label, value }: { label: string; value?: string | null }) {

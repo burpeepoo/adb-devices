@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { resolveVisibleSelectedDevice } from "../src/deviceSelection.ts";
+import {
+  isExecutableAdbSerial,
+  preferDeviceForIdentity,
+  resolveVisibleSelectedDevice,
+} from "../src/deviceSelection.ts";
 import type { DeviceInfo } from "../src/types/index.ts";
 
 const ipTransport = device({
@@ -39,6 +43,13 @@ test("returns null when no visible device is online", () => {
   ]);
 
   assert.equal(selected, null);
+});
+
+test("prefers executable adb transport over mdns service serial for the same device", () => {
+  assert.equal(isExecutableAdbSerial("192.168.110.111:36887"), true);
+  assert.equal(isExecutableAdbSerial("adb-LCVC100003C-TRxUr5._adb-tls-connect._tcp"), false);
+  assert.equal(preferDeviceForIdentity(mdnsTransport, ipTransport).serial, "192.168.110.111:36887");
+  assert.equal(preferDeviceForIdentity(ipTransport, mdnsTransport).serial, "192.168.110.111:36887");
 });
 
 function device(overrides: Pick<DeviceInfo, "serial" | "device_sn">): DeviceInfo {

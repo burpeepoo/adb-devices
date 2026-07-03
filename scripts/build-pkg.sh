@@ -69,6 +69,34 @@ target_for_arch() {
     esac
 }
 
+run_productbuild_with_retry() {
+    local app_src="$1"
+    local pkg_path="$2"
+    local max_attempts=3
+    local attempt=1
+
+    while ((attempt <= max_attempts)); do
+        rm -f "$pkg_path"
+        if productbuild \
+            --component "$app_src" \
+            /Applications \
+            --sign "$APPLE_INSTALLER_SIGNING_IDENTITY" \
+            "${productbuild_timestamp_arg[@]}" \
+            "$pkg_path"; then
+            return 0
+        fi
+
+        if ((attempt == max_attempts)); then
+            echo "Error: productbuild failed after ${max_attempts} attempts: $pkg_path" >&2
+            return 1
+        fi
+
+        echo "productbuild attempt ${attempt} failed; retrying in 5 seconds..." >&2
+        sleep 5
+        attempt=$((attempt + 1))
+    done
+}
+
 build_one() {
     local arch="$1"
     local target
@@ -90,12 +118,7 @@ build_one() {
     mkdir -p "$PKG_DIR"
     rm -f "$pkg_path"
 
-    productbuild \
-        --component "$app_src" \
-        /Applications \
-        --sign "$APPLE_INSTALLER_SIGNING_IDENTITY" \
-        "${productbuild_timestamp_arg[@]}" \
-        "$pkg_path"
+    run_productbuild_with_retry "$app_src" "$pkg_path"
 
     pkgutil --check-signature "$pkg_path"
     echo "Output: $pkg_path"

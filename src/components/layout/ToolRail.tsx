@@ -11,6 +11,8 @@ interface ToolConfig {
   key: TabKey;
   label: string;
   icon: ToolIcon;
+  groupLabel?: string;
+  emphasis?: "primary" | "tool";
 }
 
 interface Props {
@@ -34,24 +36,34 @@ export default function ToolRail({
   onOpenSettings,
   onOpenGithub,
 }: Props) {
+  const renderedGroups: string[] = [];
   return (
     <Stack className="rail-card" h="100%" align="stretch" gap={4} p={8}>
       {tools.map((tool) => {
         const Icon = tool.icon;
         const active = tool.key === activeTool;
+        const groupLabel = tool.groupLabel || "";
+        const showGroupLabel = groupLabel && !renderedGroups.includes(groupLabel);
+        if (showGroupLabel) {
+          renderedGroups.push(groupLabel);
+        }
         return (
-          <Tooltip key={tool.key} label={tool.label} position="right" withArrow openDelay={250}>
-            <button
-              type="button"
-              aria-label={tool.label}
-              className="tool-rail__button"
-              data-active={active ? "true" : "false"}
-              onClick={() => onSelectTool(tool.key)}
-            >
-              <Icon size={21} style={{ flex: "0 0 auto" }} />
-              <span className="tool-rail__label">{tool.label}</span>
-            </button>
-          </Tooltip>
+          <div key={tool.key} className="tool-rail__item">
+            {showGroupLabel ? <div className="tool-rail__section-label">{groupLabel}</div> : null}
+            <Tooltip label={tool.label} position="right" withArrow openDelay={250}>
+              <button
+                type="button"
+                aria-label={tool.label}
+                className="tool-rail__button"
+                data-active={active ? "true" : "false"}
+                data-emphasis={tool.emphasis || "tool"}
+                onClick={() => onSelectTool(tool.key)}
+              >
+                <Icon size={tool.emphasis === "primary" ? 22 : 19} style={{ flex: "0 0 auto" }} />
+                <span className="tool-rail__label">{tool.label}</span>
+              </button>
+            </Tooltip>
+          </div>
         );
       })}
       <div style={{ flex: 1 }} />

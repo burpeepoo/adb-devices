@@ -24,6 +24,7 @@ If code and these docs disagree, treat code as the immediate source of truth and
 - `command-map.md`: frontend actions to Tauri commands to ADB/shell behavior.
 - `release-and-ops.md`: build, update, release, validation, and artifact contract.
 - `known-risks-and-open-questions.md`: implementation risks, ambiguous behavior, and follow-up checks.
+- `../product-design/scout-agent-task-architecture.md`: target Scout product architecture, naming, task model, permission tiers, evidence/report rules, and phased rollout plan.
 
 ## How To Use This Asset
 
@@ -49,8 +50,9 @@ The app exposes these tool areas:
 8. Image cast to device
 9. Clipboard text input
 10. Logcat
-11. Package list and APK export
-12. Settings, language, updater, and ADB/scrcpy installation helpers
+11. Display calibration lab
+12. Package list and APK export
+13. Settings, language, updater, and ADB/scrcpy installation helpers
 
 ## Maintenance Rules
 

@@ -7,9 +7,27 @@
   box-shadow: none;
 }
 
+.tool-rail__item {
+  min-width: 0;
+}
+
+.tool-rail__section-label {
+  margin: 10px 12px 4px;
+  color: var(--text-subtle);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tool-rail__item:first-child .tool-rail__section-label {
+  margin-top: 2px;
+}
+
 .tool-rail__button {
   width: 100%;
-  min-height: 42px;
+  min-height: 38px;
   border: var(--border-hairline);
   border-color: transparent;
   border-radius: var(--radius-pill);
@@ -39,6 +57,23 @@
   background: var(--color-royal);
   border-color: var(--color-royal);
   box-shadow: none;
+}
+
+.tool-rail__button[data-emphasis="primary"] {
+  min-height: 48px;
+  gap: 11px;
+  color: var(--color-royal);
+  background: var(--surface-sunken);
+}
+
+.tool-rail__button[data-emphasis="primary"]:hover {
+  color: var(--color-indigo);
+  background: var(--color-veil);
+}
+
+.tool-rail__button[data-emphasis="primary"][data-active="true"] {
+  color: var(--color-white);
+  background: var(--color-royal);
 }
 
 .tool-rail__button--utility {

@@ -3,6 +3,7 @@ import type { TabKey } from "./types";
 export const TAB_KEYS: TabKey[] = [
   "pair",
   "workbench",
+  "agent",
   "install",
   "screenshot",
   "record",
@@ -11,7 +12,7 @@ export const TAB_KEYS: TabKey[] = [
   "imageCast",
   "clipboard",
   "logcat",
-  "agent",
+  "displayCalibration",
   "performance",
   "packages",
 ];

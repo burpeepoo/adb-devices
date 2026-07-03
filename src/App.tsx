@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
-import { ActionIcon, Drawer, Indicator, Tooltip } from "@mantine/core";
-import { IconRobot } from "@tabler/icons-react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { TabKey, AppSettings, DeviceInfo } from "./types";
@@ -37,6 +35,7 @@ import RemoteControl from "./components/RemoteControl";
 import ImageCast from "./components/ImageCast";
 import Clipboard from "./components/Clipboard";
 import Logcat from "./components/Logcat";
+import DisplayCalibrationLab from "./components/DisplayCalibrationLab";
 import AgentCopilot from "./components/AgentCopilot";
 import PerformancePanel from "./components/PerformancePanel";
 import PackageList from "./components/PackageList";
@@ -86,16 +85,30 @@ export default function App() {
   const TAB_LABELS: Record<TabKey, string> = Object.fromEntries(
     TAB_KEYS.map((key) => [key, t(toolLabelKeys[key])]),
   ) as Record<TabKey, string>;
-  const tools = TAB_KEYS.map((key) => ({
-    key,
-    label: TAB_LABELS[key],
-    icon: toolIcons[key],
+  const railTools = [
+    { key: "pair" as const, groupLabel: t("layout.navPrimary"), emphasis: "primary" as const },
+    { key: "agent" as const, groupLabel: t("layout.navPrimary"), emphasis: "primary" as const },
+    { key: "screenshot" as const, groupLabel: t("layout.navCapture"), emphasis: "tool" as const },
+    { key: "record" as const, groupLabel: t("layout.navCapture"), emphasis: "tool" as const },
+    { key: "mirror" as const, groupLabel: t("layout.navCapture"), emphasis: "tool" as const },
+    { key: "remote" as const, groupLabel: t("layout.navCapture"), emphasis: "tool" as const },
+    { key: "imageCast" as const, groupLabel: t("layout.navCapture"), emphasis: "tool" as const },
+    { key: "workbench" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
+    { key: "logcat" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
+    { key: "displayCalibration" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
+    { key: "performance" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
+    { key: "install" as const, groupLabel: t("layout.navApps"), emphasis: "tool" as const },
+    { key: "packages" as const, groupLabel: t("layout.navApps"), emphasis: "tool" as const },
+    { key: "clipboard" as const, groupLabel: t("layout.navUtilities"), emphasis: "tool" as const },
+  ].map((item) => ({
+    ...item,
+    label: TAB_LABELS[item.key],
+    icon: toolIcons[item.key],
   }));
   const [activeTab, setActiveTab] = useState<TabKey>("pair");
   const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set(["pair"]));
   const [adbAvailable, setAdbAvailable] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [copilotDrawerOpen, setCopilotDrawerOpen] = useState(false);
   const [mirroringDeviceSerial, setMirroringDeviceSerial] = useState<string | null>(null);
   const [screenshotShortcutResult, setScreenshotShortcutResult] = useState<ScreenshotShortcutResult | null>(null);
   const [recordShortcutResult, setRecordShortcutResult] = useState<RecordShortcutResult | null>(null);
@@ -462,13 +475,13 @@ export default function App() {
     if (tab === "imageCast") return <ImageCast deviceTarget={deviceTarget} active={activeTab === "imageCast"} />;
     if (tab === "clipboard") return <Clipboard deviceTarget={deviceTarget} />;
     if (tab === "logcat") return <Logcat deviceTarget={deviceTarget} />;
+    if (tab === "displayCalibration") return <DisplayCalibrationLab deviceTarget={deviceTarget} />;
     if (tab === "agent") {
       return (
         <AgentCopilot
           deviceTarget={deviceTarget}
           settings={settings}
           onSettingsChange={handleSettingsChange}
-          contextLabel={TAB_LABELS[activeTab]}
         />
       );
     }
@@ -515,7 +528,7 @@ export default function App() {
       <AppShellLayout
         rail={
           <ToolRail
-            tools={tools}
+            tools={railTools}
             activeTool={activeTab}
             settingsLabel={t("layout.settings")}
             githubLabel={t("layout.github")}
@@ -557,57 +570,6 @@ export default function App() {
           />
         }
       />
-
-      <Tooltip label={t("agent.openCopilot")} position="left">
-        <Indicator
-          color="green"
-          size={10}
-          offset={8}
-          disabled={!copilotDrawerOpen}
-          processing={copilotDrawerOpen}
-        >
-          <ActionIcon
-            size={54}
-            radius="xl"
-            variant="filled"
-            color="ink"
-            aria-label={t("agent.openCopilot")}
-            onClick={() => setCopilotDrawerOpen(true)}
-            style={{
-              position: "fixed",
-              right: 24,
-              bottom: 40,
-              zIndex: 220,
-              boxShadow: "var(--shadow-tier-2)",
-            }}
-          >
-            <IconRobot size={26} />
-          </ActionIcon>
-        </Indicator>
-      </Tooltip>
-
-      <Drawer
-        opened={copilotDrawerOpen}
-        onClose={() => setCopilotDrawerOpen(false)}
-        position="right"
-        size={520}
-        title={t("agent.drawerTitle")}
-        zIndex={300}
-        keepMounted
-        styles={{
-          content: { display: "flex", flexDirection: "column" },
-          body: { flex: 1, minHeight: 0, padding: 16 },
-        }}
-      >
-        <AgentCopilot
-          surface="drawer"
-          drawerOpen={copilotDrawerOpen}
-          contextLabel={TAB_LABELS[activeTab]}
-          deviceTarget={deviceTarget}
-          settings={settings}
-          onSettingsChange={handleSettingsChange}
-        />
-      </Drawer>
 
       {showSettings && (
         <Settings

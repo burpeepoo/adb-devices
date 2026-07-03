@@ -7,6 +7,7 @@ import { IconChevronDown, IconListDetails } from "@tabler/icons-react";
 import SectionTitle from "./common/SectionTitle";
 import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import type { DeviceTargetState } from "../deviceTarget.ts";
+import "./Logcat.css";
 
 interface Props {
   deviceTarget: DeviceTargetState;
@@ -147,26 +148,26 @@ export default function Logcat({ deviceTarget }: Props) {
   };
 
   return (
-    <div className="space-y-4">
-      <section className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+    <div className="logcat-page">
+      <section className="logcat-panel">
+        <div className="logcat-header">
           <SectionTitle
             icon={<IconListDetails size={17} />}
             label={t('logcat.title')}
             description={active ? t('logcat.autoRefresh') : t('logcat.clickToView')}
           />
-          <div className="flex items-center gap-2">
+          <div className="logcat-actions">
             <button
               onClick={refreshLogcat}
               disabled={loading || !deviceTarget.serial}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="logcat-action is-primary"
             >
               {loading ? t('logcat.refreshing') : active ? t('logcat.refresh') : t('logcat.viewLogcat')}
             </button>
             <button
               onClick={handleClose}
               disabled={!active}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="logcat-action"
             >
               {t('logcat.close')}
             </button>
@@ -176,27 +177,28 @@ export default function Logcat({ deviceTarget }: Props) {
                 setStatus(null);
               }}
               disabled={entries.length === 0}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="logcat-action"
             >
               {t('logcat.clear')}
             </button>
             <button
               onClick={handleExport}
               disabled={!exportText || exporting}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="logcat-action"
             >
               {exporting ? t('logcat.exporting') : t('logcat.export')}
             </button>
           </div>
         </div>
-        <DeviceTargetBanner target={deviceTarget} className="mb-3" />
+        <DeviceTargetBanner target={deviceTarget} className="logcat-target" />
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
-          <div className="space-y-1">
-            <span className="text-xs text-gray-500">{t('logcat.level')}</span>
+        <div className="logcat-filters">
+          <div className="logcat-field">
+            <span className="logcat-field__label">{t('logcat.level')}</span>
             <Menu closeOnItemClick={false} position="bottom-start" width={220} shadow="md" withinPortal>
               <Menu.Target>
                 <MantineButton
+                  className="logcat-level-button"
                   variant="default"
                   fullWidth
                   h={40}
@@ -232,69 +234,69 @@ export default function Logcat({ deviceTarget }: Props) {
               </Menu.Dropdown>
             </Menu>
           </div>
-          <label className="space-y-1">
-            <span className="text-xs text-gray-500">Tag</span>
+          <label className="logcat-field">
+            <span className="logcat-field__label">Tag</span>
             <input
               value={tagFilter}
               onChange={(event) => setTagFilter(event.target.value)}
               placeholder="ActivityTaskManager"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="logcat-input"
             />
           </label>
-          <label className="space-y-1">
-            <span className="text-xs text-gray-500">PID</span>
+          <label className="logcat-field">
+            <span className="logcat-field__label">PID</span>
             <input
               value={pidFilter}
               onChange={(event) => setPidFilter(event.target.value)}
               placeholder="1234"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="logcat-input"
             />
           </label>
-          <label className="space-y-1">
-            <span className="text-xs text-gray-500">{t('logcat.fullSearch')}</span>
+          <label className="logcat-field">
+            <span className="logcat-field__label">{t('logcat.fullSearch')}</span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t('logcat.keyword')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="logcat-input"
             />
           </label>
-          <label className="space-y-1">
-            <span className="text-xs text-gray-500">{t('logcat.adbFilter')}</span>
+          <label className="logcat-field">
+            <span className="logcat-field__label">{t('logcat.adbFilter')}</span>
             <input
               value={adbFilter}
               onChange={(event) => setAdbFilter(event.target.value)}
               placeholder={t('logcat.adbFilterPlaceholder')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="logcat-input"
             />
           </label>
         </div>
 
         <div
           ref={logRef}
-          className="h-[520px] overflow-auto rounded-lg bg-gray-50 border border-gray-200 text-xs"
+          className="logcat-console"
         >
           {visibleEntries.length > 0 ? (
             visibleEntries.map((entry, index) => (
               <div
                 key={`${index}-${entry.timestamp}-${entry.pid}-${entry.tag}`}
-                className={`grid grid-cols-[118px_64px_34px_180px_minmax(360px,1fr)] gap-2 px-3 py-1 border-b border-gray-100 ${levelRowClass(entry.level)}`}
+                className={`logcat-row ${levelRowClass(entry.level)}`}
               >
-                <span className="text-gray-500">{highlight(entry.timestamp, query)}</span>
-                <span className="text-gray-500">{highlight(entry.pid, query)}</span>
-                <span className={`font-semibold ${levelTextClass(entry.level)}`}>{entry.level || "-"}</span>
-                <span className="truncate text-gray-600">{highlight(entry.tag, query)}</span>
-                <span className="whitespace-pre-wrap break-words text-gray-800">
+                <span className="logcat-row__time">{highlight(entry.timestamp, query)}</span>
+                <span className="logcat-row__pid">{highlight(entry.pid, query)}</span>
+                <span className={`logcat-row__level ${levelTextClass(entry.level)}`}>{entry.level || "-"}</span>
+                <span className="logcat-row__tag">{highlight(entry.tag, query)}</span>
+                <span className="logcat-row__message">
                   {highlight(entry.message, query)}
                 </span>
               </div>
             ))
           ) : (
-            <div className="px-3 py-2 text-gray-500">{t('logcat.noLog')}</div>
+            <div className="logcat-empty">{t('logcat.noLog')}</div>
           )}
         </div>
 
-        <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
+        <div className="logcat-footer">
           <span>{t('logcat.readLatest')}</span>
           <span>
             {t('logcat.showCount', { visible: visibleEntries.length, total: entries.length })}
@@ -302,7 +304,7 @@ export default function Logcat({ deviceTarget }: Props) {
         </div>
 
         {status && (
-          <div className={`mt-3 text-sm px-3 py-2 rounded-lg ${status.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+          <div className={`logcat-status ${status.ok ? "is-ok" : "is-error"}`}>
             {status.msg}
           </div>
         )}
@@ -314,29 +316,29 @@ export default function Logcat({ deviceTarget }: Props) {
 function levelTextClass(level: string) {
   switch (level) {
     case "V":
-      return "text-gray-400";
+      return "is-verbose";
     case "D":
-      return "text-blue-500";
+      return "is-debug";
     case "I":
-      return "text-green-700";
+      return "is-info";
     case "W":
-      return "text-red-600";
+      return "is-warning";
     case "E":
-      return "text-red-600";
+      return "is-error";
     case "F":
-      return "text-red-600 font-bold";
+      return "is-fatal";
     default:
-      return "text-gray-400";
+      return "is-verbose";
   }
 }
 
 function levelRowClass(level: string) {
   switch (level) {
     case "W":
-      return "bg-orange-50";
+      return "is-warning";
     case "E":
     case "F":
-      return "bg-red-50";
+      return "is-error";
     default:
       return "";
   }
@@ -361,7 +363,7 @@ function highlight(value: string, query: string): ReactNode {
       pieces.push(value.slice(offset, index));
     }
     pieces.push(
-      <mark key={`${index}-${needle}`} className="bg-yellow-300 text-gray-950 rounded px-0.5">
+      <mark key={`${index}-${needle}`} className="logcat-highlight">
         {value.slice(index, index + needle.length)}
       </mark>
     );

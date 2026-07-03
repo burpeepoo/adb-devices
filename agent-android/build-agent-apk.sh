@@ -9,6 +9,7 @@ PLATFORM_JAR="$(find "$SDK_DIR/platforms" -maxdepth 2 -name android.jar | sort -
 OUT_DIR="$ROOT_DIR/build"
 CLASSES_DIR="$OUT_DIR/classes"
 DEX_DIR="$OUT_DIR/dex"
+RES_FLAT_DIR="$OUT_DIR/res-flat"
 UNALIGNED_APK="$OUT_DIR/adb-manager-agent-unaligned.apk"
 SIGNED_APK="$REPO_DIR/src-tauri/resources/agent/adb-manager-agent.apk"
 DEBUG_KEYSTORE="$ROOT_DIR/debug.keystore"
@@ -19,7 +20,11 @@ find_jdk_bin() {
     "/opt/homebrew/opt/openjdk@17/bin" \
     "/usr/local/opt/openjdk@17/bin" \
     "/opt/homebrew/opt/openjdk/bin" \
-    "/usr/local/opt/openjdk/bin"; do
+    "/usr/local/opt/openjdk/bin" \
+    /opt/homebrew/Cellar/openjdk@17/*/bin \
+    /usr/local/Cellar/openjdk@17/*/bin \
+    /opt/homebrew/Cellar/openjdk/*/bin \
+    /usr/local/Cellar/openjdk/*/bin; do
     if [ -n "$candidate" ] && [ -x "$candidate/javac" ] && "$candidate/javac" -version >/dev/null 2>&1; then
       printf "%s" "$candidate"
       return 0
@@ -44,7 +49,7 @@ export PATH="$JDK_BIN:$PATH"
 export JAVA_HOME="$(cd "$JDK_BIN/.." && pwd)"
 
 rm -rf "$OUT_DIR"
-mkdir -p "$CLASSES_DIR" "$DEX_DIR" "$(dirname "$SIGNED_APK")"
+mkdir -p "$CLASSES_DIR" "$DEX_DIR" "$RES_FLAT_DIR" "$(dirname "$SIGNED_APK")"
 
 "$JDK_BIN/javac" -source 8 -target 8 \
   -bootclasspath "$PLATFORM_JAR" \
@@ -56,15 +61,26 @@ mkdir -p "$CLASSES_DIR" "$DEX_DIR" "$(dirname "$SIGNED_APK")"
   --output "$DEX_DIR" \
   $(find "$CLASSES_DIR" -name '*.class' | sort)
 
+RESOURCE_ARGS=()
+if [ -d "$ROOT_DIR/src/main/res" ]; then
+  "$BUILD_TOOLS_DIR/aapt2" compile \
+    --dir "$ROOT_DIR/src/main/res" \
+    -o "$RES_FLAT_DIR"
+  while IFS= read -r resource_file; do
+    RESOURCE_ARGS+=("$resource_file")
+  done < <(find "$RES_FLAT_DIR" -name '*.flat' | sort)
+fi
+
 "$BUILD_TOOLS_DIR/aapt2" link \
   --manifest "$ROOT_DIR/AndroidManifest.xml" \
   -I "$PLATFORM_JAR" \
   --min-sdk-version 23 \
   --target-sdk-version 35 \
-  --version-code 1 \
-  --version-name 0.1.0 \
+  --version-code 2 \
+  --version-name 0.1.1 \
   -o "$UNALIGNED_APK" \
-  --java "$OUT_DIR/generated"
+  --java "$OUT_DIR/generated" \
+  "${RESOURCE_ARGS[@]}"
 
 zip -j "$UNALIGNED_APK" "$DEX_DIR/classes.dex" >/dev/null
 

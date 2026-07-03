@@ -236,6 +236,7 @@ pub fn start_screen_mirror(
             }
         }
     }
+    verify_mirror_adb_shell_not_root(&app, &device_serial)?;
 
     let scrcpy_path = get_scrcpy_path(&app)
         .ok_or_else(|| AdbError::CommandFailed(t!("mirror.scrcpy_not_found").into_owned()))?;
@@ -668,6 +669,26 @@ fn verify_device_online(app: &AppHandle, device_serial: &str) -> Result<(), AdbE
             t!("mirror.device_not_ready", "state" => if state.is_empty() { "unknown" } else { &state }).into_owned(),
         ))
     }
+}
+
+fn verify_mirror_adb_shell_not_root(app: &AppHandle, device_serial: &str) -> Result<(), AdbError> {
+    let output = adb::run_adb_with_timeout(
+        app,
+        &["shell", "id", "-u"],
+        Some(device_serial),
+        Duration::from_secs(4),
+    )?;
+    adb::ensure_success(&output, &t!("mirror.check_device_failed"))?;
+    if adb_shell_is_root(&output.stdout) {
+        return Err(AdbError::CommandFailed(
+            t!("mirror.adb_root_blocked").into_owned(),
+        ));
+    }
+    Ok(())
+}
+
+fn adb_shell_is_root(stdout: &[u8]) -> bool {
+    String::from_utf8_lossy(stdout).trim() == "0"
 }
 
 fn required_device_serial(device_serial: Option<String>) -> Result<String, AdbError> {
@@ -2310,6 +2331,15 @@ ActivityInfo:
         assert!(normalize_launchable_component("com.example/.Main;rm").is_none());
         assert!(normalize_launchable_component("com.example/.Main && reboot").is_none());
         assert!(normalize_launchable_component("plain.package.name").is_none());
+    }
+
+    #[test]
+    fn detects_root_adb_shell_for_mirror_guard() {
+        assert!(adb_shell_is_root(b"0\n"));
+        assert!(adb_shell_is_root(b" 0\r\n"));
+        assert!(!adb_shell_is_root(b"2000\n"));
+        assert!(!adb_shell_is_root(b"shell\n"));
+        assert!(!adb_shell_is_root(b""));
     }
 
     #[test]

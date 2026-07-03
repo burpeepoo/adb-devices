@@ -1,9 +1,10 @@
-import { ActionIcon, Badge, Box, Group, ScrollArea, Stack, Text, TextInput, Tooltip } from "@mantine/core";
+import { ActionIcon, Box, Group, ScrollArea, Stack, Text, TextInput, Tooltip } from "@mantine/core";
 import { IconRefresh, IconSearch } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { deviceIdentityKey, type DeviceNotes } from "../../deviceNotes";
 import type { DeviceInfo } from "../../types";
+import "./DevicePanel.css";
 
 interface Props {
   devices: DeviceInfo[];
@@ -46,19 +47,20 @@ export default function DevicePanel({
   const offlineDevices = filteredDevices.filter((device) => device.state !== "device");
 
   return (
-    <Stack h="100%" gap={0}>
-      <Box p="md" style={{ borderBottom: "var(--border-hairline)", background: "var(--color-cloud)" }}>
-        <Group justify="space-between" mb="xs">
-          <Text size="sm" fw={700}>
+    <Stack className="device-panel" h="100%" gap={0}>
+      <Box className="device-panel__header">
+        <Group justify="space-between" mb="xs" wrap="nowrap">
+          <Text className="device-panel__title" size="sm" fw={800}>
             {t("deviceList.title")}
           </Text>
           <Tooltip label={t("deviceList.refresh")} withArrow>
-            <ActionIcon aria-label={t("deviceList.refresh")} variant="subtle" color="gray" loading={loading} onClick={onRefresh}>
+            <ActionIcon className="device-panel__refresh" aria-label={t("deviceList.refresh")} variant="subtle" loading={loading} onClick={onRefresh}>
               <IconRefresh size={17} />
             </ActionIcon>
           </Tooltip>
         </Group>
         <TextInput
+          className="device-panel__search"
           value={query}
           onChange={(event) => setQuery(event.currentTarget.value)}
           leftSection={<IconSearch size={14} />}
@@ -67,15 +69,15 @@ export default function DevicePanel({
       </Box>
 
       {error && (
-        <Box px="md" py={8} style={{ background: "var(--surface-sunken)", borderBottom: "var(--border-hairline)" }}>
-          <Text size="xs" style={{ color: "var(--color-citrus)" }}>
+        <Box className="device-panel__error">
+          <Text size="xs">
             {error}
           </Text>
         </Box>
       )}
 
-      <ScrollArea style={{ flex: 1 }}>
-        <Stack gap={8} p="xs">
+      <ScrollArea className="device-panel__scroll">
+        <Stack className="device-panel__list" gap={8}>
           <DeviceSection label={`${t("deviceList.online")} (${onlineDevices.length})`} />
           {onlineDevices.map((device) => (
             <DeviceRow
@@ -121,7 +123,7 @@ export default function DevicePanel({
 
 function DeviceSection({ label }: { label: string }) {
   return (
-    <Text size="xs" fw={600} c="dimmed" px={4} pt={8} style={{ fontFamily: "var(--font-mono)", letterSpacing: "var(--tracking-wide)", textTransform: "uppercase" }}>
+    <Text className="device-panel__section" size="xs" fw={700}>
       {label}
     </Text>
   );
@@ -156,55 +158,31 @@ function DeviceRow({
 
   return (
     <Box
-      p="xs"
-      style={{
-        border: selected ? "1px solid var(--color-indigo)" : "1px solid transparent",
-        borderRadius: "var(--radius-tile)",
-        background: selected ? "var(--surface-sunken)" : "var(--color-cloud)",
-        opacity: online ? 1 : 0.6,
-      }}
+      className={`device-panel-row${selected ? " is-selected" : ""}${online ? "" : " is-offline"}`}
     >
       <Group align="flex-start" gap="xs" wrap="nowrap">
         <Box
-          mt={7}
-          style={{
-            width: 9,
-            height: 9,
-            borderRadius: 99,
-            flexShrink: 0,
-            background: online ? "var(--color-meadow)" : "var(--color-citrus)",
-          }}
+          className={`device-panel-row__status${online ? " is-online" : " is-offline"}`}
         />
-        <Box style={{ minWidth: 0, flex: 1 }}>
+        <Box className="device-panel-row__body">
           <button
             type="button"
             onClick={onSelect}
             disabled={!online}
-            style={{
-              width: "100%",
-              padding: 0,
-              border: 0,
-              background: "transparent",
-              textAlign: "left",
-              cursor: online ? "pointer" : "default",
-            }}
+            className="device-panel-row__button"
           >
-            <Group gap={6} wrap="nowrap">
-              <Text size="sm" fw={selected ? 700 : 500} truncate title={title} style={{ minWidth: 0 }}>
+            <Group gap={8} wrap="nowrap">
+              <Text className="device-panel-row__title" size="sm" fw={selected ? 800 : 700} truncate title={title}>
                 {title}
               </Text>
-              <ConnectionBadge type={device.connection_type} />
-              {mirroring && (
-                <Badge color="red" size="xs" radius="sm">
-                  {t("deviceList.mirroring")}
-                </Badge>
-              )}
+              <ConnectionLabel type={device.connection_type} />
+              {mirroring && <span className="device-panel-row__inline-state is-mirroring">{t("deviceList.mirroring")}</span>}
             </Group>
-            <Text size="xs" c="dimmed" truncate title={device.serial}>
+            <Text className="device-panel-row__meta" size="xs" truncate title={device.serial}>
               {t("deviceList.adb")}: {device.serial}
             </Text>
             {device.model && (
-              <Text size="xs" c="dimmed" truncate title={device.model}>
+              <Text className="device-panel-row__meta" size="xs" truncate title={device.model}>
                 {t("deviceList.model")}: {device.model}
               </Text>
             )}
@@ -212,6 +190,7 @@ function DeviceRow({
 
           {editing ? (
             <TextInput
+              className="device-panel-row__note-input"
               mt={7}
               value={draft}
               onChange={(event) => setDraft(event.currentTarget.value)}
@@ -225,23 +204,14 @@ function DeviceRow({
             />
           ) : (
             <Box
-              mt={7}
-              px={7}
-              py={5}
+              className={`device-panel-row__note${note ? " has-note" : ""}`}
               onClick={(event) => {
                 event.stopPropagation();
                 setDraft(note);
                 setEditing(true);
               }}
-              style={{
-                minHeight: 28,
-                borderRadius: "var(--radius-pill)",
-                cursor: "text",
-                background: selected ? "var(--color-cloud)" : "var(--surface-sunken)",
-                border: "var(--border-soft)",
-              }}
             >
-              <Text size="xs" c={note ? "gray.7" : "dimmed"}>
+              <Text size="xs">
                 {note || t("deviceList.addNote")}
               </Text>
             </Box>
@@ -252,25 +222,25 @@ function DeviceRow({
   );
 }
 
-function ConnectionBadge({ type }: { type: DeviceInfo["connection_type"] }) {
+function ConnectionLabel({ type }: { type: DeviceInfo["connection_type"] }) {
   const { t } = useTranslation();
   if (type === "wireless") {
     return (
-      <Badge color="blue" size="xs" radius="sm">
+      <span className="device-panel-row__connection is-wireless">
         {t("deviceList.wireless")}
-      </Badge>
+      </span>
     );
   }
   if (type === "usb") {
     return (
-      <Badge color="gray" size="xs" radius="sm">
+      <span className="device-panel-row__connection is-usb">
         {t("deviceList.usb")}
-      </Badge>
+      </span>
     );
   }
   return (
-    <Badge color="yellow" size="xs" radius="sm">
+    <span className="device-panel-row__connection is-unknown">
       {t("deviceList.unknown")}
-    </Badge>
+    </span>
   );
 }

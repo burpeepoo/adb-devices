@@ -75,6 +75,31 @@ if ! security find-identity -v -p basic | grep -Fq "$APPLE_INSTALLER_SIGNING_IDE
     exit 1
 fi
 
+notarytool_submit_with_retry() {
+    local artifact="$1"
+    local max_attempts=3
+    local attempt=1
+
+    while ((attempt <= max_attempts)); do
+        if xcrun notarytool submit "$artifact" \
+            --key "$APPLE_API_KEY_PATH" \
+            --key-id "$APPLE_API_KEY" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait; then
+            return 0
+        fi
+
+        if ((attempt == max_attempts)); then
+            echo "Error: notarization failed after ${max_attempts} attempts: $artifact" >&2
+            return 1
+        fi
+
+        echo "notarytool attempt ${attempt} failed for $artifact; retrying in 10 seconds..." >&2
+        sleep 10
+        attempt=$((attempt + 1))
+    done
+}
+
 echo "=== Release ADB Manager v${VERSION} ==="
 ./scripts/set-version.sh "$VERSION"
 
@@ -127,11 +152,7 @@ for dmg in "${DMGS[@]}"; do
     codesign --force "${codesign_timestamp_arg[@]}" --sign "$APPLE_SIGNING_IDENTITY" "$dmg"
     codesign --verify --verbose=2 "$dmg"
 
-    xcrun notarytool submit "$dmg" \
-        --key "$APPLE_API_KEY_PATH" \
-        --key-id "$APPLE_API_KEY" \
-        --issuer "$APPLE_API_ISSUER" \
-        --wait
+    notarytool_submit_with_retry "$dmg"
 
     xcrun stapler staple "$dmg"
     spctl -a -vvv -t open --context context:primary-signature "$dmg"
@@ -146,11 +167,7 @@ for pkg in "${PKGS[@]}"; do
 
     pkgutil --check-signature "$pkg"
 
-    xcrun notarytool submit "$pkg" \
-        --key "$APPLE_API_KEY_PATH" \
-        --key-id "$APPLE_API_KEY" \
-        --issuer "$APPLE_API_ISSUER" \
-        --wait
+    notarytool_submit_with_retry "$pkg"
 
     xcrun stapler staple "$pkg"
     spctl -a -vvv -t install "$pkg"

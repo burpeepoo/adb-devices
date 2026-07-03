@@ -31,7 +31,7 @@ Goal: show current and remembered devices, let the user select a device, and ins
 Frontend:
 
 - `useDevices.ts`
-- `DeviceList.tsx`
+- `components/layout/DevicePanel.tsx`
 - `DeviceConsole.tsx`
 - `DeviceConsoleShortcuts.tsx`
 
@@ -203,6 +203,88 @@ Risk classification:
 - Medium: `setprop`, `settings put`, `am force-stop`, `grant`, `revoke`, `install`, `push`.
 - Low: all other commands.
 
+## 4.5. Display Color Control Lab
+
+Goal: move the device Settings display-color controls into ADB Manager so the desktop app is the parameter control surface and the physical device screen is the preview surface.
+
+Frontend:
+
+- `DisplayCalibrationLab.tsx`
+- `displayCalibration.ts`
+
+Backend:
+
+- `adb_display_calibration_snapshot`
+- `adb_display_calibration_diff`
+- `adb_display_calibration_read_target`
+- `adb_display_calibration_apply`
+- `adb_display_calibration_open_test_pattern`
+- `adb_display_calibration_build_export`
+
+Current scope:
+
+- The left rail exposes the tab as `displayCalibration` under diagnostics.
+- The primary UI is a fixed device-control board for the Settings display controls: Color Enhance, Color Bright, Contrast, Saturation, Color Temperature value, Color Temperature wheel coordinate, and Smart backlight.
+- Each control shows the supplier-facing parameter name, current value when discoverable, desired value, readback value after apply, and the apply action. Per-control explanatory subtitles and the top aggregate metric cards are intentionally hidden in the UI so operators can tune values without reading implementation notes or summary counters.
+- Color Temperature value maps to `settings system aw_color_temperature_value`; after a successful write/readback, ADB Manager calls the vendor display helper `setColorTemperature` with the same value so the screen refresh does not depend on opening the device Settings page. The color wheel coordinate maps to `settings system srgb_color_temperature`, is edited through a clickable ADB Manager color wheel that mirrors Settings' 205-point coordinate space, and is exported as `x,y`. Applying the wheel also derives the native Settings ARGB color, writes it back to `aw_color_temperature_value`, and live-applies it through the display helper as `enhanceComponent[10]` / sRGB white point. Android `settings get` returns the literal `null` for an unset key, and the UI treats that as unset rather than as a valid value.
+- Color Bright, Contrast, and Saturation use firmware-provided `persist.vendor.display.enhance_bright`, `persist.vendor.display.enhance_contrast`, and `persist.vendor.display.enhance_saturation` properties with range `0..100`; empty `getprop` output is treated as unset. Color Enhance and Smart backlight remain modeled from Settings APK evidence as `vendor.display.output.IDisplayOutputManager/default` calls; Color Enhance uses component `0`.
+- The UI can open a test pattern, refresh fixed control values directly, apply values after explicit confirmation, read back the applied target, and build Markdown/JSON export payloads. The primary Refresh Current action reads only the fixed control board and does not run the full advanced snapshot. Advanced candidate, selected-parameter, and changed-parameter sections are retained behind an internal feature flag but are hidden from the current operator UI because the fixed Settings-derived controls are the intended workflow.
+- Vendor-display controls are visible, exportable, and routed through an ADB Manager display helper packaged with the Agent APK. On the tested production firmware, the helper reaches the binder service but SELinux denies `shell` calling `hal_awdisplayoutput_default`, so live Color Enhance and Smart backlight writes require a firmware allowlist, root/permissive engineering build, or a vendor-provided privileged bridge. The separate root action warns that `adb root` can restart adbd, reboot GC7N10001XL on affected firmware, or disconnect local mirroring.
+- Snapshot and diff remain available as an advanced diagnostics surface for discovery, readback evidence, and supplier context.
+
+Control logic:
+
+1. Resolve the selected physical device to an executable ADB serial when the UI selection is an mDNS service-name alias.
+2. Refresh fixed control values through `adb_display_calibration_read_target`; use the latest current readback, then reference readback, then snapshot candidates, then fixed defaults. This fast path updates the Current timestamp from fixed-control read completion rather than waiting for a full advanced snapshot.
+3. Let the user edit the desired value in ADB Manager; if live apply is enabled, send the new value immediately, otherwise send it when the user clicks apply.
+4. Settings-backed controls are written with `settings put` and read back with `settings get`; property-backed controls are written with `setprop` and must read back a non-empty `getprop` value before they count as successful.
+5. Known firmware property writes immediately call the matching vendor display helper after readback: Bright/Contrast/Saturation map to `setEnhanceComponent` ids `1`, `2`, and `6`; `settings system aw_color_temperature_value` maps to `setColorTemperature` with the same integer readback.
+6. Applying the color wheel coordinate writes `settings system srgb_color_temperature`, derives the Settings-native ARGB value from the same 205-point coordinate, writes that value to `settings system aw_color_temperature_value`, and live-applies it through `setEnhanceComponent` id `10` so the screen can refresh without opening the device Settings page.
+7. Vendor-display controls validate the target metadata, run the display helper, and surface the helper/firmware result. If firmware denies the binder call, the UI shows that failure inline on the affected control instead of pretending a generic ADB write can control the real Settings function.
+8. After a write attempt, show readback or error immediately on the control row. Do not refresh the advanced snapshot automatically after a single-control apply.
+
+Snapshot logic:
+
+1. Capture settings from `system`, `secure`, and `global`.
+2. Capture `getprop`.
+3. Capture `dumpsys display`, `dumpsys SurfaceFlinger`, and `cmd color_display`.
+4. Capture likely display/PQ service names, bounded display-related sysfs candidates, and a bounded display-related Logcat tail.
+5. Extract candidate rows whose key or value contains display/color/PQ/backlight/gamma/saturation/contrast/temperature-style keywords.
+6. Mark settings, property, and sysfs candidates as writable targets when they can be represented safely.
+
+Diff logic:
+
+- Compare two snapshots by stable candidate id.
+- Return before/after value pairs, source, confidence, and target when available.
+- This is an advanced evidence workflow, not the main control workflow. It is used to verify storage locations, inspect firmware behavior, and find additional supplier-relevant parameters. The Compare action captures the current advanced snapshot and computes the diff against the recorded reference.
+
+Apply logic:
+
+- Supports settings, system property, and sysfs targets directly.
+- Validates vendor-display targets and reports that helper support is required before writing.
+- Validates namespace, key/path, and value before writing.
+- Requires explicit confirmation because this path can change device display behavior.
+- Reads back the target value after a successful write.
+
+Read logic:
+
+- `adb_display_calibration_read_target` validates the same target model as apply.
+- Settings targets use `settings get`; properties use `getprop`; sysfs targets use `cat`.
+- Vendor-display targets route through the packaged display helper and return success=false with helper/firmware detail when the production build denies shell-to-HAL calls.
+
+Test pattern logic:
+
+- Generates a local PNG containing gray ramp, RGB/CMY patches, warm skin-like patches, an HSV disc, and edge patterns.
+- Pushes it to `/sdcard/Pictures/ADBManager`.
+- Opens it through Android `VIEW` intent so physical-screen changes can be inspected after ADB Manager applies parameters.
+
+Export logic:
+
+- Builds JSON and Markdown profile payloads for firmware and hardware suppliers.
+- Includes the fixed Settings-derived controls first, then optional selected advanced/diff parameters.
+- Includes device identity, target path/key/service, baseline value, desired value, readback value, helper requirement notes, visible-effect confirmation, and physical-validation requirement.
+- The export explicitly states that ADB readback proves software-visible values, while final panel color still needs physical-screen validation.
+
 ## 5. APK Installation
 
 Goal: install one or more local APK files with optional force reinstall.
@@ -326,6 +408,7 @@ Logic:
 
 - Prefer bundled scrcpy resources, then system-installed scrcpy.
 - Start requires a selected online device and verifies `adb -s <serial> get-state` equals `device`.
+- Start refuses to launch scrcpy when `adb -s <serial> shell id -u` returns `0`; on the reported GC7N userdebug firmware, starting local mirroring while adbd is rooted can reboot the device, so the user must run `adb unroot`, wait for reconnect, and then start mirroring.
 - Launches scrcpy with `-s <serial>`, optional `--no-audio`, custom window title, `ADB=<adb path>`, and bundled server path when available.
 - If scrcpy exits within 900 ms, show captured output as error.
 - UI periodically checks mirror state every 2.5 seconds.
@@ -530,9 +613,9 @@ UI behavior:
 - Warns on missing target process, elevated thermal state, battery temperature at or above 45 C, and RSS growth over 20% in 5 minutes; jank remains visible as a metric/trend but does not raise a transient warning banner.
 - Exports JSON or CSV containing metadata, sampling intervals, and retained samples.
 
-## 15. Android Device Copilot
+## 15. Scout Agent Tasks
 
-Goal: provide an experimental session-based device-investigation workspace where the AI Agent owns the conversation and ADB Manager provides typed, permission-aware device tools.
+Goal: provide a Scout-branded, session-based Agent task workspace where the AI Agent owns the conversation and task reasoning while ADB Manager provides typed, permission-aware device tools and local evidence capture.
 
 Frontend:
 
@@ -564,14 +647,15 @@ Backend commands used:
 
 Behavior:
 
-- The Agent tab is marked as a lab feature and is separate from the Performance tab.
-- The UI uses a left session list and right conversation panel; sessions are persisted under `agentCopilotSessions`.
-- A bottom-right Copilot icon is always available in the main workspace. Clicking it opens a right-side contextual drawer that reuses the Copilot surface, defaults to Chat mode, and passes the current tab label into the Agent prompt as current ADB Manager context. The CLI/model selector includes a manual runtime health-check action; clicking it opens an independent modal overlay that checks configured CLI commands with `agent_cli_probe` and summarizes enabled model API provider configuration so the user can see whether any Agent runtime is available.
-- The drawer also exposes Walkthrough and Bug Repro as peer modes next to Chat, so QA recording and repro recording do not crowd the normal chat composer and users can switch back after starting a Bug Repro.
-- The app uses the global Cirrus design system stylesheet from `src/styles/system.css`: cloudy sky canvas, Cloud surfaces, Ink primary actions, Edge hairlines, pill controls, and Signal/Citrus/Meadow data accents. Because the app uses Mantine components and has some legacy Tailwind utility pages, `src/index.css` provides a global Mantine skin plus a temporary Tailwind palette bridge so Copilot, device management, setup, install, package, media, settings, and other feature surfaces share the same visual language instead of reintroducing a separate blue/gray style.
-- Opening the right-side drawer checks the selected device's Agent APK install/update/connect status through `adb_agent_status`. If the APK is missing or outdated, the drawer shows an install/update prompt; installing is explicit user action and then starts/connects the Agent so future turns can include APK sampling data.
+- The Agent tab is labeled as Agent Tasks and is separate from the Performance tab.
+- The Agent Tasks workspace uses a task-console layout: Chat, Feature Walkthrough, and Bug Repro are first-class choices above recent chats. The console also owns compact readiness chips for Agent APK, Scout accessibility control, and Agent runtime/CLI health. The previous full-width "active task" card is not shown; active task state is visible in the selected mode's evidence panel and lightweight chat strip.
+- The main Agent Tasks panel does not repeat the Chat/Walkthrough/Bug Repro segmented switch and does not render full-width Agent APK, accessibility, or CLI status cards. Walkthrough and Bug Repro goals are entered near the bottom start controls so the goal sits with the action that starts the Agent task. Sessions are persisted under `agentCopilotSessions`.
+- Scout is available only inside the Agent Tasks workspace. There is no global bottom-right icon or right-side Scout drawer, so Chat, Feature Walkthrough, and Bug Repro all share the same task-console structure and selected-device context.
+- Clicking the Scout console runtime chip opens an independent modal overlay that checks configured CLI commands with `agent_cli_probe`, summarizes enabled model API provider configuration, and allows changing the current-device CLI profile before re-running the check.
+- The app uses the global Marque design system stylesheet from `src/styles/system.css`: warm paper canvas, lavender veil surfaces, indigo primary controls, hairline borders, pill controls, and restrained editorial spacing. Because the app uses Mantine components and has some legacy Tailwind utility pages, `src/index.css` provides a global Mantine skin plus a temporary Tailwind palette bridge so Scout, device management, setup, install, package, media, settings, and other feature surfaces share the same visual language instead of reintroducing a separate blue/gray style.
+- The Agent Tasks console checks the selected device's Agent APK install/update/connect status through `adb_agent_status` and surfaces it as a compact readiness chip instead of a full-width card. If the APK is missing or outdated, installing is explicit user action and then starts/connects the Agent so future turns can include APK sampling data. Starting a Walkthrough or Bug Repro record refreshes Agent APK status each time; if the APK is missing, outdated, or failed, Scout asks whether to continue without APK sampling before creating the record. Scout also checks whether the Agent APK accessibility service is enabled by reading `enabled_accessibility_services`; if it is disabled, the console chip can open Android Accessibility Settings for the user to enable ADB Manager Agent manually.
 - Each session stores title, timestamps, selected device identity, the most recently inferred evidence shortcut hint, selected CLI profile, message history, and message attachment metadata/text previews.
-- Conversation titles and header badges stay conversational (`New chat` / `Chat`) unless the user prompt supplies a meaningful title; the default evidence shortcut must not appear as the drawer title or badge.
+- Conversation titles and header badges stay conversational (`New chat` / `Chat`) unless the user prompt supplies a meaningful title; the default evidence shortcut must not appear as the task title or badge.
 - Sending a prompt routes the conversation to the selected Agent CLI profile as a normal multi-turn agent prompt. It does not automatically execute a fixed embedded skill or collect evidence first.
 - The Agent receives the user message, recent conversation, selected-device context, default device/performance context, current optional evidence shortcut hint, active evidence compact timeline, attachment previews, available read-only tools, and permission rules.
 - The Agent may answer directly, ask a follow-up question, or request typed tools by returning a JSON `toolCalls` block.
@@ -579,22 +663,23 @@ Behavior:
 - Tool calls execute through existing Tauri commands or the Workbench backend, preserving selected-device targeting and existing risk classification.
 - Tool results are recorded into the conversation as command/evidence messages and then returned to the Agent for a follow-up response in the same conversation.
 - Mutating or expert ADB commands use an approval-gated `workbench.request_adb_command` path. The request is rendered as a conversation approval card with command, conservative risk estimate, reason, copy command, deny, and allow-once actions; execution occurs only after user approval.
-- Evidence records are user-facing, local, device-bound QA Scribe containers persisted under `evidenceSessions`. Starting a record captures a goal and proactive intensity (`quiet`, `key_moments`, or `live`), records an initial screen-state snapshot, switches the Copilot surface into the matching Walkthrough or Bug Repro mode, and then tracks screenshots, Remote audit snapshots, notes, issue markers, recordings, Logcat, screen-state snapshots, Agent notes, and Markdown reports. Active records render a visible timeline in their selected mode; screenshot previews load through `read_image_preview_data_url` so local images are validated and returned as data URLs instead of relying on broad asset access. Export uses `export_evidence_package` to write a `.zip` with `report.md` plus available local artifact files under `assets/`; missing files are skipped and reported instead of failing the whole export. Chat mode keeps only a lightweight active-record strip with a link back to the record's mode. Walkthrough and Bug Repro each provide a mode-scoped recent-record list that stretches to the available panel height, plus a blue start / red stop Agent footer: start sends the QA or repro goal and current evidence timeline to the Agent, while stop records a stop prompt, generates the final QA report, and closes the record. The older separate header `End` action is not shown. The Agent CLI is not kept open while the user performs a long walkthrough or repro; each CLI turn remains bounded by the backend timeout, and ADB Manager persists evidence locally until the user stops. The Agent receives the compact timeline in every turn and may call `evidence.get_active_record` for fuller detail. The Agent can also request `evidence.start_session`, but it renders as an approval card and starts only after the user allows it.
-- QA Scribe proactivity is conservative. `quiet` records evidence only and generates a final report at the end. `key_moments` triggers Agent review on start, issue markers, every three new reviewable artifacts, and end. `live` additionally samples lightweight screen state every 15 seconds and skips unchanged foreground/context snapshots.
-- QA Scribe does not claim system-wide touch observation. It records only ADB Manager-confirmed evidence such as foreground/window output, screenshots, performance context, Agent APK status, Remote audit entries, Logcat, user notes, and saved paths.
+- Evidence records are user-facing, local, device-bound task records persisted under `evidenceSessions`. Starting a record captures a goal, proactive intensity (`quiet`, `key_moments`, or `live`), and execution permission (`read_only`, `semi_auto`, or `auto_execute`), records an initial screen-state snapshot, switches the Scout surface into the matching Walkthrough or Bug Repro mode, and then tracks screenshots, Remote audit snapshots, notes, issue markers, recordings, Logcat, screen-state snapshots, Agent notes, and Markdown reports. Active records render a visible timeline in their selected mode; screenshot previews load through `read_image_preview_data_url` so local images are validated and returned as data URLs instead of relying on broad asset access. Export uses `export_evidence_package` to write a `.zip` with `report.md` plus available local artifact files under `assets/`; missing files are skipped and reported instead of failing the whole export. Chat mode keeps only a lightweight active-record strip with a link back to the record's mode. Walkthrough and Bug Repro each provide a mode-scoped recent-record list that stretches to the available panel height, plus an indigo start / citrus stop Agent footer: the goal field, intensity, permission level, and start button live together in this footer; start sends the QA or repro goal, permission level, and current evidence timeline to the Agent, while stop records a stop prompt, generates the final QA report, and closes the record. The older separate header `End` action is not shown. The Agent CLI is not kept open while the user performs a long walkthrough or repro; each CLI turn remains bounded by the backend timeout, and ADB Manager persists evidence locally until the user stops. The Agent receives the compact timeline in every turn and may call `evidence.get_active_record` for fuller detail. The Agent can also request `evidence.start_session`, but it renders as an approval card and starts only after the user allows it.
+- Task-record proactivity is conservative. `quiet` records evidence only and generates a final report at the end. `key_moments` triggers Agent review on start, issue markers, every three new reviewable artifacts, and end. `live` additionally samples lightweight screen state every 15 seconds and skips unchanged foreground/context snapshots.
+- `auto_execute` depends on Scout control readiness. If the Agent APK accessibility service is enabled, the task may use control-level UI automation in later implementation phases. If it is not enabled, automatic execution falls back to screenshot/coordinate-level ADB input and keeps high-risk confirmations.
+- Task records do not claim system-wide touch observation. They record only ADB Manager-confirmed evidence such as foreground/window output, screenshots, performance context, Agent APK status, Remote audit entries, Logcat, user notes, and saved paths.
 - Bug reproduction sessions are selected from the top-level Bug Repro mode and add start/stop recording controls. Marking an issue records the issue note and attempts to attach an issue-time Logcat snapshot.
 - Checklist and test-plan files are uploaded as conversation attachments. The Agent can read bounded text previews and guide the walkthrough, but there is no separate Checklist evidence mode, item-status model, or checklist-specific export blocker.
-- Embedded skills define bounded ADB evidence steps, trigger keywords, and acceptance criteria in local Markdown and in the app catalog, but the Copilot UI no longer exposes a manual "run template" action. The current shortcut is only a hint in the Agent prompt, so the Agent can decide whether it matters.
-- The conversation sends on Enter, keeps Shift+Enter for new lines, auto-scrolls to the newest message, and renders Agent thinking as an in-thread animated message rather than a top progress bar.
-- Closing the contextual drawer hides it without unmounting the Copilot, so an in-flight Agent turn continues and reappears with its current thinking or final state when the drawer is opened again.
+- Embedded skills define bounded ADB evidence steps, trigger keywords, and acceptance criteria in local Markdown and in the app catalog, but the Scout UI no longer exposes a manual "run template" action. The current shortcut is only a hint in the Agent prompt, so the Agent can decide whether it matters.
+- The conversation sends on Enter, keeps Shift+Enter for new lines, ignores Enter while an IME composition is active or just committing a candidate, auto-scrolls to the newest message, and renders Agent thinking as an in-thread animated message rather than a top progress bar.
+- Switching away from the Agent Tasks workspace keeps visited tabs mounted, so an in-flight Agent turn continues and is visible again when the user returns to Agent Tasks.
 - The conversation composer shows five randomly selected practical prompt suggestions from a larger localized scenario pool whenever a new conversation is opened. Clicking a suggestion sends it to the same agentic conversation path as typed prompts.
 - The conversation composer accepts multiple attachments. Text-like files are stored with bounded previews for skill matching and message context; large or binary files keep metadata only.
 - Built-in Codex CLI turns use `codex exec` with ephemeral session state, stdin prompt input, and last-message output capture. The app adds read-only sandboxing by default, but it does not force an approval policy and respects user-provided Codex profile args such as `--yolo`, `--dangerously-bypass-approvals-and-sandbox`, or an explicit `--sandbox` override. Built-in Claude Code turns use `claude --print --output-format text`. Custom CLI profiles receive the conversation prompt on stdin with the user-configured args.
-- If the Agent CLI is unavailable, times out, exits without useful output, or is not configured, the Copilot surfaces the runtime gap instead of pretending a real agent answered. Built-in stdout/stderr analysis remains available only for explicit evidence shortcut collection.
+- If the Agent CLI is unavailable, times out, exits without useful output, or is not configured, Scout surfaces the runtime gap instead of pretending a real agent answered. Built-in stdout/stderr analysis remains available only for explicit evidence shortcut collection.
 - Local diagnostic document paths such as `docs/agent-skills/device-report.md` render as clickable links when they appear in messages and open through the desktop app; repo-relative links are resolved against the project root before opening.
 - Settings uses a full-screen panel for Agent runtime configuration rather than a small modal. Agent CLI settings are global by default. Built-in profiles are Codex CLI and Claude Code; custom CLI command, args, and working directory are editable in Settings. The custom working directory accepts pasted local paths or `file://` folder URLs and also has a folder picker button.
 - Settings also exposes Provider configuration: a default provider selector and local OpenAI-compatible / Anthropic API provider fields for enablement, Base URL, model, and API key. API providers are checked as configuration during manual runtime health checks; direct conversation execution remains on the CLI path until model-provider execution is added.
-- The Agent Lab CLI panel shows the current-device CLI override and current device/CLI context in one inline row; global CLI settings remain in Settings.
+- The Agent Tasks console shows the current-device runtime as a compact chip; clicking it opens the runtime health modal with current-device CLI override selection. Global CLI and model provider settings remain in Settings.
 
 Boundaries:
 
@@ -626,12 +711,12 @@ Backend:
 
 Settings:
 
-- Settings opens as a full-screen workspace that reuses the main app shell language: dark left rail, gray workspace background, white bordered section panels, and blue primary actions.
+- Settings opens as a full-screen workspace that reuses the Marque app shell language: paper canvas, lavender section surfaces, indigo primary actions, hairline separation, and the same compact card anatomy as the rest of the app.
 - Language preference: system, English, Chinese.
 - Screenshot directory.
 - Recording directory.
 - Automatic update checks.
-- Agent CLI global default and custom profile fields. Current-device CLI overrides live in the Agent Lab CLI panel.
+- Agent CLI global default and custom profile fields. Current-device CLI overrides live in the Agent Tasks CLI panel.
 
 Updater behavior:
 

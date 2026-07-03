@@ -65,7 +65,7 @@ Tauri store path: `settings.json`.
 | --- | --- | --- |
 | `settings` | `AppSettings` | `App.tsx`, `Settings.tsx` |
 | `deviceHistory` | `DeviceHistoryItem[]` | `useDevices.ts` |
-| `deviceNotes` | `Record<deviceIdentityKey, note>` | `DeviceList.tsx`, `DeviceConsole.tsx` |
+| `deviceNotes` | `Record<deviceIdentityKey, note>` | `DevicePanel.tsx`, `DeviceConsole.tsx` |
 | `pairConnect` | `PairConnectSettings` | `PairConnect.tsx` |
 | `adbStartupRepair` | `AdbStartupRepairState` | `startupAdbRepair.ts`, `PairConnect.tsx` |
 | `workbenchTemplates` | Saved workbench templates | `AdbWorkbench.tsx` |
@@ -80,14 +80,14 @@ Tauri store path: `settings.json`.
 - `recentApkDir`
 - `languagePreference`: `system`, `en-US`, or `zh-CN`
 - `autoCheckUpdates`: default enabled unless explicitly false
-- `agentCli`: global Agent CLI profile settings, custom CLI fields, and current-device profile overrides edited from Agent Lab
+- `agentCli`: global Agent CLI profile settings, custom CLI fields, and current-device profile overrides edited from Agent Tasks
 - `agentProviders`: default Agent runtime provider plus enabled model API provider configuration
 
 `AgentCliSettings`
 
 - `globalProfileId`: default profile for all devices.
 - `profiles`: built-in Codex CLI / Claude Code profiles plus an editable custom CLI profile.
-- `perDeviceProfileIds`: optional overrides keyed by `device_sn || serial`; these are stored in settings but edited from the Agent Lab CLI panel, not the Settings modal.
+- `perDeviceProfileIds`: optional overrides keyed by `device_sn || serial`; these are stored in settings and edited from the Agent Tasks runtime health modal, while global CLI profiles remain in Settings.
 
 `AgentProviderSettings`
 
@@ -107,7 +107,7 @@ Tauri store path: `settings.json`.
 - `id`, `kind`, `status`, `title`, `createdAt`, `updatedAt`, optional `closedAt`
 - `deviceKey`, `deviceSerial`: binds the evidence session to the selected device when available.
 - `capturePolicy`: screenshot, Remote audit snapshot, and issue-time Logcat behavior.
-- `scribe`: optional QA Scribe state with enabled flag, proactive intensity (`quiet`, `key_moments`, `live`), goal, last reviewed artifact id, summaries, and next action. Missing `scribe` means a historical plain evidence record.
+- `scribe`: optional task-recorder state with enabled flag, proactive intensity (`quiet`, `key_moments`, `live`), execution permission (`read_only`, `semi_auto`, `auto_execute`), goal, last reviewed artifact id, summaries, and next action. The field name remains `scribe` for historical record compatibility; missing `scribe` means a historical plain evidence record.
 - `artifacts`: screenshot, recording, Logcat, note, issue marker, Remote audit, screen-state, and Agent note evidence.
 - Checklist or test-plan files are represented as `AgentCopilotAttachment` context, not as `EvidenceSession` fields.
 
@@ -192,6 +192,50 @@ Execution result:
 - Exit code.
 - stdout/stderr.
 - Saved history item with mode, item id, parameter values, custom command, and success flag.
+
+## Display Color Control Model
+
+Display color control is exposed through the Display Color diagnostics tab. The UI is intentionally ADB Manager-driven: the app owns desired values and export payloads, while the physical device screen is the preview surface.
+
+`DisplayCalibrationControlDefinition`
+
+- `id`: stable UI control id.
+- `parameterName`: supplier-facing parameter path or service method.
+- `kind`: `slider`, `toggle`, `integer`, or `point`.
+- `target`: the concrete write/read target.
+- `min`, `max`, `step`, `defaultValue`: input constraints for sliders/toggles.
+- `requiresHelper`: true when the control maps to the vendor display service instead of ordinary ADB settings.
+- `source`: evidence source, currently Settings APK mapping or Android settings.
+
+`DisplayCalibrationSnapshot`
+
+- `capturedAt`: local capture timestamp.
+- `deviceSerial`: explicit selected ADB serial.
+- `probes`: bounded raw outputs from settings, properties, display dumps, likely services, likely sysfs nodes, and display-related Logcat.
+- `candidates`: extracted likely display/PQ/backlight/color entries.
+
+`DisplayCalibrationTarget`
+
+- `settings`: namespace plus key.
+- `systemProperty`: property key.
+- `sysfs`: file path under `/sys/`.
+- `vendorDisplay`: vendor service name, display id, operation, optional component id, read method, and write method. The Settings APK mapping currently uses `vendor.display.output.IDisplayOutputManager/default`; Bright/Contrast/Saturation are `enhanceComponent` ids `1`, `2`, and `6`.
+
+`DisplayCalibrationProfile`
+
+- `profileName`
+- `device`: ADB serial, optional SN/model/build/firmware identity.
+- `parameters`: name, target, baseline value, desired value, readback value, visible-effect confirmation, physical-validation flag, and notes.
+- `notes`: supplier-facing context.
+
+Rules:
+
+- ADB Manager is the desired-value source; the device is the preview/effect surface.
+- Fixed device controls are the primary workflow. Snapshot and diff are read-only advanced diagnostics.
+- Refresh reads fixed controls directly and stores per-control current/reference values and per-row status.
+- Apply is mutating, requires explicit confirmation in the UI, and shows per-control status immediately without running the slow advanced snapshot path.
+- Settings-backed controls can be written directly through ADB. Known firmware property controls are written through `setprop`, read back through `getprop`, then immediately applied through the packaged display helper when the corresponding vendor service method is known. Vendor-display controls run through the same helper, but production firmware may still deny shell-to-HAL access until firmware or a privileged bridge allows it.
+- Export distinguishes software-visible readback from physical panel validation.
 
 ## Error Model
 

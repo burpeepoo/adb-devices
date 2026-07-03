@@ -16,7 +16,7 @@ const AGENT_BOOTSTRAP_ACTIVITY: &str = "com.cozyla.adbmanager.agent/.AgentBootst
 const AGENT_APK_RESOURCE: &str = "resources/agent/adb-manager-agent.apk";
 const AGENT_SOCKET: &str = "localabstract:adb_manager_agent";
 const AGENT_PROTOCOL_VERSION: u32 = 1;
-const AGENT_BUNDLED_VERSION_NAME: &str = "0.1.0";
+const AGENT_BUNDLED_VERSION_NAME: &str = "0.1.1";
 
 #[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]

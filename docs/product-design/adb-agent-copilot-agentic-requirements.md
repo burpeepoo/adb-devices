@@ -4,6 +4,8 @@ Date: 2026-06-30
 
 Audience: ADB Manager product, engineering, QA, and support users.
 
+Status: superseded for global product architecture by `docs/product-design/scout-agent-task-architecture.md`. Keep this document as background for the earlier agentic conversation and typed-tool requirements; use the Scout architecture document for current naming, information architecture, task model, permissions, evidence, and rollout decisions.
+
 ## 1. Background
 
 The current Android Device Copilot has improved over the earlier fixed command catalog, but it still behaves more like a deterministic diagnostic workflow than a real Copilot.
@@ -80,10 +82,10 @@ The first agentic version should not:
      - "Why did the device get slow after opening Launcher?"
      - "Summarize today's walkthrough evidence."
 
-2. **Contextual Copilot drawer**
-   - Default UI is a bottom-right Copilot icon.
-   - Clicking the icon opens a right-side conversation drawer.
-   - The drawer receives current tab context but does not force a tab-specific workflow.
+2. **Agent Tasks Scout workspace**
+   - Scout is entered from the Agent Tasks workspace, not a bottom-right icon.
+   - The workspace keeps Chat, Feature Walkthrough, and Bug Repro inside one task console.
+   - The Agent receives selected-device context and optional task context, but the UI does not force a tab-specific workflow.
    - Examples:
      - Screenshot tab: "Analyze the current screen."
      - Logcat tab: "Look for recent crash evidence."
@@ -228,33 +230,13 @@ High-risk approvals must not be bypassed by a global "agent mode" toggle.
 
 ## 8. UX Requirements
 
-### 8.1 Bottom-Right Copilot Icon
+### 8.1 Agent Tasks Scout Workspace
 
-- Copilot is collapsed by default as a bottom-right icon.
-- The icon may show state:
-  - Idle.
-  - Agent thinking.
-  - Tool running.
-  - Evidence session active.
-  - Permission needed.
-  - Error.
-- Clicking opens a right-side drawer.
+Scout is not collapsed into a bottom-right icon. It lives in the Agent Tasks workspace so Chat, Feature Walkthrough, and Bug Repro share the same device context, readiness checks, conversation thread, tool call cards, permission cards, evidence status, prompt suggestions, and input composer.
 
-### 8.2 Right-Side Drawer
+The workspace should not force the current tab to run a preset workflow. Suggestions can inform Agent context, but the UI should not expose a confusing manual "run template" action.
 
-The drawer should include:
-
-- Current device and current tab context.
-- Conversation thread.
-- Tool call cards.
-- Permission cards.
-- Evidence session status.
-- Context-aware prompt suggestions.
-- Input composer.
-
-The drawer should not force the current tab to run a preset workflow. Suggestions can inform Agent context, but the UI should not expose a confusing manual "run template" action.
-
-### 8.3 Main Console
+### 8.2 Main Console
 
 The main console can keep a universal Copilot chat.
 

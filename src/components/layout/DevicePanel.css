@@ -1,0 +1,193 @@
+.device-panel {
+  background: var(--color-cloud);
+  color: var(--text-strong);
+}
+
+.device-panel__header {
+  padding: var(--space-md);
+  border-bottom: var(--border-hairline);
+  background: var(--color-cloud);
+}
+
+.device-panel__title {
+  font-family: var(--font-display);
+  letter-spacing: 0;
+}
+
+.device-panel__refresh.mantine-ActionIcon-root {
+  color: var(--color-indigo);
+  border-radius: var(--radius-input);
+}
+
+.device-panel__refresh.mantine-ActionIcon-root:hover {
+  background: var(--surface-sunken);
+}
+
+.device-panel__search .mantine-TextInput-input {
+  min-height: 44px;
+  border-radius: var(--radius-input);
+  border-color: var(--color-hairline);
+  background: var(--color-paper);
+  color: var(--text-strong);
+}
+
+.device-panel__search .mantine-TextInput-input:focus {
+  border-color: var(--color-indigo);
+  box-shadow: var(--focus-ring);
+}
+
+.device-panel__error {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--border-hairline);
+  background: color-mix(in srgb, var(--color-citrus) 8%, var(--color-paper));
+  color: var(--color-citrus);
+}
+
+.device-panel__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.device-panel__list {
+  padding: var(--space-sm);
+}
+
+.device-panel__section {
+  padding: var(--space-sm) var(--space-xs) 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.device-panel-row {
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-tile);
+  background: rgba(250, 250, 252, 0.72);
+  transition:
+    background var(--dur-quick) var(--ease-soft),
+    border-color var(--dur-quick) var(--ease-soft);
+}
+
+.device-panel-row:hover {
+  border-color: rgba(71, 39, 181, 0.14);
+  background: var(--surface-sunken);
+}
+
+.device-panel-row.is-selected {
+  border-color: rgba(71, 39, 181, 0.42);
+  background: var(--surface-sunken);
+  box-shadow: inset 3px 0 0 var(--color-indigo);
+}
+
+.device-panel-row.is-offline {
+  opacity: 0.58;
+}
+
+.device-panel-row__status {
+  width: 8px;
+  height: 8px;
+  margin-top: 8px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-pill);
+}
+
+.device-panel-row__status.is-online {
+  background: var(--color-success);
+}
+
+.device-panel-row__status.is-offline {
+  background: var(--color-citrus);
+}
+
+.device-panel-row__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.device-panel-row__button {
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+}
+
+.device-panel-row__button:disabled {
+  cursor: default;
+}
+
+.device-panel-row__title {
+  min-width: 0;
+  color: var(--text-strong);
+  letter-spacing: 0;
+}
+
+.device-panel-row__connection,
+.device-panel-row__inline-state {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+.device-panel-row__connection::before,
+.device-panel-row__inline-state::before {
+  content: "/";
+  margin-right: 7px;
+  color: var(--color-hairline-strong);
+}
+
+.device-panel-row__connection.is-wireless {
+  color: var(--color-indigo);
+}
+
+.device-panel-row__connection.is-usb {
+  color: var(--text-muted);
+}
+
+.device-panel-row__connection.is-unknown,
+.device-panel-row__inline-state.is-mirroring {
+  color: var(--color-citrus);
+}
+
+.device-panel-row__meta {
+  color: var(--text-muted);
+}
+
+.device-panel-row__note {
+  min-height: 28px;
+  margin-top: 7px;
+  padding: 6px 8px;
+  border-radius: var(--radius-input);
+  background: rgba(238, 233, 251, 0.72);
+  color: var(--text-soft);
+  cursor: text;
+}
+
+.device-panel-row.is-selected .device-panel-row__note {
+  background: var(--color-paper);
+}
+
+.device-panel-row__note.has-note {
+  color: var(--text-strong);
+}
+
+.device-panel-row__note:hover {
+  background: var(--color-paper);
+}
+
+.device-panel-row__note-input .mantine-TextInput-input {
+  min-height: 34px;
+  border-radius: var(--radius-input);
+  border-color: var(--color-indigo);
+  background: var(--color-paper);
+  color: var(--text-strong);
+}
+
+.device-panel-row__note-input .mantine-TextInput-input:focus {
+  box-shadow: var(--focus-ring);
+}

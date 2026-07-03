@@ -1,0 +1,5 @@
+en-US:
+ADB Manager 2.0.3 adds the Display Color tool for userdebug display tuning. Testers can adjust Color Enhance, Bright, Contrast, Saturation, AW color temperature, and SRGB color coordinates from ADB Manager, see current and readback values, use a visual color-coordinate picker for the color ring workflow, and export the selected parameters for firmware and vendor handoff. This release also cleans up device and diagnostic layouts, keeps refresh buttons stable while values load, hides advanced debug sections from the default tester view, and blocks local scrcpy mirroring while ADB shell is rooted to avoid the GC7N userdebug reboot path.
+
+zh-CN:
+ADB Manager 2.0.3 新增 Display Color 调色工具，用于 userdebug 设备的显示参数调试。测试人员可以在 ADB Manager 中调整 Color Enhance、Bright、Contrast、Saturation、AW 色温和 SRGB 色环坐标，查看当前值与读回值，通过可视化颜色坐标选择器完成色环调节，并导出参数给固件和供应商。本次版本也清理了设备与诊断布局，刷新时保持按钮位置稳定，默认隐藏高级调试区，并在 ADB shell 处于 root 时拦截本机 scrcpy 投屏，避免 GC7N userdebug 设备触发重启。

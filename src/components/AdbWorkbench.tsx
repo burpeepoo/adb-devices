@@ -788,9 +788,9 @@ const classifyCommandText = (command: string): WorkbenchRisk => {
 };
 
 const riskClasses: Record<WorkbenchRisk, string> = {
-  low: "bg-green-50 text-green-700 border-green-100",
-  medium: "bg-amber-50 text-amber-700 border-amber-100",
-  high: "bg-red-50 text-red-700 border-red-100",
+  low: "workbench-risk-pill workbench-risk-pill--low",
+  medium: "workbench-risk-pill workbench-risk-pill--medium",
+  high: "workbench-risk-pill workbench-risk-pill--high",
 };
 
 const riskOrder: Record<WorkbenchRisk, number> = {
@@ -1152,82 +1152,78 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
   };
 
   return (
-    <div className="flex h-full min-h-[620px] flex-col gap-4">
+    <div className="adb-workbench-root">
       <DeviceTargetBanner target={deviceTarget} />
-      <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)] gap-4">
-      <section className="flex min-h-0 flex-col rounded-lg border border-gray-200 bg-white">
-        <div className="border-b border-gray-200 p-4">
-          <SectionTitle icon={<IconTerminal2 size={17} />} label={t("workbench.title")} description={t("workbench.subtitle")} />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t("workbench.searchPlaceholder")}
-            className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-          />
-          <select
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-            className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">{t("workbench.categories.all")}</option>
-            {categoryOptions.map((categoryKey) => (
-              <option key={categoryKey} value={categoryKey}>
-                {t(categoryKey)}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="adb-workbench-grid">
+        <section className="adb-workbench-library">
+          <div className="adb-workbench-library__header">
+            <SectionTitle icon={<IconTerminal2 size={17} />} label={t("workbench.title")} description={t("workbench.subtitle")} />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t("workbench.searchPlaceholder")}
+              className="adb-workbench-input"
+            />
+            <select
+              value={categoryFilter}
+              onChange={(event) => setCategoryFilter(event.target.value)}
+              className="adb-workbench-input"
+            >
+              <option value="all">{t("workbench.categories.all")}</option>
+              {categoryOptions.map((categoryKey) => (
+                <option key={categoryKey} value={categoryKey}>
+                  {t(categoryKey)}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="min-h-0 flex-1 overflow-auto p-2">
-          {filteredItems.map((item) => {
-            const selected = mode === "library" && item.id === selectedId;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => chooseItem(item)}
-                className={`mb-2 w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-                  selected ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="text-sm font-medium text-gray-800">{item.title ?? t(item.titleKey ?? "")}</div>
-                    <div className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">
+          <div className="adb-workbench-library__list">
+            {filteredItems.map((item) => {
+              const selected = mode === "library" && item.id === selectedId;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => chooseItem(item)}
+                  className={`adb-workbench-command-card${selected ? " is-active" : ""}`}
+                >
+                  <span className="adb-workbench-command-card__main">
+                    <span className="adb-workbench-command-card__title">{item.title ?? t(item.titleKey ?? "")}</span>
+                    <span className="adb-workbench-command-card__desc">
                       {item.description ?? t(item.descriptionKey ?? "")}
-                    </div>
-                  </div>
-                  <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] ${riskClasses[item.risk]}`}>
+                    </span>
+                    <span className="adb-workbench-command-card__category">{t(item.categoryKey)}</span>
+                  </span>
+                  <span className={riskClasses[item.risk]}>
                     {t(`workbench.risk.${item.risk}`)}
                   </span>
-                </div>
-                <div className="mt-2 text-[11px] text-gray-400">{t(item.categoryKey)}</div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
-      <section className="min-h-0 overflow-auto rounded-lg border border-gray-200 bg-white p-5">
-        <div className="mb-4 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+        <section className="adb-workbench-composer">
+          <div className="adb-workbench-mode-switch">
           <button
             type="button"
             onClick={() => switchMode("library")}
-            className={`rounded-md px-3 py-1.5 text-sm ${mode === "library" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            className={mode === "library" ? "is-active" : ""}
           >
             {t("workbench.libraryMode")}
           </button>
           <button
             type="button"
             onClick={() => switchMode("templates")}
-            className={`rounded-md px-3 py-1.5 text-sm ${mode === "templates" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            className={mode === "templates" ? "is-active" : ""}
           >
             {t("workbench.templatesMode")}
           </button>
           <button
             type="button"
             onClick={() => switchMode("custom")}
-            className={`rounded-md px-3 py-1.5 text-sm ${mode === "custom" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            className={mode === "custom" ? "is-active" : ""}
           >
             {t("workbench.customMode")}
           </button>
@@ -1235,30 +1231,28 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
 
         {mode === "library" ? (
           <>
-            <div className="mb-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{selectedItem.title ?? t(selectedItem.titleKey ?? "")}</h3>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
+            <div className="adb-workbench-detail-heading">
+              <div>
+                <h3>{selectedItem.title ?? t(selectedItem.titleKey ?? "")}</h3>
+                <p>
                     {selectedItem.description ?? t(selectedItem.descriptionKey ?? "")}
-                  </p>
-                </div>
-                <span className={`rounded-full border px-2.5 py-1 text-xs ${riskClasses[selectedItem.risk]}`}>
-                  {t(`workbench.risk.${selectedItem.risk}`)}
-                </span>
+                </p>
               </div>
+              <span className={riskClasses[selectedItem.risk]}>
+                {t(`workbench.risk.${selectedItem.risk}`)}
+              </span>
             </div>
 
             {selectedItem.params.length > 0 ? (
-              <div className="space-y-4">
+              <div className="adb-workbench-param-stack">
                 {selectedItem.params.map((param) => (
-                  <label key={param.name} className="block">
-                    <span className="mb-1 block text-xs font-medium text-gray-500">{t(param.labelKey)}</span>
+                  <label key={param.name} className="adb-workbench-field">
+                    <span>{t(param.labelKey)}</span>
                     {param.type === "select" ? (
                       <select
                         value={values[param.name] ?? ""}
                         onChange={(event) => setValues((prev) => ({ ...prev, [param.name]: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                        className="adb-workbench-input"
                       >
                         {(param.options ?? []).map((option) => (
                           <option key={option.value} value={option.value}>
@@ -1273,6 +1267,7 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
                         deviceSerial={deviceSerial}
                         disabled={!deviceSerial}
                         placeholder={param.placeholderKey ? t(param.placeholderKey) : ""}
+                        className="adb-workbench-input adb-workbench-input--mono"
                       />
                     ) : (
                       <input
@@ -1280,25 +1275,29 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
                         onChange={(event) => setValues((prev) => ({ ...prev, [param.name]: event.target.value }))}
                         onPaste={(event) => handleParamPaste(event, param)}
                         placeholder={param.placeholderKey ? t(param.placeholderKey) : ""}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                        className="adb-workbench-input adb-workbench-input--mono"
                       />
                     )}
                   </label>
                 ))}
               </div>
             ) : (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">
+              <div className="adb-workbench-empty-note">
                 {t("workbench.noParams")}
               </div>
             )}
           </>
         ) : mode === "templates" ? (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">{t("workbench.templatesTitle")}</h3>
-            <p className="mt-1 text-sm leading-6 text-gray-500">{t("workbench.templatesDesc")}</p>
-            <div className="mt-4 space-y-2">
+          <div className="adb-workbench-template-mode">
+            <div className="adb-workbench-detail-heading">
+              <div>
+                <h3>{t("workbench.templatesTitle")}</h3>
+                <p>{t("workbench.templatesDesc")}</p>
+              </div>
+            </div>
+            <div className="adb-workbench-template-list">
               {savedItems.length === 0 && (
-                <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-6 text-center text-sm text-gray-400">
+                <div className="adb-workbench-empty-note">
                   {t("workbench.noTemplates")}
                 </div>
               )}
@@ -1307,25 +1306,17 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-start gap-2 rounded-lg border px-3 py-2 transition-colors ${
-                      selected ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
-                    }`}
+                    className={`adb-workbench-template-card${selected ? " is-active" : ""}`}
                   >
-                    <button type="button" onClick={() => chooseTemplate(item)} className="min-w-0 flex-1 text-left">
-                      <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium text-gray-800">{item.title}</div>
-                        <div className="mt-1 truncate font-mono text-xs text-gray-500">{item.savedCommand}</div>
-                      </div>
-                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] ${riskClasses[item.risk]}`}>
-                        {t(`workbench.risk.${item.risk}`)}
-                      </span>
-                      </div>
+                    <button type="button" onClick={() => chooseTemplate(item)} className="adb-workbench-template-card__main">
+                      <span className="adb-workbench-template-card__title">{item.title}</span>
+                      <span className="adb-workbench-template-card__command">{item.savedCommand}</span>
                     </button>
+                    <span className={riskClasses[item.risk]}>{t(`workbench.risk.${item.risk}`)}</span>
                     <button
                       type="button"
                       onClick={() => removeTemplate(item.id)}
-                      className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                      className="adb-workbench-text-action adb-workbench-text-action--danger"
                     >
                       {t("workbench.removeTemplate")}
                     </button>
@@ -1334,26 +1325,28 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
               })}
             </div>
             {templateStatus && (
-              <div className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+              <div className="adb-workbench-status adb-workbench-status--ok">
                 {templateStatus}
               </div>
             )}
           </div>
         ) : (
-          <div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-lg font-semibold text-gray-900">{t("workbench.customTitle")}</h3>
+          <div className="adb-workbench-custom-mode">
+            <div className="adb-workbench-detail-heading">
+              <div>
+                <h3>{t("workbench.customTitle")}</h3>
+                <p>{t("workbench.customDesc")}</p>
+              </div>
               <button
                 type="button"
                 onClick={rewriteCustomCommand}
                 disabled={!customCommand.trim()}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="adb-workbench-secondary-action"
               >
                 <IconWand className="h-4 w-4" />
                 {t("workbench.rewriteShellBatch")}
               </button>
             </div>
-            <p className="mt-1 text-sm leading-6 text-gray-500">{t("workbench.customDesc")}</p>
             <textarea
               value={customCommand}
               onChange={(event) => {
@@ -1363,13 +1356,11 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
               }}
               rows={4}
               placeholder={t("workbench.customPlaceholder")}
-              className="mt-4 w-full resize-y rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+              className="adb-workbench-input adb-workbench-textarea adb-workbench-input--mono"
             />
             {rewriteStatus && (
               <div
-                className={`mt-2 rounded-lg px-3 py-2 text-sm ${
-                  rewriteStatus.ok ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
-                }`}
+                className={`adb-workbench-status ${rewriteStatus.ok ? "adb-workbench-status--ok" : "adb-workbench-status--warn"}`}
               >
                 {rewriteStatus.msg}
               </div>
@@ -1378,37 +1369,36 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
         )}
 
         {currentRisk === "high" && (
-          <label className="mt-5 flex items-start gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <label className="adb-workbench-danger-confirm">
             <input
               type="checkbox"
               checked={highRiskConfirmed}
               onChange={(event) => setHighRiskConfirmed(event.target.checked)}
-              className="mt-1"
             />
             <span>{t("workbench.highRiskConfirm")}</span>
           </label>
         )}
 
         {mode !== "templates" && (
-          <div className="mt-5">
-            <div className="flex items-center gap-2">
+          <div className="adb-workbench-template-save">
+            <div className="adb-workbench-inline-form">
               <input
                 value={templateName}
                 onChange={(event) => setTemplateName(event.target.value)}
                 placeholder={t("workbench.templateName")}
-                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                className="adb-workbench-input"
               />
               <button
                 type="button"
                 onClick={saveCurrentTemplate}
                 disabled={!templateName.trim() || !currentCommand}
-                className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="adb-workbench-secondary-action"
               >
                 {t("workbench.saveTemplate")}
               </button>
             </div>
             {templateStatus && (
-              <div className="mt-2 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+              <div className="adb-workbench-status adb-workbench-status--ok">
                 {templateStatus}
               </div>
             )}
@@ -1418,29 +1408,29 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
 
       </div>
 
-      <section className="flex min-h-[280px] max-h-[42%] flex-col rounded-lg border border-gray-200 bg-white">
-        <div className="border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-gray-800">{t("workbench.preview")}</h3>
-            <span className={`rounded-full border px-2.5 py-1 text-xs ${riskClasses[currentRisk]}`}>
+      <section className="adb-workbench-output-console">
+        <div className="adb-workbench-output-console__header">
+          <div className="adb-workbench-output-title-row">
+            <h3>{t("workbench.preview")}</h3>
+            <span className={riskClasses[currentRisk]}>
               {t(`workbench.risk.${currentRisk}`)}
             </span>
           </div>
-          <pre className="mt-3 max-h-32 overflow-auto rounded-lg bg-gray-50 p-3 text-xs leading-5 text-gray-800">
+          <pre className="adb-workbench-command-preview">
             {commandPreview(currentCommand || "<empty>", deviceSerial)}
           </pre>
           {!deviceSerial && <DeviceTargetBanner target={deviceTarget} className="mt-2" />}
           {missingRequired && (
-            <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+            <div className="adb-workbench-status adb-workbench-status--warn">
               {t("workbench.missingParams")}
             </div>
           )}
-          <div className="mt-3 flex gap-2">
+          <div className="adb-workbench-output-actions">
             <button
               type="button"
               onClick={executeCommand}
               disabled={!canExecute}
-              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="adb-workbench-primary-action"
             >
               {executing ? t("workbench.executing") : t("workbench.execute")}
             </button>
@@ -1448,38 +1438,38 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
               type="button"
               onClick={() => navigator.clipboard?.writeText(commandPreview(currentCommand, deviceSerial))}
               disabled={!currentCommand}
-              className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="adb-workbench-secondary-action"
             >
               {t("workbench.copy")}
             </button>
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-auto p-4">
+        <div className="adb-workbench-output-console__body">
           {(result || error) && (
-            <div className="mb-4 rounded-lg border border-gray-200">
-              <div className="flex items-center justify-between gap-2 border-b border-gray-200 px-3 py-2">
-                <span className="text-xs font-medium text-gray-500">{t("workbench.output")}</span>
+            <div className="adb-workbench-result-card">
+              <div className="adb-workbench-result-card__header">
+                <span>{t("workbench.output")}</span>
                 <button
                   type="button"
                   onClick={exportOutput}
                   disabled={!outputExportText || exporting}
-                  className="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="adb-workbench-text-action"
                 >
                   {exporting ? t("workbench.exporting") : t("workbench.exportOutput")}
                 </button>
               </div>
-              {error && <pre className="whitespace-pre-wrap p-3 text-xs leading-5 text-red-600">{error}</pre>}
+              {error && <pre className="adb-workbench-result-card__error">{error}</pre>}
               {result && (
-                <div className="space-y-3 p-3">
-                  <div className="text-xs text-gray-500">
+                <div className="adb-workbench-result-card__body">
+                  <div className="adb-workbench-result-meta">
                     {t("workbench.exitCode")}: {result.exit_code ?? "-"}
                   </div>
-                  <pre className="max-h-52 overflow-auto whitespace-pre-wrap rounded-md bg-gray-50 p-3 text-xs leading-5 text-gray-800">
+                  <pre className="adb-workbench-result-pre">
                     {result.stdout || result.stderr || t("workbench.noOutput")}
                   </pre>
                   {result.stderr && result.stdout && (
-                    <pre className="max-h-32 overflow-auto whitespace-pre-wrap rounded-md bg-red-50 p-3 text-xs leading-5 text-red-600">
+                    <pre className="adb-workbench-result-pre adb-workbench-result-pre--error">
                       {result.stderr}
                     </pre>
                   )}
@@ -1487,9 +1477,7 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
               )}
               {exportStatus && (
                 <div
-                  className={`border-t border-gray-100 px-3 py-2 text-xs ${
-                    exportStatus.ok ? "text-green-700" : "text-red-600"
-                  }`}
+                  className={`adb-workbench-export-status ${exportStatus.ok ? "is-ok" : "is-error"}`}
                 >
                   {exportStatus.msg}
                 </div>
@@ -1497,23 +1485,23 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
             </div>
           )}
 
-          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{t("workbench.history")}</h4>
-          <div className="space-y-2">
-            {history.length === 0 && <div className="text-sm text-gray-400">{t("workbench.noHistory")}</div>}
+          <h4 className="adb-workbench-history-title">{t("workbench.history")}</h4>
+          <div className="adb-workbench-history-list">
+            {history.length === 0 && <div className="adb-workbench-empty-note">{t("workbench.noHistory")}</div>}
             {history.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => loadFromHistory(item)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-left hover:bg-gray-50"
+                className="adb-workbench-history-item"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`text-xs ${item.ok ? "text-green-600" : "text-red-600"}`}>
+                <span className="adb-workbench-history-item__meta">
+                  <span className={item.ok ? "is-ok" : "is-error"}>
                     {item.ok ? t("workbench.ok") : t("workbench.failed")}
                   </span>
-                  <span className="text-[11px] text-gray-400">{new Date(item.createdAt).toLocaleTimeString()}</span>
-                </div>
-                <div className="mt-1 truncate font-mono text-xs text-gray-600">{item.command}</div>
+                  <span>{new Date(item.createdAt).toLocaleTimeString()}</span>
+                </span>
+                <span className="adb-workbench-history-item__command">{item.command}</span>
               </button>
             ))}
           </div>

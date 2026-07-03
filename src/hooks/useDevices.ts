@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { DeviceHistoryItem, DeviceInfo } from "../types";
 import { getStore, STORE_KEYS } from "../storage";
 import { deviceIdentityKey } from "../deviceNotes";
-import { resolveVisibleSelectedDevice } from "../deviceSelection";
+import { preferDeviceForIdentity, resolveVisibleSelectedDevice } from "../deviceSelection";
 
 interface RefreshOptions {
   silent?: boolean;
@@ -44,17 +44,20 @@ export function useDevices() {
 
       const mergedByDeviceKey = new Map<string, DeviceInfo>();
       for (const device of historyByDeviceKey.values()) {
-        mergedByDeviceKey.set(deviceIdentityKey(device), {
+        const historyDevice = {
           serial: device.serial,
           device_sn: device.device_sn || "",
           state: "disconnected",
           model: device.model,
           product: device.product,
           connection_type: device.connection_type || "unknown",
-        });
+        } satisfies DeviceInfo;
+        const key = deviceIdentityKey(historyDevice);
+        mergedByDeviceKey.set(key, preferDeviceForIdentity(mergedByDeviceKey.get(key), historyDevice));
       }
       for (const device of result) {
-        mergedByDeviceKey.set(deviceIdentityKey(device), device);
+        const key = deviceIdentityKey(device);
+        mergedByDeviceKey.set(key, preferDeviceForIdentity(mergedByDeviceKey.get(key), device));
       }
 
       const merged = Array.from(mergedByDeviceKey.values()).sort((a, b) => {

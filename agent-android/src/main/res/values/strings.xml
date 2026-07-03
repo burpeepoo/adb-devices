@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="agent_accessibility_service_description">Allow Scout to inspect screen structure and perform task-scoped UI actions when you choose Auto-execute.</string>
+</resources>

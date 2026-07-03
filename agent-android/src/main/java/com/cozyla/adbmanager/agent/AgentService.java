@@ -33,7 +33,7 @@ public final class AgentService extends Service {
   private static final String SOCKET_NAME = "adb_manager_agent";
   private static final String CHANNEL_ID = "adb_manager_agent";
   private static final int PROTOCOL_VERSION = 1;
-  private static final String AGENT_VERSION = "0.1.0";
+  private static final String AGENT_VERSION = "0.1.1";
 
   private final AtomicBoolean running = new AtomicBoolean(false);
   private volatile String targetPackage = "";

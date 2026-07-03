@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-07-03
+
+### Added
+
+- Added a Display Color tool for userdebug display tuning, including direct controls for Color Enhance, Bright, Contrast, Saturation, AW color temperature, and SRGB color coordinates, with current/readback values and exportable firmware handoff data.
+- Added visual color-coordinate picking for the color ring workflow so testers can adjust the target color from ADB Manager instead of typing raw coordinate values.
+- Added Android helper support for display-output commands used by the Display Color tool.
+
+### Changed
+
+- Changed the device console, Scout task cards, Logcat, and tool navigation layouts to remove explanatory subtitles, keep buttons stable while refreshing, and avoid clipped labels in compact panes.
+- Changed the display-color workflow so advanced candidate/debug sections are hidden from the default tester view while the primary device controls stay visible.
+
+### Fixed
+
+- Blocked local scrcpy mirroring while the selected device's ADB shell is rooted, preventing the GC7N userdebug reboot path seen after `adb root`.
+- Fixed Display Color refresh and apply affordances so the main action buttons keep a stable position while values are loading.
+
 ## [2.0.2] - 2026-07-02
 
 ### Added
