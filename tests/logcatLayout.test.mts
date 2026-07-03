@@ -5,7 +5,7 @@ import test from "node:test";
 const logcatPath = new URL("../src/components/Logcat.tsx", import.meta.url);
 const logcatCssPath = new URL("../src/components/Logcat.css", import.meta.url);
 
-test("logcat uses the Marque tool surface instead of legacy utility cards", () => {
+test("logcat uses the Cirrus tool surface instead of legacy utility cards", () => {
   const source = readFileSync(logcatPath, "utf8");
   const css = readFileSync(logcatCssPath, "utf8");
 

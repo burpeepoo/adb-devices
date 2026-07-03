@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap");
 @import "tailwindcss";
 @import "./styles/system.css";
 
@@ -61,7 +61,7 @@ textarea {
   background-clip: padding-box;
 }
 
-/* Mantine skin: all feature pages inherit the Marque system. */
+/* Mantine skin: all feature pages inherit the Cirrus system. */
 .mantine-Paper-root,
 .mantine-Card-root,
 .mantine-Modal-content,
@@ -71,7 +71,7 @@ textarea {
   color: var(--text-strong) !important;
   border-color: var(--color-edge) !important;
   border-radius: var(--radius-card) !important;
-  box-shadow: none !important;
+  box-shadow: var(--shadow-tier-1) !important;
 }
 
 .mantine-Paper-root[data-with-border],
@@ -102,8 +102,8 @@ textarea {
   font-size: var(--fs-label) !important;
   font-weight: 500 !important;
   letter-spacing: var(--tracking-wide) !important;
-  text-transform: uppercase;
-  font-family: var(--font-mono) !important;
+  text-transform: none;
+  font-family: var(--font-sans) !important;
 }
 
 .mantine-TextInput-input,
@@ -158,14 +158,14 @@ textarea {
 }
 
 .mantine-Button-root[data-variant="filled"] {
-  background: var(--color-indigo) !important;
+  background: var(--color-ink) !important;
   color: var(--color-white) !important;
-  border: 1.5px solid var(--color-indigo) !important;
+  border: 1px solid var(--color-ink) !important;
 }
 
 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled) {
-  background: var(--color-indigo-deep) !important;
-  border-color: var(--color-indigo-deep) !important;
+  background: var(--color-ink-soft) !important;
+  border-color: var(--color-ink-soft) !important;
 }
 
 .mantine-Button-root:focus-visible,
@@ -178,29 +178,29 @@ textarea {
 .mantine-Button-root[data-variant="default"],
 .mantine-Button-root[data-variant="light"],
 .mantine-Button-root[data-variant="subtle"] {
-  background: transparent !important;
-  color: var(--color-indigo) !important;
-  border: 1.5px solid var(--color-indigo) !important;
+  background: var(--color-cloud) !important;
+  color: var(--color-ink) !important;
+  border: var(--border-hairline) !important;
 }
 
 .mantine-Button-root[data-variant="default"]:hover:not(:disabled),
 .mantine-Button-root[data-variant="light"]:hover:not(:disabled),
 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled) {
-  background: var(--color-indigo) !important;
-  color: var(--color-white) !important;
+  background: var(--surface-sunken) !important;
+  color: var(--color-ink) !important;
 }
 
 .mantine-ActionIcon-root {
   border-radius: var(--radius-pill) !important;
-  background: transparent !important;
-  color: var(--color-indigo) !important;
+  background: var(--color-cloud) !important;
+  color: var(--color-ink) !important;
   border: var(--border-hairline) !important;
 }
 
 .mantine-ActionIcon-root[data-variant="filled"] {
-  background: var(--color-royal) !important;
+  background: var(--color-ink) !important;
   color: var(--color-white) !important;
-  border-color: var(--color-royal) !important;
+  border-color: var(--color-ink) !important;
 }
 
 .mantine-ActionIcon-root[data-variant="subtle"]:hover,
@@ -210,7 +210,7 @@ textarea {
 
 .mantine-ThemeIcon-root {
   border-radius: var(--radius-pill) !important;
-  background: var(--color-royal) !important;
+  background: var(--color-ink) !important;
   color: var(--color-white) !important;
 }
 
@@ -218,18 +218,18 @@ textarea {
   min-height: 26px;
   padding-inline: 12px;
   border-radius: var(--radius-pill) !important;
-  border: 1px solid rgba(71, 39, 181, 0.08) !important;
-  background: var(--surface-sunken) !important;
-  color: var(--color-indigo) !important;
+  border: var(--border-hairline) !important;
+  background: var(--color-cloud) !important;
+  color: var(--color-ink) !important;
   font-family: var(--font-sans) !important;
   font-size: var(--fs-label) !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.02em !important;
+  font-weight: 500 !important;
+  letter-spacing: var(--tracking-wide) !important;
   text-transform: none !important;
 }
 
 .mantine-Badge-root[data-variant="filled"] {
-  background: var(--color-royal) !important;
+  background: var(--color-ink) !important;
   color: var(--color-white) !important;
   border-color: transparent !important;
 }
@@ -243,9 +243,8 @@ textarea {
 
 .mantine-SegmentedControl-indicator {
   border-radius: var(--radius-pill) !important;
-  background: var(--color-paper) !important;
-  box-shadow: 0 1px 2px rgba(26, 26, 46, 0.08),
-    0 8px 20px -12px rgba(71, 39, 181, 0.35) !important;
+  background: var(--color-ink) !important;
+  box-shadow: var(--shadow-tier-2) !important;
 }
 
 .mantine-SegmentedControl-label {
@@ -261,7 +260,7 @@ textarea {
 }
 
 .mantine-SegmentedControl-input:checked + .mantine-SegmentedControl-label {
-  color: var(--color-indigo) !important;
+  color: var(--color-cloud) !important;
 }
 
 .mantine-Alert-root {
@@ -269,7 +268,7 @@ textarea {
   border-radius: var(--radius-card) !important;
   background: var(--color-cloud) !important;
   color: var(--text-strong) !important;
-  box-shadow: none;
+  box-shadow: var(--shadow-tier-1);
 }
 
 .mantine-Code-root,
@@ -284,7 +283,7 @@ code {
   background: var(--surface-sunken) !important;
 }
 
-/* App-specific Marque surfaces. */
+/* App-specific Cirrus surfaces. */
 .agent-copilot-system {
   --agent-panel-bg: var(--surface-page);
   --agent-card-bg: var(--color-cloud);
@@ -506,7 +505,7 @@ code {
 }
 
 .agent-copilot-goal-panel {
-  box-shadow: inset 0 0 0 1px rgba(71, 39, 181, 0.08);
+  box-shadow: inset 0 0 0 1px var(--color-edge);
 }
 
 .agent-copilot-goal-label {
@@ -525,7 +524,7 @@ code {
 
 .agent-copilot-goal-input .mantine-Textarea-input {
   background: var(--surface-paper);
-  border-color: rgba(71, 39, 181, 0.16);
+  border-color: var(--color-edge);
 }
 
 .agent-copilot-mode-body {
@@ -1212,7 +1211,7 @@ code {
 .agent-copilot-session-card.is-active,
 .agent-copilot-scribe-active-strip {
   background: var(--surface-sunken);
-  border-color: rgba(71, 39, 181, 0.14);
+  border-color: var(--color-edge);
 }
 
 .agent-copilot-scribe-active-strip {
@@ -1236,7 +1235,7 @@ code {
   border: var(--border-hairline) !important;
   border-radius: var(--radius-card) !important;
   background: var(--color-cloud) !important;
-  box-shadow: none;
+  box-shadow: var(--shadow-tier-1);
 }
 
 .apk-install-page {
@@ -1307,7 +1306,7 @@ code {
   border: var(--border-hairline) !important;
   border-radius: var(--radius-card) !important;
   background: var(--color-cloud) !important;
-  box-shadow: none !important;
+  box-shadow: var(--shadow-tier-1) !important;
 }
 
 /* Legacy Tailwind palette bridge for pages that still use utility classes. */
@@ -1412,5 +1411,5 @@ code {
 
 .focus\:ring-blue-500:focus,
 .focus\:ring-2:focus {
-  --tw-ring-color: rgba(139, 114, 240, 0.42) !important;
+  --tw-ring-color: rgba(46, 125, 239, 0.28) !important;
 }

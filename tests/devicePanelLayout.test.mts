@@ -15,7 +15,7 @@ test("device panel is the only active device list surface", () => {
   assert.equal(existsSync(retiredDeviceListPath), false);
 });
 
-test("device panel uses Marque semantic classes instead of legacy blue-gray chips", () => {
+test("device panel uses Cirrus semantic classes instead of legacy blue-gray chips", () => {
   const source = readFileSync(devicePanelPath, "utf8");
   const css = readFileSync(devicePanelCssPath, "utf8");
 
@@ -26,7 +26,8 @@ test("device panel uses Marque semantic classes instead of legacy blue-gray chip
   assert.doesNotMatch(source, /bg-blue-|text-blue-|border-blue-|bg-gray-|text-gray-|border-gray-|rounded-full/);
 
   assert.match(css, /\.device-panel-row\.is-selected/);
-  assert.match(css, /var\(--color-indigo\)/);
+  assert.match(css, /var\(--color-ink\)/);
+  assert.match(css, /var\(--shadow-tier-1\)/);
   assert.match(css, /\.device-panel-row__connection::before/);
   assert.doesNotMatch(css, /#2563eb|#1d4ed8|blue-600|gray-50/);
 });

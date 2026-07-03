@@ -202,8 +202,8 @@ export default function Settings({
             background: "var(--color-cloud)",
             color: "var(--text-strong)",
             border: "var(--border-hairline)",
-            borderRadius: "var(--radius-card)",
-            boxShadow: "none",
+            borderRadius: "var(--radius-xl)",
+            boxShadow: "var(--shadow-tier-1)",
           }}
         >
           <Stack gap={2}>
@@ -234,14 +234,14 @@ export default function Settings({
             justify="space-between"
             align="center"
             gap="md"
-            wrap="nowrap"
+            wrap="wrap"
             style={{
               minHeight: 68,
               padding: "16px 24px",
               border: "var(--border-hairline)",
-              borderRadius: "var(--radius-card)",
+              borderRadius: "var(--radius-xl)",
               background: "var(--color-cloud)",
-              boxShadow: "none",
+              boxShadow: "var(--shadow-tier-1)",
             }}
           >
             <Stack gap={2} style={{ minWidth: 0 }}>
@@ -252,7 +252,7 @@ export default function Settings({
                 {t("settings.pageDescription")}
               </Text>
             </Stack>
-            <Group gap="xs" wrap="nowrap" style={{ flex: "0 0 auto" }}>
+            <Group gap="xs" wrap="wrap" style={{ flex: "0 0 auto" }}>
               <Button variant="default" color="gray" onClick={onClose}>
                 {t("settings.cancel")}
               </Button>
@@ -524,11 +524,11 @@ function SettingsNavItem({ href, label, active = false }: { href: string; label:
         alignItems: "center",
         padding: "0 16px",
         color: active ? "var(--color-white)" : "var(--text-muted)",
-        background: active ? "var(--color-royal)" : "transparent",
+        background: active ? "var(--color-ink)" : "transparent",
         textDecoration: "none",
         fontSize: "var(--fs-body)",
         fontWeight: 500,
-        border: active ? "1px solid var(--color-royal)" : "1px solid transparent",
+        border: active ? "1px solid var(--color-ink)" : "1px solid transparent",
       }}
     >
       {label}

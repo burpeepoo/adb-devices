@@ -20,7 +20,7 @@ export default function AppShellLayout({ rail, devices, header, content, status 
           <div className="app-shell-layout__content">{content}</div>
         </main>
       </div>
-      {status}
+      <div className="app-shell-layout__status">{status}</div>
     </div>
   );
 }

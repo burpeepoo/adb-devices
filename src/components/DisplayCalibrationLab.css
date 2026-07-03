@@ -370,7 +370,7 @@
   align-items: center;
   min-height: 42px;
   padding: 6px var(--space-md);
-  border-bottom: 1px solid rgba(71, 39, 181, 0.06);
+  border-bottom: var(--border-soft);
   color: var(--text-strong);
   font-size: var(--fs-small);
 }
@@ -404,7 +404,7 @@
   min-height: 30px;
   padding: 0 var(--space-sm);
   border: var(--border-hairline);
-  border-color: rgba(71, 39, 181, 0.22);
+  border-color: var(--color-edge);
   border-radius: var(--radius-pill);
   color: var(--color-indigo);
   background: var(--color-paper);

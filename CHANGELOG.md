@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-07-03
+
+### Changed
+
+- Changed the app shell, navigation rail, device panel, status bar, Settings, Logcat, and supporting layout styles to the Cirrus design system with calmer spacing, softer surface treatment, and size constraints for the desktop window.
+
+### Fixed
+
+- Fixed the left navigation footer and bottom status area so compact-height windows keep controls inside the rounded shell instead of clipping past the lower-left boundary.
+- Fixed command and utility card text wrapping so long labels and descriptions can wrap within their containers without overlapping adjacent controls.
+
 ## [2.1.1] - 2026-07-03
 
 ### Fixed

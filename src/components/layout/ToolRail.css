@@ -4,21 +4,42 @@
   background: var(--color-cloud);
   border: var(--border-hairline);
   border-radius: var(--radius-card);
-  box-shadow: none;
+  box-shadow: var(--shadow-tier-1);
+}
+
+.tool-rail__scroll {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+}
+
+.tool-rail__footer {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 6px;
+  border-top: var(--border-soft);
 }
 
 .tool-rail__item {
   min-width: 0;
+  flex: 0 0 auto;
 }
 
 .tool-rail__section-label {
-  margin: 10px 12px 4px;
-  color: var(--text-subtle);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  margin: 10px 12px 5px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-wide);
+  text-transform: none;
 }
 
 .tool-rail__item:first-child .tool-rail__section-label {
@@ -47,33 +68,34 @@
 }
 
 .tool-rail__button:hover {
-  color: var(--color-indigo);
+  color: var(--color-ink);
   background: var(--surface-sunken);
-  border-color: rgba(71, 39, 181, 0.1);
+  border-color: var(--color-edge);
 }
 
 .tool-rail__button[data-active="true"] {
   color: var(--color-white);
-  background: var(--color-royal);
-  border-color: var(--color-royal);
-  box-shadow: none;
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  box-shadow: var(--shadow-tier-2);
 }
 
 .tool-rail__button[data-emphasis="primary"] {
   min-height: 48px;
   gap: 11px;
-  color: var(--color-royal);
+  color: var(--color-ink);
   background: var(--surface-sunken);
 }
 
 .tool-rail__button[data-emphasis="primary"]:hover {
-  color: var(--color-indigo);
-  background: var(--color-veil);
+  color: var(--color-ink);
+  background: var(--color-cloud);
+  border-color: var(--color-edge);
 }
 
 .tool-rail__button[data-emphasis="primary"][data-active="true"] {
   color: var(--color-white);
-  background: var(--color-royal);
+  background: var(--color-ink);
 }
 
 .tool-rail__button--utility {
@@ -88,4 +110,42 @@
   font-size: var(--fs-body);
   font-weight: 600;
   letter-spacing: 0;
+}
+
+@media (max-width: 1120px) {
+  .rail-card {
+    align-items: center;
+    border-radius: var(--radius-pill);
+  }
+
+  .tool-rail__scroll,
+  .tool-rail__footer {
+    align-items: center;
+    width: 100%;
+  }
+
+  .tool-rail__section-label,
+  .tool-rail__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .tool-rail__button {
+    width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .tool-rail__button[data-emphasis="primary"] {
+    min-height: 44px;
+    gap: 0;
+  }
 }

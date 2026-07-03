@@ -19,16 +19,26 @@ export default function PageHeader({ selectedDeviceLabel, selectedDeviceValue, a
         marginBottom: 12,
       }}
     >
-      <Group justify="space-between" gap="md" wrap="nowrap">
-        <Group gap={6} style={{ minWidth: 0 }}>
+      <Group justify="space-between" gap="sm" wrap="wrap">
+        <Group gap={8} style={{ minWidth: 0, flex: "1 1 260px" }}>
           <Text size="xs" c="dimmed">
             {selectedDeviceLabel}
           </Text>
-          <Badge variant="light" color="gray" style={{ minWidth: 0 }}>
+          <Badge
+            variant="light"
+            color="gray"
+            style={{
+              minWidth: 0,
+              maxWidth: "min(58vw, 520px)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
             {selectedDeviceValue}
           </Badge>
         </Group>
-        {actions}
+        {actions ? <Group gap="xs" wrap="wrap">{actions}</Group> : null}
       </Group>
     </Paper>
   );

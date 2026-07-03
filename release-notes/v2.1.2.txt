@@ -1,0 +1,13 @@
+en-US:
+ADB Manager 2.1.2 refreshes the desktop UI with the Cirrus visual system and fixes compact-window boundary issues.
+
+- The app shell, navigation rail, device list, status bar, Settings, Logcat, and related tool surfaces now use the Cirrus spacing, typography, radii, and surface treatment for a calmer desktop layout.
+- The left navigation footer and bottom status area now stay inside the rounded window shell at compact heights, with internal scrolling where needed.
+- Long command labels and utility descriptions now wrap inside their cards instead of overlapping nearby controls.
+
+zh-CN:
+ADB Manager 2.1.2 将桌面端界面刷新为 Cirrus 视觉系统，并修复紧凑窗口下的边界问题。
+
+- 应用外壳、左侧导航、设备列表、状态栏、Settings、Logcat 和相关工具页面现在使用 Cirrus 的间距、字体、圆角与表面样式，整体布局更安静、更均衡。
+- 左侧导航底部和底部状态区域现在会保持在圆角窗口边界内，必要时使用内部滚动，不再从左下角溢出。
+- 较长的命令标题和工具说明现在会在卡片内换行，不再和相邻控件重叠。

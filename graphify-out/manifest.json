@@ -1,7 +1,7 @@
 {
   "/Users/kaizhang/Documents/Cozyla/adb_project/package.json": {
-    "mtime": 1783063877.843091,
-    "ast_hash": "ede0210dd7a7cbe054e3eb5badc8a778",
+    "mtime": 1783076655.295806,
+    "ast_hash": "23d27a77081005075839458317b12898",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/tsconfig.json": {
@@ -105,8 +105,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/tauri.conf.json": {
-    "mtime": 1783063877.8448603,
-    "ast_hash": "dd1a3a1d6c8b538fac3d6eb030d74ce2",
+    "mtime": 1783076677.945448,
+    "ast_hash": "d282617582e4282b1c438ec095baa8f0",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/build.rs": {
@@ -259,6 +259,11 @@
     "ast_hash": "0140935758c90bd13b0d58d9d1bd77bb",
     "semantic_hash": ""
   },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/cirrus/metadata.json": {
+    "mtime": 1782434566.0,
+    "ast_hash": "25413a2935d48a0375f47c5e3047d516",
+    "semantic_hash": ""
+  },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/deviceFormFactor.ts": {
     "mtime": 1779422182.0770905,
     "ast_hash": "c23a036d9d0f448b14a101bcb89c4661",
@@ -275,8 +280,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/main.tsx": {
-    "mtime": 1782960600.1490982,
-    "ast_hash": "935bb1fe3445082282c84c18de793b93",
+    "mtime": 1783075588.7486455,
+    "ast_hash": "b608854b80e53decfda82d0a8ca20432",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/performanceSampling.ts": {
@@ -415,8 +420,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Settings.tsx": {
-    "mtime": 1782960746.9239202,
-    "ast_hash": "4f067ab0d85b6dbd0c93296ab5446668",
+    "mtime": 1783075704.681939,
+    "ast_hash": "6a77e9e0bff56d89ac4c647ba5e99168",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/Clipboard.tsx": {
@@ -515,23 +520,23 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/AppShellLayout.tsx": {
-    "mtime": 1779270877.9271305,
-    "ast_hash": "174fe4bcc5dece8b7540dfefbb0ab0db",
+    "mtime": 1783076256.0759478,
+    "ast_hash": "d13d6b42f5903d4344a2d0ad544b64bf",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/ToolRail.tsx": {
-    "mtime": 1782979734.2191133,
-    "ast_hash": "7f6f2fe1a33d94a91ab918ec548ea451",
+    "mtime": 1783076256.0747836,
+    "ast_hash": "69972971ec1968e0395d1596d24c7c30",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/PageHeader.tsx": {
-    "mtime": 1782904455.9160795,
-    "ast_hash": "1dec6f04a7a90d76c2fc25e877966758",
+    "mtime": 1783075686.5172913,
+    "ast_hash": "a3a94e615f4a698ab3ac92498a82ca60",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/StatusBar.tsx": {
-    "mtime": 1782960665.4230044,
-    "ast_hash": "c5a4ef8bfdd119df05a98f6fc0db4b75",
+    "mtime": 1783076288.4257872,
+    "ast_hash": "afcf588c535d8312443368c01f9ca7fe",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/src/components/layout/DevicePanel.tsx": {
@@ -585,8 +590,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/CHANGELOG.md": {
-    "mtime": 1783063785.425852,
-    "ast_hash": "7450cda3b4fd3e38475a215dfa415d7b",
+    "mtime": 1783076677.9476788,
+    "ast_hash": "2a69fdadc28fc086e3503ebb007f6257",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/README.md": {
@@ -595,8 +600,8 @@
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/DESIGN.md": {
-    "mtime": 1782960800.6207333,
-    "ast_hash": "564a941f88c7fca3d2f9ce6640734e0e",
+    "mtime": 1783075478.8690267,
+    "ast_hash": "2819bab3cb9caa9f15fb5b0a06de8bc4",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/AGENTS.md": {
@@ -919,6 +924,11 @@
     "ast_hash": "1ef767228a0429eac1b440afb3164875",
     "semantic_hash": ""
   },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v2.1.2.txt": {
+    "mtime": 1783076677.9483194,
+    "ast_hash": "a50072a422505d56261065f7df8bcf6c",
+    "semantic_hash": ""
+  },
   "/Users/kaizhang/Documents/Cozyla/adb_project/release-notes/v2.1.0.txt": {
     "mtime": 1783061170.0865862,
     "ast_hash": "79db46190c55109d5b87bf807739aae7",
@@ -942,6 +952,26 @@
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/resources/agent/README.md": {
     "mtime": 1782805761.1031225,
     "ast_hash": "8438632f50ffd8f037ab6e78c99485ea",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/cirrus/LICENSE.md": {
+    "mtime": 1782434566.0,
+    "ast_hash": "7e0d14239d0b3d0f35a67d58fa1a9116",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/cirrus/DESIGN.md": {
+    "mtime": 1782434566.0,
+    "ast_hash": "5726c78aad1809ed4fe35fe5988a66a8",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/cirrus/html/cover.html": {
+    "mtime": 1782434566.0,
+    "ast_hash": "90a4b7c5db9f78e284c7d98d8fba3d39",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/cirrus/html/preview.html": {
+    "mtime": 1782434566.0,
+    "ast_hash": "2b59e1f521a5739232af6a9e8178fe10",
     "semantic_hash": ""
   },
   "/Users/kaizhang/Documents/Cozyla/adb_project/baidu_search_screenshot.png": {
@@ -1252,6 +1282,26 @@
   "/Users/kaizhang/Documents/Cozyla/adb_project/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_round.png": {
     "mtime": 1779174144.5133977,
     "ast_hash": "971692861bcf0c0b59649b21d6ef5896",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/cirrus/screenshots/preview-desktop.png": {
+    "mtime": 1782434566.0,
+    "ast_hash": "3de805b2bf24272d50130d2f81022a3d",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/cirrus/screenshots/cover.png": {
+    "mtime": 1782434566.0,
+    "ast_hash": "6b3ac1d68e22292ba42171c81387ebb1",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/cirrus/images/brand-mark.svg": {
+    "mtime": 1782434566.0,
+    "ast_hash": "275f45d997802d6e37dfca6ef852cad5",
+    "semantic_hash": ""
+  },
+  "/Users/kaizhang/Documents/Cozyla/adb_project/cirrus/images/sky-horizon-hero.png": {
+    "mtime": 1782434566.0,
+    "ast_hash": "52f245789e1366e922e4d19c63591559",
     "semantic_hash": ""
   }
 }

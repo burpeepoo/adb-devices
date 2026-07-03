@@ -319,40 +319,50 @@ test("scout is only available inside the Agent Tasks workspace", () => {
   assert.match(en.agent.accessibilityEnabledDescription, /control-level UI actions/);
 });
 
-test("android device copilot is wired to the Marque design system", () => {
+test("android device copilot is wired to the Cirrus design system", () => {
   const indexCss = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
   const systemCss = readFileSync(new URL("../src/styles/system.css", import.meta.url), "utf8");
   const main = readFileSync(new URL("../src/main.tsx", import.meta.url), "utf8");
   const copilot = readFileSync(new URL("../src/components/AgentCopilot.tsx", import.meta.url), "utf8");
   const appShellCss = readFileSync(new URL("../src/components/layout/AppShellLayout.css", import.meta.url), "utf8");
+  const appShell = readFileSync(new URL("../src/components/layout/AppShellLayout.tsx", import.meta.url), "utf8");
   const toolRailCss = readFileSync(new URL("../src/components/layout/ToolRail.css", import.meta.url), "utf8");
+  const toolRail = readFileSync(new URL("../src/components/layout/ToolRail.tsx", import.meta.url), "utf8");
+  const statusBar = readFileSync(new URL("../src/components/layout/StatusBar.tsx", import.meta.url), "utf8");
 
   assert.match(indexCss, /@import "\.\/styles\/system\.css";/);
   assert.equal((indexCss.match(/system\.css/g) ?? []).length, 1);
-  assert.match(systemCss, /Marque/);
-  assert.match(systemCss, /--color-paper: #fafafc/);
-  assert.match(systemCss, /--color-veil: #eee9fb/);
-  assert.match(systemCss, /--color-indigo: #4727b5/);
-  assert.match(systemCss, /--color-royal: #2a1574/);
-  assert.match(systemCss, /--font-display: "Plus Jakarta Sans"/);
-  assert.match(systemCss, /--font-mono: "JetBrains Mono"/);
+  assert.match(systemCss, /Cirrus/);
+  assert.match(systemCss, /--color-sky: #edf2f7/);
+  assert.match(systemCss, /--color-horizon: #b8d4f1/);
+  assert.match(systemCss, /--color-ink: #0e1116/);
+  assert.match(systemCss, /--color-signal: #2e7def/);
+  assert.match(systemCss, /--font-display: "Inter Tight"/);
+  assert.match(systemCss, /--font-serif: "Instrument Serif"/);
   assert.match(systemCss, /--radius-pill: 999px/);
-  assert.match(systemCss, /--radius-card: 14px/);
-  assert.match(systemCss, /--radius-tile: 12px/);
-  assert.match(systemCss, /--radius-xl: 20px/);
-  assert.match(systemCss, /0 24px 48px -28px rgba\(71, 39, 181, 0\.22\)/);
-  assert.match(systemCss, /0 36px 60px -28px rgba\(71, 39, 181, 0\.32\)/);
-  assert.match(indexCss, /all feature pages inherit the Marque system/);
+  assert.match(systemCss, /--radius-card: 28px/);
+  assert.match(systemCss, /--radius-tile: 20px/);
+  assert.match(systemCss, /--radius-xl: 36px/);
+  assert.match(systemCss, /0 20px 40px -24px rgba\(14, 17, 22, 0\.18\)/);
+  assert.match(systemCss, /0 20px 40px -24px rgba\(14, 17, 22, 0\.22\)/);
+  assert.match(indexCss, /all feature pages inherit the Cirrus system/);
   assert.match(indexCss, /Legacy Tailwind palette bridge/);
-  assert.doesNotMatch(systemCss, /letter-spacing: -/);
-  assert.match(main, /primaryColor: "violet"/);
+  assert.match(systemCss, /--tracking-tight: -0\.025em/);
+  assert.match(main, /primaryColor: "ink"/);
   assert.match(main, /fontFamily: "var\(--font-sans\)"/);
   assert.match(main, /fontFamilyMonospace: "var\(--font-mono\)"/);
   assert.match(main, /xl: "999px"/);
-  assert.match(appShellCss, /var\(--color-paper\)/);
-  assert.match(appShellCss, /rgba\(139, 114, 240, 0\.12\)/);
+  assert.match(appShellCss, /var\(--color-horizon\)/);
+  assert.match(appShellCss, /var\(--shadow-tier-2\)/);
+  assert.match(appShell, /app-shell-layout__status/);
+  assert.match(appShellCss, /\.app-shell-layout__status/);
   assert.match(toolRailCss, /rail-card/);
-  assert.match(toolRailCss, /var\(--color-royal\)/);
+  assert.match(toolRail, /tool-rail__scroll/);
+  assert.match(toolRail, /tool-rail__footer/);
+  assert.match(toolRailCss, /\.tool-rail__scroll\s*\{[\s\S]*overflow-y:\s*auto/);
+  assert.match(toolRailCss, /\.tool-rail__footer/);
+  assert.match(toolRailCss, /var\(--color-ink\)/);
+  assert.match(statusBar, /borderRadius: "var\(--radius-pill\)"/);
   assert.match(copilot, /className="agent-copilot-system"/);
   assert.match(copilot, /agent-copilot-card agent-copilot-panel/);
   assert.match(copilot, /agent-copilot-card agent-copilot-session-list/);
@@ -366,21 +376,14 @@ test("android device copilot is wired to the Marque design system", () => {
   assert.match(copilot, /agent-copilot-message-/);
 });
 
-test("workspace UI does not reintroduce the previous blue gray shell styling", () => {
+test("workspace UI does not reintroduce the obsolete blue gray shell styling", () => {
   const srcRoot = new URL("../src/", import.meta.url);
   const files = collectFiles(srcRoot).filter((file) => /\.(css|tsx|ts)$/.test(file.pathname));
   const forbiddenPatterns = [
     /Mossforge/,
     /Manrope/,
-    /Inter Tight/,
-    /Instrument Serif/,
     /#111827/,
-    /#edf2f7/,
-    /#0e1116/,
     /mantine-color-/,
-    /letter-spacing:\s*-/,
-    /--tracking-tight:\s*-/,
-    /--tracking-snug:\s*-/,
   ];
 
   for (const file of files) {
@@ -392,7 +395,7 @@ test("workspace UI does not reintroduce the previous blue gray shell styling", (
   assert.equal(existsSync(new URL("../system.css", import.meta.url)), false);
 });
 
-test("adb workbench uses the Marque workbench layout instead of legacy utility cards", () => {
+test("adb workbench uses the Cirrus workbench layout instead of legacy utility cards", () => {
   const workbench = readFileSync(new URL("../src/components/AdbWorkbench.tsx", import.meta.url), "utf8");
   const styles = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
 

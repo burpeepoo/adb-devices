@@ -133,7 +133,7 @@
   grid-template-columns: 118px 64px 34px 180px minmax(360px, 1fr);
   gap: var(--space-sm);
   padding: 5px var(--space-md);
-  border-bottom: 1px solid rgba(71, 39, 181, 0.06);
+  border-bottom: var(--border-soft);
 }
 
 .logcat-row:hover {

@@ -1,22 +1,24 @@
 .device-panel {
   background: var(--color-cloud);
   color: var(--text-strong);
+  box-shadow: var(--shadow-tier-1);
 }
 
 .device-panel__header {
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-md) var(--space-sm);
   border-bottom: var(--border-hairline);
   background: var(--color-cloud);
 }
 
 .device-panel__title {
   font-family: var(--font-display);
+  font-weight: 700;
   letter-spacing: 0;
 }
 
 .device-panel__refresh.mantine-ActionIcon-root {
-  color: var(--color-indigo);
-  border-radius: var(--radius-input);
+  color: var(--color-ink);
+  border-radius: var(--radius-pill);
 }
 
 .device-panel__refresh.mantine-ActionIcon-root:hover {
@@ -26,20 +28,20 @@
 .device-panel__search .mantine-TextInput-input {
   min-height: 44px;
   border-radius: var(--radius-input);
-  border-color: var(--color-hairline);
-  background: var(--color-paper);
+  border-color: var(--color-edge);
+  background: var(--color-cloud);
   color: var(--text-strong);
 }
 
 .device-panel__search .mantine-TextInput-input:focus {
-  border-color: var(--color-indigo);
+  border-color: var(--color-signal);
   box-shadow: var(--focus-ring);
 }
 
 .device-panel__error {
   padding: var(--space-sm) var(--space-md);
   border-bottom: var(--border-hairline);
-  background: color-mix(in srgb, var(--color-citrus) 8%, var(--color-paper));
+  background: color-mix(in srgb, var(--color-citrus) 8%, var(--color-cloud));
   color: var(--color-citrus);
 }
 
@@ -53,32 +55,36 @@
 }
 
 .device-panel__section {
-  padding: var(--space-sm) var(--space-xs) 0;
+  padding: var(--space-sm) var(--space-sm) var(--space-xs);
   color: var(--text-muted);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-size: var(--fs-label);
+  font-weight: 500;
   letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .device-panel-row {
-  padding: 10px;
-  border: 1px solid transparent;
+  padding: 12px;
+  border: var(--border-hairline);
+  border-color: transparent;
   border-radius: var(--radius-tile);
-  background: rgba(250, 250, 252, 0.72);
+  background: var(--color-cloud);
   transition:
     background var(--dur-quick) var(--ease-soft),
-    border-color var(--dur-quick) var(--ease-soft);
+    border-color var(--dur-quick) var(--ease-soft),
+    box-shadow var(--dur-base) var(--ease-soft);
 }
 
 .device-panel-row:hover {
-  border-color: rgba(71, 39, 181, 0.14);
+  border-color: var(--color-edge);
   background: var(--surface-sunken);
 }
 
 .device-panel-row.is-selected {
-  border-color: rgba(71, 39, 181, 0.42);
+  border-color: var(--color-ink);
   background: var(--surface-sunken);
-  box-shadow: inset 3px 0 0 var(--color-indigo);
+  box-shadow: var(--shadow-tier-1);
 }
 
 .device-panel-row.is-offline {
@@ -138,11 +144,11 @@
 .device-panel-row__inline-state::before {
   content: "/";
   margin-right: 7px;
-  color: var(--color-hairline-strong);
+  color: var(--color-edge);
 }
 
 .device-panel-row__connection.is-wireless {
-  color: var(--color-indigo);
+  color: var(--color-ink);
 }
 
 .device-panel-row__connection.is-usb {
@@ -163,13 +169,13 @@
   margin-top: 7px;
   padding: 6px 8px;
   border-radius: var(--radius-input);
-  background: rgba(238, 233, 251, 0.72);
+  background: var(--surface-sunken);
   color: var(--text-soft);
   cursor: text;
 }
 
 .device-panel-row.is-selected .device-panel-row__note {
-  background: var(--color-paper);
+  background: var(--color-cloud);
 }
 
 .device-panel-row__note.has-note {
@@ -177,14 +183,14 @@
 }
 
 .device-panel-row__note:hover {
-  background: var(--color-paper);
+  background: var(--color-cloud);
 }
 
 .device-panel-row__note-input .mantine-TextInput-input {
   min-height: 34px;
   border-radius: var(--radius-input);
-  border-color: var(--color-indigo);
-  background: var(--color-paper);
+  border-color: var(--color-signal);
+  background: var(--color-cloud);
   color: var(--text-strong);
 }
 
