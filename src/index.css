@@ -772,6 +772,7 @@ code {
 .adb-workbench-command-card__main {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -783,14 +784,14 @@ code {
 }
 
 .adb-workbench-command-card__desc {
-  display: -webkit-box;
+  display: block;
   margin-top: 3px;
-  overflow: hidden;
+  overflow: visible;
   color: var(--text-muted);
   font-size: var(--fs-xsmall);
   line-height: 1.45;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .adb-workbench-command-card__category {
@@ -1173,6 +1174,7 @@ code {
 .workbench-risk-pill {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   min-height: 24px;
   padding: 0 var(--space-sm);
   border-radius: var(--radius-pill);

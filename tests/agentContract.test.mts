@@ -404,8 +404,13 @@ test("adb workbench uses the Marque workbench layout instead of legacy utility c
   assert.match(workbench, /workbench-risk-pill/);
   assert.match(styles, /\.adb-workbench-root/);
   assert.match(styles, /\.adb-workbench-command-card\.is-active/);
+  assert.match(styles, /\.adb-workbench-command-card__main\s*\{[\s\S]*flex:\s*1 1 auto/);
+  assert.match(styles, /\.adb-workbench-command-card__desc\s*\{[\s\S]*white-space:\s*normal/);
+  assert.match(styles, /\.adb-workbench-command-card__desc\s*\{[\s\S]*overflow-wrap:\s*anywhere/);
+  assert.match(styles, /\.workbench-risk-pill\s*\{[\s\S]*flex:\s*0 0 auto/);
   assert.match(styles, /\.adb-workbench-mode-switch/);
   assert.match(styles, /\.workbench-risk-pill--high/);
+  assert.doesNotMatch(styles, /\.adb-workbench-command-card__desc\s*\{[\s\S]*-webkit-line-clamp/);
   assert.doesNotMatch(workbench, /border-blue-200|bg-blue-50|text-blue-600|text-gray-900|border-gray-200 bg-white/);
 });
 
