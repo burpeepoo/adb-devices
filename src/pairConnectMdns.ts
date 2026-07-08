@@ -16,7 +16,11 @@ export function buildMdnsPairingViewModel(
   connectedDevices: DeviceInfo[],
   recentConnects: RecentConnectEndpoint[],
 ): MdnsPairingViewModel {
-  const connectDevices = mdnsDevices.filter((device) => device.connectable);
+  const connectDevices = dedupeConnectDevices(
+    mdnsDevices.filter((device) => device.connectable),
+    connectedDevices,
+    recentConnects,
+  );
   const discoveredPairingDevices = mdnsDevices.filter((device) => !device.connectable);
   const connectedDeviceKeys = new Set(connectedDevices.flatMap(deviceConnectionKeys));
   const recentIps = new Set(recentConnects.map((endpoint) => endpoint.ip));
@@ -66,6 +70,80 @@ export function mdnsDeviceKey(device: MdnsDevice) {
 
 export function deviceConnectionKeys(device: DeviceInfo) {
   return [device.device_sn, device.serial.match(/^adb-([^-]+)-/)?.[1] || ""].filter(Boolean);
+}
+
+interface RankedMdnsDevice {
+  device: MdnsDevice;
+  orderIndex: number;
+  score: number;
+}
+
+function dedupeConnectDevices(
+  connectDevices: MdnsDevice[],
+  connectedDevices: DeviceInfo[],
+  recentConnects: RecentConnectEndpoint[],
+) {
+  const groupedDevices = new Map<string, RankedMdnsDevice>();
+
+  connectDevices.forEach((device, index) => {
+    const groupKey = mdnsDeviceGroupKey(device);
+    const candidate: RankedMdnsDevice = {
+      device,
+      orderIndex: index,
+      score: mdnsConnectDeviceScore(device, connectedDevices, recentConnects),
+    };
+    const existing = groupedDevices.get(groupKey);
+
+    if (!existing) {
+      groupedDevices.set(groupKey, candidate);
+      return;
+    }
+
+    if (candidate.score > existing.score) {
+      groupedDevices.set(groupKey, { ...candidate, orderIndex: existing.orderIndex });
+    }
+  });
+
+  return [...groupedDevices.values()]
+    .sort((left, right) => left.orderIndex - right.orderIndex)
+    .map((rankedDevice) => rankedDevice.device);
+}
+
+function mdnsDeviceGroupKey(device: MdnsDevice) {
+  const key = mdnsDeviceKey(device);
+  return key ? `device:${key}` : `ip:${device.ip}`;
+}
+
+function mdnsConnectDeviceScore(
+  device: MdnsDevice,
+  connectedDevices: DeviceInfo[],
+  recentConnects: RecentConnectEndpoint[],
+) {
+  if (isExactConnectedMdnsDevice(device, connectedDevices)) {
+    return 40;
+  }
+  if (recentConnects.some((endpoint) => endpoint.ip === device.ip && endpoint.port === device.port)) {
+    return 30;
+  }
+  if (isMdnsDeviceConnected(device, connectedDevices)) {
+    return 20;
+  }
+  if (recentConnects.some((endpoint) => endpoint.ip === device.ip)) {
+    return 10;
+  }
+  return 0;
+}
+
+function isExactConnectedMdnsDevice(device: MdnsDevice, connectedDevices: DeviceInfo[]) {
+  return connectedDevices.some((connectedDevice) => {
+    const serial = connectedDevice.serial;
+    return (
+      serial === device.address ||
+      serial.includes(device.address) ||
+      serial === device.service_name ||
+      serial.startsWith(`${device.service_name}.`)
+    );
+  });
 }
 
 function findPairingDeviceForConnectService(device: MdnsDevice, pairingDevices: MdnsDevice[]) {

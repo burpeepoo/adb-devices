@@ -47,6 +47,41 @@ test("currently connected mDNS service is not shown as first-time pairing", () =
   assert.deepEqual(view.unpairedConnectDevices, []);
 });
 
+test("duplicate connect services for one physical device collapse to the connected endpoint", () => {
+  const staleService = mdns("adb-NCRN100025C-MLkb4g", "_adb-tls-connect._tcp", "192.168.110.253", "36233", true);
+  const currentService = mdns(
+    "adb-NCRN100025C-MLkb4g (2)",
+    "_adb-tls-connect._tcp",
+    "192.168.110.253",
+    "44691",
+    true,
+  );
+  const view = buildMdnsPairingViewModel(
+    [staleService, currentService],
+    [device("192.168.110.253:44691", "NCRN100025C")],
+    [],
+  );
+
+  assert.deepEqual(view.trustedConnectDevices, [currentService]);
+  assert.deepEqual(view.unpairedConnectDevices, []);
+});
+
+test("duplicate unpaired connect services ask for pairing only once", () => {
+  const firstService = mdns("adb-NCRN100025C-MLkb4g", "_adb-tls-connect._tcp", "192.168.110.253", "36233", true);
+  const duplicateService = mdns(
+    "adb-NCRN100025C-MLkb4g (2)",
+    "_adb-tls-connect._tcp",
+    "192.168.110.253",
+    "44691",
+    true,
+  );
+  const view = buildMdnsPairingViewModel([firstService, duplicateService], [], []);
+
+  assert.deepEqual(view.trustedConnectDevices, []);
+  assert.equal(view.unpairedConnectDevices.length, 1);
+  assert.deepEqual(view.unpairedConnectDevices[0].connectDevice, firstService);
+});
+
 function recent(ip: string, port: string): RecentConnectEndpoint {
   return { ip, port, lastConnectedAt: 1000 };
 }

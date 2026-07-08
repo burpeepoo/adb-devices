@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.1.4] - 2026-07-08
+
+### Fixed
+
+- Fixed wireless ADB discovery so duplicate mDNS connect records for the same physical device collapse to one row, preferring the currently connected endpoint before recent or same-IP ports.
+
 ## [2.1.3] - 2026-07-08
 
 ### Added

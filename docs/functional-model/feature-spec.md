@@ -100,6 +100,7 @@ Discovery logic:
 - mDNS discovery runs every 10 seconds while the pair-code input is not focused and ADB is not busy.
 - `adb_mdns_discover` first uses `adb mdns services`; on macOS, if ADB returns no services, it falls back to system Bonjour discovery through `dns-sd` and resolves reachable IPv4 endpoints.
 - mDNS rows are filtered to local private networks that match the host IP prefixes.
+- mDNS connect rows are normalized before display by physical device key from the service name, falling back to IP. When Android or Bonjour exposes multiple connect ports for the same device, the UI keeps one row, preferring the exact current ADB transport, then an exact recent endpoint, then same-IP history.
 - If local network signature changes, stale mDNS devices are cleared.
 - TCP probes can check recent endpoint reachability before reconnect.
 
