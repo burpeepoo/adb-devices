@@ -234,7 +234,7 @@ export default function RemoteControl() {
             <Stack gap="md">
               <Group align="flex-start" gap="lg">
                 {status.qr_svg && (
-                  <Paper withBorder radius="md" p="xs" bg="white">
+                  <Paper withBorder radius="md" p="md" bg="white">
                     <div aria-label={t("remoteControl.qrAlt")} dangerouslySetInnerHTML={{ __html: status.qr_svg }} />
                   </Paper>
                 )}
@@ -281,7 +281,7 @@ export default function RemoteControl() {
                   </Text>
                   <Group align="stretch" grow>
                     {status.invite_links.map((link) => (
-                      <Paper key={`${link.role}-${link.url}`} withBorder radius="md" p="sm" style={{ minWidth: 190 }}>
+                      <Paper key={`${link.role}-${link.url}`} withBorder radius="md" p="md" style={{ minWidth: 190 }}>
                         <Stack gap="xs">
                           <Group justify="space-between">
                             <Badge color={roleColor[link.role]} variant="light">
@@ -303,7 +303,7 @@ export default function RemoteControl() {
                             {t("remoteControl.cannotDo", { value: t(`remoteControl.roleCapabilities.${link.role}.cannot`) })}
                           </Text>
                           {link.qr_svg && (
-                            <Paper withBorder radius="sm" p={4} bg="white" style={{ alignSelf: "center" }}>
+                            <Paper withBorder radius="sm" p="sm" bg="white" style={{ alignSelf: "center" }}>
                               <div aria-label={`${roleLabel(link.role)} ${t("remoteControl.qrAlt")}`} dangerouslySetInnerHTML={{ __html: link.qr_svg }} />
                             </Paper>
                           )}
@@ -358,7 +358,7 @@ export default function RemoteControl() {
               </Stack>
 
               <Group align="stretch" grow>
-                <Paper withBorder radius="md" p="sm">
+                <Paper withBorder radius="md" p="md">
                   <Text size="xs" fw={700} c="dimmed">
                     {t("remoteControl.sessions")}
                   </Text>
@@ -366,7 +366,7 @@ export default function RemoteControl() {
                     {status.sessions?.length || 0}
                   </Text>
                 </Paper>
-                <Paper withBorder radius="md" p="sm">
+                <Paper withBorder radius="md" p="md">
                   <Text size="xs" fw={700} c="dimmed">
                     {t("remoteControl.controlOwner")}
                   </Text>
@@ -375,7 +375,7 @@ export default function RemoteControl() {
                   </Text>
                 </Paper>
                 {status.stream_defaults && (
-                  <Paper withBorder radius="md" p="sm">
+                  <Paper withBorder radius="md" p="md">
                     <Text size="xs" fw={700} c="dimmed">
                       {t("remoteControl.stream")}
                     </Text>
@@ -436,57 +436,53 @@ export default function RemoteControl() {
 function RemoteSafetySummaryPanel({ summary }: { summary: RemoteSafetySummary }) {
   const { t } = useTranslation();
   return (
-    <Paper withBorder radius="md" p="sm" bg="gray.0">
-      <Stack gap="xs">
-        <Text size="xs" fw={700} c="dimmed">
-          {t("remoteControl.safetySummary")}
-        </Text>
-        <Group align="stretch" grow>
-          <SummaryMetric
-            label={t("remoteControl.summary.service")}
-            value={t(`remoteControl.summary.network.${summary.networkExposure}`)}
-            color={summary.networkExposure === "off" ? "gray" : summary.networkExposure === "lan" ? "blue" : "green"}
-          />
-          <SummaryMetric
-            label={t("remoteControl.summary.sessions")}
-            value={t("remoteControl.summary.roleCounts", summary.roleCounts)}
-            color="blue"
-          />
-          <SummaryMetric
-            label={t("remoteControl.summary.control")}
-            value={summary.controlOwnerLabel || t("remoteControl.noControlOwner")}
-            color={summary.controlOwnerLabel ? "orange" : "gray"}
-          />
-        </Group>
-        <Group align="stretch" grow>
-          <SummaryMetric
-            label={t("remoteControl.summary.trust")}
-            value={t("remoteControl.summary.trustedDevices", {
-              count: summary.trustedDeviceCount,
-              expiring: summary.expiringTrustedDeviceCount,
-            })}
-            color={summary.expiringTrustedDeviceCount > 0 ? "yellow" : "gray"}
-          />
-          <SummaryMetric
-            label={t("remoteControl.summary.stream")}
-            value={summary.streamLabel || t("remoteControl.summary.streamOff")}
-            color={summary.streamLabel ? "green" : "gray"}
-          />
-        </Group>
-      </Stack>
-    </Paper>
+    <Stack className="remote-safety-summary" gap="sm">
+      <Text size="xs" fw={700} c="dimmed">
+        {t("remoteControl.safetySummary")}
+      </Text>
+      <div className="remote-safety-summary__grid">
+        <SummaryMetric
+          label={t("remoteControl.summary.service")}
+          value={t(`remoteControl.summary.network.${summary.networkExposure}`)}
+          tone={summary.networkExposure === "off" ? "muted" : summary.networkExposure === "lan" ? "info" : "success"}
+        />
+        <SummaryMetric
+          label={t("remoteControl.summary.sessions")}
+          value={t("remoteControl.summary.roleCounts", summary.roleCounts)}
+          tone="info"
+        />
+        <SummaryMetric
+          label={t("remoteControl.summary.control")}
+          value={summary.controlOwnerLabel || t("remoteControl.noControlOwner")}
+          tone={summary.controlOwnerLabel ? "warning" : "muted"}
+        />
+        <SummaryMetric
+          label={t("remoteControl.summary.trust")}
+          value={t("remoteControl.summary.trustedDevices", {
+            count: summary.trustedDeviceCount,
+            expiring: summary.expiringTrustedDeviceCount,
+          })}
+          tone={summary.expiringTrustedDeviceCount > 0 ? "warning" : "muted"}
+        />
+        <SummaryMetric
+          label={t("remoteControl.summary.stream")}
+          value={summary.streamLabel || t("remoteControl.summary.streamOff")}
+          tone={summary.streamLabel ? "success" : "muted"}
+        />
+      </div>
+    </Stack>
   );
 }
 
-function SummaryMetric({ label, value, color }: { label: string; value: string; color: string }) {
+function SummaryMetric({ label, value, tone }: { label: string; value: string; tone: "muted" | "info" | "success" | "warning" }) {
   return (
-    <Paper withBorder radius="md" p="xs" bg="white">
-      <Text size="xs" c="dimmed">
+    <div className="remote-safety-summary__metric">
+      <Text size="xs" c="dimmed" lineClamp={1}>
         {label}
       </Text>
-      <Badge color={color} variant="light" mt={5} style={{ maxWidth: "100%" }}>
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{value}</span>
-      </Badge>
-    </Paper>
+      <Text size="sm" fw={800} className={`remote-safety-summary__value remote-safety-summary__value--${tone}`} lineClamp={1}>
+        {value}
+      </Text>
+    </div>
   );
 }

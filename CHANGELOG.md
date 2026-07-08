@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## [2.1.3] - 2026-07-08
+
+### Added
+
+- Added automation-friendly tab deep links such as `#agent` and `VITE_ADB_MANAGER_INITIAL_TAB=agent` for repeatable Agent Tasks UI smoke checks.
+- Added Google `design.md` lint coverage for the project design system.
+
+### Changed
+
+- Changed Scout task choices from numbered cards into icon-led accessible tabs, with keyboard navigation and clearer Chat, Feature Walkthrough, and Bug Repro separation.
+- Changed Scout history so recent chats appear only in Chat, while Feature Walkthrough and Bug Repro show task-specific record lists with fully expanded record contents and no nested artifact scrolling.
+- Changed Scout Feature Walkthrough and Bug Repro footers into a compact primary action area with the goal input, shorter Start labels, an Auto-execute checkbox beside Start, responsive wrapping to avoid clipped buttons, and separate Capture and Wrap up sections while a task is active.
+- Changed Scout Auto-execute so low- and medium-risk Agent workbench command requests can run automatically during an active task, while high-risk commands still require explicit approval.
+- Changed Scout task start to probe the selected Agent CLI before creating a task; missing local CLI commands now open the runtime health panel instead of producing a failed evidence record.
+
+### Fixed
+
+- Fixed Scout record card safe spacing so titles, text, paths, attachments, and preview placeholders no longer sit too close to rounded borders.
+- Fixed Scout task layouts so idle and running status sit beside the record title instead of occupying separate duplicate summary blocks.
+- Fixed Scout and image-cast previews so image thumbnails open a larger preview, and trimmed duplicate mode/type badges from Scout record rows.
+- Fixed Scout screenshot previews so they render as compact thumbnails instead of stretching task records vertically.
+- Fixed Scout task start behavior so Start creates the evidence record and immediately starts the Agent walkthrough or repro run instead of requiring a second hidden Agent-start action.
+- Fixed first-time wireless ADB services so unpaired devices show pairing fields instead of a direct connect action, while paired services can still reconnect directly.
+
 ## [2.1.2] - 2026-07-03
 
 ### Changed

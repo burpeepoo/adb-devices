@@ -19,8 +19,8 @@ export default function DeviceTargetBanner({ target, className }: Props) {
   return (
     <Paper
       withBorder
-      px="sm"
-      py="xs"
+      px="md"
+      py="sm"
       className={`device-target-banner${className ? ` ${className}` : ""}`}
       style={{
         background: "var(--color-cloud)",

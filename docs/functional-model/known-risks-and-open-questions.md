@@ -79,8 +79,10 @@ Coverage:
 - Auto-approved read-only tool requests use existing Tauri commands and `adb_workbench_execute`, so selected-device targeting and risk classification still apply.
 - The Agent Tasks console checks Agent APK installation status and prompts for explicit install/update when the selected device lacks the APK; installation is not automatic.
 - Runtime probing is manual from the Scout CLI/model selector. It opens an independent modal that checks local CLI availability and enabled API provider configuration when the user asks for a health check.
-- Mutating or expert raw ADB command requests render as approval cards and require user action before execution.
+- Starting a Feature Walkthrough or Bug Repro task requires an available Agent CLI in the current implementation. Configured model API providers are shown as probe/configuration status but do not yet satisfy the execution gate.
+- Mutating or expert raw ADB command requests normally render as approval cards. During an active `auto_execute` Scout task, low- and medium-risk workbench requests may run automatically, but high-risk commands still require user action before execution.
 - Scout evidence records persist local artifacts for feature walkthrough and Bug reproduction flows; Bug repro issue markers attempt to attach issue-time Logcat, active records expose compact evidence timelines to the Agent, and the local `evidence.get_active_record` tool can return fuller detail. Full record controls live in peer Walkthrough and Bug Repro modes so normal Chat mode remains conversational and users can switch back after starting a repro. Checklist and test-plan handling depends on uploaded attachments plus Agent guidance rather than a dedicated checklist status workflow.
+- Final report generation is retryable. If the Agent runtime fails or returns unusable output, Scout keeps the task active, shows the failed state, and avoids closing or exporting a misleading completed record.
 - Explicit evidence shortcut collection still runs bounded skill steps through `adb_workbench_execute`.
 - Session history is local and persisted under `agentCopilotSessions`.
 - Global Agent CLI settings and current-device overrides are stored in `settings.agentCli`; current-device overrides are edited from the Agent Tasks CLI panel.

@@ -30,3 +30,18 @@ export function markTabVisited(current: ReadonlySet<TabKey>, tab: TabKey): Set<T
 export function primaryTabKey(): TabKey {
   return "pair";
 }
+
+export function tabKeyFromValue(value?: string | null): TabKey | null {
+  if (!value) return null;
+  const normalized = value.replace(/^#/, "").trim();
+  const tabParam = normalized.startsWith("tab=") ? normalized.slice(4) : normalized;
+  return TAB_KEYS.includes(tabParam as TabKey) ? (tabParam as TabKey) : null;
+}
+
+export function initialTabKeyFrom(hash?: string | null, override?: string | null): TabKey {
+  return tabKeyFromValue(override) ?? tabKeyFromValue(hash) ?? primaryTabKey();
+}
+
+export function hashForTab(tab: TabKey): string {
+  return `#${tab}`;
+}

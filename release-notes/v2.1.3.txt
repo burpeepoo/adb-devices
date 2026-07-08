@@ -1,0 +1,17 @@
+en-US:
+ADB Manager 2.1.3 simplifies Agent Tasks and makes Scout walkthrough and bug repro flows more reliable.
+
+- Agent Tasks now use cleaner icon tabs, mode-specific history, fully expanded Scout records, compact screenshot previews, and safer spacing inside rounded record cards.
+- Feature Walkthrough and Bug Repro now start Agent runs from the primary Start action, keep Auto-execute beside Start, and automatically run low- and medium-risk workbench commands while keeping high-risk actions behind approval.
+- Scout task start now checks the configured Agent CLI before creating a record, so missing local runtimes open the health panel instead of producing a failed task.
+- Image thumbnails across Scout and image casting can be opened in a larger preview.
+- First-time wireless ADB services now prompt for pairing details instead of offering a misleading direct connect action.
+
+zh-CN:
+ADB Manager 2.1.3 简化了 Agent 任务，并让 Scout 功能走查和 Bug 复现流程更可靠。
+
+- Agent 任务现在使用更清晰的图标标签、按模式区分的历史记录、完全展开的 Scout 记录、紧凑截图预览，以及更安全的圆角卡片内边距。
+- 功能走查和 Bug 复现现在会从主开始按钮直接启动 Agent，自动执行选项放在开始按钮旁边，并会自动执行低/中风险 Workbench 命令，高风险动作仍需要授权。
+- Scout 任务开始前会先检查已配置的 Agent CLI；本地运行时缺失时会打开健康检查面板，而不是创建失败记录。
+- Scout 与图片投屏中的缩略图现在都可以打开大图预览。
+- 首次发现的无线 ADB 服务现在会提示输入配对信息，不再显示容易误导的一键直连操作。

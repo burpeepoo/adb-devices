@@ -108,7 +108,7 @@
   min-width: 0;
   flex-direction: column;
   gap: 3px;
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-md);
   border: var(--border-hairline);
   border-radius: var(--radius-input);
   background: var(--color-paper);
@@ -196,7 +196,7 @@
 }
 
 .display-calibration-control__status {
-  padding: 7px 9px;
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-input);
   font-weight: 750;
 }
@@ -513,7 +513,7 @@
 }
 
 .display-calibration-status {
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-md);
   border-radius: var(--radius-input);
   font-size: var(--fs-small);
   font-weight: 700;

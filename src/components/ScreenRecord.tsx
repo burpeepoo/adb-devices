@@ -168,7 +168,7 @@ export default function ScreenRecord({ deviceTarget, saveDir, shortcutResult, on
             </Button>
           )}
 
-          <Paper withBorder p="sm" style={{ background: "var(--surface-sunken)" }}>
+          <Paper withBorder radius="md" p="md" style={{ background: "var(--surface-sunken)" }}>
             <Text size="xs" fw={700}>
               {t("screenRecord.shortcutTitle")}
             </Text>
@@ -208,7 +208,7 @@ export default function ScreenRecord({ deviceTarget, saveDir, shortcutResult, on
         </Stack>
       </Paper>
 
-      <Paper withBorder p="md" style={{ background: "var(--color-cloud)" }}>
+      <Paper withBorder radius="md" p="md" style={{ background: "var(--color-cloud)" }}>
         <Text size="sm" fw={600} c="dimmed" mb={4}>
           {t("screenRecord.notes")}
         </Text>

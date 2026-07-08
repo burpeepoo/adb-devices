@@ -1,6 +1,6 @@
 # Scout Agent Task Architecture
 
-Last updated: 2026-07-02
+Last updated: 2026-07-07
 
 ## Decision Summary
 
@@ -13,6 +13,14 @@ The product should no longer present every capability as a flat tool shelf. The 
 3. Scout/Agent tasks as the primary guided task layer.
 4. Agent Tasks as the only Scout workspace, not a global floating assistant.
 5. Agent/Provider/APK/CLI as technical configuration names; Scout as the user-facing brand.
+
+Current implementation boundary:
+
+- Scout/Agent Tasks use a modular-monolith bounded context in `src/scoutTask/`.
+- `AgentCopilot.tsx` remains the presenter/controller for the Tauri UI and adapters, but Scout task rules live in pure domain functions.
+- Chat, Feature Walkthrough, and Bug Repro share the same active task resolver; Chat can read an active task record without creating hidden evidence.
+- Chat, Feature Walkthrough, and Bug Repro each support an optional working directory in the bottom input/action area. It is passed to Agent CLI turns and stored with the relevant conversation or task record, while leaving it blank falls back to the selected CLI profile working directory.
+- Existing `agentCopilotSessions` and `evidenceSessions` store keys remain stable, so historical local records stay compatible.
 
 ## North Star
 
@@ -189,8 +197,8 @@ Recommended task page regions:
 Task summary:
 
 - Task type, goal, target device, permission level, Agent APK state, accessibility/control state, runtime state, elapsed time, and status.
-- Shows the exact state machine: not started, running, generating report, completed, failed, insufficient evidence.
-- Current workspace implementation: the Agent Tasks tab opens as a Scout task console, with Feature Walkthrough selected by default. The left rail contains task choices first, then recent chats. The selected task's goal field lives at the top of the main task panel before runtime readiness, so users set the target before starting the Agent.
+- Shows the exact UI run state: not started, running, generating report, completed, or failed. Insufficient evidence is represented as report content or failure reason, not a separate persisted task status.
+- Current workspace implementation: the Agent Tasks tab opens as a Scout task console, with Feature Walkthrough selected by default. The left rail contains icon-led task tabs for Chat, Feature Walkthrough, and Bug Repro. Recent chats appear only while Chat is selected; Walkthrough and Bug Repro each show their own mode-scoped task-record history in the left task console, and the main evidence panel shows the active task or selected historical task timeline for that mode. The task tabs expose tab semantics and keyboard navigation instead of numbered step cards. Chat, Walkthrough, and Bug Repro show an optional working-directory row at the bottom of the composer or action area, matching the Codex mental model without making the directory required. Walkthrough and Bug Repro place the goal field, short primary Start action, and Auto-execute checkbox in the bottom start area, so users set the target and permission at the moment they start the Agent task. Their recent-record history scrolls only at the list level, and the selected record expands its captured artifacts without nested scrolling. The start area wraps responsively instead of compressing button labels. Starting a task probes the selected Agent CLI before creating the task record; if the command is unavailable, Scout opens runtime health instead of recording a doomed task. While a task is running, the bottom area separates Capture actions from Wrap up actions, including Stop and report.
 
 Scout assessment:
 
@@ -207,6 +215,7 @@ Evidence timeline:
 Action bar:
 
 - Start / stop and generate report.
+- Auto-execute checkbox next to Start before a task begins.
 - Screenshot.
 - Mark issue.
 - Add note.
@@ -325,14 +334,56 @@ No pause/continue in the first implementation. Supported states:
 - Running.
 - Generating report.
 - Completed.
-- Failed or insufficient evidence.
+- Failed.
+
+## Scout Task Bounded Context
+
+The Scout task kernel is a local DDD-style bounded context, not a full app rewrite. It centralizes task state transitions and emits explicit events while preserving existing Tauri command APIs.
+
+Commands:
+
+- `StartTask`
+- `AddArtifact`
+- `RunAgentTurn`
+- `RequestTool`
+- `AutoExecuteTool`
+- `RequestApproval`
+- `StopAndGenerateReport`
+- `CloseTask`
+
+Events:
+
+- `ScoutTaskStarted`
+- `ArtifactAdded`
+- `AgentRunStarted`
+- `ToolAutoExecuted`
+- `ApprovalRequested`
+- `FinalReportGenerated`
+- `ScoutTaskClosed`
+- `ScoutTaskFailed`
+
+Domain rules:
+
+- Only one Scout task can run at a time.
+- The running task binds to `device_sn || serial`.
+- Evidence cannot be appended from a different selected device unless the stable device identity matches.
+- Starting requires selected device, available CLI runtime, configured artifact save directory, non-empty goal, and per-task Agent APK decision.
+- Optional working directory is not a gate; when provided, Scout persists it on the conversation or task and passes it as Agent CLI cwd for subsequent turns.
+- Report generation failure keeps the task active and retryable; it must not silently close the record.
+- `auto_execute` only auto-runs low- and medium-risk Workbench command requests during an active task. High-risk and Always-confirm actions still produce approval cards.
+
+Ports and adapters:
+
+- Domain code defines the task rules and adapter shape.
+- UI adapters call Tauri invoke commands, Agent CLI turns, Workbench execution, screenshot capture, Logcat capture, store persistence, and evidence export.
+- The current version still depends on Agent CLI execution. Model API providers are configuration/probe information until a direct execution adapter exists.
 
 ## Task Start Gates
 
 Starting a Scout task requires:
 
 1. An explicitly selected online device.
-2. A usable Scout runtime: Agent CLI or future supported model API execution path.
+2. A usable Scout runtime. Current implementation requires an available Agent CLI; configured model API providers are shown in health/probe UI but do not satisfy the start gate by themselves.
 3. Writable save directory for artifacts.
 4. A non-empty task goal.
 5. Agent APK check.
@@ -518,6 +569,8 @@ Report must disclose:
 - Whether Agent runtime completed successfully.
 - Missing/moved local artifact files during export.
 
+If report generation fails, the task stays active with failed run state and a retry next action. The user can fix runtime/configuration or collect more evidence, then run Stop and generate report again.
+
 ## First Implementation Direction
 
 The product should be refactored globally around Agent Tasks, not by adding more controls to a floating drawer.
@@ -544,6 +597,7 @@ Acceptance criteria:
 - Bind task to `device_sn || serial`.
 - Add start gates for device, runtime, save directory, goal, and Agent APK waiver.
 - Remove standalone evidence-session wording from user-facing UI.
+- Current implementation status: `src/scoutTask/` owns start gates, device binding, artifact append checks, report close/failure transitions, active task resolution, and Workbench auto-execute decisions. `AgentCopilot.tsx` calls that domain layer through local ports/adapters.
 
 Acceptance criteria:
 
@@ -570,6 +624,7 @@ Acceptance criteria:
 - Set per-task defaults.
 - Keep high-risk approval cards.
 - Make Scout runtime health a hard start gate for Scout tasks.
+- Current implementation status: the start bar exposes Auto-execute as a checkbox next to Start. When enabled, low- and medium-risk Workbench requests can run automatically; high-risk and Always-confirm commands still require approval.
 
 Acceptance criteria:
 

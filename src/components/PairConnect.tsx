@@ -17,6 +17,13 @@ import {
   reconnectEndpointWithCurrentPort,
   reconnectEndpointsAfterAdbRestart,
 } from "../pairConnectEndpoints";
+import {
+  buildMdnsPairingViewModel,
+  deviceConnectionKeys,
+  isMdnsDeviceConnected,
+  mdnsDeviceKey,
+  type UnpairedMdnsDevice,
+} from "../pairConnectMdns";
 import { buildWirelessRecoverySteps, type WirelessRecoveryStep } from "../wirelessRecovery.ts";
 import ResultAlert from "./common/ResultAlert";
 
@@ -398,6 +405,20 @@ export default function PairConnect({ devices, onConnected }: Props) {
       }
     });
   };
+
+  const handleStartManualPair = useCallback((device: MdnsDevice, pairingDevice?: MdnsDevice) => {
+    setPairIp(device.ip);
+    setPairPort(pairingDevice?.port || "");
+    setPairCode("");
+    setPairResult(null);
+    setShowManual(true);
+    setMdnsResult({
+      ok: true,
+      msg: pairingDevice
+        ? t("pairConnect.pairPortDetected", { port: pairingDevice.port })
+        : t("pairConnect.pairPortRequired"),
+    });
+  }, [t]);
 
   const handleMdnsAutoConnect = async () => {
     await runAdbOperation(async () => {
@@ -787,21 +808,18 @@ export default function PairConnect({ devices, onConnected }: Props) {
     });
   };
 
-  const connectedDevices = devices.filter((device) => device.state === "device");
-  const connectableDevices = mdnsDevices.filter((device) => device.connectable);
-  const connectedDeviceKeys = new Set(connectedDevices.flatMap(deviceConnectionKeys));
+  const connectedDevices = useMemo(() => devices.filter((device) => device.state === "device"), [devices]);
+  const mdnsPairingView = useMemo(
+    () => buildMdnsPairingViewModel(mdnsDevices, connectedDevices, recentConnects),
+    [connectedDevices, mdnsDevices, recentConnects],
+  );
   const mdnsDeviceKeys = new Set(
     mdnsDevices.map(mdnsDeviceKey).filter((key): key is string => Boolean(key))
   );
   const connectedLanDevices = connectedDevices
     .filter(isLanConnectedDevice)
     .filter((device) => !deviceConnectionKeys(device).some((key) => mdnsDeviceKeys.has(key)));
-  const connectableDeviceKeys = new Set(connectableDevices.map(mdnsDeviceKey).filter(Boolean));
-  const pairingDevices = mdnsDevices.filter((device) => {
-    if (device.connectable) return false;
-    const key = mdnsDeviceKey(device);
-    return !key || (!connectableDeviceKeys.has(key) && !connectedDeviceKeys.has(key));
-  });
+  const { trustedConnectDevices, unpairedConnectDevices, pairingDevices } = mdnsPairingView;
   const adbBusy = busyAddress !== null || pairLoading || connectLoading || discovering || repairingAdb || resettingHostIdentity;
   const reachableRecentCount = Object.values(endpointProbeStates).filter((status) => status === "reachable").length;
   const recoverySteps = useMemo(
@@ -872,7 +890,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
             />
           ))}
 
-          {connectableDevices.map((device) => (
+          {trustedConnectDevices.map((device) => (
             <MdnsRow
               key={`${device.service_name}-${device.address}`}
               device={device}
@@ -880,6 +898,15 @@ export default function PairConnect({ devices, onConnected }: Props) {
               disabled={adbBusy}
               connected={isMdnsDeviceConnected(device, connectedDevices)}
               onConnect={() => handleMdnsConnect(device)}
+            />
+          ))}
+
+          {unpairedConnectDevices.map((item) => (
+            <MdnsNeedsPairRow
+              key={`${item.connectDevice.service_name}-${item.connectDevice.address}`}
+              item={item}
+              disabled={adbBusy}
+              onStartPair={() => handleStartManualPair(item.connectDevice, item.pairingDevice)}
             />
           ))}
 
@@ -1248,7 +1275,7 @@ function MdnsRow({
 }) {
   const { t } = useTranslation();
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder radius="md" p="md">
       <Group justify="space-between" gap="md" wrap="nowrap">
         <div style={{ minWidth: 0 }}>
           <Group gap={6} wrap="nowrap">
@@ -1256,18 +1283,58 @@ function MdnsRow({
               {device.service_name}
             </Text>
             <Text className="device-inline-status device-inline-status--positive" size="xs" fw={600}>
-              {t('pairConnect.connectable')}
+              {t('pairConnect.trustedConnectable')}
             </Text>
             <Text className={`device-inline-status${connected ? " device-inline-status--positive" : ""}`} size="xs" fw={600}>
               {connected ? t('pairConnect.connected') : t('pairConnect.notConnected')}
             </Text>
           </Group>
           <Text size="xs" c="dimmed" mt={4} truncate>
-          {device.address} · {device.service_type}
+            {device.address} · {device.service_type}
           </Text>
         </div>
         <Button size="sm" loading={busy} disabled={disabled || connected} onClick={onConnect}>
           {connected ? t('pairConnect.connected') : t('pairConnect.oneClickConnect')}
+        </Button>
+      </Group>
+    </Paper>
+  );
+}
+
+function MdnsNeedsPairRow({
+  item,
+  disabled,
+  onStartPair,
+}: {
+  item: UnpairedMdnsDevice;
+  disabled: boolean;
+  onStartPair: () => void;
+}) {
+  const { t } = useTranslation();
+  const { connectDevice, pairingDevice } = item;
+  return (
+    <Paper withBorder radius="md" p="md">
+      <Group justify="space-between" gap="md" wrap="nowrap">
+        <div style={{ minWidth: 0 }}>
+          <Group gap={6} wrap="nowrap">
+            <Text size="sm" fw={600} truncate>
+              {connectDevice.service_name}
+            </Text>
+            <Text className="device-inline-status device-inline-status--warning" size="xs" fw={600}>
+              {t("pairConnect.needPair")}
+            </Text>
+            <Text className="device-inline-status" size="xs" fw={600}>
+              {pairingDevice
+                ? t("pairConnect.pairPortDetectedShort", { port: pairingDevice.port })
+                : t("pairConnect.pairPortRequiredShort")}
+            </Text>
+          </Group>
+          <Text size="xs" c="dimmed" mt={4} truncate>
+            {connectDevice.address} · {connectDevice.service_type}
+          </Text>
+        </div>
+        <Button size="sm" variant="light" disabled={disabled} onClick={onStartPair}>
+          {t("pairConnect.inputPairCode")}
         </Button>
       </Group>
     </Paper>
@@ -1282,7 +1349,7 @@ function ConnectedAdbDeviceRow({ device }: { device: DeviceInfo }) {
     .join(" · ");
 
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder radius="md" p="md">
       <Group justify="space-between" gap="md" wrap="nowrap">
         <div style={{ minWidth: 0 }}>
           <Group gap={6} wrap="nowrap">
@@ -1305,30 +1372,8 @@ function ConnectedAdbDeviceRow({ device }: { device: DeviceInfo }) {
   );
 }
 
-function isMdnsDeviceConnected(device: MdnsDevice, connectedDevices: DeviceInfo[]) {
-  const key = mdnsDeviceKey(device);
-  return connectedDevices.some((connectedDevice) => {
-    const serial = connectedDevice.serial;
-    return (
-      (key && deviceConnectionKeys(connectedDevice).includes(key)) ||
-      serial === device.address ||
-      serial === device.service_name ||
-      serial.startsWith(`${device.service_name}.`) ||
-      serial.includes(device.address)
-    );
-  });
-}
-
 function isLanConnectedDevice(device: DeviceInfo) {
   return device.connection_type === "wireless" || /^\d{1,3}(?:\.\d{1,3}){3}:\d{1,5}$/.test(device.serial);
-}
-
-function mdnsDeviceKey(device: MdnsDevice) {
-  return device.service_name.match(/^adb-([^-]+)-/)?.[1] || null;
-}
-
-function deviceConnectionKeys(device: DeviceInfo) {
-  return [device.device_sn, device.serial.match(/^adb-([^-]+)-/)?.[1] || ""].filter(Boolean);
 }
 
 function MdnsPairRow({
@@ -1352,7 +1397,7 @@ function MdnsPairRow({
 }) {
   const { t } = useTranslation();
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder radius="md" p="md">
       <Group justify="space-between" gap="md" align="flex-end">
         <div style={{ minWidth: 0, flex: 1 }}>
           <Group gap={6} wrap="nowrap">
@@ -1545,16 +1590,8 @@ function WirelessRecoverySteps({
           <div key={step.id} className="px-3 py-2">
             <Group gap="xs" justify="space-between" align="flex-start" wrap="nowrap">
               <div style={{ minWidth: 0 }}>
-                <Group className="wireless-recovery-step-meta" gap={8} wrap="nowrap">
-                  <Text className="wireless-recovery-step-index" size="sm" fw={600}>
-                    {index + 1}
-                  </Text>
-                  <Text className={`wireless-recovery-step-state wireless-recovery-step-state--${step.state}`} size="xs" fw={600}>
-                    {t(`pairConnect.recovery.states.${step.state}`)}
-                  </Text>
-                </Group>
-                <Text size="sm" fw={700} mt={5}>
-                  {t(`pairConnect.recovery.steps.${step.id}.title`)}
+                <Text size="sm" fw={700}>
+                  {index + 1}. {t(`pairConnect.recovery.steps.${step.id}.title`)}
                 </Text>
                 <Text size="xs" c="dimmed" mt={3} style={{ lineHeight: 1.45 }}>
                   {t(`pairConnect.recovery.steps.${step.id}.desc`)}

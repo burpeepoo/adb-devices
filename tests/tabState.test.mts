@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { markTabVisited, primaryTabKey, TAB_KEYS } from "../src/tabState.ts";
+import { hashForTab, initialTabKeyFrom, markTabVisited, primaryTabKey, tabKeyFromValue, TAB_KEYS } from "../src/tabState.ts";
 
 test("tab order covers every workspace tab", () => {
   assert.deepEqual(TAB_KEYS, [
@@ -32,4 +32,13 @@ test("visited tabs accumulate without dropping previous tab state", () => {
 
 test("pair tab remains the primary device console route", () => {
   assert.equal(primaryTabKey(), "pair");
+});
+
+test("tab keys can be resolved from automation-friendly hash values", () => {
+  assert.equal(tabKeyFromValue("#agent"), "agent");
+  assert.equal(tabKeyFromValue("tab=agent"), "agent");
+  assert.equal(tabKeyFromValue("#unknown"), null);
+  assert.equal(initialTabKeyFrom("#settings-updates", null), "pair");
+  assert.equal(initialTabKeyFrom("#pair", "agent"), "agent");
+  assert.equal(hashForTab("agent"), "#agent");
 });

@@ -28,7 +28,7 @@ export default function CommandOutput({ title, action, children, maxHeight = 220
       <Box
         component="pre"
         m={0}
-        p="sm"
+        p="md"
         style={{
           maxHeight,
           overflow: "auto",

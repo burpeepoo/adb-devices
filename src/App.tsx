@@ -8,7 +8,7 @@ import { applyLanguagePreference } from "./i18n";
 import { useDevices } from "./hooks/useDevices";
 import { useAppUpdater } from "./hooks/useAppUpdater";
 import { isAutoUpdateCheckEnabled } from "./updaterPolicy";
-import { markTabVisited, TAB_KEYS } from "./tabState";
+import { hashForTab, initialTabKeyFrom, markTabVisited, tabKeyFromValue, TAB_KEYS } from "./tabState";
 import { toolIcons, toolLabelKeys } from "./toolMetadata";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import { deviceIdentityKey, setDeviceNote, type DeviceNotes } from "./deviceNotes";
@@ -43,6 +43,11 @@ import Settings from "./components/Settings";
 import AppUpdatePrompt from "./components/AppUpdatePrompt";
 
 const GITHUB_REPOSITORY_URL = "https://github.com/burpeepoo/adb-devices";
+
+function resolveInitialAppTab(): TabKey {
+  const hash = typeof window === "undefined" ? "" : window.location.hash;
+  return initialTabKeyFrom(hash, import.meta.env.VITE_ADB_MANAGER_INITIAL_TAB);
+}
 
 interface ScreenMirrorState {
   running: boolean;
@@ -105,8 +110,8 @@ export default function App() {
     label: TAB_LABELS[item.key],
     icon: toolIcons[item.key],
   }));
-  const [activeTab, setActiveTab] = useState<TabKey>("pair");
-  const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set(["pair"]));
+  const [activeTab, setActiveTab] = useState<TabKey>(() => resolveInitialAppTab());
+  const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set([resolveInitialAppTab()]));
   const [adbAvailable, setAdbAvailable] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [mirroringDeviceSerial, setMirroringDeviceSerial] = useState<string | null>(null);
@@ -416,6 +421,21 @@ export default function App() {
   const handleSelectTab = useCallback((tab: TabKey) => {
     setVisitedTabs((current) => markTabVisited(current, tab));
     setActiveTab(tab);
+    if (typeof window !== "undefined" && window.location.hash !== hashForTab(tab)) {
+      window.history.replaceState(null, "", hashForTab(tab));
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const tab = tabKeyFromValue(window.location.hash);
+      if (!tab) return;
+      setVisitedTabs((current) => markTabVisited(current, tab));
+      setActiveTab(tab);
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
   const selectedDeviceInfo = devices.find((device) => device.serial === selectedDevice) || null;

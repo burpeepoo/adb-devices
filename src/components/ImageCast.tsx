@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useTranslation } from "react-i18next";
-import { Badge, Box, Button, Group, Paper, Stack, Switch, Text, TextInput } from "@mantine/core";
+import { Badge, Box, Button, Group, Modal, Paper, Stack, Switch, Text, TextInput } from "@mantine/core";
 import { IconFolder, IconPhotoUp, IconPlayerPlay, IconUpload } from "@tabler/icons-react";
 import CommandOutput from "./common/CommandOutput";
 import ResultAlert from "./common/ResultAlert";
@@ -42,6 +42,7 @@ export default function ImageCast({ deviceTarget, active }: Props) {
   const { t } = useTranslation();
   const [selectedPath, setSelectedPath] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
   const [remoteDir, setRemoteDir] = useState(DEFAULT_REMOTE_DIR);
   const [openAfterPush, setOpenAfterPush] = useState(true);
@@ -60,12 +61,14 @@ export default function ImageCast({ deviceTarget, active }: Props) {
 
     setSelectedPath(path);
     setImageSize(null);
+    setPreviewOpen(false);
     setResult(null);
     try {
       const dataUrl = await invoke<string>("read_image_preview_data_url", { localPath: path });
       setPreviewUrl(dataUrl);
     } catch (e) {
       setPreviewUrl(null);
+      setPreviewOpen(false);
       setResult({ ok: false, msg: String(e) });
     }
   }, [t]);
@@ -265,20 +268,41 @@ export default function ImageCast({ deviceTarget, active }: Props) {
                   flex: "0 0 auto",
                 }}
               >
+                <button
+                  type="button"
+                  className="image-cast-preview-trigger"
+                  aria-label={t("imageCast.openPreview")}
+                  onClick={() => setPreviewOpen(true)}
+                >
+                  <img
+                    alt={t("imageCast.previewAlt")}
+                    src={previewUrl}
+                    onLoad={handleImageLoad}
+                    onError={() => setResult({ ok: false, msg: t("imageCast.previewFailed") })}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      maxHeight: 220,
+                      objectFit: "contain",
+                      display: "block",
+                    }}
+                  />
+                </button>
+              </Box>
+              <Modal opened={previewOpen} onClose={() => setPreviewOpen(false)} title={t("imageCast.previewTitle")} size="xl" centered>
                 <img
                   alt={t("imageCast.previewAlt")}
                   src={previewUrl}
-                  onLoad={handleImageLoad}
-                  onError={() => setResult({ ok: false, msg: t("imageCast.previewFailed") })}
                   style={{
                     width: "100%",
-                    height: "100%",
-                    maxHeight: 220,
+                    maxHeight: "76vh",
                     objectFit: "contain",
-                    display: "block",
+                    borderRadius: "var(--radius-md)",
+                    border: "var(--border-hairline)",
+                    background: "var(--surface-sunken)",
                   }}
                 />
-              </Box>
+              </Modal>
               <Stack gap="xs" style={{ flex: 1, minWidth: 260 }}>
                 <TextInput label={t("imageCast.remoteDir")} value={remoteDir} onChange={(event) => setRemoteDir(event.currentTarget.value)} />
                 <Group gap="xs">

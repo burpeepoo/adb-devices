@@ -100,16 +100,29 @@ Tauri store path: `settings.json`.
 - `deviceKey`, `deviceSerial`
 - `skillId`: the most recently inferred embedded evidence shortcut hint for the conversation. Normal chat is agent-driven and does not show or automatically run this template.
 - `cliProfileId`
+- `workingDirectory`: optional per-conversation Agent CLI working directory. When unset, execution falls back to the selected CLI profile working directory.
 - `messages`: user, assistant, system, and command evidence messages. User messages may include attachment metadata and bounded text previews.
 
 `EvidenceSession`
 
 - `id`, `kind`, `status`, `title`, `createdAt`, `updatedAt`, optional `closedAt`
 - `deviceKey`, `deviceSerial`: binds the evidence session to the selected device when available.
+- `workingDirectory`: optional per-task Agent CLI working directory shared by Walkthrough or Bug Repro turns. It does not participate in the start gate and falls back to the selected CLI profile working directory when unset.
 - `capturePolicy`: screenshot, Remote audit snapshot, and issue-time Logcat behavior.
 - `scribe`: optional task-recorder state with enabled flag, proactive intensity (`quiet`, `key_moments`, `live`), execution permission (`read_only`, `semi_auto`, `auto_execute`), goal, last reviewed artifact id, summaries, and next action. The field name remains `scribe` for historical record compatibility; missing `scribe` means a historical plain evidence record.
 - `artifacts`: screenshot, recording, Logcat, note, issue marker, Remote audit, screen-state, and Agent note evidence.
 - Checklist or test-plan files are represented as `AgentCopilotAttachment` context, not as `EvidenceSession` fields.
+
+`ScoutTask` bounded context
+
+- Implemented in `src/scoutTask/`; it is a frontend bounded context around the persisted `EvidenceSession` record rather than a replacement store schema.
+- Public commands: `StartTask`, `AddArtifact`, `RunAgentTurn`, `RequestTool`, `AutoExecuteTool`, `RequestApproval`, `StopAndGenerateReport`, and `CloseTask`.
+- Public events: `ScoutTaskStarted`, `ArtifactAdded`, `AgentRunStarted`, `ToolAutoExecuted`, `ApprovalRequested`, `FinalReportGenerated`, `ScoutTaskClosed`, and `ScoutTaskFailed`.
+- `ScoutTaskRunState` is derived for UI as `not_started`, `running`, `generating_report`, `completed`, or `failed`; the persisted `EvidenceSession.status` remains `active | closed` for compatibility.
+- Start gates require a selected device, available Agent CLI runtime, configured screenshot/artifact directory, non-empty goal, and no other running task. Model API provider settings are probe/configuration metadata until a direct execution adapter exists.
+- The optional task working directory is task context, not readiness: it is persisted when provided, included in Scout prompts, and passed as the Agent CLI cwd, but leaving it blank never blocks start.
+- Artifact append checks the active task device identity (`device_sn || serial`) and rejects evidence from a different current device.
+- Report generation failure emits `ScoutTaskFailed`, keeps the task active, stores a retry-oriented `scribe.nextAction`, and lets the user retry instead of silently closing the record.
 
 ## Selection Model
 

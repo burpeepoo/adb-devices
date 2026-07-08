@@ -119,7 +119,7 @@ export default function Screenshot({ deviceTarget, saveDir, shortcutResult, onSa
             </Button>
           </Group>
 
-          <Paper withBorder p="sm" style={{ background: "var(--surface-sunken)" }}>
+          <Paper withBorder radius="md" p="md" style={{ background: "var(--surface-sunken)" }}>
             <Text size="xs" fw={700}>
               {t("screenshot.shortcutTitle")}
             </Text>

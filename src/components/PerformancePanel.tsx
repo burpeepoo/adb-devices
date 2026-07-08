@@ -622,7 +622,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
           {alerts.length > 0 && (
             <Stack gap={6}>
               {alerts.map((alert) => (
-                <Paper key={alert.key} withBorder radius="md" p="xs" bg="yellow.0">
+                <Paper key={alert.key} withBorder radius="md" p="md" bg="yellow.0">
                   <Text size="sm" c="yellow.9">
                     {alert.message}
                   </Text>
@@ -782,7 +782,7 @@ function GpuDiagnostics({
   const memoryValue = diagnostic.hasMemory ? formatGpuMemory(sample) : t("performance.gpuDiagnosticMissing");
 
   return (
-    <Paper withBorder radius="md" p={expanded ? "md" : "sm"}>
+    <Paper withBorder radius="md" p="md">
       <Stack gap="sm">
         <Group justify="space-between" gap="sm">
           <Group gap="xs">
@@ -964,7 +964,7 @@ function TrendCard({ config, points, emptyLabel }: { config: TrendConfig; points
   const latestValue = values.length > 0 ? values[values.length - 1].value : null;
 
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder radius="md" p="md">
       <Stack gap="xs">
         <Group justify="space-between" align="flex-start" gap="sm">
           <Text size="sm" fw={700}>

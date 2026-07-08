@@ -28,13 +28,13 @@ typography:
   hero:
     fontFamily: "{typography.font-display}"
     fontWeight: 700
-    fontSize: "clamp(56px, 6.4vw, 88px)"
+    fontSize: "88px"
     lineHeight: 1.02
     letterSpacing: "-0.025em"
   display-md:
     fontFamily: "{typography.font-display}"
     fontWeight: 700
-    fontSize: "clamp(40px, 4vw, 56px)"
+    fontSize: "56px"
     lineHeight: 1.06
     letterSpacing: "-0.025em"
   headline-lg:
@@ -123,7 +123,6 @@ components:
     rounded: "{rounded.full}"
     height: "44px"
     padding: "0 22px"
-    borderColor: "{colors.border}"
   button-secondary-hover:
     backgroundColor: "{colors.surface-sunken}"
     textColor: "{colors.on-surface}"
@@ -134,36 +133,34 @@ components:
     rounded: "{rounded.full}"
     height: "44px"
     padding: "0 18px"
-    borderColor: "{colors.border}"
   input-field-focus:
-    borderColor: "{colors.focus}"
-    boxShadow: "{elevation.focus-ring}"
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.on-surface}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.full}"
+    height: "44px"
+    padding: "0 18px"
   card:
     backgroundColor: "{colors.surface}"
+    textColor: "{colors.on-surface}"
     rounded: "{rounded.lg}"
     padding: "32px"
-    borderColor: "{colors.border}"
-    boxShadow: "{elevation.tier-1}"
   card-flush:
     backgroundColor: "{colors.surface}"
+    textColor: "{colors.on-surface}"
     rounded: "{rounded.lg}"
     padding: "0px"
-    borderColor: "{colors.border}"
-    boxShadow: "{elevation.tier-1}"
   slab:
     backgroundColor: "{colors.surface}"
+    textColor: "{colors.on-surface}"
     rounded: "{rounded.xl}"
     padding: "28px"
-    borderColor: "{colors.border}"
-    boxShadow: "{elevation.tier-2}"
   checkbox:
     backgroundColor: "{colors.surface}"
-    borderColor: "{colors.border}"
     rounded: "{rounded.check}"
     size: "18px"
   checkbox-checked:
     backgroundColor: "{colors.primary}"
-    borderColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
   tabs-active:
     backgroundColor: "{colors.primary}"
@@ -171,9 +168,8 @@ components:
     rounded: "{rounded.full}"
     height: "36px"
     padding: "0 16px"
-    boxShadow: "{elevation.tier-2}"
   tabs-inactive:
-    backgroundColor: "transparent"
+    backgroundColor: "{colors.surface}"
     textColor: "{colors.on-surface}"
     rounded: "{rounded.full}"
     height: "36px"
@@ -185,9 +181,8 @@ components:
     rounded: "{rounded.full}"
     height: "28px"
     padding: "0 12px"
-    borderColor: "{colors.border}"
   rail-item:
-    backgroundColor: "transparent"
+    backgroundColor: "{colors.surface}"
     textColor: "{colors.on-surface-muted}"
     rounded: "{rounded.full}"
     size: "40px"
@@ -199,6 +194,33 @@ components:
     textColor: "{colors.on-surface}"
     rounded: "{rounded.full}"
     padding: "8px 16px"
+  page-canvas:
+    backgroundColor: "{colors.surface-page}"
+    textColor: "{colors.on-surface}"
+  horizon-wash:
+    backgroundColor: "{colors.surface-horizon}"
+  muted-label:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.neutral}"
+    typography: "{typography.body-sm}"
+  edge-hairline:
+    backgroundColor: "{colors.border}"
+    height: "1px"
+  soft-hairline:
+    backgroundColor: "{colors.border-soft}"
+    height: "1px"
+  focus-indicator:
+    backgroundColor: "{colors.focus}"
+    size: "3px"
+  data-signal:
+    backgroundColor: "{colors.accent-signal}"
+    size: "12px"
+  data-citrus:
+    backgroundColor: "{colors.accent-citrus}"
+    size: "12px"
+  data-meadow:
+    backgroundColor: "{colors.accent-meadow}"
+    size: "12px"
 ---
 
 ## Overview
@@ -223,6 +245,12 @@ This project applies Cirrus to a dense desktop operations tool rather than to a 
 For the desktop app, treat the whole three-column workbench as the Cirrus dashboard slab: the tool rail, device panel, selected-device header, workspace, and status bar should feel like coordinated floating surfaces over sky. Preserve operational density where needed, but prefer 16-24px internal gaps, 28px card radii, 36px slab radii, 44px controls, and responsive min/max columns so long device names, translated labels, or narrow windows do not overlap.
 
 Compatibility aliases in `src/styles/system.css` may keep older variable names such as `--color-indigo` or `--color-paper`, but they must map back to Cirrus semantics: Ink for primary/active UI, Cloud for content surfaces, Sky for page canvas, Edge for borders, Signal Blue only for focus/data, Citrus for warnings, and Meadow for positive states.
+
+### DESIGN.md Tooling Contract
+
+The YAML front matter is intentionally compatible with Google's DESIGN.md validator so agents and CI can lint the design contract. Keep primitive, machine-readable values there: fixed colors, fixed type scales, spacing, radii, and component roles.
+
+More expressive Cirrus rules belong in prose or `src/styles/system.css`: responsive `clamp()` sizing, shadow recipes, hairline borders, cloudy background overlays, dense desktop exceptions, and interaction-specific behavior. After changing the YAML token layer, run `npm run test:design-md` before editing UI.
 
 ## Colors
 

@@ -54,10 +54,10 @@ test("wireless recovery ladder steps do not render as bordered cards", () => {
   const componentSource = source.slice(componentStart, componentEnd);
 
   assert.match(componentSource, /<div key=\{step\.id\} className="px-3 py-2">/);
-  assert.match(componentSource, /<Text className="wireless-recovery-step-index" size="sm" fw=\{600\}>/);
-  assert.match(componentSource, /className="wireless-recovery-step-index"/);
-  assert.match(componentSource, /wireless-recovery-step-state--\$\{step\.state\}/);
-  assert.match(indexCss, /\.wireless-recovery-step-state/);
+  assert.match(componentSource, /\{index \+ 1\}\. \{t\(`pairConnect\.recovery\.steps\.\$\{step\.id\}\.title`\)\}/);
+  assert.doesNotMatch(componentSource, /wireless-recovery-step-(meta|index|state)/);
+  assert.doesNotMatch(componentSource, /pairConnect\.recovery\.states/);
+  assert.doesNotMatch(indexCss, /\.wireless-recovery-step-(meta|index|state)/);
   assert.doesNotMatch(componentSource, /rounded-md border border-gray-200 bg-white/);
   assert.doesNotMatch(componentSource, /<Badge size="xs" color="gray" variant="light">\s*\{index \+ 1\}/);
   assert.doesNotMatch(componentSource, /<Badge[\s\S]*pairConnect\.recovery\.states/);
@@ -66,14 +66,25 @@ test("wireless recovery ladder steps do not render as bordered cards", () => {
 test("device connection row statuses are inline text instead of badge chips", () => {
   const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
   const indexCss = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
-  const mdnsRow = componentSlice(source, "function MdnsRow", "function ConnectedAdbDeviceRow");
-  const connectedRow = componentSlice(source, "function ConnectedAdbDeviceRow", "function isMdnsDeviceConnected");
+  const mdnsRow = componentSlice(source, "function MdnsRow", "function MdnsNeedsPairRow");
+  const connectedRow = componentSlice(source, "function ConnectedAdbDeviceRow", "function MdnsPairRow");
 
   assert.match(mdnsRow, /device-inline-status device-inline-status--positive/);
   assert.match(connectedRow, /device-inline-status device-inline-status--positive/);
   assert.match(indexCss, /\.device-inline-status::before/);
   assert.doesNotMatch(mdnsRow, /<Badge[\s\S]*pairConnect\.(connectable|connected|notConnected)/);
   assert.doesNotMatch(connectedRow, /<Badge[\s\S]*pairConnect\.(connected|adbConnected)/);
+});
+
+test("first-time connect services render a pairing action instead of direct connect", () => {
+  const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
+  const needsPairRow = componentSlice(source, "function MdnsNeedsPairRow", "function ConnectedAdbDeviceRow");
+
+  assert.match(source, /buildMdnsPairingViewModel\(mdnsDevices, connectedDevices, recentConnects\)/);
+  assert.match(source, /unpairedConnectDevices\.map/);
+  assert.match(needsPairRow, /pairConnect\.inputPairCode/);
+  assert.match(needsPairRow, /pairConnect\.pairPortDetectedShort/);
+  assert.doesNotMatch(needsPairRow, /pairConnect\.oneClickConnect/);
 });
 
 function recent(ip: string, port: string): RecentConnectEndpoint {

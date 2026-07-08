@@ -336,6 +336,7 @@ export interface AgentCopilotSession {
   deviceSerial: string | null;
   skillId: AndroidAgentSkillId;
   cliProfileId: string;
+  workingDirectory?: string | null;
   messages: AgentCopilotMessage[];
 }
 
@@ -388,6 +389,7 @@ export interface EvidenceSession {
   closedAt?: number;
   deviceKey: string | null;
   deviceSerial: string | null;
+  workingDirectory?: string | null;
   capturePolicy: {
     screenshots: boolean;
     remoteAudit: boolean;
