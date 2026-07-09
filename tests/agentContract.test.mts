@@ -408,12 +408,28 @@ test("adb workbench uses the Cirrus workbench layout instead of legacy utility c
   const styles = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
 
   assert.match(workbench, /adb-workbench-root/);
+  assert.match(workbench, /adb-workbench-shell/);
   assert.match(workbench, /adb-workbench-grid/);
   assert.match(workbench, /adb-workbench-library/);
   assert.match(workbench, /adb-workbench-composer/);
+  assert.match(workbench, /adb-workbench-command-panel/);
+  assert.match(workbench, /adb-workbench-result-tabs/);
+  assert.match(workbench, /role="tablist"/);
+  assert.match(workbench, /aria-selected=\{outputTab === "output"\}/);
+  assert.match(workbench, /aria-selected=\{outputTab === "history"\}/);
   assert.match(workbench, /adb-workbench-output-console/);
   assert.match(workbench, /workbench-risk-pill/);
+  assert.doesNotMatch(workbench, /DeviceTargetBanner/);
   assert.match(styles, /\.adb-workbench-root/);
+  assert.match(styles, /\.adb-workbench-shell,\n\.adb-workbench-output-console/);
+  assert.match(styles, /\.adb-workbench-shell\s*\{[\s\S]*flex:\s*0 0 auto/);
+  assert.match(styles, /\.adb-workbench-shell\s*\{[\s\S]*height:\s*clamp\(320px, 36vh, 420px\)/);
+  assert.match(styles, /\.adb-workbench-grid\s*\{[\s\S]*min-height:\s*0/);
+  assert.match(styles, /\.adb-workbench-library__list\s*\{[\s\S]*flex:\s*1 1 auto/);
+  assert.match(styles, /\.adb-workbench-library\s*\{[\s\S]*border-right: var\(--border-hairline\)/);
+  assert.match(styles, /\.adb-workbench-command-panel\s*\{[\s\S]*border-top: var\(--border-soft\)/);
+  assert.match(styles, /\.adb-workbench-output-console\s*\{[\s\S]*overflow: visible/);
+  assert.match(styles, /\.adb-workbench-result-tabs button\.is-active\s*\{[\s\S]*background: var\(--color-ink\)/);
   assert.match(styles, /\.adb-workbench-command-card\.is-active/);
   assert.match(styles, /\.adb-workbench-command-card__main\s*\{[\s\S]*flex:\s*1 1 auto/);
   assert.match(styles, /\.adb-workbench-command-card__desc\s*\{[\s\S]*white-space:\s*normal/);
@@ -422,6 +438,8 @@ test("adb workbench uses the Cirrus workbench layout instead of legacy utility c
   assert.match(styles, /\.adb-workbench-mode-switch/);
   assert.match(styles, /\.workbench-risk-pill--high/);
   assert.match(styles, /\.adb-workbench-textarea\s*\{[\s\S]*border-radius:\s*22px/);
+  assert.doesNotMatch(styles, /\.adb-workbench-output-console\s*\{[\s\S]*max-height:\s*42%/);
+  assert.doesNotMatch(styles, /\.adb-workbench-grid\s*\{[\s\S]*min-height:\s*560px/);
   assert.doesNotMatch(styles, /\.adb-workbench-command-card__desc\s*\{[\s\S]*-webkit-line-clamp/);
   assert.doesNotMatch(workbench, /border-blue-200|bg-blue-50|text-blue-600|text-gray-900|border-gray-200 bg-white/);
 });

@@ -1,4 +1,4 @@
-import { Indicator, Stack, Tooltip } from "@mantine/core";
+import { Stack, Tooltip } from "@mantine/core";
 import {
   IconBrandGithub,
   IconSettings,
@@ -69,17 +69,17 @@ export default function ToolRail({
         })}
       </div>
       <div className="tool-rail__footer">
-        <Indicator color="red" size={8} offset={8} disabled={!hasUpdate} position="top-end" style={{ width: "100%" }}>
-          <button
-            type="button"
-            aria-label={settingsLabel}
-            className="tool-rail__button tool-rail__button--utility"
-            onClick={onOpenSettings}
-          >
-            <IconSettings size={21} style={{ flex: "0 0 auto" }} />
-            <span className="tool-rail__label">{settingsLabel}</span>
-          </button>
-        </Indicator>
+        <button
+          type="button"
+          aria-label={settingsLabel}
+          className="tool-rail__button tool-rail__button--utility"
+          data-update={hasUpdate ? "true" : undefined}
+          onClick={onOpenSettings}
+        >
+          <IconSettings size={21} style={{ flex: "0 0 auto" }} />
+          <span className="tool-rail__label">{settingsLabel}</span>
+          {hasUpdate ? <span className="tool-rail__update-dot" aria-hidden="true" /> : null}
+        </button>
         <button
           type="button"
           aria-label={githubLabel}

@@ -7,10 +7,10 @@ import { rewriteAdbShellBatch } from "../workbenchCommandRewrite";
 import { IconTerminal2, IconWand } from "@tabler/icons-react";
 import PackageNameInput from "./PackageNameInput";
 import SectionTitle from "./common/SectionTitle";
-import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import { type DeviceTargetState } from "../deviceTarget.ts";
 
 type WorkbenchMode = "library" | "templates" | "custom";
+type WorkbenchOutputTab = "output" | "history";
 type WorkbenchRisk = "low" | "medium" | "high";
 type ParamType = "text" | "package" | "select";
 
@@ -824,6 +824,7 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
   const [highRiskConfirmed, setHighRiskConfirmed] = useState(false);
   const [result, setResult] = useState<WorkbenchCommandResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [outputTab, setOutputTab] = useState<WorkbenchOutputTab>("output");
   const [exportStatus, setExportStatus] = useState<{ ok: boolean; msg: string } | null>(null);
   const [templateStatus, setTemplateStatus] = useState<string | null>(null);
   const [rewriteStatus, setRewriteStatus] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -1001,6 +1002,7 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
     setExecuting(true);
     setResult(null);
     setError(null);
+    setOutputTab("output");
     setExportStatus(null);
 
     try {
@@ -1129,6 +1131,7 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
     setExportStatus(null);
     setTemplateStatus(null);
     setHighRiskConfirmed(false);
+    setOutputTab("output");
   };
 
   const exportOutput = async () => {
@@ -1153,358 +1156,396 @@ export default function AdbWorkbench({ deviceTarget }: Props) {
 
   return (
     <div className="adb-workbench-root">
-      <DeviceTargetBanner target={deviceTarget} />
-      <div className="adb-workbench-grid">
-        <section className="adb-workbench-library">
-          <div className="adb-workbench-library__header">
-            <SectionTitle icon={<IconTerminal2 size={17} />} label={t("workbench.title")} description={t("workbench.subtitle")} />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t("workbench.searchPlaceholder")}
-              className="adb-workbench-input"
-            />
-            <select
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              className="adb-workbench-input"
-            >
-              <option value="all">{t("workbench.categories.all")}</option>
-              {categoryOptions.map((categoryKey) => (
-                <option key={categoryKey} value={categoryKey}>
-                  {t(categoryKey)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="adb-workbench-library__list">
-            {filteredItems.map((item) => {
-              const selected = mode === "library" && item.id === selectedId;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => chooseItem(item)}
-                  className={`adb-workbench-command-card${selected ? " is-active" : ""}`}
-                >
-                  <span className="adb-workbench-command-card__main">
-                    <span className="adb-workbench-command-card__title">{item.title ?? t(item.titleKey ?? "")}</span>
-                    <span className="adb-workbench-command-card__desc">
-                      {item.description ?? t(item.descriptionKey ?? "")}
-                    </span>
-                    <span className="adb-workbench-command-card__category">{t(item.categoryKey)}</span>
-                  </span>
-                  <span className={riskClasses[item.risk]}>
-                    {t(`workbench.risk.${item.risk}`)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="adb-workbench-composer">
-          <div className="adb-workbench-mode-switch">
-          <button
-            type="button"
-            onClick={() => switchMode("library")}
-            className={mode === "library" ? "is-active" : ""}
-          >
-            {t("workbench.libraryMode")}
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("templates")}
-            className={mode === "templates" ? "is-active" : ""}
-          >
-            {t("workbench.templatesMode")}
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("custom")}
-            className={mode === "custom" ? "is-active" : ""}
-          >
-            {t("workbench.customMode")}
-          </button>
-        </div>
-
-        {mode === "library" ? (
-          <>
-            <div className="adb-workbench-detail-heading">
-              <div>
-                <h3>{selectedItem.title ?? t(selectedItem.titleKey ?? "")}</h3>
-                <p>
-                    {selectedItem.description ?? t(selectedItem.descriptionKey ?? "")}
-                </p>
-              </div>
-              <span className={riskClasses[selectedItem.risk]}>
-                {t(`workbench.risk.${selectedItem.risk}`)}
-              </span>
-            </div>
-
-            {selectedItem.params.length > 0 ? (
-              <div className="adb-workbench-param-stack">
-                {selectedItem.params.map((param) => (
-                  <label key={param.name} className="adb-workbench-field">
-                    <span>{t(param.labelKey)}</span>
-                    {param.type === "select" ? (
-                      <select
-                        value={values[param.name] ?? ""}
-                        onChange={(event) => setValues((prev) => ({ ...prev, [param.name]: event.target.value }))}
-                        className="adb-workbench-input"
-                      >
-                        {(param.options ?? []).map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {t(option.labelKey)}
-                          </option>
-                        ))}
-                      </select>
-                    ) : param.type === "package" ? (
-                      <PackageNameInput
-                        value={values[param.name] ?? ""}
-                        onChange={(value) => setValues((prev) => ({ ...prev, [param.name]: value }))}
-                        deviceSerial={deviceSerial}
-                        disabled={!deviceSerial}
-                        placeholder={param.placeholderKey ? t(param.placeholderKey) : ""}
-                        className="adb-workbench-input adb-workbench-input--mono"
-                      />
-                    ) : (
-                      <input
-                        value={values[param.name] ?? ""}
-                        onChange={(event) => setValues((prev) => ({ ...prev, [param.name]: event.target.value }))}
-                        onPaste={(event) => handleParamPaste(event, param)}
-                        placeholder={param.placeholderKey ? t(param.placeholderKey) : ""}
-                        className="adb-workbench-input adb-workbench-input--mono"
-                      />
-                    )}
-                  </label>
+      <section className="adb-workbench-shell">
+        <div className="adb-workbench-grid">
+          <section className="adb-workbench-library">
+            <div className="adb-workbench-library__header">
+              <SectionTitle icon={<IconTerminal2 size={17} />} label={t("workbench.title")} description={t("workbench.subtitle")} />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t("workbench.searchPlaceholder")}
+                className="adb-workbench-input"
+              />
+              <select
+                value={categoryFilter}
+                onChange={(event) => setCategoryFilter(event.target.value)}
+                className="adb-workbench-input"
+              >
+                <option value="all">{t("workbench.categories.all")}</option>
+                {categoryOptions.map((categoryKey) => (
+                  <option key={categoryKey} value={categoryKey}>
+                    {t(categoryKey)}
+                  </option>
                 ))}
-              </div>
-            ) : (
-              <div className="adb-workbench-empty-note">
-                {t("workbench.noParams")}
-              </div>
-            )}
-          </>
-        ) : mode === "templates" ? (
-          <div className="adb-workbench-template-mode">
-            <div className="adb-workbench-detail-heading">
-              <div>
-                <h3>{t("workbench.templatesTitle")}</h3>
-                <p>{t("workbench.templatesDesc")}</p>
-              </div>
+              </select>
             </div>
-            <div className="adb-workbench-template-list">
-              {savedItems.length === 0 && (
-                <div className="adb-workbench-empty-note">
-                  {t("workbench.noTemplates")}
-                </div>
-              )}
-              {savedItems.map((item) => {
-                const selected = item.id === selectedTemplate?.id;
+
+            <div className="adb-workbench-library__list">
+              {filteredItems.map((item) => {
+                const selected = mode === "library" && item.id === selectedId;
                 return (
-                  <div
+                  <button
                     key={item.id}
-                    className={`adb-workbench-template-card${selected ? " is-active" : ""}`}
+                    type="button"
+                    onClick={() => chooseItem(item)}
+                    className={`adb-workbench-command-card${selected ? " is-active" : ""}`}
                   >
-                    <button type="button" onClick={() => chooseTemplate(item)} className="adb-workbench-template-card__main">
-                      <span className="adb-workbench-template-card__title">{item.title}</span>
-                      <span className="adb-workbench-template-card__command">{item.savedCommand}</span>
-                    </button>
-                    <span className={riskClasses[item.risk]}>{t(`workbench.risk.${item.risk}`)}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeTemplate(item.id)}
-                      className="adb-workbench-text-action adb-workbench-text-action--danger"
-                    >
-                      {t("workbench.removeTemplate")}
-                    </button>
-                  </div>
+                    <span className="adb-workbench-command-card__main">
+                      <span className="adb-workbench-command-card__title">{item.title ?? t(item.titleKey ?? "")}</span>
+                      <span className="adb-workbench-command-card__desc">
+                        {item.description ?? t(item.descriptionKey ?? "")}
+                      </span>
+                      <span className="adb-workbench-command-card__category">{t(item.categoryKey)}</span>
+                    </span>
+                    <span className={riskClasses[item.risk]}>
+                      {t(`workbench.risk.${item.risk}`)}
+                    </span>
+                  </button>
                 );
               })}
             </div>
-            {templateStatus && (
-              <div className="adb-workbench-status adb-workbench-status--ok">
-                {templateStatus}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="adb-workbench-custom-mode">
-            <div className="adb-workbench-detail-heading">
-              <div>
-                <h3>{t("workbench.customTitle")}</h3>
-                <p>{t("workbench.customDesc")}</p>
-              </div>
+          </section>
+
+          <section className="adb-workbench-composer">
+            <div className="adb-workbench-mode-switch">
               <button
                 type="button"
-                onClick={rewriteCustomCommand}
-                disabled={!customCommand.trim()}
-                className="adb-workbench-secondary-action"
+                onClick={() => switchMode("library")}
+                className={mode === "library" ? "is-active" : ""}
               >
-                <IconWand className="h-4 w-4" />
-                {t("workbench.rewriteShellBatch")}
+                {t("workbench.libraryMode")}
               </button>
-            </div>
-            <textarea
-              value={customCommand}
-              onChange={(event) => {
-                setCustomCommand(event.target.value);
-                setHighRiskConfirmed(false);
-                setRewriteStatus(null);
-              }}
-              rows={4}
-              placeholder={t("workbench.customPlaceholder")}
-              className="adb-workbench-input adb-workbench-textarea adb-workbench-input--mono"
-            />
-            {rewriteStatus && (
-              <div
-                className={`adb-workbench-status ${rewriteStatus.ok ? "adb-workbench-status--ok" : "adb-workbench-status--warn"}`}
-              >
-                {rewriteStatus.msg}
-              </div>
-            )}
-          </div>
-        )}
-
-        {currentRisk === "high" && (
-          <label className="adb-workbench-danger-confirm">
-            <input
-              type="checkbox"
-              checked={highRiskConfirmed}
-              onChange={(event) => setHighRiskConfirmed(event.target.checked)}
-            />
-            <span>{t("workbench.highRiskConfirm")}</span>
-          </label>
-        )}
-
-        {mode !== "templates" && (
-          <div className="adb-workbench-template-save">
-            <div className="adb-workbench-inline-form">
-              <input
-                value={templateName}
-                onChange={(event) => setTemplateName(event.target.value)}
-                placeholder={t("workbench.templateName")}
-                className="adb-workbench-input"
-              />
               <button
                 type="button"
-                onClick={saveCurrentTemplate}
-                disabled={!templateName.trim() || !currentCommand}
-                className="adb-workbench-secondary-action"
+                onClick={() => switchMode("templates")}
+                className={mode === "templates" ? "is-active" : ""}
               >
-                {t("workbench.saveTemplate")}
+                {t("workbench.templatesMode")}
+              </button>
+              <button
+                type="button"
+                onClick={() => switchMode("custom")}
+                className={mode === "custom" ? "is-active" : ""}
+              >
+                {t("workbench.customMode")}
               </button>
             </div>
-            {templateStatus && (
-              <div className="adb-workbench-status adb-workbench-status--ok">
-                {templateStatus}
-              </div>
-            )}
-          </div>
-        )}
-      </section>
 
-      </div>
-
-      <section className="adb-workbench-output-console">
-        <div className="adb-workbench-output-console__header">
-          <div className="adb-workbench-output-title-row">
-            <h3>{t("workbench.preview")}</h3>
-            <span className={riskClasses[currentRisk]}>
-              {t(`workbench.risk.${currentRisk}`)}
-            </span>
-          </div>
-          <pre className="adb-workbench-command-preview">
-            {commandPreview(currentCommand || "<empty>", deviceSerial)}
-          </pre>
-          {!deviceSerial && <DeviceTargetBanner target={deviceTarget} className="mt-2" />}
-          {missingRequired && (
-            <div className="adb-workbench-status adb-workbench-status--warn">
-              {t("workbench.missingParams")}
-            </div>
-          )}
-          <div className="adb-workbench-output-actions">
-            <button
-              type="button"
-              onClick={executeCommand}
-              disabled={!canExecute}
-              className="adb-workbench-primary-action"
-            >
-              {executing ? t("workbench.executing") : t("workbench.execute")}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigator.clipboard?.writeText(commandPreview(currentCommand, deviceSerial))}
-              disabled={!currentCommand}
-              className="adb-workbench-secondary-action"
-            >
-              {t("workbench.copy")}
-            </button>
-          </div>
-        </div>
-
-        <div className="adb-workbench-output-console__body">
-          {(result || error) && (
-            <div className="adb-workbench-result-card">
-              <div className="adb-workbench-result-card__header">
-                <span>{t("workbench.output")}</span>
-                <button
-                  type="button"
-                  onClick={exportOutput}
-                  disabled={!outputExportText || exporting}
-                  className="adb-workbench-text-action"
-                >
-                  {exporting ? t("workbench.exporting") : t("workbench.exportOutput")}
-                </button>
-              </div>
-              {error && <pre className="adb-workbench-result-card__error">{error}</pre>}
-              {result && (
-                <div className="adb-workbench-result-card__body">
-                  <div className="adb-workbench-result-meta">
-                    {t("workbench.exitCode")}: {result.exit_code ?? "-"}
+            <div className="adb-workbench-editor">
+              {mode === "library" ? (
+                <>
+                  <div className="adb-workbench-detail-heading">
+                    <div>
+                      <h3>{selectedItem.title ?? t(selectedItem.titleKey ?? "")}</h3>
+                      <p>
+                        {selectedItem.description ?? t(selectedItem.descriptionKey ?? "")}
+                      </p>
+                    </div>
+                    <span className={riskClasses[selectedItem.risk]}>
+                      {t(`workbench.risk.${selectedItem.risk}`)}
+                    </span>
                   </div>
-                  <pre className="adb-workbench-result-pre">
-                    {result.stdout || result.stderr || t("workbench.noOutput")}
-                  </pre>
-                  {result.stderr && result.stdout && (
-                    <pre className="adb-workbench-result-pre adb-workbench-result-pre--error">
-                      {result.stderr}
-                    </pre>
+
+                  {selectedItem.params.length > 0 ? (
+                    <div className="adb-workbench-param-stack">
+                      {selectedItem.params.map((param) => (
+                        <label key={param.name} className="adb-workbench-field">
+                          <span>{t(param.labelKey)}</span>
+                          {param.type === "select" ? (
+                            <select
+                              value={values[param.name] ?? ""}
+                              onChange={(event) => setValues((prev) => ({ ...prev, [param.name]: event.target.value }))}
+                              className="adb-workbench-input"
+                            >
+                              {(param.options ?? []).map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {t(option.labelKey)}
+                                </option>
+                              ))}
+                            </select>
+                          ) : param.type === "package" ? (
+                            <PackageNameInput
+                              value={values[param.name] ?? ""}
+                              onChange={(value) => setValues((prev) => ({ ...prev, [param.name]: value }))}
+                              deviceSerial={deviceSerial}
+                              disabled={!deviceSerial}
+                              placeholder={param.placeholderKey ? t(param.placeholderKey) : ""}
+                              className="adb-workbench-input adb-workbench-input--mono"
+                            />
+                          ) : (
+                            <input
+                              value={values[param.name] ?? ""}
+                              onChange={(event) => setValues((prev) => ({ ...prev, [param.name]: event.target.value }))}
+                              onPaste={(event) => handleParamPaste(event, param)}
+                              placeholder={param.placeholderKey ? t(param.placeholderKey) : ""}
+                              className="adb-workbench-input adb-workbench-input--mono"
+                            />
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="adb-workbench-empty-note">
+                      {t("workbench.noParams")}
+                    </div>
+                  )}
+                </>
+              ) : mode === "templates" ? (
+                <div className="adb-workbench-template-mode">
+                  <div className="adb-workbench-detail-heading">
+                    <div>
+                      <h3>{t("workbench.templatesTitle")}</h3>
+                      <p>{t("workbench.templatesDesc")}</p>
+                    </div>
+                    {selectedTemplate && (
+                      <span className={riskClasses[selectedTemplate.risk]}>
+                        {t(`workbench.risk.${selectedTemplate.risk}`)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="adb-workbench-template-list">
+                    {savedItems.length === 0 && (
+                      <div className="adb-workbench-empty-note">
+                        {t("workbench.noTemplates")}
+                      </div>
+                    )}
+                    {savedItems.map((item) => {
+                      const selected = item.id === selectedTemplate?.id;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`adb-workbench-template-card${selected ? " is-active" : ""}`}
+                        >
+                          <button type="button" onClick={() => chooseTemplate(item)} className="adb-workbench-template-card__main">
+                            <span className="adb-workbench-template-card__title">{item.title}</span>
+                            <span className="adb-workbench-template-card__command">{item.savedCommand}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeTemplate(item.id)}
+                            className="adb-workbench-text-action adb-workbench-text-action--danger"
+                          >
+                            {t("workbench.removeTemplate")}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {templateStatus && (
+                    <div className="adb-workbench-status adb-workbench-status--ok">
+                      {templateStatus}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="adb-workbench-custom-mode">
+                  <div className="adb-workbench-detail-heading">
+                    <div>
+                      <h3>{t("workbench.customTitle")}</h3>
+                      <p>{t("workbench.customDesc")}</p>
+                    </div>
+                    <div className="adb-workbench-heading-actions">
+                      <span className={riskClasses[currentRisk]}>
+                        {t(`workbench.risk.${currentRisk}`)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={rewriteCustomCommand}
+                        disabled={!customCommand.trim()}
+                        className="adb-workbench-secondary-action"
+                      >
+                        <IconWand className="h-4 w-4" />
+                        {t("workbench.rewriteShellBatch")}
+                      </button>
+                    </div>
+                  </div>
+                  <textarea
+                    value={customCommand}
+                    onChange={(event) => {
+                      setCustomCommand(event.target.value);
+                      setHighRiskConfirmed(false);
+                      setRewriteStatus(null);
+                    }}
+                    rows={4}
+                    placeholder={t("workbench.customPlaceholder")}
+                    className="adb-workbench-input adb-workbench-textarea adb-workbench-input--mono"
+                  />
+                  {rewriteStatus && (
+                    <div
+                      className={`adb-workbench-status ${rewriteStatus.ok ? "adb-workbench-status--ok" : "adb-workbench-status--warn"}`}
+                    >
+                      {rewriteStatus.msg}
+                    </div>
                   )}
                 </div>
               )}
-              {exportStatus && (
-                <div
-                  className={`adb-workbench-export-status ${exportStatus.ok ? "is-ok" : "is-error"}`}
+
+              {currentRisk === "high" && (
+                <label className="adb-workbench-danger-confirm">
+                  <input
+                    type="checkbox"
+                    checked={highRiskConfirmed}
+                    onChange={(event) => setHighRiskConfirmed(event.target.checked)}
+                  />
+                  <span>{t("workbench.highRiskConfirm")}</span>
+                </label>
+              )}
+            </div>
+
+            <div className="adb-workbench-command-panel">
+              <div className="adb-workbench-output-title-row">
+                <h3>{t("workbench.preview")}</h3>
+              </div>
+              <pre className="adb-workbench-command-preview">
+                {commandPreview(currentCommand || "<empty>", deviceSerial)}
+              </pre>
+              {!deviceSerial && (
+                <div className="adb-workbench-status adb-workbench-status--warn">
+                  {t("workbench.noDevice")}
+                </div>
+              )}
+              {missingRequired && (
+                <div className="adb-workbench-status adb-workbench-status--warn">
+                  {t("workbench.missingParams")}
+                </div>
+              )}
+              <div className="adb-workbench-output-actions">
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard?.writeText(commandPreview(currentCommand, deviceSerial))}
+                  disabled={!currentCommand}
+                  className="adb-workbench-secondary-action"
                 >
-                  {exportStatus.msg}
+                  {t("workbench.copy")}
+                </button>
+                <button
+                  type="button"
+                  onClick={executeCommand}
+                  disabled={!canExecute}
+                  className="adb-workbench-primary-action"
+                >
+                  {executing ? t("workbench.executing") : t("workbench.execute")}
+                </button>
+              </div>
+              {mode !== "templates" && (
+                <div className="adb-workbench-template-save">
+                  <div className="adb-workbench-inline-form">
+                    <input
+                      value={templateName}
+                      onChange={(event) => setTemplateName(event.target.value)}
+                      placeholder={t("workbench.templateName")}
+                      className="adb-workbench-input"
+                    />
+                    <button
+                      type="button"
+                      onClick={saveCurrentTemplate}
+                      disabled={!templateName.trim() || !currentCommand}
+                      className="adb-workbench-secondary-action"
+                    >
+                      {t("workbench.saveTemplate")}
+                    </button>
+                  </div>
+                  {templateStatus && (
+                    <div className="adb-workbench-status adb-workbench-status--ok">
+                      {templateStatus}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
+          </section>
+        </div>
+      </section>
 
-          <h4 className="adb-workbench-history-title">{t("workbench.history")}</h4>
-          <div className="adb-workbench-history-list">
-            {history.length === 0 && <div className="adb-workbench-empty-note">{t("workbench.noHistory")}</div>}
-            {history.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => loadFromHistory(item)}
-                className="adb-workbench-history-item"
-              >
-                <span className="adb-workbench-history-item__meta">
-                  <span className={item.ok ? "is-ok" : "is-error"}>
-                    {item.ok ? t("workbench.ok") : t("workbench.failed")}
-                  </span>
-                  <span>{new Date(item.createdAt).toLocaleTimeString()}</span>
-                </span>
-                <span className="adb-workbench-history-item__command">{item.command}</span>
-              </button>
-            ))}
+      <section className="adb-workbench-output-console">
+        <div className="adb-workbench-output-console__header">
+          <div className="adb-workbench-result-tabs" role="tablist" aria-label={t("workbench.output")}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={outputTab === "output"}
+              className={outputTab === "output" ? "is-active" : ""}
+              onClick={() => setOutputTab("output")}
+            >
+              {t("workbench.output")}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={outputTab === "history"}
+              className={outputTab === "history" ? "is-active" : ""}
+              onClick={() => setOutputTab("history")}
+            >
+              {t("workbench.history")}
+            </button>
           </div>
+          {outputTab === "output" && (result || error) && (
+            <button
+              type="button"
+              onClick={exportOutput}
+              disabled={!outputExportText || exporting}
+              className="adb-workbench-text-action"
+            >
+              {exporting ? t("workbench.exporting") : t("workbench.exportOutput")}
+            </button>
+          )}
+        </div>
+
+        <div className="adb-workbench-output-console__body">
+          {outputTab === "output" ? (
+            result || error ? (
+              <div className="adb-workbench-result-card">
+                {error && <pre className="adb-workbench-result-card__error">{error}</pre>}
+                {result && (
+                  <div className="adb-workbench-result-card__body">
+                    <div className="adb-workbench-result-meta">
+                      {t("workbench.exitCode")}: {result.exit_code ?? "-"}
+                    </div>
+                    <pre className="adb-workbench-result-pre">
+                      {result.stdout || result.stderr || t("workbench.noOutput")}
+                    </pre>
+                    {result.stderr && result.stdout && (
+                      <pre className="adb-workbench-result-pre adb-workbench-result-pre--error">
+                        {result.stderr}
+                      </pre>
+                    )}
+                  </div>
+                )}
+                {exportStatus && (
+                  <div
+                    className={`adb-workbench-export-status ${exportStatus.ok ? "is-ok" : "is-error"}`}
+                  >
+                    {exportStatus.msg}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="adb-workbench-empty-note">
+                {t("workbench.noOutput")}
+              </div>
+            )
+          ) : (
+            <div className="adb-workbench-history-list">
+              {history.length === 0 && <div className="adb-workbench-empty-note">{t("workbench.noHistory")}</div>}
+              {history.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => loadFromHistory(item)}
+                  className="adb-workbench-history-item"
+                >
+                  <span className="adb-workbench-history-item__meta">
+                    <span className={item.ok ? "is-ok" : "is-error"}>
+                      {item.ok ? t("workbench.ok") : t("workbench.failed")}
+                    </span>
+                    <span>{new Date(item.createdAt).toLocaleTimeString()}</span>
+                  </span>
+                  <span className="adb-workbench-history-item__command">{item.command}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

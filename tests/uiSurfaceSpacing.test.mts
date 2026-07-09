@@ -44,9 +44,10 @@ test("content surfaces keep a safe inset from rounded borders", () => {
   assert.match(appCss, /\.agent-copilot-goal-panel--compact \{\n  padding: var\(--space-md\);/);
   assert.match(appCss, /\.agent-copilot-start-console__controls \{[\s\S]*padding: var\(--space-sm\);/);
   assert.match(appCss, /\.agent-copilot-runbar-section \{[\s\S]*padding: var\(--space-sm\);/);
+  assert.match(appCss, /\.adb-workbench-command-panel \{[\s\S]*padding-top: var\(--space-md\);/);
   assert.match(appCss, /\.adb-workbench-command-preview,\n\.adb-workbench-result-pre,\n\.adb-workbench-result-card__error \{\n  padding: var\(--space-md\);/);
-  assert.match(appCss, /\.adb-workbench-result-card__header \{\n  padding: var\(--space-md\);/);
-  assert.match(appCss, /\.adb-workbench-result-card__body \{[\s\S]*padding: var\(--space-md\);/);
+  assert.match(appCss, /\.adb-workbench-output-console__header \{[\s\S]*padding: var\(--space-md\);/);
+  assert.match(appCss, /\.adb-workbench-output-console__body \{[\s\S]*padding: var\(--space-md\);/);
   assert.match(appCss, /\.remote-safety-summary__grid \{\n  display: grid;/);
   assert.match(appCss, /\.remote-safety-summary__metric \{\n  min-width: 0;/);
   assert.match(displayCss, /\.display-calibration-metric \{[\s\S]*padding: var\(--space-md\);/);

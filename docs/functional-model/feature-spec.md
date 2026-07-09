@@ -172,6 +172,7 @@ Modes:
 - Library: built-in catalog of parameterized operations.
 - Templates: saved user commands.
 - Custom: freeform ADB subcommand or full `adb` command.
+- UI layout: Workbench relies on the global current-device header instead of rendering a second target-device card. The command library and command editor share one work area, command preview sits beside the editor actions, command output/history are separated by tabs, and long command libraries scroll inside the picker area so output remains visible without being pushed below the fold.
 
 Built-in categories:
 

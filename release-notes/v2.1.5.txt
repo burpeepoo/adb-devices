@@ -1,0 +1,13 @@
+en-US:
+ADB Manager 2.1.5 improves the ADB Workbench layout and fixes a navigation update marker placement issue.
+
+- ADB Workbench now relies on the global current-device header, keeps command preview beside the editing controls, and separates command output from recent history with tabs.
+- Large Workbench command libraries now scroll inside the picker area so command output remains visible instead of being pushed too far down the page.
+- The Settings update reminder dot now sits inside the navigation pill at the right-center, keeping hover and hit boundaries aligned.
+
+zh-CN:
+ADB Manager 2.1.5 优化了 ADB 工作台布局，并修复了设置更新提醒点的位置问题。
+
+- ADB 工作台现在复用顶部全局当前设备信息，命令预览贴近编辑操作，并用标签页区分命令输出和最近历史。
+- 当 Workbench 命令选择项较多时，命令库会在选择区域内滚动，命令输出不会再被挤到页面很靠下的位置。
+- 设置更新提醒点现在位于导航胶囊内部右侧居中位置，hover 与点击边界保持一致。

@@ -815,18 +815,11 @@ code {
   gap: var(--space-md);
   height: 100%;
   min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
-.adb-workbench-grid {
-  display: grid;
-  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-  gap: var(--space-md);
-  min-height: 0;
-  flex: 1 1 auto;
-}
-
-.adb-workbench-library,
-.adb-workbench-composer,
+.adb-workbench-shell,
 .adb-workbench-output-console {
   min-height: 0;
   border: var(--border-hairline);
@@ -835,10 +828,34 @@ code {
   box-shadow: none;
 }
 
+.adb-workbench-shell {
+  overflow: hidden;
+  flex: 0 0 auto;
+  height: clamp(320px, 36vh, 420px);
+}
+
+.adb-workbench-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.adb-workbench-library,
+.adb-workbench-composer {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .adb-workbench-library {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-right: var(--border-hairline);
 }
 
 .adb-workbench-library__header {
@@ -854,6 +871,7 @@ code {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+  flex: 1 1 auto;
   min-height: 0;
   padding: var(--space-sm);
   overflow: auto;
@@ -893,6 +911,7 @@ code {
 .adb-workbench-template-card:focus-visible,
 .adb-workbench-history-item:focus-visible,
 .adb-workbench-mode-switch button:focus-visible,
+.adb-workbench-result-tabs button:focus-visible,
 .adb-workbench-primary-action:focus-visible,
 .adb-workbench-secondary-action:focus-visible,
 .adb-workbench-text-action:focus-visible {
@@ -901,7 +920,7 @@ code {
 }
 
 .adb-workbench-command-card.is-active {
-  background: var(--color-royal);
+  background: var(--color-ink);
   color: var(--color-white);
 }
 
@@ -942,11 +961,6 @@ code {
   font-weight: 700;
 }
 
-.adb-workbench-composer {
-  padding: var(--space-md);
-  overflow: auto;
-}
-
 .adb-workbench-mode-switch {
   display: inline-flex;
   gap: var(--space-xs);
@@ -969,8 +983,20 @@ code {
 }
 
 .adb-workbench-mode-switch button.is-active {
-  color: var(--color-indigo);
-  background: var(--color-cloud);
+  color: var(--color-white);
+  background: var(--color-ink);
+  box-shadow: var(--shadow-tier-1);
+}
+
+.adb-workbench-composer {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg);
+  overflow: auto;
+}
+
+.adb-workbench-editor {
+  min-width: 0;
 }
 
 .adb-workbench-detail-heading {
@@ -979,6 +1005,13 @@ code {
   justify-content: space-between;
   gap: var(--space-md);
   margin-bottom: var(--space-md);
+}
+
+.adb-workbench-heading-actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--space-sm);
 }
 
 .adb-workbench-detail-heading h3,
@@ -1121,10 +1154,19 @@ code {
   margin-top: var(--space-md);
 }
 
+.adb-workbench-template-save {
+  padding-top: var(--space-sm);
+  border-top: var(--border-soft);
+}
+
 .adb-workbench-inline-form {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+.adb-workbench-inline-form .adb-workbench-input {
+  min-height: 38px;
 }
 
 .adb-workbench-primary-action,
@@ -1147,23 +1189,33 @@ code {
 
 .adb-workbench-primary-action {
   color: var(--color-white);
-  background: var(--color-indigo);
+  background: var(--color-ink);
   border: 0;
-  flex: 1 1 auto;
+  min-width: 112px;
+  min-height: 44px;
+  flex: 0 0 auto;
+}
+
+.adb-workbench-primary-action:not(:disabled):hover {
+  background: #1a1f28;
 }
 
 .adb-workbench-secondary-action {
   gap: 6px;
-  color: var(--color-indigo);
-  background: transparent;
-  border: 1.5px solid var(--color-indigo);
+  color: var(--color-ink);
+  background: var(--color-cloud);
+  border: var(--border-hairline);
   white-space: nowrap;
+}
+
+.adb-workbench-secondary-action:not(:disabled):hover {
+  background: var(--surface-sunken);
 }
 
 .adb-workbench-text-action {
   min-height: 28px;
   padding: 0 var(--space-sm);
-  color: var(--color-indigo);
+  color: var(--color-ink);
   background: transparent;
   border: 0;
 }
@@ -1182,12 +1234,22 @@ code {
 .adb-workbench-output-console {
   display: flex;
   flex-direction: column;
-  min-height: 260px;
-  max-height: 42%;
-  overflow: hidden;
+  min-height: 220px;
+  overflow: visible;
+  flex: 0 0 auto;
+}
+
+.adb-workbench-command-panel {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: var(--border-soft);
 }
 
 .adb-workbench-output-console__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
   padding: var(--space-md);
   border-bottom: var(--border-hairline);
   flex: 0 0 auto;
@@ -1224,20 +1286,21 @@ code {
 
 .adb-workbench-output-actions {
   margin-top: var(--space-sm);
+  justify-content: flex-end;
 }
 
 .adb-workbench-output-console__body {
   min-height: 0;
   padding: var(--space-md);
-  overflow: auto;
+  overflow: visible;
   flex: 1 1 auto;
 }
 
 .adb-workbench-result-card {
-  margin-bottom: var(--space-md);
+  margin-bottom: 0;
   overflow: hidden;
-  border: var(--border-hairline);
-  border-radius: var(--radius-tile);
+  border: 0;
+  border-radius: 0;
 }
 
 .adb-workbench-result-card__header {
@@ -1252,7 +1315,7 @@ code {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  padding: var(--space-md);
+  padding: 0;
 }
 
 .adb-workbench-result-meta {
@@ -1261,7 +1324,7 @@ code {
 }
 
 .adb-workbench-result-pre {
-  max-height: 220px;
+  max-height: 260px;
 }
 
 .adb-workbench-result-pre--error,
@@ -1291,6 +1354,31 @@ code {
   font-size: var(--fs-xsmall);
   font-weight: 800;
   letter-spacing: 0;
+}
+
+.adb-workbench-result-tabs {
+  display: inline-flex;
+  gap: var(--space-xs);
+  padding: 4px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-pill);
+}
+
+.adb-workbench-result-tabs button {
+  min-height: 32px;
+  padding: 0 var(--space-md);
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-small);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.adb-workbench-result-tabs button.is-active {
+  color: var(--color-white);
+  background: var(--color-ink);
 }
 
 .adb-workbench-history-list {
@@ -1338,6 +1426,48 @@ code {
 .workbench-risk-pill--high {
   color: var(--color-white);
   background: var(--color-citrus);
+}
+
+@media (max-width: 1180px) {
+  .adb-workbench-grid {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 960px) {
+  .adb-workbench-shell {
+    height: auto;
+  }
+
+  .adb-workbench-grid {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    height: auto;
+  }
+
+  .adb-workbench-library {
+    max-height: 360px;
+    border-right: 0;
+    border-bottom: var(--border-hairline);
+  }
+
+  .adb-workbench-composer {
+    padding: var(--space-md);
+  }
+
+  .adb-workbench-detail-heading,
+  .adb-workbench-heading-actions,
+  .adb-workbench-inline-form,
+  .adb-workbench-output-console__header,
+  .adb-workbench-output-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .adb-workbench-primary-action,
+  .adb-workbench-secondary-action {
+    width: 100%;
+  }
 }
 
 .agent-copilot-session-card,

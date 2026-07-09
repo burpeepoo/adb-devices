@@ -47,6 +47,7 @@
 }
 
 .tool-rail__button {
+  position: relative;
   width: 100%;
   min-height: 38px;
   border: var(--border-hairline);
@@ -102,6 +103,31 @@
   min-height: 38px;
 }
 
+.tool-rail__button[data-update="true"] {
+  padding-right: 30px;
+}
+
+.tool-rail__update-dot {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-citrus);
+  box-shadow: 0 0 0 2px var(--color-cloud);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.tool-rail__button:hover .tool-rail__update-dot {
+  box-shadow: 0 0 0 2px var(--surface-sunken);
+}
+
+.tool-rail__button[data-active="true"] .tool-rail__update-dot {
+  box-shadow: 0 0 0 2px var(--color-ink);
+}
+
 .tool-rail__label {
   min-width: 0;
   overflow: hidden;
@@ -142,6 +168,14 @@
     min-height: 44px;
     justify-content: center;
     padding: 0;
+  }
+
+  .tool-rail__button[data-update="true"] {
+    padding: 0;
+  }
+
+  .tool-rail__update-dot {
+    right: 6px;
   }
 
   .tool-rail__button[data-emphasis="primary"] {

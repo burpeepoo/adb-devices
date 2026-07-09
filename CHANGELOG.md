@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [2.1.5] - 2026-07-09
+
+### Changed
+
+- Changed ADB Workbench into a clearer command execution flow: the page now relies on the global current-device bar, keeps command preview next to editing controls, and separates command output from recent history with tabs.
+- Changed ADB Workbench so large command libraries scroll inside the picker area instead of pushing command output too far down the page.
+
+### Fixed
+
+- Fixed the Settings update reminder dot so it sits inside the navigation pill at the right-center instead of floating outside the hover boundary.
+
 ## [2.1.4] - 2026-07-08
 
 ### Fixed
