@@ -10,6 +10,7 @@ import { useAppUpdater } from "./hooks/useAppUpdater";
 import { isAutoUpdateCheckEnabled } from "./updaterPolicy";
 import { hashForTab, initialTabKeyFrom, markTabVisited, tabKeyFromValue, TAB_KEYS } from "./tabState";
 import { toolIcons, toolLabelKeys } from "./toolMetadata";
+import { toolNavigationLabelKeys } from "./toolNavigationLabels";
 import { getStore, saveStoreValue, STORE_KEYS } from "./storage";
 import { deviceIdentityKey, setDeviceNote, type DeviceNotes } from "./deviceNotes";
 import { normalizeAgentCliSettings } from "./agentCliSettings";
@@ -87,9 +88,6 @@ export default function App() {
     autoCheckEnabled: settingsLoaded && isAutoUpdateCheckEnabled(settings.autoCheckUpdates),
   });
 
-  const TAB_LABELS: Record<TabKey, string> = Object.fromEntries(
-    TAB_KEYS.map((key) => [key, t(toolLabelKeys[key])]),
-  ) as Record<TabKey, string>;
   const railTools = [
     { key: "pair" as const, groupLabel: t("layout.navPrimary"), emphasis: "primary" as const },
     { key: "agent" as const, groupLabel: t("layout.navPrimary"), emphasis: "primary" as const },
@@ -107,7 +105,7 @@ export default function App() {
     { key: "clipboard" as const, groupLabel: t("layout.navUtilities"), emphasis: "tool" as const },
   ].map((item) => ({
     ...item,
-    label: TAB_LABELS[item.key],
+    label: t(toolNavigationLabelKeys[item.key] ?? toolLabelKeys[item.key]),
     icon: toolIcons[item.key],
   }));
   const [activeTab, setActiveTab] = useState<TabKey>(() => resolveInitialAppTab());

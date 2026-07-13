@@ -55,6 +55,7 @@ Navigation:
 
 - The left rail exposes 14 tabs: `pair`, `workbench`, `agent`, `install`, `screenshot`, `record`, `mirror`, `remote`, `imageCast`, `clipboard`, `logcat`, `displayCalibration`, `performance`, `packages`.
 - The visible rail groups those tabs into primary destinations, capture/control tools, diagnostics, apps/packages, and utilities, with Device Console and Agent Tasks intentionally promoted above the lower-level tools.
+- English navigation uses compact rail-only labels for the longest entries (`Devices`, `Remote`, `ADB Tools`, and `Performance`), while page titles and device-console shortcuts keep the full feature names.
 - The Settings button opens a modal, not a tab.
 - Tabs are lazily mounted and then kept mounted once visited, so long-running tool state is not discarded when switching away.
 - The Pair tab is implemented as the device console. It includes the selected device summary, primary Scout task launchers for Feature Walkthrough and Bug Repro, grouped device-tool shortcuts, and an embedded pair/connect panel.

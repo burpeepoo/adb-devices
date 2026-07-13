@@ -24,6 +24,12 @@
     "navDiagnostics": "诊断",
     "navApps": "应用",
     "navUtilities": "工具",
+    "toolNavigation": {
+      "pair": "设备控制台",
+      "remote": "远程控制台",
+      "workbench": "ADB 工作台",
+      "performance": "性能采样"
+    },
     "openSettings": "打开设置",
     "openGithub": "打开 GitHub 仓库"
   },

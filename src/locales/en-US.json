@@ -24,6 +24,12 @@
     "navDiagnostics": "Diagnostics",
     "navApps": "Apps",
     "navUtilities": "Tools",
+    "toolNavigation": {
+      "pair": "Devices",
+      "remote": "Remote",
+      "workbench": "ADB Tools",
+      "performance": "Performance"
+    },
     "openSettings": "Open settings",
     "openGithub": "Open GitHub repository"
   },
