@@ -3,7 +3,7 @@ import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { TabKey, AppSettings, DeviceInfo } from "./types";
+import { TabKey, AppSettings, DeviceInfo, type AdbAuthorizationTimeoutPrefs } from "./types";
 import { applyLanguagePreference } from "./i18n";
 import { useDevices } from "./hooks/useDevices";
 import { useAppUpdater } from "./hooks/useAppUpdater";
@@ -84,6 +84,9 @@ export default function App() {
   });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [deviceNotes, setDeviceNotes] = useState<DeviceNotes>({});
+  const [adbAuthorizationTimeoutPrefs, setAdbAuthorizationTimeoutPrefs] = useState<AdbAuthorizationTimeoutPrefs>({});
+  const [adbAuthorizationTimeoutDeviceStates, setAdbAuthorizationTimeoutDeviceStates] = useState<Record<string, boolean>>({});
+  const [adbAuthorizationTimeoutPending, setAdbAuthorizationTimeoutPending] = useState<Record<string, boolean>>({});
   const updater = useAppUpdater({
     autoCheckEnabled: settingsLoaded && isAutoUpdateCheckEnabled(settings.autoCheckUpdates),
   });
@@ -109,6 +112,8 @@ export default function App() {
     icon: toolIcons[item.key],
   }));
   const [activeTab, setActiveTab] = useState<TabKey>(() => resolveInitialAppTab());
+  const [agentRequestedMode, setAgentRequestedMode] = useState<"chat" | "walkthrough" | "bug_repro">("walkthrough");
+  const [agentModeRequestId, setAgentModeRequestId] = useState(0);
   const [visitedTabs, setVisitedTabs] = useState<Set<TabKey>>(() => new Set([resolveInitialAppTab()]));
   const [adbAvailable, setAdbAvailable] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -117,6 +122,8 @@ export default function App() {
   const [recordShortcutResult, setRecordShortcutResult] = useState<RecordShortcutResult | null>(null);
   const deviceTargetRef = useRef<DeviceTargetState | null>(null);
   const settingsRef = useRef<AppSettings>(settings);
+  const appliedAdbAuthorizationTimeoutRef = useRef<Set<string>>(new Set());
+  const readingAdbAuthorizationTimeoutRef = useRef<Set<string>>(new Set());
   const screenshotShortcutRunningRef = useRef(false);
   const recordShortcutRunningRef = useRef(false);
   const recordingActiveRef = useRef(false);
@@ -186,6 +193,13 @@ export default function App() {
     getStore()
       .then((store) => store.get<DeviceNotes>(STORE_KEYS.deviceNotes))
       .then((saved) => setDeviceNotes(saved || {}))
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    getStore()
+      .then((store) => store.get<AdbAuthorizationTimeoutPrefs>(STORE_KEYS.adbAuthorizationTimeoutPrefs))
+      .then((saved) => setAdbAuthorizationTimeoutPrefs(saved || {}))
       .catch(() => undefined);
   }, []);
 
@@ -393,6 +407,93 @@ export default function App() {
     });
   }, []);
 
+  const refreshDevices = useCallback(() => refresh(), [refresh]);
+  const refreshDevicesWithMdns = useCallback(() => refresh({ autoConnectMdns: true }), [refresh]);
+
+  const readAdbAuthorizationTimeoutState = useCallback(async (device: DeviceInfo) => {
+    const identity = deviceIdentityKey(device);
+    const readKey = `${identity}:${device.serial}`;
+    if (readingAdbAuthorizationTimeoutRef.current.has(readKey)) return;
+
+    readingAdbAuthorizationTimeoutRef.current.add(readKey);
+    setAdbAuthorizationTimeoutPending((current) => ({ ...current, [identity]: true }));
+    try {
+      const disabled = await invoke<boolean>("adb_get_authorization_timeout_disabled", {
+        deviceSerial: device.serial,
+      });
+      setAdbAuthorizationTimeoutDeviceStates((current) => ({ ...current, [identity]: disabled }));
+    } catch {
+      // The local preference remains available as a fallback when the device cannot be queried.
+    } finally {
+      readingAdbAuthorizationTimeoutRef.current.delete(readKey);
+      setAdbAuthorizationTimeoutPending((current) => {
+        const next = { ...current };
+        delete next[identity];
+        return next;
+      });
+    }
+  }, []);
+
+  const applyAdbAuthorizationTimeoutPreference = useCallback(async (device: DeviceInfo, disabled: boolean) => {
+    const identity = deviceIdentityKey(device);
+    setAdbAuthorizationTimeoutPending((current) => ({ ...current, [identity]: true }));
+    try {
+      await invoke<string>("adb_set_authorization_timeout_disabled", {
+        deviceSerial: device.serial,
+        disabled,
+      });
+      setAdbAuthorizationTimeoutDeviceStates((current) => ({ ...current, [identity]: disabled }));
+    } finally {
+      setAdbAuthorizationTimeoutPending((current) => {
+        const next = { ...current };
+        delete next[identity];
+        return next;
+      });
+    }
+  }, []);
+
+  const handleAdbAuthorizationTimeoutChange = useCallback((device: DeviceInfo, disabled: boolean) => {
+    const identity = deviceIdentityKey(device);
+    setAdbAuthorizationTimeoutPrefs((current) => {
+      const next = { ...current, [identity]: disabled };
+      if (!disabled) delete next[identity];
+      saveStoreValue(STORE_KEYS.adbAuthorizationTimeoutPrefs, next).catch(() => undefined);
+      return next;
+    });
+
+    if (!disabled) {
+      for (const key of Array.from(appliedAdbAuthorizationTimeoutRef.current)) {
+        if (key.startsWith(`${identity}:`)) {
+          appliedAdbAuthorizationTimeoutRef.current.delete(key);
+        }
+      }
+    }
+
+    if (device.state === "device" && device.connection_type === "wireless") {
+      void applyAdbAuthorizationTimeoutPreference(device, disabled).catch(() => undefined);
+    }
+  }, [applyAdbAuthorizationTimeoutPreference]);
+
+  useEffect(() => {
+    for (const device of devices) {
+      if (device.state === "device" && device.connection_type === "wireless") {
+        void readAdbAuthorizationTimeoutState(device);
+      }
+
+      const identity = deviceIdentityKey(device);
+      if (!adbAuthorizationTimeoutPrefs[identity]) continue;
+      if (device.state !== "device" || device.connection_type !== "wireless") continue;
+
+      const applyKey = `${identity}:${device.serial}`;
+      if (appliedAdbAuthorizationTimeoutRef.current.has(applyKey)) continue;
+      appliedAdbAuthorizationTimeoutRef.current.add(applyKey);
+
+      void applyAdbAuthorizationTimeoutPreference(device, true).catch(() => {
+        appliedAdbAuthorizationTimeoutRef.current.delete(applyKey);
+      });
+    }
+  }, [adbAuthorizationTimeoutPrefs, applyAdbAuthorizationTimeoutPreference, devices, readAdbAuthorizationTimeoutState]);
+
   const handleOpenGithub = useCallback(async () => {
     try {
       await invoke("open_external_url", { url: GITHUB_REPOSITORY_URL });
@@ -424,6 +525,15 @@ export default function App() {
     }
   }, []);
 
+  const handleOpenScoutTask = useCallback(
+    (mode: "chat" | "walkthrough" | "bug_repro") => {
+      setAgentRequestedMode(mode);
+      setAgentModeRequestId((current) => current + 1);
+      handleSelectTab("agent");
+    },
+    [handleSelectTab],
+  );
+
   useEffect(() => {
     const handleHashChange = () => {
       const tab = tabKeyFromValue(window.location.hash);
@@ -448,8 +558,9 @@ export default function App() {
           devices={devices}
           selectedDeviceSerial={selectedDevice}
           deviceNotes={deviceNotes}
-          onConnected={refresh}
+          onConnected={refreshDevices}
           onSelectTool={handleSelectTab}
+          onOpenScout={handleOpenScoutTask}
           onDeviceNoteChange={handleDeviceNoteChange}
         />
       );
@@ -500,6 +611,8 @@ export default function App() {
           deviceTarget={deviceTarget}
           settings={settings}
           onSettingsChange={handleSettingsChange}
+          requestedMode={agentRequestedMode}
+          modeRequestId={agentModeRequestId}
         />
       );
     }
@@ -564,9 +677,13 @@ export default function App() {
             selectedDevice={selectedDevice}
             mirroringDeviceSerial={mirroringDeviceSerial}
             deviceNotes={deviceNotes}
+            adbAuthorizationTimeoutPrefs={adbAuthorizationTimeoutPrefs}
+            adbAuthorizationTimeoutDeviceStates={adbAuthorizationTimeoutDeviceStates}
+            adbAuthorizationTimeoutPending={adbAuthorizationTimeoutPending}
             onSelectDevice={setSelectedDevice}
             onDeviceNoteChange={handleDeviceNoteChange}
-            onRefresh={refresh}
+            onAdbAuthorizationTimeoutChange={handleAdbAuthorizationTimeoutChange}
+            onRefresh={refreshDevicesWithMdns}
           />
         }
         header={

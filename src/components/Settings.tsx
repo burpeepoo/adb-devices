@@ -1,10 +1,10 @@
-import { Badge, Button, Divider, Group, Modal, Paper, PasswordInput, Progress, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
+import { Autocomplete, Badge, Button, Divider, Group, Modal, Paper, PasswordInput, Progress, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
 import { IconFolder, IconRefresh } from "@tabler/icons-react";
 import { type ClipboardEvent, type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
-import { AppSettings, LanguagePreference } from "../types";
+import { AppSettings, LanguagePreference, type AgentCliProfile } from "../types";
 import type { AppUpdaterControls } from "../hooks/useAppUpdater";
 import { isAutoUpdateCheckEnabled } from "../updaterPolicy";
 import {
@@ -26,6 +26,30 @@ interface Props {
   onClose: () => void;
 }
 
+interface AgentRuntimeDiscoveryItem {
+  kind: "codex_cli" | "claude_code";
+  name: string;
+  command: string;
+  available: boolean;
+  version?: string | null;
+  configuredModel?: string | null;
+  reasoningEffort?: string | null;
+  modelOptions?: AgentRuntimeModelOption[];
+  reasoningEffortOptions?: string[];
+  configurationSource?: "user_config" | null;
+}
+
+interface AgentRuntimeModelOption {
+  value: string;
+  label: string;
+  defaultReasoningEffort?: string | null;
+  reasoningEfforts?: string[];
+}
+
+interface AgentRuntimeDiscoveryResult {
+  runtimes: AgentRuntimeDiscoveryItem[];
+}
+
 function formatBytes(bytes: number): string {
   if (bytes <= 0) return "0 MB";
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
@@ -44,6 +68,8 @@ export default function Settings({
     agentProviders: normalizeAgentProviderSettings(settings.agentProviders),
   }));
   const [appVersion, setAppVersion] = useState("");
+  const [runtimeDiscovery, setRuntimeDiscovery] = useState<AgentRuntimeDiscoveryResult | null>(null);
+  const [runtimeDiscoveryLoading, setRuntimeDiscoveryLoading] = useState(false);
 
   useEffect(() => {
     setLocal({
@@ -59,6 +85,21 @@ export default function Settings({
       .catch(() => {
         // Keep the build-time fallback if the desktop API is unavailable.
       });
+  }, []);
+
+  const refreshRuntimeDiscovery = async () => {
+    setRuntimeDiscoveryLoading(true);
+    try {
+      setRuntimeDiscovery(await invoke<AgentRuntimeDiscoveryResult>("agent_runtime_discover"));
+    } catch {
+      setRuntimeDiscovery(null);
+    } finally {
+      setRuntimeDiscoveryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void refreshRuntimeDiscovery();
   }, []);
 
   const handleSelectDir = async (type: "screenshotDir" | "recordingDir") => {
@@ -87,16 +128,26 @@ export default function Settings({
     value: profile.id,
     label: profile.name,
   }));
-  const providerOptions = [
-    ...agentCli.profiles.map((profile) => ({
-      value: profile.id,
-      label: t("settings.agentProviderCliOption", { name: profile.name }),
-    })),
-    ...agentProviders.apiProviders.map((provider) => ({
-      value: provider.id,
-      label: t("settings.agentProviderApiOption", { name: provider.name }),
-    })),
-  ];
+  const activeCliProfile =
+    agentCli.profiles.find((profile) => profile.id === agentCli.globalProfileId) ?? agentCli.profiles[0];
+  const activeRuntimeKind =
+    activeCliProfile?.id === "codex_cli" || activeCliProfile?.id === "claude_code"
+      ? activeCliProfile.id
+      : null;
+  const activeRuntime = runtimeDiscovery?.runtimes.find((runtime) => runtime.kind === activeRuntimeKind);
+  const modelOptions = activeRuntime?.modelOptions ?? [];
+  const effectiveModel = activeCliProfile?.modelOverride?.trim() || activeRuntime?.configuredModel || "";
+  const effectiveModelOption = modelOptions.find((option) => option.value === effectiveModel);
+  const discoveredReasoningEffortOptions = effectiveModelOption?.reasoningEfforts?.length
+    ? effectiveModelOption.reasoningEfforts
+    : activeRuntime?.reasoningEffortOptions ?? [];
+  const reasoningEffortOptions = Array.from(
+    new Set([
+      ...discoveredReasoningEffortOptions,
+      ...(activeRuntime?.reasoningEffort ? [activeRuntime.reasoningEffort] : []),
+      ...(activeCliProfile?.reasoningEffortOverride ? [activeCliProfile.reasoningEffortOverride] : []),
+    ]),
+  );
   const customProfile =
     agentCli.profiles.find((profile) => profile.id === CUSTOM_AGENT_CLI_PROFILE_ID) ?? agentCli.profiles[0];
 
@@ -135,6 +186,29 @@ export default function Settings({
             }
           : profile,
       ),
+    });
+  };
+
+  const updateActiveCliProfile = (patch: Partial<AgentCliProfile>) => {
+    if (!activeCliProfile) return;
+    updateAgentCli({
+      ...agentCli,
+      profiles: agentCli.profiles.map((profile) =>
+        profile.id === activeCliProfile.id ? { ...profile, ...patch } : profile,
+      ),
+    });
+  };
+
+  const updateActiveCliModel = (modelOverride: string) => {
+    const selectedOption = modelOptions.find((option) => option.value === modelOverride.trim());
+    const currentEffort = activeCliProfile?.reasoningEffortOverride || "";
+    const supportedEfforts = selectedOption?.reasoningEfforts ?? [];
+    updateActiveCliProfile({
+      modelOverride,
+      reasoningEffortOverride:
+        currentEffort && supportedEfforts.length > 0 && !supportedEfforts.includes(currentEffort)
+          ? ""
+          : currentEffort,
     });
   };
 
@@ -268,21 +342,69 @@ export default function Settings({
                 description={t("settings.agentProviderDescription")}
                 badge={t("settings.agentProviderStatus")}
               >
-                <Select
-                  label={t("settings.agentProviderDefault")}
-                  value={agentProviders.defaultProviderId}
-                  onChange={(value) =>
-                    updateAgentProviders({
-                      ...agentProviders,
-                      defaultProviderId: value || "codex_cli",
-                    })
-                  }
-                  data={providerOptions}
-                />
+                <Stack gap="xs">
+                  <Group justify="space-between" gap="sm" wrap="wrap">
+                    <Text size="sm" fw={700}>
+                      {t("settings.agentRuntimeDetected")}
+                    </Text>
+                    <Button
+                      variant="default"
+                      size="xs"
+                      leftSection={<IconRefresh size={14} />}
+                      loading={runtimeDiscoveryLoading}
+                      onClick={() => void refreshRuntimeDiscovery()}
+                    >
+                      {t("settings.agentRuntimeRefresh")}
+                    </Button>
+                  </Group>
+                  {runtimeDiscovery?.runtimes.map((runtime) => (
+                    <Paper
+                      key={runtime.kind}
+                      withBorder
+                      radius="md"
+                      p="sm"
+                      style={{ background: "var(--surface-sunken)" }}
+                    >
+                      <Group justify="space-between" gap="sm" wrap="wrap">
+                        <Stack gap={2}>
+                          <Text size="sm" fw={700}>
+                            {runtime.name}
+                          </Text>
+                          {runtime.version ? (
+                            <Text size="xs" c="dimmed">
+                              {t("settings.agentRuntimeVersion", { version: runtime.version })}
+                            </Text>
+                          ) : null}
+                          {runtime.configuredModel ? (
+                            <Text size="xs" c="dimmed">
+                              {t("settings.agentRuntimeConfiguredModel", { model: runtime.configuredModel })}
+                            </Text>
+                          ) : null}
+                          {runtime.reasoningEffort ? (
+                            <Text size="xs" c="dimmed">
+                              {t("settings.agentRuntimeReasoning", { effort: runtime.reasoningEffort })}
+                            </Text>
+                          ) : null}
+                          {runtime.configurationSource ? (
+                            <Text size="xs" c="dimmed">
+                              {t("settings.agentRuntimeSourceUserConfig")}
+                            </Text>
+                          ) : null}
+                        </Stack>
+                        <Badge color={runtime.available ? "green" : "gray"} variant="light">
+                          {runtime.available ? t("settings.agentRuntimeAvailable") : t("settings.agentRuntimeUnavailable")}
+                        </Badge>
+                      </Group>
+                    </Paper>
+                  ))}
+                </Stack>
 
                 <Stack gap="sm">
                   <Text size="sm" fw={700}>
                     {t("settings.agentProviderApiTitle")}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {t("settings.agentProviderExperimentalHint")}
                   </Text>
                   {agentProviders.apiProviders.map((provider) => (
                     <div
@@ -354,6 +476,32 @@ export default function Settings({
                     }
                     data={profileOptions}
                   />
+                  {activeRuntimeKind ? (
+                    <>
+                      <Text size="xs" c="dimmed">
+                        {t("settings.agentRuntimeFollowCli")}
+                      </Text>
+                      <Autocomplete
+                        label={t("settings.agentRuntimeModelOverride")}
+                        placeholder={t("settings.agentRuntimeModelOverridePlaceholder")}
+                        value={activeCliProfile.modelOverride || ""}
+                        onChange={updateActiveCliModel}
+                        data={modelOptions.map((option) => ({ value: option.value, label: option.label }))}
+                        clearable
+                        limit={20}
+                      />
+                      <Select
+                        label={t("settings.agentRuntimeReasoningOverride")}
+                        placeholder={t("settings.agentRuntimeReasoningOverridePlaceholder")}
+                        value={activeCliProfile.reasoningEffortOverride || null}
+                        onChange={(value) => updateActiveCliProfile({ reasoningEffortOverride: value || "" })}
+                        data={reasoningEffortOptions}
+                        clearable
+                        searchable
+                        disabled={reasoningEffortOptions.length === 0}
+                      />
+                    </>
+                  ) : null}
 
                   <Group align="end" gap="xs" wrap="nowrap">
                     <TextInput

@@ -32,6 +32,8 @@ export interface DeviceHistoryItem extends DeviceInfo {
   lastSeen: number;
 }
 
+export type AdbAuthorizationTimeoutPrefs = Record<string, boolean>;
+
 export interface MdnsDevice {
   service_name: string;
   service_type: string;
@@ -69,6 +71,20 @@ export interface ExportedApk {
   package_name: string;
   output_dir: string;
   files: string[];
+}
+
+export interface LogPathCandidate {
+  path: string;
+  source: string;
+}
+
+export interface ExportedPackageLogs {
+  package_name: string;
+  output_dir: string;
+  remote_path: string;
+  logcat_file: string | null;
+  metadata_file: string;
+  warnings: string[];
 }
 
 export interface LogcatEntry {
@@ -236,6 +252,8 @@ export interface AgentCliProfile {
   name: string;
   command: string;
   args: string[];
+  modelOverride?: string;
+  reasoningEffortOverride?: string;
   cwd?: string;
   notes?: string;
   builtIn?: boolean;
@@ -301,6 +319,9 @@ export interface AgentCopilotAttachment {
   mimeType: string;
   sizeBytes: number;
   textPreview?: string;
+  previewKind?: "image";
+  previewDataUrl?: string;
+  sourcePath?: string;
   createdAt: number;
 }
 
@@ -313,6 +334,7 @@ export interface AgentCopilotMessage {
   command?: string;
   ok?: boolean;
   thinking?: boolean;
+  contextOnly?: boolean;
   approval?: AgentApprovalRequest;
   attachments?: AgentCopilotAttachment[];
 }
@@ -325,6 +347,8 @@ export interface AgentApprovalRequest {
   reason: string;
   status: "pending" | "running" | "approved" | "denied";
   evidenceKind?: EvidenceSessionKind;
+  goal?: string;
+  args?: Record<string, unknown>;
 }
 
 export interface AgentCopilotSession {
@@ -336,6 +360,8 @@ export interface AgentCopilotSession {
   deviceSerial: string | null;
   skillId: AndroidAgentSkillId;
   cliProfileId: string;
+  scope?: "chat" | "scout_task";
+  evidenceSessionId?: string | null;
   workingDirectory?: string | null;
   messages: AgentCopilotMessage[];
 }
@@ -353,12 +379,15 @@ export type EvidenceArtifactType =
   | "agent_note";
 export type EvidenceScribeIntensity = "quiet" | "key_moments" | "live";
 export type ScoutTaskPermissionLevel = "read_only" | "semi_auto" | "auto_execute";
+export type ScoutTerminalOutcome = "COMPLETED" | "BLOCKED_NEEDS_HUMAN" | "FAILED";
 
 export interface EvidenceScribeState {
   enabled: boolean;
   intensity: EvidenceScribeIntensity;
   permissionLevel?: ScoutTaskPermissionLevel;
   goal: string;
+  targetPackage?: string;
+  uiReferenceUrl?: string;
   agentActive?: boolean;
   agentStartedAt?: number | null;
   agentStoppedAt?: number | null;
@@ -367,6 +396,7 @@ export interface EvidenceScribeState {
   issuesSummary?: string;
   gapsSummary?: string;
   nextAction?: string;
+  terminalOutcome?: ScoutTerminalOutcome;
 }
 
 export interface EvidenceArtifact {
@@ -389,6 +419,7 @@ export interface EvidenceSession {
   closedAt?: number;
   deviceKey: string | null;
   deviceSerial: string | null;
+  agentSessionId?: string | null;
   workingDirectory?: string | null;
   capturePolicy: {
     screenshots: boolean;

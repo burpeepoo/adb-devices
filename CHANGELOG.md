@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-07-16
+
+### Added
+
+- Added a fully automatic Scout workflow for Feature Walkthrough and Bug Repro that launches the selected app, recovers from blocked foreground states such as the screensaver, uses UI evidence to drive actions, and closes with a report when the task is complete.
+- Added walkthrough context in the conversation, including the task goal, selected package, reference link, and project directory, with clear empty states for optional inputs.
+- Added local Agent CLI model and effort controls for Codex CLI and Claude Code, plus bounded attachment, reference, and UI-automation support.
+- Added delete and export actions for Scout conversation history and stable record layouts for completed tasks.
+
+### Changed
+
+- Changed Scout automation to keep routine navigation, gestures, Back actions, and confirmations automatic while making protected operations explicit in the task interaction instead of requiring the user to infer what is blocked.
+- Changed Scout verification to prioritize functional availability and UI/implementation differences over device resource snapshots, while retaining compact evidence for diagnosis.
+- Changed the Agent APK accessibility and UI-action path to refresh snapshots, verify enabled clickable nodes, and fall back to safe ADB input when an accessibility target is stale or unavailable.
+- Changed APK installation, package management, device pairing, and related desktop surfaces to use more resilient layouts and clearer state handling.
+
+### Fixed
+
+- Fixed Agent CLI task runs that could stall while waiting for a piped process result.
+- Fixed Scout runs that could report completion without a verified action or visible page change.
+- Fixed UI action failures caused by stale snapshots, non-clickable container nodes, screensaver foreground state, and clipped or over-expanded task content.
+
 ## [2.1.5] - 2026-07-09
 
 ### Changed

@@ -304,11 +304,11 @@ Actors:
 
 User-visible promise:
 
-- The user can install APKs, force reinstall when intentional, inspect installed packages, export installed APKs, and launch visible apps from the selected device.
+- The user can install APKs, force reinstall when intentional, inspect installed packages, export installed APKs, collect an application's remote logs plus best-effort current-process Logcat, and launch visible apps from the selected device.
 
 Dependencies:
 
-- Selected online device, APK path resolution, package parser, install lock, package list/details commands, app drawer cache, and local Downloads export path.
+- Selected online device, APK path resolution, package parser, install lock, package list/details commands, app log path detection, app drawer cache, and local Downloads export path.
 
 Data and evidence ownership:
 
@@ -321,6 +321,7 @@ Interfaces and command boundary:
 - Normal install uses `adb install -r`.
 - Force mode attempts uninstall first and requires a package name when parser confidence is unavailable.
 - Package export uses `pm path` plus `adb pull`.
+- Application log collection uses read-only `adb pull` against an automatically detected or manually entered absolute path, then writes a local metadata file and optionally captures current-process Logcat.
 - App drawer launches `MAIN` + `LAUNCHER` activities with `am start -n`.
 
 Safety, failure, and non-claims:
@@ -328,6 +329,8 @@ Safety, failure, and non-claims:
 - Force uninstall is destructive and must stay intentional.
 - Package parser failure should not block normal install, but it limits force reinstall confidence.
 - Split APK export should preserve package-specific folder structure.
+- Log path detection must not silently select an unrelated directory; when no strong match exists, keep the manual path fallback visible.
+- Application Logcat capture is PID-scoped and best-effort; the persisted remote log directory remains authoritative.
 
 Evolution invariant:
 

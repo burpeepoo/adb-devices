@@ -32,8 +32,8 @@ public final class AgentService extends Service {
   private static final String TAG = "AdbManagerAgent";
   private static final String SOCKET_NAME = "adb_manager_agent";
   private static final String CHANNEL_ID = "adb_manager_agent";
-  private static final int PROTOCOL_VERSION = 1;
-  private static final String AGENT_VERSION = "0.1.1";
+  private static final int PROTOCOL_VERSION = 2;
+  private static final String AGENT_VERSION = "0.1.3";
 
   private final AtomicBoolean running = new AtomicBoolean(false);
   private volatile String targetPackage = "";
@@ -139,6 +139,21 @@ public final class AgentService extends Service {
       } else if (requestLine.startsWith("POST /stop ")) {
         writeJson(writer, "{\"ok\":true}");
         stopSelf();
+      } else if (requestLine.startsWith("POST /ui/snapshot ")) {
+        writeJson(writer, AgentAccessibilityService.snapshotJson());
+      } else if (requestLine.startsWith("POST /ui/tap ")) {
+        writeJson(writer, AgentAccessibilityService.tapJson(jsonInt(body, "x"), jsonInt(body, "y")));
+      } else if (requestLine.startsWith("POST /ui/swipe ")) {
+        writeJson(
+            writer,
+            AgentAccessibilityService.swipeJson(
+                jsonInt(body, "x1"),
+                jsonInt(body, "y1"),
+                jsonInt(body, "x2"),
+                jsonInt(body, "y2"),
+                jsonInt(body, "duration_ms")));
+      } else if (requestLine.startsWith("POST /ui/back ")) {
+        writeJson(writer, AgentAccessibilityService.backJson());
       } else {
         writeNotFound(writer);
       }
@@ -291,5 +306,13 @@ public final class AgentService extends Service {
     while (end < body.length() && Character.isDigit(body.charAt(end))) end++;
     if (end == start) return null;
     return Long.parseLong(body.substring(start, end));
+  }
+
+  private static int jsonInt(char[] body, String key) {
+    Long value = jsonLong(new String(body), key);
+    if (value == null || value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
+      throw new IllegalArgumentException("missing or invalid " + key);
+    }
+    return value.intValue();
   }
 }

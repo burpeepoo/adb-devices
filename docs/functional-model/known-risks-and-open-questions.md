@@ -2,17 +2,19 @@
 
 ## Wireless Recovery Boundaries
 
-Current code separates three recovery levels:
+Current code separates four recovery levels:
 
 - Normal connect and recent reconnect do not restart ADB.
-- `adb_restart_server` and `adb_repair_wireless_pairing` back up and remove only `adb_known_hosts.pb`, then restart ADB.
+- Explicit restart/reconnect restarts the local ADB server while preserving pairing state.
+- Wireless pairing repair backs up and removes only `adb_known_hosts.pb`, then restarts ADB.
 - `adb_reset_host_identity` backs up and removes `adb_known_hosts.pb`, `adbkey`, and `adbkey.pub`, then starts ADB.
 
 Boundary:
 
+- Restart/reconnect should be tried before refreshing pairing cache when a saved endpoint is still reachable.
 - Wireless repair refreshes the host-side pairing cache without changing this computer's ADB identity.
 - Host identity reset remains a separate explicit fallback because it invalidates the local ADB key.
-- The UI should continue to present safe repair before host identity reset. Reset confirmation must mention `adbkey` removal and the need to re-authorize or re-pair devices.
+- The UI should continue to present safe repair before host identity reset, while keeping both actions available in the wireless recovery ladder. Reset confirmation must mention `adbkey` removal and the need to re-authorize or re-pair devices.
 
 ## Explicit Device Targeting
 
@@ -73,16 +75,18 @@ Scout Agent Tasks are evidence-first and must not pretend to have data that ADB 
 
 Coverage:
 
+- Settings detects only allowlisted local Codex/Claude configuration fields and safe model/effort metadata; it never returns credentials, API keys, tokens, arbitrary config values, or catalog instruction bodies. Codex exposes a machine-readable local model catalog, while Claude currently exposes effort choices and model aliases but no complete local model catalog, so Claude full model IDs remain editable user input.
 - Embedded Android-agent skills live in both `docs/agent-skills/` and `src/androidAgentSkills.ts`.
 - Scout can pass an optional evidence shortcut hint to the Agent from prompt text, attachment names, bounded text previews, or recent conversation context, but normal chat does not show or run a manual template action.
 - Normal prompt submission is routed to the selected Agent CLI as a multi-turn conversation. The Agent may answer directly, ask follow-up questions, or request typed read-only tools through structured `toolCalls`.
 - Auto-approved read-only tool requests use existing Tauri commands and `adb_workbench_execute`, so selected-device targeting and risk classification still apply.
 - The Agent Tasks console checks Agent APK installation status and prompts for explicit install/update when the selected device lacks the APK; installation is not automatic.
-- Runtime probing is manual from the Scout CLI/model selector. It opens an independent modal that checks local CLI availability and enabled API provider configuration when the user asks for a health check.
+- Runtime probing is manual from the Scout CLI/model selector. It opens an independent modal that checks local CLI availability and experimental API provider configuration when the user asks for a health check.
 - Starting a Feature Walkthrough or Bug Repro task requires an available Agent CLI in the current implementation. Configured model API providers are shown as probe/configuration status but do not yet satisfy the execution gate.
-- Mutating or expert raw ADB command requests normally render as approval cards. During an active `auto_execute` Scout task, low- and medium-risk workbench requests may run automatically, but high-risk commands still require user action before execution.
+- Fully automatic Scout tasks can run up to 24 autonomous tool-request turns plus up to two terminal-only synthesis attempts: they may collect/compare accessible reference and device context, request device tools, auto-run eligible low- and medium-risk workbench commands, and preserve model-requested screenshots plus post-command screen-state snapshots. Protected requests, including destructive/data-loss operations, payment/purchase, account sign-in/sign-out, permission grant/revoke, and app-ops mutation, return a blocker without an approval card. Ordinary Submit, Confirm, Continue, search clearing, and filter reset are not protected. The blocker names the exact step, one required human action, and how to restart; terminal outcomes automatically become the report and close the record. Invalid “waiting for results” endings are retried and then replaced by a deterministic latest-result closeout. Feishu/Figma comparison remains conditional on the selected Agent CLI having the relevant integration; Scout must record an access gap rather than claim it read an inaccessible reference.
 - Scout evidence records persist local artifacts for feature walkthrough and Bug reproduction flows; Bug repro issue markers attempt to attach issue-time Logcat, active records expose compact evidence timelines to the Agent, and the local `evidence.get_active_record` tool can return fuller detail. Full record controls live in peer Walkthrough and Bug Repro modes so normal Chat mode remains conversational and users can switch back after starting a repro. Checklist and test-plan handling depends on uploaded attachments plus Agent guidance rather than a dedicated checklist status workflow.
-- Final report generation is retryable. If the Agent runtime fails or returns unusable output, Scout keeps the task active, shows the failed state, and avoids closing or exporting a misleading completed record.
+- Feature Walkthrough review is guided by `docs/scout-skills/feature-walkthrough-review.md`; its coverage matrix and issue severity currently live in Agent-generated notes and reports rather than dedicated structured task fields, so completeness still depends on Agent output quality and collected evidence.
+- Final report generation is retryable. A task shows an `Agent is thinking` state while its CLI turn is in progress. Autonomous Scout uses a bounded `medium` effort default when the user has not selected an effort. Codex desktop turns use non-stream completion with `output-last-message` so a child-process stdout handle cannot leave the task waiting after the CLI has exited. If the Agent runtime fails or returns unusable output, Scout persists the error as a runtime-gap artifact, marks the Agent run stopped, and avoids presenting the task as still running; report generation keeps the task active and retryable rather than closing or exporting a misleading completed record.
 - Explicit evidence shortcut collection still runs bounded skill steps through `adb_workbench_execute`.
 - Session history is local and persisted under `agentCopilotSessions`.
 - Global Agent CLI settings and current-device overrides are stored in `settings.agentCli`; current-device overrides are edited from the Agent Tasks CLI panel.
@@ -93,7 +97,7 @@ Risks:
 - Automatic evidence shortcut matching is keyword-based and should be treated as routing assistance, not a root-cause conclusion.
 - The current tool-call protocol is text/JSON based. If the configured CLI does not follow the requested `toolCalls` format, the app will treat the output as a normal assistant answer.
 - Evidence records currently store artifact metadata and bounded text locally; large binary artifacts are referenced by path rather than copied into the store. Export copies currently available local artifact files into the `.zip` evidence package, but missing or moved files are skipped and reported.
-- Scout task records do not observe every physical touch or system-wide user action. They only record evidence ADB Manager can verify, such as screenshots, foreground/window output, Remote audit entries, Logcat, user notes, performance context, Agent APK status, and saved paths.
+- Scout task records do not observe every physical touch or system-wide user action. They only record evidence ADB Manager can verify, such as screenshots, foreground/window output, Remote audit entries, Logcat, Agent notes, performance context, Agent APK status, and saved paths.
 - The ordinary APK Agent cannot read privileged system counters. Treat APK data as supplemental, not authoritative.
 - Agent APK upgrades preserve app data only when the package name and signing certificate stay stable. Signature changes or version downgrades require explicit manual handling because automatic uninstall would delete Agent app data.
 - Agent CLI execution could run arbitrary host commands if profile validation, sandbox defaults, or high-risk approval gates are weakened.
@@ -101,7 +105,7 @@ Risks:
 Mitigation:
 
 - Keep built-in CLI profiles read-only/non-interactive by default, and keep custom CLI profiles visible in settings.
-- Keep high-risk or mutating actions outside the auto-approved read-only tool path and keep approval cards visible in the conversation audit trail.
+- Keep protected actions outside the fully automatic Scout path. Return a structured blocker with the exact blocked step, one human action, restart guidance, and a terminal Agent note; preserve separate confirmation policy only in General Chat and the manual ADB Workbench.
 - Keep ordinary APK limits visible in skill docs and UI copy.
 - Keep Agent APK version metadata aligned across Java, the build script, and the desktop backend whenever the APK behavior changes.
 - Keep local skill docs synchronized with the embedded app catalog.
@@ -143,7 +147,7 @@ Reason:
 
 Risk:
 
-- Some failures may require explicit restart/reconnect or host identity reset, so the UI must make repair controls discoverable after repeated failures.
+- Some failures may require explicit restart/reconnect, wireless pairing repair, or host identity reset, so the UI keeps recovery controls available and escalates their recommendation state after repeated failures.
 
 ## Workbench Safety
 
@@ -209,6 +213,7 @@ Risk:
 Mitigation:
 
 - Streaming mode and export are available for longer diagnostic sessions.
+- Package application-log collection separately pulls persisted remote files and records when current-process Logcat is unavailable; it does not claim that a package name can reliably identify all historical Logcat lines.
 
 ## Release Feed Freshness
 

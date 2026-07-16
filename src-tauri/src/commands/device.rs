@@ -212,6 +212,61 @@ pub fn adb_device_summary(
 }
 
 #[tauri::command(async)]
+pub fn adb_get_authorization_timeout_disabled(
+    app: AppHandle,
+    device_serial: String,
+) -> Result<bool, AdbError> {
+    let output = adb::run_adb_with_timeout(
+        &app,
+        &[
+            "shell",
+            "settings",
+            "get",
+            "global",
+            "adb_allowed_connection_time",
+        ],
+        Some(&device_serial),
+        Duration::from_secs(5),
+    )?;
+    adb::ensure_success(&output, &t!("device.adb_authorization_timeout_read_failed"))?;
+
+    let value = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    Ok(value == "0")
+}
+
+#[tauri::command(async)]
+pub fn adb_set_authorization_timeout_disabled(
+    app: AppHandle,
+    device_serial: String,
+    disabled: bool,
+) -> Result<String, AdbError> {
+    let value = if disabled { "0" } else { "604800000" };
+    let output = adb::run_adb_with_timeout(
+        &app,
+        &[
+            "shell",
+            "settings",
+            "put",
+            "global",
+            "adb_allowed_connection_time",
+            value,
+        ],
+        Some(&device_serial),
+        Duration::from_secs(5),
+    )?;
+    adb::ensure_success(
+        &output,
+        &t!("device.adb_authorization_timeout_update_failed"),
+    )?;
+
+    Ok(if disabled {
+        t!("device.adb_authorization_timeout_disabled").to_string()
+    } else {
+        t!("device.adb_authorization_timeout_restored").to_string()
+    })
+}
+
+#[tauri::command(async)]
 pub fn adb_mdns_discover(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -461,7 +516,7 @@ pub fn adb_reconnect_endpoint(
     let _ = adb::run_adb_with_timeout(&app, &["disconnect", &addr], None, Duration::from_secs(5));
 
     if restart_adb {
-        restart_adb_server(&app)?;
+        restart_adb_server_preserving_pairing(&app)?;
     }
 
     let output = connect_address(&app, &addr)?;

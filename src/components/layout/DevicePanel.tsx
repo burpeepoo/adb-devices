@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Group, ScrollArea, Stack, Text, TextInput, Tooltip } from "@mantine/core";
+import { ActionIcon, Box, Group, ScrollArea, Stack, Switch, Text, TextInput, Tooltip } from "@mantine/core";
 import { IconRefresh, IconSearch } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,8 +13,12 @@ interface Props {
   selectedDevice: string | null;
   mirroringDeviceSerial: string | null;
   deviceNotes: DeviceNotes;
+  adbAuthorizationTimeoutPrefs: Record<string, boolean>;
+  adbAuthorizationTimeoutDeviceStates: Record<string, boolean>;
+  adbAuthorizationTimeoutPending: Record<string, boolean>;
   onSelectDevice: (serial: string) => void;
   onDeviceNoteChange: (device: DeviceInfo, note: string) => void;
+  onAdbAuthorizationTimeoutChange: (device: DeviceInfo, disabled: boolean) => void;
   onRefresh: () => void;
 }
 
@@ -25,8 +29,12 @@ export default function DevicePanel({
   selectedDevice,
   mirroringDeviceSerial,
   deviceNotes,
+  adbAuthorizationTimeoutPrefs,
+  adbAuthorizationTimeoutDeviceStates,
+  adbAuthorizationTimeoutPending,
   onSelectDevice,
   onDeviceNoteChange,
+  onAdbAuthorizationTimeoutChange,
   onRefresh,
 }: Props) {
   const { t } = useTranslation();
@@ -86,9 +94,15 @@ export default function DevicePanel({
               note={deviceNotes[deviceIdentityKey(device)] || ""}
               selected={selectedDevice === device.serial}
               mirroring={mirroringDeviceSerial === device.serial}
+              adbAuthorizationTimeoutDisabled={
+                adbAuthorizationTimeoutDeviceStates[deviceIdentityKey(device)] ??
+                Boolean(adbAuthorizationTimeoutPrefs[deviceIdentityKey(device)])
+              }
+              adbAuthorizationTimeoutPending={Boolean(adbAuthorizationTimeoutPending[deviceIdentityKey(device)])}
               online
               onSelect={() => onSelectDevice(device.serial)}
               onNoteChange={(note) => onDeviceNoteChange(device, note)}
+              onAdbAuthorizationTimeoutChange={(disabled) => onAdbAuthorizationTimeoutChange(device, disabled)}
             />
           ))}
 
@@ -100,8 +114,11 @@ export default function DevicePanel({
               note={deviceNotes[deviceIdentityKey(device)] || ""}
               selected={false}
               mirroring={false}
+              adbAuthorizationTimeoutDisabled={false}
+              adbAuthorizationTimeoutPending={false}
               online={false}
               onNoteChange={(note) => onDeviceNoteChange(device, note)}
+              onAdbAuthorizationTimeoutChange={() => undefined}
             />
           ))}
 
@@ -134,22 +151,29 @@ function DeviceRow({
   note,
   selected,
   mirroring,
+  adbAuthorizationTimeoutDisabled,
+  adbAuthorizationTimeoutPending,
   online,
   onSelect,
   onNoteChange,
+  onAdbAuthorizationTimeoutChange,
 }: {
   device: DeviceInfo;
   note: string;
   selected: boolean;
   mirroring: boolean;
+  adbAuthorizationTimeoutDisabled: boolean;
+  adbAuthorizationTimeoutPending: boolean;
   online: boolean;
   onSelect?: () => void;
   onNoteChange: (note: string) => void;
+  onAdbAuthorizationTimeoutChange: (disabled: boolean) => void;
 }) {
   const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(note);
   const title = device.device_sn || device.serial;
+  const showAuthorizationTimeoutToggle = online && device.connection_type === "wireless";
 
   const commitEdit = () => {
     setEditing(false);
@@ -216,6 +240,23 @@ function DeviceRow({
               </Text>
             </Box>
           )}
+
+          {showAuthorizationTimeoutToggle ? (
+            <Tooltip label={t("deviceList.adbAuthorizationTimeoutHint")} withArrow multiline w={260}>
+              <Box
+                className="device-panel-row__adb-timeout"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <Switch
+                  size="xs"
+                  checked={adbAuthorizationTimeoutDisabled}
+                  disabled={adbAuthorizationTimeoutPending}
+                  label={t("deviceList.adbAuthorizationTimeout")}
+                  onChange={(event) => onAdbAuthorizationTimeoutChange(event.currentTarget.checked)}
+                />
+              </Box>
+            </Tooltip>
+          ) : null}
         </Box>
       </Group>
     </Box>

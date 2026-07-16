@@ -1,6 +1,6 @@
 # Scout Agent Task Architecture
 
-Last updated: 2026-07-07
+Last updated: 2026-07-13
 
 ## Decision Summary
 
@@ -184,7 +184,7 @@ During migration, existing top-level entries may remain for familiarity, but the
 
 ### Scout Task Workspace
 
-Scout task UI should use a task-console layout instead of a chat-first layout.
+Scout task UI should use a task-console layout instead of a chat-first layout. A run is one automatic unit of work: the user provides scope, Scout observes and acts, then the terminal assessment becomes the report.
 
 Recommended task page regions:
 
@@ -196,9 +196,9 @@ Recommended task page regions:
 
 Task summary:
 
-- Task type, goal, target device, permission level, Agent APK state, accessibility/control state, runtime state, elapsed time, and status.
-- Shows the exact UI run state: not started, running, generating report, completed, or failed. Insufficient evidence is represented as report content or failure reason, not a separate persisted task status.
-- Current workspace implementation: the Agent Tasks tab opens as a Scout task console, with Feature Walkthrough selected by default. The left rail contains icon-led task tabs for Chat, Feature Walkthrough, and Bug Repro. Recent chats appear only while Chat is selected; Walkthrough and Bug Repro each show their own mode-scoped task-record history in the left task console, and the main evidence panel shows the active task or selected historical task timeline for that mode. The task tabs expose tab semantics and keyboard navigation instead of numbered step cards. Chat, Walkthrough, and Bug Repro show an optional working-directory row at the bottom of the composer or action area, matching the Codex mental model without making the directory required. Walkthrough and Bug Repro place the goal field, short primary Start action, and Auto-execute checkbox in the bottom start area, so users set the target and permission at the moment they start the Agent task. Their recent-record history scrolls only at the list level, and the selected record expands its captured artifacts without nested scrolling. The start area wraps responsively instead of compressing button labels. Starting a task probes the selected Agent CLI before creating the task record; if the command is unavailable, Scout opens runtime health instead of recording a doomed task. While a task is running, the bottom area separates Capture actions from Wrap up actions, including Stop and report.
+- Task type, goal, target device, automatic-execution state, Agent APK state, accessibility/control state, runtime state, elapsed time, and status.
+- Shows the exact UI run state: not started, running, generating report, completed, blocked, stopped, or failed. `agent_completed` is not a user-facing lifecycle state: an Agent terminal response is only complete after the task record is closed with its outcome.
+- Current workspace implementation: the Agent Tasks tab opens as a Scout task console, with Feature Walkthrough selected by default. The left rail contains icon-led task tabs for Chat, Feature Walkthrough, and Bug Repro. Recent chats appear only while Chat is selected; Walkthrough and Bug Repro each show their own mode-scoped task-record history in the left task console, and the main evidence panel shows the active task or selected historical task timeline for that mode. The task tabs expose tab semantics and keyboard navigation instead of numbered step cards. Chat, Walkthrough, and Bug Repro show an optional working-directory row at the bottom of the composer or action area, matching the Codex mental model without making the directory required. Walkthrough and Bug Repro place the goal field and a short primary Start action in the bottom start area. Starting a task probes the selected Agent CLI before creating the task record; if the command is unavailable, Scout opens runtime health instead of recording a doomed task. Once started, the task executes automatically until the Agent declares `COMPLETED`, `BLOCKED_NEEDS_HUMAN`, or `FAILED`; that terminal response becomes the report and closes the record. Active records also expose Stop task as a lifecycle recovery action beside Export. It remains available after an Agent turn finishes, closes and preserves the record, and releases the start gate for a new task. The UI summarizes the small protected boundary and, when blocked, states why it stopped, the single human action required, and how execution can continue.
 
 Scout assessment:
 
@@ -209,20 +209,14 @@ Scout assessment:
 Evidence timeline:
 
 - The main fact base for engineering.
-- Contains screenshots, notes, Logcat, performance samples, screen states, Remote/control actions, ADB actions, and Scout notes.
+- Contains screenshots, UI snapshots, screen states, foreground/package context, Logcat when a failure or repro symptom makes it relevant, UI/ADB actions, and Scout notes. Performance samples are opt-in diagnostics, not default task evidence.
 - Supports filtering by artifact type later, but first version can keep a single chronological timeline.
 
 Action bar:
 
-- Start / stop and generate report.
-- Auto-execute checkbox next to Start before a task begins.
-- Screenshot.
-- Mark issue.
-- Add note.
-- Start / stop recording.
-- Upload attachment.
-- Record current state.
-- Export evidence package.
+- Start before a task begins.
+- Export evidence package for active and historical records.
+- No manual screenshot, recording, issue-marker, note, approval, or stop-and-report control in task mode.
 
 Report preview:
 
@@ -314,19 +308,13 @@ Required regions:
 5. Final report preview.
 6. Copy summary and export evidence package actions.
 
-Minimum task controls:
+Minimum task controls for fully automatic Scout runs:
 
 - Start.
-- End and generate report.
-- Screenshot.
-- Mark issue.
-- Add note.
-- Start/stop recording.
-- Upload attachment.
+- Stop task.
 - Export evidence package.
-- Record current state.
 
-Do not expose `Remote 记录` as a primary control. Remote actions should be recorded automatically when a Scout task is running. Manual capture should be named `记录当前状态`.
+All other evidence collection is automatic. Do not expose manual screenshot, recording, issue-marker, note, approval, or attachment controls in the run console.
 
 No pause/continue in the first implementation. Supported states:
 
@@ -334,6 +322,8 @@ No pause/continue in the first implementation. Supported states:
 - Running.
 - Generating report.
 - Completed.
+- Blocked / needs human action.
+- Stopped.
 - Failed.
 
 ## Scout Task Bounded Context
@@ -347,8 +337,6 @@ Commands:
 - `RunAgentTurn`
 - `RequestTool`
 - `AutoExecuteTool`
-- `RequestApproval`
-- `StopAndGenerateReport`
 - `CloseTask`
 
 Events:
@@ -357,7 +345,6 @@ Events:
 - `ArtifactAdded`
 - `AgentRunStarted`
 - `ToolAutoExecuted`
-- `ApprovalRequested`
 - `FinalReportGenerated`
 - `ScoutTaskClosed`
 - `ScoutTaskFailed`
@@ -367,10 +354,14 @@ Domain rules:
 - Only one Scout task can run at a time.
 - The running task binds to `device_sn || serial`.
 - Evidence cannot be appended from a different selected device unless the stable device identity matches.
-- Starting requires selected device, available CLI runtime, configured artifact save directory, non-empty goal, and per-task Agent APK decision.
+- Starting requires selected device, available CLI runtime, configured artifact save directory, and a non-empty goal. Agent APK/accessibility readiness is shown as a capability state; if unavailable, Scout uses the ADB/UIAutomator recovery path and reports the evidence limitation instead of presenting a hidden approval workflow.
 - Optional working directory is not a gate; when provided, Scout persists it on the conversation or task and passes it as Agent CLI cwd for subsequent turns.
+- Autonomous Scout turns use `medium` as the bounded effort default when the selected CLI profile has no explicit effort; explicit model/effort choices remain authoritative. Codex desktop turns consume `output-last-message` through a non-stream completion path so a child-process pipe cannot leave a run stuck in Running after the CLI exits.
 - Report generation failure keeps the task active and retryable; it must not silently close the record.
-- `auto_execute` only auto-runs low- and medium-risk Workbench command requests during an active task. High-risk and Always-confirm actions still produce approval cards.
+- Active Feature Walkthrough and Bug Repro tasks always use `auto_execute`; routine in-scope actions run without approval cards. The active task has no user-facing semi-automatic mode.
+- Protected command and UI boundaries are blocked and converted into explicit `BLOCKED_NEEDS_HUMAN` guidance instead of an approval request.
+- When a Feature Walkthrough has a selected target package, Scout performs a deterministic start preflight: launch the package, capture a fresh UI snapshot, and record the launch evidence before the first Agent turn. A non-empty user goal is authoritative; missing reference material or an unstated expected result is an evidence gap or an inferred assumption, not a reason to stop safe device coverage.
+- During autonomous execution, prompt construction keeps the authoritative goal, target package, reference, and project context at both the head and the tail of the bounded prompt. If the Agent repeats inspection without producing an action, Scout permits only a bounded safe fallback; fallback candidates must be enabled and genuinely clickable or resolvable from a visible label/content description, so resource-ID-only child nodes cannot receive a synthetic tap. Goal matching ranks complete token matches above substring matches, preventing `Today` from winning over the requested `Day` mode. When the goal describes a selector, switch, toggle, setting, or mode, control-like resource IDs are preferred and directional IDs such as `*_left`, `*_right`, `*_prev`, or `*_next` are penalized, preventing a month navigation arrow from winning over a view-mode control. It excludes generic package-name matches and previously unverified targets. If terminal synthesis still misses the outcome contract, a deterministic `COMPLETED` closeout is allowed only after a successful UI action, a changed non-empty post-action snapshot, and a goal-related visible node; otherwise it closes with a deterministic failure when no observable UI progress remains.
 
 Ports and adapters:
 
@@ -386,53 +377,39 @@ Starting a Scout task requires:
 2. A usable Scout runtime. Current implementation requires an available Agent CLI; configured model API providers are shown in health/probe UI but do not satisfy the start gate by themselves.
 3. Writable save directory for artifacts.
 4. A non-empty task goal.
-5. Agent APK check.
+5. No additional user approval step. Agent APK/accessibility status is recorded as capability evidence.
 
-Agent APK is a strong gate but can be waived per task:
+Agent APK/accessibility is a capability, not a hidden approval gate:
 
-- If Agent APK is installed and usable, start without interruption.
-- If Agent APK is missing, failed, or significantly limited, show a blocking choice card:
-  - Install and start Agent APK.
-  - Continue without Agent APK.
-  - Cancel.
-- Do not remember the waiver globally.
-- If the user continues without Agent APK, the report must state that app-level sampling may be incomplete.
+- If it is installed and usable, Scout uses accessibility-first inspection and actions.
+- If it is missing, disabled, or limited, Scout attempts the deterministic ADB/UIAutomator fallback and records the reduced-confidence path.
+- Only an actual protected operation or an unrecoverable device/runtime failure can block the run.
 
 If Scout runtime is unavailable, do not allow Scout task start. Do not degrade a Scout task into standalone evidence recording.
 
-## Permissions
+## Automatic Execution Boundary
 
-Use three user-facing permission levels:
+Feature Walkthrough and Bug Repro expose one task behavior: automatic execution until a terminal Agent outcome. There is no user-facing permission level, default, or override at task start.
 
-### Read-only
+Routine in-scope actions run directly, including navigation, swipe, back, ordinary confirm/submit/continue actions, evidence reads, screenshots, relevant Logcat snapshots, screen state, and UI actions. Performance context and Agent APK sampling are diagnostics, not default walkthrough evidence.
 
-Scout reads existing context and device state. It does not proactively collect evidence and does not modify the device.
+Protected boundaries are deliberately narrow:
 
-### Semi-auto
+- Sign-in/sign-out and account authorization changes.
+- Permission grant/revoke operations.
+- Purchase, payment, subscription, checkout, and order submission.
+- Clear data/storage/cache, uninstall, factory reset, or other consequential reset.
+- Restart, reboot, and power-off.
 
-Scout can automatically collect evidence: screenshots, Logcat snapshots, screen state, performance context, Agent APK samples, notes, and issue markers. It does not perform repair, install, cleanup, or other state-changing actions.
-
-### Auto-execute
-
-Scout can continuously execute allowed actions inside the current task boundary. High-risk actions still require explicit approval.
-
-Defaults:
-
-- Feature walkthrough: Semi-auto.
-- Bug reproduction: Semi-auto.
-- Device diagnosis report: Semi-auto.
-- APK install troubleshooting: Auto-execute.
-- Wireless ADB repair: Auto-execute.
-
-No global auto-execute setting in the first version. Task defaults may be overridden at task start.
+Scout does not show an approval card for these boundaries. It stops with `BLOCKED_NEEDS_HUMAN`, names the boundary it matched, gives one concrete human action, and explains how to continue afterward. General Chat remains outside this execution model and cannot start a hidden task.
 
 ## UI Automation
 
-Scout may perform UI operations in auto-execute mode.
+Scout may perform UI operations during an active automatic task.
 
 Capability tiers:
 
-1. Accessibility enabled: control-level UI automation through Agent APK accessibility service.
+1. Accessibility enabled: structure-first UI automation through the Agent APK accessibility service. `ui.inspect` is the primary low-token observation channel; screenshots remain evidence artifacts and are not expanded into the Agent prompt unless explicitly attached/read.
 2. Accessibility not enabled: restricted coordinate-level operation through screenshot plus ADB input.
 
 Accessibility rules:
@@ -442,10 +419,12 @@ Accessibility rules:
 - If disabled, clicking the button should open the Android accessibility settings page or an Agent APK guidance page as directly as the platform allows.
 - The user must manually grant accessibility. Do not claim the app can auto-approve accessibility.
 - Android restricted-settings cases must be explained and handled as user action.
+- For taps, Scout resolves the latest hierarchy before execution. The semantic target label is authoritative; coordinates are optional hints. Coordinates select the smallest enabled clickable node, a visible label may resolve to its clickable parent or its own visible center, and a unique exact target may be re-centered after layout movement. Repeated labels remain coordinate-disambiguated.
+- The Agent APK attempts an accessibility node click first and falls back to an accessibility gesture only when the vendor node rejects `ACTION_CLICK`; loss of the accessibility service still falls back to the restricted ADB coordinate path.
 
 Restricted coordinate operation rules:
 
-- Only available in auto-execute mode.
+- Only available during an active automatic task.
 - Must use a fresh screenshot before each coordinate operation.
 - Scout must state the intended target before acting, such as "try tapping near the Save button".
 - High-risk pages cannot use coordinate fallback.
@@ -453,9 +432,9 @@ Restricted coordinate operation rules:
 - Log tap/input/keyevent/swipe with coordinates/text/time into the timeline.
 - Report must mark coordinate operations as lower-confidence UI automation.
 
-## Always-Confirm Actions
+## Protected Actions
 
-These actions require explicit approval even in auto-execute mode:
+These actions are not executed by an automatic Scout run:
 
 - Clear app data, such as `pm clear`.
 - Uninstall apps.
@@ -469,7 +448,7 @@ These actions require explicit approval even in auto-execute mode:
 - Enter sensitive text: password, token, account, verification code.
 - Click high-risk system confirmation screens: account removal, factory reset, payment, sensitive permission grants.
 
-Approval cards must remain visible in the task audit trail.
+Scout does not show an approval card for these boundaries. It records a structured `BLOCKED_NEEDS_HUMAN` outcome with the matched boundary, one concrete human action, and the restart/continue instruction.
 
 ## Evidence Model
 
@@ -487,16 +466,13 @@ Rules:
 Evidence timeline is the fact base:
 
 - Screenshots.
-- Recordings.
-- Logcat snapshots.
-- Performance context.
-- Screen state.
-- Foreground app/window.
-- Agent APK status/samples.
-- User notes.
-- Issue markers.
+- UI snapshots.
+- Screen state and foreground/package context.
+- Logcat snapshots when a failure or repro symptom makes them relevant.
 - Remote or accessibility actions.
 - ADB/Workbench actions.
+- Scout notes and report findings.
+- Optional performance context when explicitly requested or escalated by an observed symptom.
 - Scout notes.
 
 Scout may summarize actions and state changes, but must distinguish:
@@ -518,21 +494,21 @@ Feature walkthrough:
 
 Bug reproduction:
 
-- More active collection.
-- Screenshot/Logcat/performance around issue markers, remote/accessibility actions, foreground changes, and user notes.
+- More active automatic collection.
+- Screenshot/Logcat around Agent-observed failures, UI actions, and foreground changes. Add performance only when requested or when the observed symptom is slowness, jank, freeze, ANR, crash, or resource-related failure.
 - Lightweight screen state every 10-15 seconds.
-- Recording is available but not forced by default.
+- The task UI does not expose manual recording, issue-marker, screenshot, or note controls; the Agent gathers the evidence needed for its report.
 
 Device manual operation and remote operation are equally important paths:
 
 - Remote/control path can record actions more completely.
-- Physical-device path records verifiable evidence such as screenshots, foreground state, Logcat, performance, notes, issue markers, and screen-state changes.
+- Physical-device path records verifiable evidence such as screenshots, foreground state, Logcat, performance, Agent observations, and screen-state changes.
 - Do not pretend to capture every physical touch.
 
 Task start should show a capability summary:
 
 - Current operation mode: remote/control observed, physical-device observed, or automatic.
-- Will record: screenshots, screen state, foreground app, Logcat, performance, notes.
+- Will record: screenshots, UI snapshots, screen state, foreground/package context, relevant Logcat, actions, and notes. Performance is escalated evidence, not a default task baseline.
 - If control channel is available: also record click/input/back/home/swipe actions.
 - Gap: physical touches may not be individually captured.
 
@@ -595,42 +571,46 @@ Acceptance criteria:
 
 - Introduce a single running Scout task model.
 - Bind task to `device_sn || serial`.
-- Add start gates for device, runtime, save directory, goal, and Agent APK waiver.
+- Add start gates for device, runtime, save directory, and goal; keep Agent APK/accessibility as a visible capability status rather than a per-task approval gate.
 - Remove standalone evidence-session wording from user-facing UI.
 - Current implementation status: `src/scoutTask/` owns start gates, device binding, artifact append checks, report close/failure transitions, active task resolution, and Workbench auto-execute decisions. `AgentCopilot.tsx` calls that domain layer through local ports/adapters.
 
 Acceptance criteria:
 
 - Starting a Scout task is impossible without selected device, runtime, save path, and goal.
-- Agent APK missing path requires per-task user choice.
+- Agent APK/accessibility gaps use deterministic ADB/UIAutomator recovery where possible and are disclosed as evidence limitations.
 - Only one task can run at a time.
 
 ### Phase 3: Task Console for Bug Repro and Walkthrough
 
 - Move Bug Repro and Walkthrough into the Agent Tasks task console.
-- Implement unified timeline, start/end/report, copy summary, and export package.
+- Implement unified timeline, automatic terminal report closure, and export package.
 - Do not reintroduce a global drawer; task status stays in Agent Tasks.
 
 Acceptance criteria:
 
-- User can start and end Bug Repro from the device workbench.
-- User can start and end Feature Walkthrough from the device workbench.
+- User can start Bug Repro from the device workbench; the Agent terminal outcome ends it automatically.
+- User can start Feature Walkthrough from the device workbench; the Agent terminal outcome ends it automatically.
 - The report follows the unified structure.
 - Tool outputs during a running task enter the active timeline.
 
-### Phase 4: Scout Runtime and Permission Levels
+### Phase 4: Full Automation and Protected Boundary
 
-- Add read-only, semi-auto, and auto-execute task permission levels.
-- Set per-task defaults.
-- Keep high-risk approval cards.
+- Feature Walkthrough and Bug Repro always use automatic execution; there is no semi-automatic task mode or per-task permission selector.
+- Routine navigation, swipe, back, and ordinary confirm/submit/continue actions execute without approval cards.
+- Block only protected boundaries: sign-in/sign-out and authorization changes; purchase/payment/subscription/order submission; clear data/storage/cache, uninstall, factory or consequential reset; restart/reboot/power-off.
+- A protected block is part of the task interaction: show the matched boundary, the exact human action required, and how to resume. Do not leave the user to infer the next step from a generic error.
+- General Chat remains non-autonomous and cannot create a hidden Scout task.
 - Make Scout runtime health a hard start gate for Scout tasks.
-- Current implementation status: the start bar exposes Auto-execute as a checkbox next to Start. When enabled, low- and medium-risk Workbench requests can run automatically; high-risk and Always-confirm commands still require approval.
 
 Acceptance criteria:
 
-- Permission level is visible before start.
-- Defaults match task type.
-- High-risk actions still require approval in auto-execute.
+- Starting either task mode immediately establishes automatic execution.
+- Routine actions never create an operation approval card.
+- Protected actions stop with `BLOCKED_NEEDS_HUMAN` and explicit one-step guidance.
+- The terminal Agent response becomes the report and closes the record automatically.
+- Active task records expose Stop task and Export; historical records expose Export.
+- Protected actions never create an approval card in automatic task mode.
 
 ### Phase 5: UI Automation Capability
 

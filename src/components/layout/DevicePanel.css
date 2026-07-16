@@ -186,6 +186,25 @@
   background: var(--color-cloud);
 }
 
+.device-panel-row__adb-timeout {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  margin-top: 6px;
+  color: var(--text-muted);
+}
+
+.device-panel-row__adb-timeout .mantine-Switch-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.device-panel-row__adb-timeout .mantine-Switch-track {
+  cursor: pointer;
+}
+
 .device-panel-row__note-input .mantine-TextInput-input {
   min-height: 34px;
   border-radius: var(--radius-input);

@@ -20,6 +20,7 @@ export const BUILT_IN_AGENT_CLI_PROFILES: AgentCliProfile[] = [
 ];
 
 export const CUSTOM_AGENT_CLI_PROFILE_ID = "custom_cli";
+export const DEFAULT_AUTONOMOUS_SCOUT_REASONING_EFFORT = "medium";
 
 export function defaultAgentCliSettings(): AgentCliSettings {
   return {
@@ -77,6 +78,19 @@ export function resolveAgentCliProfile(
     normalized.profiles.find((profile) => profile.id === normalized.globalProfileId) ??
     normalized.profiles[0]
   );
+}
+
+/**
+ * Autonomous Scout turns need a bounded default so a blank per-profile effort
+ * does not inherit an unexpectedly deep local CLI setting. Explicit user
+ * choices remain authoritative.
+ */
+export function resolveAutonomousScoutCliProfile(profile: AgentCliProfile): AgentCliProfile {
+  if (profile.reasoningEffortOverride?.trim()) return profile;
+  return {
+    ...profile,
+    reasoningEffortOverride: DEFAULT_AUTONOMOUS_SCOUT_REASONING_EFFORT,
+  };
 }
 
 export function splitAgentCliArgs(value: string): string[] {

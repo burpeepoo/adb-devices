@@ -9,6 +9,8 @@ These skills are the source-backed workflow catalog embedded in ADB Manager's ex
 - Keep each skill small enough to run and review inside one Copilot session.
 - Keep the in-app catalog in `src/androidAgentSkills.ts` aligned with these files.
 
+Scout task-level review playbooks live separately under `docs/scout-skills/`. They may invoke these skills as bounded evidence subroutines, but they do not add another diagnostic template to this catalog.
+
 ## Catalog
 
 - Device Report

@@ -11,6 +11,7 @@ import {
   IconDeviceTv,
   IconDevicesPc,
   IconListDetails,
+  IconMessageCircle,
   IconPackages,
   IconPhotoUp,
   IconPlugConnected,
@@ -32,8 +33,9 @@ interface Props {
   devices: DeviceInfo[];
   selectedDeviceSerial: string | null;
   deviceNotes: DeviceNotes;
-  onConnected: () => void | Promise<void>;
+  onConnected: () => void | Promise<DeviceInfo[] | void>;
   onSelectTool: (tool: TabKey) => void;
+  onOpenScout: (mode: "chat" | "walkthrough" | "bug_repro") => void;
   onDeviceNoteChange: (device: DeviceInfo, note: string) => void;
 }
 
@@ -43,6 +45,7 @@ export default function DeviceConsole({
   deviceNotes,
   onConnected,
   onSelectTool,
+  onOpenScout,
   onDeviceNoteChange,
 }: Props) {
   const { t } = useTranslation();
@@ -231,8 +234,18 @@ export default function DeviceConsole({
 
       <Paper withBorder radius="md" p="md" className="device-console-section">
         <SectionTitle icon={<IconRobot size={17} />} label={t("deviceConsole.scoutTasks")} mb="md" />
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-          <button type="button" className="device-console-task-card" onClick={() => onSelectTool("agent")}>
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+          <button type="button" className="device-console-task-card" onClick={() => onOpenScout("chat")}>
+            <span className="device-console-task-icon">
+              <IconMessageCircle size={22} />
+            </span>
+            <span className="device-console-task-copy">
+              <Text fw={850} size="lg">
+                {t("deviceConsole.taskChatTitle")}
+              </Text>
+            </span>
+          </button>
+          <button type="button" className="device-console-task-card" onClick={() => onOpenScout("walkthrough")}>
             <span className="device-console-task-icon">
               <IconRobot size={22} />
             </span>
@@ -242,7 +255,7 @@ export default function DeviceConsole({
               </Text>
             </span>
           </button>
-          <button type="button" className="device-console-task-card" onClick={() => onSelectTool("agent")}>
+          <button type="button" className="device-console-task-card" onClick={() => onOpenScout("bug_repro")}>
             <span className="device-console-task-icon">
               <IconBug size={22} />
             </span>

@@ -13,7 +13,28 @@ const ALLOWED_EXTERNAL_URLS: &[&str] = &[
 ];
 
 fn is_allowed_external_url(url: &str) -> bool {
-    ALLOWED_EXTERNAL_URLS.contains(&url)
+    ALLOWED_EXTERNAL_URLS.contains(&url) || is_allowed_reference_url(url)
+}
+
+fn is_allowed_reference_url(url: &str) -> bool {
+    let Some(remainder) = url.strip_prefix("https://") else {
+        return false;
+    };
+    let host = remainder
+        .split(['/', '?', '#'])
+        .next()
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    if host.contains('@') || host.contains(':') {
+        return false;
+    }
+    matches!(
+        host.as_str(),
+        "figma.com" | "feishu.cn" | "larksuite.com" | "larkoffice.com"
+    ) || host.ends_with(".figma.com")
+        || host.ends_with(".feishu.cn")
+        || host.ends_with(".larksuite.com")
+        || host.ends_with(".larkoffice.com")
 }
 
 #[tauri::command]
@@ -334,6 +355,18 @@ mod tests {
     fn allows_adb_manager_github_repository() {
         assert!(is_allowed_external_url(
             "https://github.com/burpeepoo/adb-devices"
+        ));
+    }
+
+    #[test]
+    fn allows_only_https_reference_hosts() {
+        assert!(is_allowed_external_url("https://www.figma.com/login"));
+        assert!(is_allowed_external_url(
+            "https://example.feishu.cn/wiki/abc"
+        ));
+        assert!(!is_allowed_external_url("http://www.figma.com/login"));
+        assert!(!is_allowed_external_url(
+            "https://figma.com.evil.example/login"
         ));
     }
 

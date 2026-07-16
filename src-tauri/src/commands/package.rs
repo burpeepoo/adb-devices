@@ -3,6 +3,8 @@ use serde::Serialize;
 use std::{path::PathBuf, time::Duration};
 use tauri::{AppHandle, Manager};
 
+use chrono::Local;
+
 use crate::adb::{self, AdbError};
 
 #[derive(Debug, Serialize, Clone)]
@@ -20,6 +22,27 @@ pub struct ExportedApk {
     pub output_dir: String,
     pub files: Vec<String>,
 }
+
+#[derive(Debug, Serialize, Clone)]
+pub struct LogPathCandidate {
+    pub path: String,
+    pub source: String,
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub struct ExportedPackageLogs {
+    pub package_name: String,
+    pub output_dir: String,
+    pub remote_path: String,
+    pub logcat_file: Option<String>,
+    pub metadata_file: String,
+    pub warnings: Vec<String>,
+}
+
+const COZYLA_LOG_ROOTS: &[&str] = &[
+    "/storage/emulated/0/Documents/cozyla/logs",
+    "/sdcard/Documents/cozyla/logs",
+];
 
 #[tauri::command(async)]
 pub fn adb_list_packages(
@@ -170,6 +193,320 @@ pub fn adb_export_package_apk(
         output_dir: output_dir.to_string_lossy().to_string(),
         files,
     })
+}
+
+#[tauri::command(async)]
+pub fn adb_detect_package_log_paths(
+    app: AppHandle,
+    package_name: String,
+    device_serial: Option<String>,
+) -> Result<Vec<LogPathCandidate>, AdbError> {
+    let package_name = validate_package_name(&package_name)?;
+    let serial = require_device_serial(device_serial)?;
+    let mut candidates = Vec::new();
+
+    for (path, source) in candidate_log_paths(&package_name) {
+        if remote_path_exists(&app, &serial, &path)? {
+            candidates.push(LogPathCandidate { path, source });
+        }
+    }
+
+    for root in COZYLA_LOG_ROOTS {
+        for child in remote_directory_entries(&app, &serial, root)? {
+            if !matches_package_log_name(&child, &package_name) {
+                continue;
+            }
+            candidates.push(LogPathCandidate {
+                path: format!("{root}/{child}"),
+                source: "cozyla-match".to_string(),
+            });
+        }
+    }
+
+    dedupe_log_candidates(&mut candidates);
+    Ok(candidates)
+}
+
+#[tauri::command(async)]
+pub fn adb_pull_package_logs(
+    app: AppHandle,
+    package_name: String,
+    remote_path: Option<String>,
+    include_logcat: Option<bool>,
+    device_serial: Option<String>,
+) -> Result<ExportedPackageLogs, AdbError> {
+    let package_name = validate_package_name(&package_name)?;
+    let serial = require_device_serial(device_serial)?;
+    let requested_path = remote_path
+        .as_deref()
+        .map(str::trim)
+        .filter(|path| !path.is_empty())
+        .map(validate_remote_log_path)
+        .transpose()?;
+
+    let (selected_path, mut warnings) = match requested_path {
+        Some(path) => (path, Vec::new()),
+        None => {
+            let candidates = adb_detect_package_log_paths(
+                app.clone(),
+                package_name.clone(),
+                Some(serial.to_string()),
+            )?;
+            let strong_candidates = candidates
+                .iter()
+                .filter(|candidate| is_strong_log_candidate(&candidate.source))
+                .collect::<Vec<_>>();
+            let selected = match strong_candidates.as_slice() {
+                [only] => *only,
+                [] => {
+                    return Err(AdbError::CommandFailed(
+                        t!("package.log_path_not_found", "package" => package_name.clone())
+                            .into_owned(),
+                    ));
+                }
+                _ => {
+                    return Err(AdbError::CommandFailed(
+                        t!("package.log_path_ambiguous", "package" => package_name.clone())
+                            .into_owned(),
+                    ));
+                }
+            };
+            let mut warnings = Vec::new();
+            if candidates.len() > 1 {
+                warnings.push(t!("package.log_path_multiple").into_owned());
+            }
+            (selected.path.clone(), warnings)
+        }
+    };
+
+    let output_dir = package_logs_dir(&app, &package_name)?;
+    std::fs::create_dir_all(&output_dir)?;
+    let output_dir_string = output_dir.to_string_lossy().to_string();
+    let pull_output = adb::run_adb_with_timeout(
+        &app,
+        &["pull", selected_path.as_str(), output_dir_string.as_str()],
+        Some(serial.as_str()),
+        Duration::from_secs(180),
+    )?;
+    adb::ensure_success(&pull_output, &t!("package.logs_pull_failed"))?;
+
+    let logcat_file = if include_logcat.unwrap_or(true) {
+        match pull_package_logcat(&app, &serial, &package_name, &output_dir) {
+            Ok(Some(result)) => Some(result),
+            Ok(None) => {
+                warnings.push(t!("package.logcat_not_running").into_owned());
+                None
+            }
+            Err(error) => {
+                warnings.push(t!("package.logcat_not_collected", "message" => error).into_owned());
+                None
+            }
+        }
+    } else {
+        None
+    };
+
+    let metadata_file = output_dir.join("metadata.json");
+    let metadata = serde_json::json!({
+        "package_name": &package_name,
+        "device_serial": &serial,
+        "remote_path": &selected_path,
+        "logcat_file": &logcat_file,
+        "warnings": &warnings,
+        "collected_at": Local::now().to_rfc3339(),
+    });
+    let metadata_bytes = serde_json::to_vec_pretty(&metadata)
+        .map_err(|error| AdbError::CommandFailed(error.to_string()))?;
+    std::fs::write(&metadata_file, metadata_bytes)?;
+
+    Ok(ExportedPackageLogs {
+        package_name,
+        output_dir: output_dir_string,
+        remote_path: selected_path,
+        logcat_file,
+        metadata_file: metadata_file.to_string_lossy().to_string(),
+        warnings,
+    })
+}
+
+fn validate_package_name(value: &str) -> Result<String, AdbError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value
+            .chars()
+            .any(|ch| !(ch.is_ascii_alphanumeric() || matches!(ch, '.' | '_' | '$')))
+    {
+        return Err(AdbError::CommandFailed(
+            t!("package.package_name_required").into_owned(),
+        ));
+    }
+    Ok(value.to_string())
+}
+
+fn require_device_serial(device_serial: Option<String>) -> Result<String, AdbError> {
+    let serial = device_serial
+        .as_deref()
+        .map(str::trim)
+        .filter(|serial| !serial.is_empty())
+        .ok_or(AdbError::NoDevice)?;
+    Ok(serial.to_string())
+}
+
+fn candidate_log_paths(package_name: &str) -> Vec<(String, String)> {
+    let package_leaf = package_name.rsplit('.').next().unwrap_or(package_name);
+    let mut paths = vec![
+        (
+            format!("/storage/emulated/0/Documents/cozyla/logs/{package_name}"),
+            "cozyla-package".to_string(),
+        ),
+        (
+            format!("/storage/emulated/0/Documents/cozyla/logs/{package_leaf}"),
+            "cozyla-leaf".to_string(),
+        ),
+        (
+            format!("/storage/emulated/0/Android/data/{package_name}/files/logs"),
+            "app-external".to_string(),
+        ),
+        (
+            format!("/storage/emulated/0/Android/data/{package_name}/files/Logs"),
+            "app-external".to_string(),
+        ),
+        (
+            format!("/storage/emulated/0/Android/media/{package_name}/logs"),
+            "app-media".to_string(),
+        ),
+    ];
+    paths.dedup_by(|left, right| left.0 == right.0);
+    paths
+}
+
+fn remote_path_exists(app: &AppHandle, serial: &str, path: &str) -> Result<bool, AdbError> {
+    let output = adb::run_adb(app, &["shell", "ls", "-d", path], Some(serial))?;
+    Ok(output.status.success())
+}
+
+fn remote_directory_entries(
+    app: &AppHandle,
+    serial: &str,
+    path: &str,
+) -> Result<Vec<String>, AdbError> {
+    let output = adb::run_adb(app, &["shell", "ls", "-1", path], Some(serial))?;
+    if !output.status.success() {
+        return Ok(Vec::new());
+    }
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(str::trim)
+        .filter(|entry| !entry.is_empty() && *entry != "." && *entry != "..")
+        .map(ToString::to_string)
+        .collect())
+}
+
+fn matches_package_log_name(entry: &str, package_name: &str) -> bool {
+    let normalize = |value: &str| {
+        value
+            .chars()
+            .filter(|ch| ch.is_ascii_alphanumeric())
+            .flat_map(char::to_lowercase)
+            .collect::<String>()
+    };
+    let entry = normalize(entry);
+    let package = normalize(package_name);
+    let package_leaf = normalize(package_name.rsplit('.').next().unwrap_or(package_name));
+    entry == package || entry == package_leaf
+}
+
+fn dedupe_log_candidates(candidates: &mut Vec<LogPathCandidate>) {
+    let mut seen = std::collections::HashSet::new();
+    candidates.retain(|candidate| seen.insert(candidate.path.clone()));
+}
+
+fn validate_remote_log_path(value: &str) -> Result<String, AdbError> {
+    if !value.starts_with('/')
+        || value.starts_with("/-")
+        || value.contains('\n')
+        || value.contains('\r')
+    {
+        return Err(AdbError::CommandFailed(
+            t!("package.log_path_invalid").into_owned(),
+        ));
+    }
+    Ok(value.to_string())
+}
+
+fn package_logs_dir(app: &AppHandle, package_name: &str) -> Result<PathBuf, AdbError> {
+    let downloads = app
+        .path()
+        .download_dir()
+        .unwrap_or_else(|_| PathBuf::from("."));
+    let timestamp = Local::now().format("%Y%m%d_%H%M%S_%3f");
+    let base = downloads
+        .join("ADB_Manager")
+        .join("AppLogs")
+        .join(safe_filename(package_name))
+        .join(format!("logs_{timestamp}"));
+    Ok(next_available_output_dir(base))
+}
+
+fn is_strong_log_candidate(source: &str) -> bool {
+    matches!(source, "cozyla-package" | "app-external" | "app-media")
+}
+
+fn next_available_output_dir(base: PathBuf) -> PathBuf {
+    if !base.exists() {
+        return base;
+    }
+
+    let parent = base.parent().unwrap_or_else(|| std::path::Path::new("."));
+    let stem = base
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("logs");
+    for index in 1.. {
+        let candidate = parent.join(format!("{stem}_{index}"));
+        if !candidate.exists() {
+            return candidate;
+        }
+    }
+    unreachable!("the output directory suffix range is finite")
+}
+
+fn pull_package_logcat(
+    app: &AppHandle,
+    serial: &str,
+    package_name: &str,
+    output_dir: &std::path::Path,
+) -> Result<Option<String>, AdbError> {
+    let pid_output = adb::run_adb(app, &["shell", "pidof", package_name], Some(serial))?;
+    let pid = String::from_utf8_lossy(&pid_output.stdout)
+        .split_whitespace()
+        .next()
+        .map(ToString::to_string);
+    let Some(pid) = pid else {
+        return Ok(None);
+    };
+
+    let pid_arg = format!("--pid={pid}");
+    let log_output = adb::run_adb(
+        app,
+        &[
+            "logcat",
+            "-b",
+            "all",
+            pid_arg.as_str(),
+            "-d",
+            "-v",
+            "threadtime",
+            "-t",
+            "3000",
+        ],
+        Some(serial),
+    )?;
+    adb::ensure_success(&log_output, &t!("package.logcat_pull_failed"))?;
+
+    let path = output_dir.join("logcat.txt");
+    std::fs::write(&path, log_output.stdout)?;
+    Ok(Some(path.to_string_lossy().to_string()))
 }
 
 fn parse_package_versions(dumpsys_output: &str) -> (String, String) {
@@ -337,7 +674,11 @@ fn push_package(
 
 #[cfg(test)]
 mod tests {
-    use super::{apk_output_file_name, parse_pm_paths, safe_filename};
+    use super::{
+        apk_output_file_name, candidate_log_paths, is_strong_log_candidate,
+        matches_package_log_name, next_available_output_dir, parse_pm_paths, safe_filename,
+        validate_remote_log_path,
+    };
 
     #[test]
     fn parses_single_and_split_apk_paths() {
@@ -376,5 +717,74 @@ package:/data/app/~~abc/com.android.chrome-xyz/split_config.arm64_v8a.apk
     fn sanitizes_package_file_names() {
         assert_eq!(safe_filename("com.android.chrome"), "com.android.chrome");
         assert_eq!(safe_filename("bad/name:pkg"), "bad_name_pkg");
+    }
+
+    #[test]
+    fn proposes_standard_and_cozyla_log_locations() {
+        let paths = candidate_log_paths("com.cozyla.parentallock");
+        let values = paths.iter().map(|(path, _)| path).collect::<Vec<_>>();
+
+        assert!(values.iter().any(|path| {
+            path.as_str() == "/storage/emulated/0/Documents/cozyla/logs/com.cozyla.parentallock"
+        }));
+        assert!(values
+            .iter()
+            .any(|path| path.as_str() == "/storage/emulated/0/Documents/cozyla/logs/parentallock"));
+        assert!(values.iter().any(|path| {
+            path.as_str() == "/storage/emulated/0/Android/data/com.cozyla.parentallock/files/logs"
+        }));
+    }
+
+    #[test]
+    fn matches_cozyla_log_directory_by_package_leaf() {
+        assert!(matches_package_log_name(
+            "parentallock",
+            "com.cozyla.parentallock"
+        ));
+        assert!(matches_package_log_name(
+            "com.cozyla.parentallock",
+            "com.cozyla.parentallock"
+        ));
+        assert!(!matches_package_log_name(
+            "calendar",
+            "com.cozyla.parentallock"
+        ));
+    }
+
+    #[test]
+    fn only_full_package_log_matches_are_eligible_for_automatic_selection() {
+        assert!(is_strong_log_candidate("cozyla-package"));
+        assert!(is_strong_log_candidate("app-external"));
+        assert!(!is_strong_log_candidate("cozyla-leaf"));
+        assert!(!is_strong_log_candidate("cozyla-match"));
+    }
+
+    #[test]
+    fn requires_absolute_manual_log_paths() {
+        assert_eq!(
+            validate_remote_log_path("/storage/emulated/0/Documents/logs").unwrap(),
+            "/storage/emulated/0/Documents/logs"
+        );
+        assert!(validate_remote_log_path("relative/logs").is_err());
+        assert!(validate_remote_log_path("/-not-a-safe-path").is_err());
+    }
+
+    #[test]
+    fn avoids_existing_output_directories() {
+        let base = std::env::temp_dir().join(format!(
+            "adb-manager-package-log-test-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(&base).unwrap();
+        let base_name = base.file_name().unwrap().to_string_lossy().to_string();
+        let next = next_available_output_dir(base.clone());
+        assert_ne!(next, base);
+        assert!(next
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .starts_with(&format!("{base_name}_")));
+        std::fs::remove_dir_all(&base).unwrap();
     }
 }

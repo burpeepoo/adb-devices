@@ -34,6 +34,29 @@ test("device panel uses Cirrus semantic classes instead of legacy blue-gray chip
   assert.doesNotMatch(css, /#2563eb|#1d4ed8|blue-600|gray-50/);
 });
 
+test("device panel refresh scans trusted wireless devices and exposes the ADB timeout preference", () => {
+  const app = readFileSync(appPath, "utf8");
+  const source = readFileSync(devicePanelPath, "utf8");
+  const css = readFileSync(devicePanelCssPath, "utf8");
+  const hook = readFileSync(new URL("../src/hooks/useDevices.ts", import.meta.url), "utf8");
+
+  assert.match(hook, /autoConnectMdns\?: boolean/);
+  assert.match(hook, /invoke<DeviceInfo\[\]>\("adb_mdns_auto_connect"\)/);
+  assert.ok(hook.indexOf("adb_mdns_auto_connect") < hook.indexOf("adb_devices"));
+  assert.match(app, /const refreshDevicesWithMdns = useCallback\(\(\) => refresh\(\{ autoConnectMdns: true \}\)/);
+  assert.match(app, /onRefresh=\{refreshDevicesWithMdns\}/);
+  assert.match(app, /STORE_KEYS\.adbAuthorizationTimeoutPrefs/);
+  assert.match(app, /adb_get_authorization_timeout_disabled/);
+  assert.match(app, /adbAuthorizationTimeoutDeviceStates/);
+  assert.match(app, /adb_set_authorization_timeout_disabled/);
+  assert.match(source, /Switch/);
+  assert.match(source, /deviceList\.adbAuthorizationTimeout/);
+  assert.match(source, /adbAuthorizationTimeoutDeviceStates/);
+  assert.doesNotMatch(source, /checked=\{adbAuthorizationTimeoutPrefs/);
+  assert.match(source, /device\.connection_type === "wireless"/);
+  assert.match(css, /\.device-panel-row__adb-timeout/);
+});
+
 test("settings update marker stays inside the utility rail button", () => {
   const source = readFileSync(toolRailPath, "utf8");
   const css = readFileSync(toolRailCssPath, "utf8");

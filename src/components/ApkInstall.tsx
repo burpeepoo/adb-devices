@@ -90,7 +90,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
 
   const progressPercent = apkItems.length > 0 ? Math.round((completedCount / apkItems.length) * 100) : 0;
   const apkPathKey = apkItems.map((item) => item.path).join("\n");
-  const queuePanelSizeClass = force ? "min-h-[180px] basis-[320px]" : "min-h-[140px] basis-[220px]";
+  const queuePanelSizeClass = force ? "min-h-[180px]" : "min-h-[140px]";
 
   const updateItem = (path: string, patch: Partial<ApkInstallItem>) => {
     setApkItems((items) => items.map((item) => (item.path === path ? { ...item, ...patch } : item)));
@@ -385,7 +385,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
       onPasteCapture={handlePaste}
       className={`apk-install-page flex h-full min-h-0 w-full min-w-0 max-w-full flex-col gap-4 overflow-y-auto overflow-x-hidden rounded-lg pb-3 transition-colors ${dragging ? "bg-blue-50/60" : ""}`}
     >
-      <section className="apk-install-card flex min-h-0 flex-1 flex-col rounded-lg border border-gray-200 bg-white p-4">
+      <section className="apk-install-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-4">
         <div className="shrink-0">
           <SectionTitle icon={<IconApps size={17} />} label={t('apkInstall.title')} mb="md" />
           <DeviceTargetBanner target={deviceTarget} className="mb-3" />
@@ -396,7 +396,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
           <label className="block text-xs text-gray-500 mb-1">{t('apkInstall.apkFiles')}</label>
           <div
             tabIndex={0}
-            className={`h-40 min-w-0 overflow-auto rounded-lg border p-3 transition-colors ${
+            className={`h-44 min-w-0 overflow-auto rounded-lg border p-3 transition-colors ${
               dragging ? "border-blue-400 bg-blue-50" : "border-dashed border-gray-300 bg-gray-50"
             }`}
           >
@@ -410,7 +410,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
                 readOnly
                 rows={3}
                 placeholder={t('apkInstall.selectApk')}
-                className="h-20 min-h-20 min-w-0 flex-1 resize-none overflow-auto rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+                className="h-24 min-h-24 min-w-0 flex-1 resize-none overflow-auto rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
               />
               <button
                 onClick={handleSelectApk}
@@ -457,9 +457,9 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
           )}
         </div>
 
-        <div className={`apk-install-queue-panel mb-4 min-h-0 shrink grow ${queuePanelSizeClass}`}>
+        <div className={`apk-install-queue-panel mb-4 flex min-w-0 min-h-0 flex-1 basis-0 flex-col ${queuePanelSizeClass}`}>
           <div
-            className={`flex max-h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 ${
+            className={`flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 ${
               apkItems.length > 0 ? "" : "border-dashed bg-gray-50"
             }`}
           >

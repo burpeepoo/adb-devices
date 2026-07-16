@@ -15,8 +15,8 @@ const AGENT_SERVICE: &str = "com.cozyla.adbmanager.agent/.AgentService";
 const AGENT_BOOTSTRAP_ACTIVITY: &str = "com.cozyla.adbmanager.agent/.AgentBootstrapActivity";
 const AGENT_APK_RESOURCE: &str = "resources/agent/adb-manager-agent.apk";
 const AGENT_SOCKET: &str = "localabstract:adb_manager_agent";
-const AGENT_PROTOCOL_VERSION: u32 = 1;
-const AGENT_BUNDLED_VERSION_NAME: &str = "0.1.1";
+const AGENT_PROTOCOL_VERSION: u32 = 2;
+const AGENT_BUNDLED_VERSION_NAME: &str = "0.1.3";
 
 #[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -703,6 +703,40 @@ fn http_request(
         .read_to_string(&mut response)
         .map_err(|error| error.to_string())?;
     Ok(response)
+}
+
+pub(crate) fn agent_ui_request(
+    device_serial: &str,
+    path: &str,
+    body: Option<&str>,
+) -> Result<Option<serde_json::Value>, String> {
+    let Some(port) = agent_connection(device_serial).map(|connection| connection.port) else {
+        return Ok(None);
+    };
+    let Ok(response) = http_request(port, "POST", path, body, Duration::from_secs(3)) else {
+        return Ok(None);
+    };
+    let Ok((status_code, body)) = split_http_response(&response) else {
+        return Ok(None);
+    };
+    if status_code != 200 {
+        return Ok(None);
+    }
+    let value = serde_json::from_str::<serde_json::Value>(&body)
+        .map_err(|error| format!("Agent UI JSON parse failed: {error}"))?;
+    if value.get("ok").and_then(|value| value.as_bool()) == Some(true) {
+        return Ok(Some(value));
+    }
+    let message = value
+        .get("error")
+        .or_else(|| value.get("message"))
+        .and_then(|value| value.as_str())
+        .unwrap_or("Agent accessibility action was rejected")
+        .to_string();
+    if message.contains("not enabled") || message.contains("No active accessibility window") {
+        return Ok(None);
+    }
+    Err(message)
 }
 
 fn split_http_response(response: &str) -> Result<(u16, String), String> {

@@ -1,6 +1,9 @@
 pub mod agent;
+pub mod agent_attachment;
 pub mod agent_cli;
+pub mod agent_reference;
 pub mod clipboard;
+pub(crate) mod clipboard_paths;
 pub mod device;
 pub mod display_calibration;
 pub mod evidence;
@@ -14,4 +17,5 @@ pub mod record;
 pub mod remote;
 pub mod screenshot;
 pub mod settings;
+pub mod ui_automation;
 pub mod workbench;

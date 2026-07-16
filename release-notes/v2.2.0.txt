@@ -1,0 +1,17 @@
+en-US:
+ADB Manager 2.2.0 makes Agent Tasks a reliable automatic QA workflow and strengthens the underlying device interaction path.
+
+- Feature Walkthrough and Bug Repro now launch the selected app, recover from blocked foreground states such as the screensaver, drive routine UI actions from fresh evidence, and close with a report when the requested task is complete.
+- The conversation keeps the walkthrough goal, selected package, reference link, and project directory visible, while empty optional inputs stay compact and understandable.
+- Scout now focuses evidence on functional availability and UI/implementation differences, with delete and export actions for task history.
+- Local Codex CLI and Claude Code settings now support model and effort selection, and the Agent APK/UI-action path handles stale or unavailable clickable nodes more safely.
+- Agent CLI task execution no longer stalls while waiting for a piped process result, and Scout only reports completion after verified UI action and page-change evidence.
+
+zh-CN:
+ADB Manager 2.2.0 将 Agent 任务收敛为更可靠的自动化 QA 流程，并增强了设备交互链路。
+
+- 功能走查和 Bug 复现现在会自动打开目标应用、处理屏保等阻塞前台状态、基于最新证据执行常规 UI 操作，并在目标完成后自动生成报告。
+- 对话中会展示走查目标、选择的包名、参考链接和项目地址；可选输入为空时保持紧凑且易理解的空状态。
+- Scout 更关注功能是否可用以及 UI/实现差异，并支持删除和导出任务历史。
+- 本机 Codex CLI 和 Claude Code 设置支持模型与 effort 选择，Agent APK/UI 操作链路也会更安全地处理过期或不可用的可点击节点。
+- 修复了 Agent CLI 等待管道进程结果时可能卡住的问题，并确保 Scout 只有在 UI 操作和页面变化都得到验证后才报告完成。

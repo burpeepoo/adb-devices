@@ -7,6 +7,7 @@ import { preferDeviceForIdentity, resolveVisibleSelectedDevice } from "../device
 
 interface RefreshOptions {
   silent?: boolean;
+  autoConnectMdns?: boolean;
 }
 
 export function useDevices() {
@@ -28,6 +29,13 @@ export function useDevices() {
     if (!options.silent) setLoading(true);
     setError(null);
     try {
+      if (options.autoConnectMdns) {
+        try {
+          await invoke<DeviceInfo[]>("adb_mdns_auto_connect");
+        } catch {
+          // Device refresh should still surface the current adb devices result when mDNS is unavailable.
+        }
+      }
       const result = await invoke<DeviceInfo[]>("adb_devices");
       const store = await getStore();
       const history = (await store.get<DeviceHistoryItem[]>(STORE_KEYS.deviceHistory)) || [];
@@ -73,6 +81,7 @@ export function useDevices() {
       const currentSelectedDevice = selectedDeviceRef.current;
       const nextSelectedDevice = resolveVisibleSelectedDevice(currentSelectedDevice, result, merged);
       if (nextSelectedDevice !== currentSelectedDevice) updateSelectedDevice(nextSelectedDevice);
+      return merged;
     } catch (e) {
       setError(String(e));
     } finally {

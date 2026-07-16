@@ -76,8 +76,8 @@ fi
   -I "$PLATFORM_JAR" \
   --min-sdk-version 23 \
   --target-sdk-version 35 \
-  --version-code 2 \
-  --version-name 0.1.1 \
+  --version-code 4 \
+  --version-name 0.1.3 \
   -o "$UNALIGNED_APK" \
   --java "$OUT_DIR/generated" \
   "${RESOURCE_ARGS[@]}"

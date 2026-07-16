@@ -43,7 +43,7 @@ interface AdbRestartReconnectOptions {
 
 interface Props {
   devices: DeviceInfo[];
-  onConnected: () => void | Promise<void>;
+  onConnected: () => void | Promise<DeviceInfo[] | void>;
 }
 
 export default function PairConnect({ devices, onConnected }: Props) {
@@ -427,13 +427,14 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setPairRepairVisible(false);
       setHostIdentityResetVisible(false);
       try {
-        const devices = await invoke<DeviceInfo[]>("adb_mdns_auto_connect");
-        const onlineDevices = devices.filter((device) => device.state === "device");
+        await invoke<DeviceInfo[]>("adb_mdns_auto_connect");
+        const refreshedDevices = await onConnected();
+        const onlineDevices = (Array.isArray(refreshedDevices) ? refreshedDevices : devicesRef.current)
+          .filter((device) => device.state === "device");
         const count = onlineDevices.length;
         setMdnsResult({ ok: true, msg: count ? t('pairConnect.autoConnected', { count }) : t('pairConnect.autoConnectNone') });
         if (count === 0) setShowManual(true);
         if (count > 0) clearPairConnectFailures();
-        await onConnected();
         await discoverMdns(true, true);
       } catch (e) {
         recordPairConnectFailure();
@@ -505,6 +506,9 @@ export default function PairConnect({ devices, onConnected }: Props) {
 
       if (preservePairing) {
         restartMessage = await invoke<string>("adb_restart_server_preserving_pairing");
+        didRestart = true;
+      } else if (reconnectEndpoints.length > 0) {
+        restartMessage = await invoke<string>("adb_repair_wireless_pairing");
         didRestart = true;
       }
 
@@ -678,6 +682,17 @@ export default function PairConnect({ devices, onConnected }: Props) {
   }, [pairConnectLoaded, restartAdbAndReconnect, runAdbOperationWhenIdle]);
 
   const handleRestartAdbAndScan = async () => {
+    await runAdbOperation(async () => {
+      await restartAdbAndReconnect({
+        busyKey: "__restart_scan__",
+        showResult: true,
+        revealResetWhenUnrecovered: true,
+        preservePairing: true,
+      });
+    });
+  };
+
+  const handleRepairWirelessPairing = async () => {
     await runAdbOperation(async () => {
       await restartAdbAndReconnect({
         busyKey: "__repair__",
@@ -878,7 +893,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
           onScan={handleScan}
           onProbeRecent={probeRecentConnects}
           onShowManual={() => setShowManual(true)}
-          onRepairWirelessPairing={handleRestartAdbAndScan}
+          onRepairWirelessPairing={handleRepairWirelessPairing}
           onResetHostIdentity={handleResetHostIdentity}
         />
 
@@ -944,6 +959,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
                   onProbe={probeRecentEndpoint}
                   onProbeAll={probeRecentConnects}
                   onReconnect={(endpoint) => handleRecentReconnect(endpoint)}
+                  onRestartAdbAndReconnect={(endpoint) => handleRecentReconnect(endpoint, true)}
                   onFill={(endpoint) => fillConnectEndpoint(endpoint.ip, endpoint.port)}
                 />
               )}
@@ -1024,7 +1040,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
                       resettingHostIdentity={resettingHostIdentity}
                       showRepair={pairRepairVisible}
                       showResetHostIdentity={hostIdentityResetVisible}
-                      onRepairWirelessPairing={handleRestartAdbAndScan}
+                      onRepairWirelessPairing={handleRepairWirelessPairing}
                       onResetHostIdentity={handleResetHostIdentity}
                     />
                   )}
@@ -1053,7 +1069,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
                       resettingHostIdentity={resettingHostIdentity}
                       showRepair={pairRepairVisible}
                       showResetHostIdentity={hostIdentityResetVisible}
-                      onRepairWirelessPairing={handleRestartAdbAndScan}
+                      onRepairWirelessPairing={handleRepairWirelessPairing}
                       onResetHostIdentity={handleResetHostIdentity}
                     />
                   )}
@@ -1161,6 +1177,7 @@ function RecentConnectFallback({
   onProbe,
   onProbeAll,
   onReconnect,
+  onRestartAdbAndReconnect,
   onFill,
 }: {
   endpoints: RecentConnectEndpoint[];
@@ -1170,6 +1187,7 @@ function RecentConnectFallback({
   onProbe: (endpoint: RecentConnectEndpoint) => void;
   onProbeAll: () => void;
   onReconnect: (endpoint: RecentConnectEndpoint) => void;
+  onRestartAdbAndReconnect: (endpoint: RecentConnectEndpoint) => void;
   onFill: (endpoint: RecentConnectEndpoint) => void;
 }) {
   const { t } = useTranslation();
@@ -1207,7 +1225,7 @@ function RecentConnectFallback({
                     {t('pairConnect.lastConnectedAt', { time: formatEndpointTime(endpoint.lastConnectedAt) })}
                   </Text>
                 </div>
-                <Group gap="xs" justify="flex-end" wrap="wrap" style={{ flex: "1 1 320px" }}>
+                <Group gap="xs" justify="flex-end" wrap="wrap" style={{ flex: "1 1 420px" }}>
                   <Button
                     size="xs"
                     variant="light"
@@ -1220,11 +1238,20 @@ function RecentConnectFallback({
                   <Button
                     size="xs"
                     variant="light"
-                    loading={reconnectBusy || repairBusy}
+                    loading={reconnectBusy}
                     disabled={disabled}
                     onClick={() => onReconnect(endpoint)}
                   >
                     {t('pairConnect.reconnectRecent')}
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    loading={repairBusy}
+                    disabled={disabled}
+                    onClick={() => onRestartAdbAndReconnect(endpoint)}
+                  >
+                    {t('pairConnect.restartAdbAndReconnect')}
                   </Button>
                   <Button size="xs" variant="subtle" disabled={disabled} onClick={() => onFill(endpoint)}>
                     {t('pairConnect.fill')}
@@ -1635,7 +1662,6 @@ function recoveryAction(
     onResetHostIdentity: () => void;
   },
 ) {
-  const disabled = options.disabled || step.state === "locked";
   const commonClassName = "mt-2";
   if (step.id === "mdns") {
     return (
@@ -1646,7 +1672,7 @@ function recoveryAction(
   }
   if (step.id === "recent") {
     return (
-      <Button className={commonClassName} size="xs" variant="light" disabled={disabled} onClick={options.onProbeRecent}>
+      <Button className={commonClassName} size="xs" variant="light" disabled={options.disabled} onClick={options.onProbeRecent}>
         {options.t("pairConnect.recovery.actions.probeRecent")}
       </Button>
     );
@@ -1661,10 +1687,9 @@ function recoveryAction(
   if (step.id === "repair") {
     return (
       <Button
-        className={commonClassName}
+        className={`${commonClassName} pair-connect-safe-repair-button`}
         size="xs"
-        color="orange"
-        disabled={disabled}
+        disabled={options.disabled}
         loading={options.repairing}
         onClick={options.onRepairWirelessPairing}
       >
@@ -1679,7 +1704,7 @@ function recoveryAction(
         size="xs"
         color="red"
         variant="light"
-        disabled={options.disabled || step.state !== "danger"}
+        disabled={options.disabled}
         loading={options.resettingHostIdentity}
         onClick={options.onResetHostIdentity}
       >
@@ -1717,7 +1742,7 @@ function PairRepairAction({
             onClick={onRepairWirelessPairing}
             loading={repairing}
             size="xs"
-            color="orange"
+            className="pair-connect-safe-repair-button"
           >
             {t('pairConnect.repairWirelessPairing')}
           </Button>

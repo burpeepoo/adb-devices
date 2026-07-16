@@ -8,6 +8,7 @@ export const STORE_KEYS = {
   settings: "settings",
   deviceHistory: "deviceHistory",
   deviceNotes: "deviceNotes",
+  adbAuthorizationTimeoutPrefs: "adbAuthorizationTimeoutPrefs",
   pairConnect: "pairConnect",
   adbStartupRepair: "adbStartupRepair",
   workbenchTemplates: "workbenchTemplates",

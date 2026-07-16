@@ -10,6 +10,11 @@ test("APK install keeps the install action reachable while long queues scroll", 
   assert.match(source, /apk-install-queue-panel/);
   assert.match(source, /apk-install-queue-list/);
   assert.match(source, /apk-install-action-bar/);
+  assert.match(source, /h-44 min-w-0 overflow-auto/);
+  assert.match(source, /h-24 min-h-24 min-w-0 flex-1/);
+  assert.match(source, /overflow-hidden rounded-lg border border-gray-200/);
+  assert.match(source, /flex min-w-0 min-h-0 flex-1 basis-0 flex-col/);
+  assert.match(source, /flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden/);
   assert.match(source, /sticky bottom-0/);
   assert.match(source, /overflow-y-auto overflow-x-hidden/);
   assert.match(source, /pb-3/);

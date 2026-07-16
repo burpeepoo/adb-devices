@@ -51,7 +51,7 @@ The app exposes these tool areas:
 9. Clipboard text input
 10. Logcat
 11. Display calibration lab
-12. Package list and APK export
+12. Package list, APK export, and application log collection
 13. Settings, language, updater, and ADB/scrcpy installation helpers
 
 ## Maintenance Rules

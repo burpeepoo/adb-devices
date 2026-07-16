@@ -1,11 +1,12 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { ExportedApk, PackageInfo } from "../types";
+import { ExportedApk, ExportedPackageLogs, LogPathCandidate, PackageInfo } from "../types";
 import { useTranslation } from "react-i18next";
 import SectionTitle from "./common/SectionTitle";
 import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 import { toolIcons, toolLabelKeys } from "../toolMetadata";
+import "./PackageList.css";
 
 interface Props {
   deviceTarget: DeviceTargetState;
@@ -25,15 +26,27 @@ export default function PackageList({ deviceTarget }: Props) {
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [exportingPackage, setExportingPackage] = useState<string | null>(null);
   const [exportResult, setExportResult] = useState<ExportedApk | null>(null);
+  const [logDialogPackage, setLogDialogPackage] = useState<string | null>(null);
+  const [detectedLogPaths, setDetectedLogPaths] = useState<LogPathCandidate[]>([]);
+  const [selectedLogPath, setSelectedLogPath] = useState("");
+  const [detectingLogs, setDetectingLogs] = useState(false);
+  const [pullingLogsPackage, setPullingLogsPackage] = useState<string | null>(null);
+  const [logDialogError, setLogDialogError] = useState<string | null>(null);
+  const [logsResult, setLogsResult] = useState<ExportedPackageLogs | null>(null);
+  const logDetectionRequest = useRef(0);
+
+  const deviceError = () =>
+    t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`);
 
   const handleList = useCallback(async () => {
     if (!deviceTarget.serial) {
-      setError(t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`));
+      setError(deviceError());
       return;
     }
     setLoading(true);
     setError(null);
     setExportResult(null);
+    setLogsResult(null);
     try {
       const result = await invoke<PackageInfo[]>("adb_list_package_details", {
         deviceSerial: deviceTarget.serial,
@@ -85,7 +98,7 @@ export default function PackageList({ deviceTarget }: Props) {
 
   const handleExportApk = async (name: string) => {
     if (!deviceTarget.serial) {
-      setError(t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`));
+      setError(deviceError());
       return;
     }
     setExportingPackage(name);
@@ -102,6 +115,107 @@ export default function PackageList({ deviceTarget }: Props) {
     } finally {
       setExportingPackage(null);
     }
+  };
+
+  const detectLogPaths = async (name: string): Promise<LogPathCandidate[] | null> => {
+    if (!deviceTarget.serial) {
+      setLogDialogError(deviceError());
+      return null;
+    }
+    const requestId = ++logDetectionRequest.current;
+    setDetectingLogs(true);
+    setLogDialogError(null);
+    try {
+      const result = await invoke<LogPathCandidate[]>("adb_detect_package_log_paths", {
+        packageName: name,
+        deviceSerial: deviceTarget.serial,
+      });
+      if (requestId !== logDetectionRequest.current) return null;
+      setDetectedLogPaths(result);
+      const automaticPath = result.find((candidate) =>
+        ["cozyla-package", "app-external", "app-media"].includes(candidate.source),
+      );
+      setSelectedLogPath(automaticPath?.path || "");
+      return result;
+    } catch (e) {
+      if (requestId !== logDetectionRequest.current) return null;
+      setDetectedLogPaths([]);
+      setLogDialogError(String(e));
+      return null;
+    } finally {
+      if (requestId === logDetectionRequest.current) setDetectingLogs(false);
+    }
+  };
+
+  const pullLogs = async (name: string, path: string) => {
+    if (!deviceTarget.serial) {
+      setLogDialogError(deviceError());
+      return;
+    }
+    setPullingLogsPackage(name);
+    setLogDialogError(null);
+    setError(null);
+    try {
+      const result = await invoke<ExportedPackageLogs>("adb_pull_package_logs", {
+        packageName: name,
+        remotePath: path.trim() || null,
+        includeLogcat: true,
+        deviceSerial: deviceTarget.serial,
+      });
+      setLogsResult(result);
+      logDetectionRequest.current += 1;
+      setLogDialogPackage(null);
+      setDetectedLogPaths([]);
+      setSelectedLogPath("");
+    } catch (e) {
+      setLogDialogError(String(e));
+    } finally {
+      setPullingLogsPackage(null);
+    }
+  };
+
+  const openLogDialog = async (name: string) => {
+    if (!deviceTarget.serial) {
+      setError(deviceError());
+      return;
+    }
+    setError(null);
+    setLogDialogPackage(name);
+    setDetectedLogPaths([]);
+    setSelectedLogPath("");
+    setLogDialogError(null);
+    const result = await detectLogPaths(name);
+    if (!result) return;
+    const automaticPaths = result.filter((candidate) =>
+      ["cozyla-package", "app-external", "app-media"].includes(candidate.source),
+    );
+    if (automaticPaths.length === 1) {
+      await pullLogs(name, automaticPaths[0].path);
+    }
+  };
+
+  const closeLogDialog = () => {
+    if (pullingLogsPackage) return;
+    logDetectionRequest.current += 1;
+    setLogDialogPackage(null);
+    setDetectingLogs(false);
+    setDetectedLogPaths([]);
+    setSelectedLogPath("");
+    setLogDialogError(null);
+  };
+
+  const handlePullLogs = async () => {
+    if (!logDialogPackage || !deviceTarget.serial) {
+      setLogDialogError(deviceError());
+      return;
+    }
+    await pullLogs(logDialogPackage, selectedLogPath);
+  };
+
+  const logPathSourceLabel = (source: string) => {
+    const key = `packageList.logPathSources.${source}`;
+    const translated = t(key);
+    return translated === key ? source : translated;
   };
 
   const handleRevealExport = async (path: string) => {
@@ -161,11 +275,44 @@ export default function PackageList({ deviceTarget }: Props) {
             </button>
           </div>
         )}
+        {logsResult && (
+          <div className="package-list-result mt-2 text-sm">
+            <div>
+              {t("packageList.logsCollected", {
+                package: logsResult.package_name,
+                path: logsResult.output_dir,
+              })}
+              {" · "}
+              {deviceTargetResultSuffix(deviceTarget, t("deviceTarget.resultLabel"))}
+            </div>
+            <button
+              type="button"
+              onClick={() => handleRevealExport(logsResult.output_dir)}
+              className="package-list-result-link"
+            >
+              {t("packageList.revealLogs")}
+            </button>
+            {logsResult.warnings.length > 0 && (
+              <div className="package-list-result-warning">
+                {logsResult.warnings.join(" ")}
+              </div>
+            )}
+            <div className="package-list-result-hint">{t("packageList.logcatScopeHint")}</div>
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="package-list-table-wrap flex-1 overflow-auto">
         {sorted.length > 0 ? (
-          <table className="min-w-full text-xs">
+          <table className="package-list-table">
+            <colgroup>
+              <col className="package-list-col-name" />
+              <col className="package-list-col-version" />
+              <col className="package-list-col-code" />
+              <col className="package-list-col-serial" />
+              <col className="package-list-col-build" />
+              <col className="package-list-col-actions" />
+            </colgroup>
             <thead className="sticky top-0 bg-gray-50 text-gray-500 border-b border-gray-200">
               <tr>
                 <th className="text-left font-medium px-3 py-2">
@@ -199,25 +346,32 @@ export default function PackageList({ deviceTarget }: Props) {
             <tbody>
               {sorted.map((pkg) => (
                 <tr key={pkg.name} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-3 py-2 text-gray-800">{pkg.name}</td>
-                  <td className="px-3 py-2 text-gray-700">{pkg.version_name || "-"}</td>
-                  <td className="px-3 py-2 text-gray-700">{pkg.version_code || "-"}</td>
-                  <td className="px-3 py-2 text-gray-700">{pkg.device_serial || "-"}</td>
-                  <td className="px-3 py-2 text-gray-700">{pkg.build_number || "-"}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-wrap gap-2">
+                  <td className="package-list-cell package-list-name" title={pkg.name}>{pkg.name}</td>
+                  <td className="package-list-cell package-list-value">{pkg.version_name || "-"}</td>
+                  <td className="package-list-cell package-list-value">{pkg.version_code || "-"}</td>
+                  <td className="package-list-cell package-list-value" title={pkg.device_serial}>{pkg.device_serial || "-"}</td>
+                  <td className="package-list-cell package-list-build" title={pkg.build_number}>{pkg.build_number || "-"}</td>
+                  <td className="package-list-cell package-list-actions-cell">
+                    <div className="package-list-actions">
                       <button
                         onClick={() => handleCopyPackageName(pkg.name)}
-                        className="chip"
+                        className="chip package-list-action"
                       >
                         {t('packageList.copyPkgName')}
                       </button>
                       <button
                         onClick={() => handleExportApk(pkg.name)}
                         disabled={exportingPackage !== null || !deviceTarget.serial}
-                        className="chip disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="chip package-list-action disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {exportingPackage === pkg.name ? t('packageList.exportingApk') : t('packageList.exportApk')}
+                      </button>
+                      <button
+                        onClick={() => openLogDialog(pkg.name)}
+                        disabled={pullingLogsPackage !== null || !deviceTarget.serial}
+                        className="chip package-list-action package-list-action-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {pullingLogsPackage === pkg.name ? t('packageList.pullingLogs') : t('packageList.pullLogs')}
                       </button>
                     </div>
                   </td>
@@ -241,6 +395,78 @@ export default function PackageList({ deviceTarget }: Props) {
       {packages.length > 0 && (
         <div className="p-2 border-t border-gray-200 text-xs text-gray-400 text-center">
           {t('packageList.totalPackages', { sorted: sorted.length, total: packages.length })}
+        </div>
+      )}
+
+      {logDialogPackage && (
+        <div className="package-log-dialog-backdrop" role="presentation" onMouseDown={closeLogDialog}>
+          <section
+            className="package-log-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="package-log-dialog-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="package-log-dialog-header">
+              <div>
+                <h2 id="package-log-dialog-title">{t("packageList.logDialogTitle")}</h2>
+                <p>{logDialogPackage}</p>
+              </div>
+              <button type="button" className="package-log-dialog-close" onClick={closeLogDialog} aria-label={t("packageList.cancel")}>
+                ×
+              </button>
+            </div>
+
+            <p className="package-log-dialog-hint">{t("packageList.logDialogHint")}</p>
+
+            <div className="package-log-detection-row">
+              <span>{t("packageList.detectedPaths")}</span>
+              <button type="button" className="chip package-list-action" onClick={() => void detectLogPaths(logDialogPackage)} disabled={detectingLogs || Boolean(pullingLogsPackage)}>
+                {detectingLogs ? t("packageList.detectingLogs") : t("packageList.redetectLogs")}
+              </button>
+            </div>
+
+            {detectedLogPaths.length > 0 ? (
+              <div className="package-log-path-options">
+                {detectedLogPaths.map((candidate) => (
+                  <button
+                    type="button"
+                    key={candidate.path}
+                    className={`package-log-path-option${selectedLogPath === candidate.path ? " is-selected" : ""}`}
+                    onClick={() => setSelectedLogPath(candidate.path)}
+                  >
+                    <span className="package-log-path-option-path">{candidate.path}</span>
+                    <span className="package-log-path-option-source">{logPathSourceLabel(candidate.source)}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="package-log-empty">{detectingLogs ? t("packageList.detectingLogs") : t("packageList.noDetectedPaths")}</p>
+            )}
+
+            <label className="package-log-path-field">
+              <span>{t("packageList.logPathLabel")}</span>
+              <input
+                value={selectedLogPath}
+                onChange={(event) => setSelectedLogPath(event.target.value)}
+                placeholder={t("packageList.logPathPlaceholder")}
+                spellCheck={false}
+                autoComplete="off"
+              />
+              <small>{t("packageList.logPathManualHint")}</small>
+            </label>
+
+            {logDialogError && <div className="package-log-dialog-error">{logDialogError}</div>}
+
+            <div className="package-log-dialog-actions">
+              <button type="button" className="btn btn-secondary btn-sm" onClick={closeLogDialog} disabled={Boolean(pullingLogsPackage)}>
+                {t("packageList.cancel")}
+              </button>
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => void handlePullLogs()} disabled={Boolean(pullingLogsPackage) || !selectedLogPath.trim()}>
+                {pullingLogsPackage ? t("packageList.pullingLogs") : t("packageList.collectLogs")}
+              </button>
+            </div>
+          </section>
         </div>
       )}
     </div>
