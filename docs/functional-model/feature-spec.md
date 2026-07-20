@@ -13,8 +13,10 @@ Entry points:
 Logic:
 
 - `check_adb_available` resolves ADB through `src-tauri/src/adb.rs`.
-- macOS path priority is system ADB, SDK ADB, bundled ADB.
-- Windows path priority is bundled ADB, system ADB, SDK ADB.
+- ADB client path priority on every packaged platform is bundled ADB, system ADB, then SDK ADB.
+- A normal installation is self-contained and does not require or prompt for a global ADB installation. The install helper remains a fallback for an incomplete bundle or development environment.
+- scrcpy is launched with the same resolved ADB path through its `ADB` environment variable.
+- The ADB server remains shared on the standard port. Version-scoped startup recovery restarts it through the bundled client only when no connected device would be disrupted; otherwise the active server is preserved.
 - `install_adb` downloads official Android platform-tools zip, extracts it under the user SDK location, and emits progress events.
 
 Important details:

@@ -162,14 +162,9 @@ fn select_adb_path(
     system: Option<PathBuf>,
     sdk: Option<PathBuf>,
 ) -> Option<PathBuf> {
-    if cfg!(target_os = "macos") {
-        // GUI-launched apps receive a very small PATH on macOS. Prefer a real
-        // host adb when available, because users often repair wireless ADB from
-        // that server and the app should keep using the same healthy server.
-        system.or(sdk).or(bundled)
-    } else {
-        bundled.or(system).or(sdk)
-    }
+    // Keep packaged behavior deterministic across computers. A system or SDK
+    // adb is only a fallback for development or an incomplete app bundle.
+    bundled.or(system).or(sdk)
 }
 
 fn new_adb_command(app: &AppHandle) -> Result<Command, AdbError> {
@@ -392,24 +387,30 @@ pub fn check_adb_available(app: &AppHandle) -> bool {
 mod tests {
     use super::*;
 
-    #[cfg(target_os = "macos")]
     #[test]
-    fn macos_prefers_host_adb_over_bundled_adb() {
+    fn packaged_app_prefers_bundled_adb_over_host_and_sdk_adb() {
         let bundled = Some(PathBuf::from("/app/resources/cozyla-adb"));
         let system = Some(PathBuf::from("/opt/homebrew/bin/adb"));
         let sdk = Some(PathBuf::from(
             "/Users/example/Library/Android/sdk/platform-tools/adb",
         ));
 
-        assert_eq!(select_adb_path(bundled, system.clone(), sdk), system);
+        assert_eq!(select_adb_path(bundled.clone(), system, sdk), bundled);
     }
 
-    #[cfg(target_os = "macos")]
     #[test]
-    fn macos_falls_back_to_bundled_adb_without_host_adb() {
-        let bundled = Some(PathBuf::from("/app/resources/cozyla-adb"));
+    fn falls_back_to_system_adb_when_bundled_adb_is_missing() {
+        let system = Some(PathBuf::from("/usr/local/bin/adb"));
+        let sdk = Some(PathBuf::from("/sdk/platform-tools/adb"));
 
-        assert_eq!(select_adb_path(bundled.clone(), None, None), bundled);
+        assert_eq!(select_adb_path(None, system.clone(), sdk), system);
+    }
+
+    #[test]
+    fn falls_back_to_sdk_adb_when_bundled_and_system_adb_are_missing() {
+        let sdk = Some(PathBuf::from("/sdk/platform-tools/adb"));
+
+        assert_eq!(select_adb_path(None, None, sdk.clone()), sdk);
     }
 
     #[cfg(target_os = "macos")]
@@ -430,12 +431,8 @@ mod tests {
         );
     }
 
-    #[cfg(not(target_os = "macos"))]
     #[test]
-    fn non_macos_prefers_bundled_adb() {
-        let bundled = Some(PathBuf::from("/app/resources/adb"));
-        let system = Some(PathBuf::from("/usr/bin/adb"));
-
-        assert_eq!(select_adb_path(bundled.clone(), system, None), bundled);
+    fn reports_unavailable_when_no_adb_source_exists() {
+        assert_eq!(select_adb_path(None, None, None), None);
     }
 }

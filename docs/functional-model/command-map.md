@@ -120,7 +120,7 @@ This map connects user-facing actions to frontend code, Tauri commands, and back
 
 `src-tauri/src/adb.rs`
 
-- Resolves bundled/system/SDK ADB path.
+- Resolves one shared ADB client path with bundled platform-tools first, then system and SDK fallbacks.
 - Ensures Unix executable bit.
 - Builds ADB commands with optional `-s <serial>`.
 - Applies macOS terminal-like environment.

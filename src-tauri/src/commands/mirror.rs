@@ -5,9 +5,7 @@ use std::fs::File;
 #[cfg(target_os = "windows")]
 use std::io::Write;
 use std::io::{BufRead, Read};
-#[cfg(target_os = "windows")]
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
@@ -207,6 +205,27 @@ pub async fn install_scrcpy(
     }
 }
 
+fn build_screen_mirror_command(
+    scrcpy_path: &Path,
+    adb_path: &Path,
+    device_serial: &str,
+    audio_enabled: bool,
+) -> Command {
+    let mut command = process::hidden_command(scrcpy_path);
+    command.args(["-s", device_serial]);
+    if !audio_enabled {
+        command.arg("--no-audio");
+    }
+    command
+        .arg("--window-title")
+        .arg("ADB Manager - Screen Mirror")
+        .env("ADB", adb_path)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    command
+}
+
 #[tauri::command(async)]
 pub fn start_screen_mirror(
     app: AppHandle,
@@ -242,18 +261,12 @@ pub fn start_screen_mirror(
         .ok_or_else(|| AdbError::CommandFailed(t!("mirror.scrcpy_not_found").into_owned()))?;
     let adb_path = adb::get_adb_path(&app)?;
 
-    let mut command = process::hidden_command(&scrcpy_path);
-    command.args(["-s", &device_serial]);
-    if !audio_enabled.unwrap_or(false) {
-        command.arg("--no-audio");
-    }
-    command
-        .arg("--window-title")
-        .arg("ADB Manager - Screen Mirror")
-        .env("ADB", &adb_path)
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
+    let mut command = build_screen_mirror_command(
+        &scrcpy_path,
+        &adb_path,
+        &device_serial,
+        audio_enabled.unwrap_or(false),
+    );
 
     // If using bundled scrcpy, point it to the bundled scrcpy-server
     if let Some(server_path) = get_bundled_scrcpy_server_path(&app) {
@@ -2280,6 +2293,24 @@ fn emit_install_progress(app: &AppHandle, message: &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn screen_mirror_command_uses_resolved_adb_binary() {
+        let scrcpy_path = PathBuf::from("/app/resources/scrcpy");
+        let adb_path = PathBuf::from("/app/resources/cozyla-adb");
+
+        let command = build_screen_mirror_command(&scrcpy_path, &adb_path, "device-serial", false);
+        let adb_env = command
+            .get_envs()
+            .find(|(key, _)| *key == std::ffi::OsStr::new("ADB"))
+            .and_then(|(_, value)| value);
+
+        assert_eq!(command.get_program(), scrcpy_path.as_os_str());
+        assert_eq!(adb_env, Some(adb_path.as_os_str()));
+        assert!(command
+            .get_args()
+            .any(|arg| arg == std::ffi::OsStr::new("--no-audio")));
+    }
 
     #[test]
     fn parses_brief_launchable_activity_output() {

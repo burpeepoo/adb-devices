@@ -78,8 +78,9 @@ Device identity:
 
 ADB command behavior:
 
-- macOS prefers host/system ADB, then SDK ADB, then bundled ADB. This keeps the in-app server closer to the command-line server users repair manually.
-- non-macOS prefers bundled ADB, then system ADB, then SDK ADB.
+- Every packaged platform selects ADB Manager's bundled platform-tools ADB client first, then falls back to a system or SDK ADB only when the bundled resource is unavailable. A normal installation therefore does not require a global ADB installation.
+- The host ADB server remains shared on the standard port instead of starting a competing private server. Startup recovery restarts that shared server with the bundled client only when no device is connected; an existing server with online devices is retained to avoid disconnecting them.
+- scrcpy receives the same resolved ADB executable through its `ADB` environment variable instead of selecting its downloaded companion ADB independently.
 - macOS ADB subprocesses get a terminal-like `PATH`, `LANG`, and home current directory.
 - Wireless pair/connect/restart commands are serialized through `AppState.adb_server_operation`.
 - ADB restart preserves existing pairing files; wireless repair refreshes `adb_known_hosts.pb` while preserving `adbkey` and `adbkey.pub`.
