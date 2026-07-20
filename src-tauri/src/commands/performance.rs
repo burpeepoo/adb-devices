@@ -463,6 +463,7 @@ fn build_stats_probe_script(
         r#"{package_assignment}
 {slow_assignment}
 {frame_assignment}
+page_size="$(getconf PAGESIZE 2>/dev/null || getconf PAGE_SIZE 2>/dev/null || true)"
 pid=""
 if [ -n "$pkg" ]; then
   pid="$(pidof "$pkg" 2>/dev/null | tr ' ' '\n' | head -n 1)"
@@ -476,6 +477,8 @@ echo "__PID_STAT__"
 if [ -n "$pid" ]; then cat "/proc/$pid/stat" 2>/dev/null; fi
 echo "__PID_STATUS__"
 if [ -n "$pid" ]; then cat "/proc/$pid/status" 2>/dev/null; fi
+echo "__PAGE_SIZE__"
+echo "$page_size"
 echo "__MEMINFO__"
 cat /proc/meminfo 2>/dev/null
 echo "__NET_DEV__"
@@ -503,6 +506,9 @@ if [ "$gpu_found" = "0" ]; then
   echo "reason=gpu sysfs counters unavailable"
 fi
 if [ "$include_slow" = "1" ]; then
+  echo "__DUMPSYS_MEMINFO_TARGET__"
+  echo "package=$pkg"
+  echo "pid=$pid"
   echo "__DUMPSYS_MEMINFO__"
   if [ -n "$pkg" ]; then dumpsys meminfo "$pkg" 2>/dev/null | head -n 120; fi
   echo "__BATTERY__"
@@ -550,6 +556,7 @@ fn build_stream_script(
     format!(
         r#"fixed_pkg={fixed_package_literal}
 follow_foreground={follow}
+page_size="$(getconf PAGESIZE 2>/dev/null || getconf PAGE_SIZE 2>/dev/null || true)"
 cache_dir="/data/local/tmp/adb-manager-perf-$$"
 cache_enabled=1
 mkdir -p "$cache_dir" 2>/dev/null || cache_enabled=0
@@ -591,6 +598,8 @@ emit_fast_probe() {{
   if [ -n "$pid" ]; then cat "/proc/$pid/stat" 2>/dev/null; fi
   echo "__PID_STATUS__"
   if [ -n "$pid" ]; then cat "/proc/$pid/status" 2>/dev/null; fi
+  echo "__PAGE_SIZE__"
+  echo "$page_size"
   echo "__MEMINFO__"
   cat /proc/meminfo 2>/dev/null
   echo "__NET_DEV__"
@@ -628,6 +637,9 @@ refresh_slow_cache() {{
     tmp="$slow_cache.tmp"
     {{
       resolve_target
+      echo "__DUMPSYS_MEMINFO_TARGET__"
+      echo "package=$pkg"
+      echo "pid=$pid"
       echo "__DUMPSYS_MEMINFO__"
       if [ -n "$pkg" ]; then dumpsys meminfo "$pkg" 2>/dev/null | head -n 120; fi
       echo "__BATTERY__"
@@ -719,6 +731,13 @@ fn parse_performance_sample(
     let target = parse_target_section(section(&sections, "TARGET"));
     let target_package = target_package.or(target.package.clone());
     let pid = target.pid;
+    let page_size_bytes = first_number_u64(section(&sections, "PAGE_SIZE"));
+    let meminfo_target = parse_target_section(section(&sections, "DUMPSYS_MEMINFO_TARGET"));
+    let pss_kb = if target_section_matches(target_package.as_deref(), pid, &meminfo_target) {
+        parse_meminfo_pss(section(&sections, "DUMPSYS_MEMINFO"))
+    } else {
+        None
+    };
     let process = ProcessSample {
         package_name: target_package.clone(),
         pid,
@@ -726,8 +745,8 @@ fn parse_performance_sample(
             .or_else(|| parse_proc_stat_state(section(&sections, "PID_STAT"))),
         cpu_jiffies: parse_process_cpu_jiffies(section(&sections, "PID_STAT")),
         rss_kb: parse_status_value_kb(section(&sections, "PID_STATUS"), "VmRSS")
-            .or_else(|| parse_proc_stat_rss_kb(section(&sections, "PID_STAT"))),
-        pss_kb: parse_meminfo_pss(section(&sections, "DUMPSYS_MEMINFO")),
+            .or_else(|| parse_proc_stat_rss_kb(section(&sections, "PID_STAT"), page_size_bytes)),
+        pss_kb,
         thread_count: parse_status_value_u32(section(&sections, "PID_STATUS"), "Threads"),
         running: pid.is_some(),
     };
@@ -930,6 +949,17 @@ fn parse_target_section(section: &str) -> TargetSection {
     target
 }
 
+fn target_section_matches(
+    package: Option<&str>,
+    pid: Option<u32>,
+    measured: &TargetSection,
+) -> bool {
+    package.is_some()
+        && pid.is_some()
+        && measured.package.as_deref() == package
+        && measured.pid == pid
+}
+
 fn parse_proc_stat_cpu(section: &str) -> Option<(u64, u64)> {
     let line = section.lines().find(|line| line.starts_with("cpu "))?;
     let values = line
@@ -957,13 +987,17 @@ fn parse_proc_stat_state(section: &str) -> Option<String> {
     fields.first().map(|value| (*value).to_string())
 }
 
-fn parse_proc_stat_rss_kb(section: &str) -> Option<u64> {
+fn parse_proc_stat_rss_kb(section: &str, page_size_bytes: Option<u64>) -> Option<u64> {
     let (_, fields) = split_proc_stat(section)?;
     let rss_pages = fields.get(21)?.parse::<i64>().ok()?;
     if rss_pages < 0 {
         return None;
     }
-    Some(rss_pages as u64 * 4)
+    let page_size_bytes = page_size_bytes?;
+    if page_size_bytes == 0 || page_size_bytes % 1024 != 0 {
+        return None;
+    }
+    Some((rss_pages as u64).saturating_mul(page_size_bytes / 1024))
 }
 
 fn split_proc_stat(section: &str) -> Option<(String, Vec<&str>)> {
@@ -1014,8 +1048,7 @@ fn first_number_f64(value: &str) -> Option<f64> {
 
 fn parse_system_meminfo(section: &str) -> SystemMemInfo {
     let total = parse_meminfo_value(section, "MemTotal");
-    let available = parse_meminfo_value(section, "MemAvailable")
-        .or_else(|| parse_meminfo_value(section, "MemFree"));
+    let available = parse_meminfo_value(section, "MemAvailable");
     let used = total
         .zip(available)
         .map(|(total, available)| total.saturating_sub(available));
@@ -1504,12 +1537,50 @@ mod tests {
     }
 
     #[test]
+    fn proc_stat_rss_uses_the_device_page_size() {
+        let mut fields = vec!["0"; 22];
+        fields[0] = "S";
+        fields[21] = "25";
+        let stat = format!("123 (example) {}", fields.join(" "));
+
+        assert_eq!(parse_proc_stat_rss_kb(&stat, Some(4096)), Some(100));
+        assert_eq!(parse_proc_stat_rss_kb(&stat, Some(16384)), Some(400));
+        assert_eq!(parse_proc_stat_rss_kb(&stat, None), None);
+    }
+
+    #[test]
     fn parses_system_meminfo() {
         let parsed = parse_system_meminfo("MemTotal: 1000 kB\nMemAvailable: 250 kB\n");
 
         assert_eq!(parsed.mem_total_kb, Some(1000));
         assert_eq!(parsed.mem_available_kb, Some(250));
         assert_eq!(parsed.mem_used_kb, Some(750));
+    }
+
+    #[test]
+    fn does_not_treat_memfree_as_memavailable() {
+        let parsed = parse_system_meminfo("MemTotal: 1000 kB\nMemFree: 250 kB\n");
+
+        assert_eq!(parsed.mem_total_kb, Some(1000));
+        assert_eq!(parsed.mem_available_kb, None);
+        assert_eq!(parsed.mem_used_kb, None);
+    }
+
+    #[test]
+    fn accepts_pss_only_when_slow_cache_matches_the_current_target() {
+        let matching = parse_performance_stream_frame(
+            42,
+            "USB123".to_string(),
+            "__FOREGROUND__\npackage=com.example.app\nactivity=.MainActivity\n__TARGET__\npackage=com.example.app\npid=123\n__PID_STATUS__\nVmRSS:\t4096 kB\n__DUMPSYS_MEMINFO_TARGET__\npackage=com.example.app\npid=123\n__DUMPSYS_MEMINFO__\nTOTAL PSS: 12000\n",
+        );
+        let stale = parse_performance_stream_frame(
+            43,
+            "USB123".to_string(),
+            "__FOREGROUND__\npackage=com.example.new\nactivity=.MainActivity\n__TARGET__\npackage=com.example.new\npid=456\n__PID_STATUS__\nVmRSS:\t8192 kB\n__DUMPSYS_MEMINFO_TARGET__\npackage=com.example.app\npid=123\n__DUMPSYS_MEMINFO__\nTOTAL PSS: 12000\n",
+        );
+
+        assert_eq!(matching.process.pss_kb, Some(12000));
+        assert_eq!(stale.process.pss_kb, None);
     }
 
     #[test]
@@ -1583,6 +1654,7 @@ wlan0: 100 1 0 0 0 0 0 0 300 1 0 0 0 0 0 0
         assert!(script.contains("__PERF_FRAME_START__"));
         assert!(script.contains("__PERF_FRAME_END__"));
         assert!(script.contains("refresh_slow_cache &"));
+        assert!(script.contains("__DUMPSYS_MEMINFO_TARGET__"));
         assert!(script.contains("refresh_frame_cache &"));
         assert!(script.contains("cat \"$slow_cache\""));
         assert!(script.contains("sleep 0.5"));

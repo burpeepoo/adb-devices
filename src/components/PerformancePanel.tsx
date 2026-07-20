@@ -29,7 +29,9 @@ import {
   calculatePerformanceMetrics,
   PERFORMANCE_DEFAULT_FAST_INTERVAL_MS,
   PERFORMANCE_FAST_INTERVAL_OPTIONS_MS,
+  freshPerformanceStreamSample,
   initialPerformanceCadenceMarks,
+  hasProcessRssGrowth,
   isPerformanceSampleTimeout,
   mergePerformanceAgentSample,
   nextPerformancePollDueMs,
@@ -169,7 +171,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
     return true;
   }, [ensurePerformanceStream]);
 
-  const collectOneShotSample = useCallback(async () => {
+  const requestOneShotSample = useCallback(async () => {
     const now = Date.now();
     const includeSlow = shouldIncludeSlowSample(now, lastSlowSampleMsRef.current);
     const includeFrameStats = shouldIncludeFrameSample(now, lastFrameSampleMsRef.current);
@@ -184,11 +186,20 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
     );
     if (includeSlow) lastSlowSampleMsRef.current = now;
     if (includeFrameStats) lastFrameSampleMsRef.current = now;
+    const timestamp = Number(sample.timestamp_ms);
+    if (Number.isFinite(timestamp) && timestamp > (lastStreamSampleTimestampRef.current ?? 0)) {
+      lastStreamSampleTimestampRef.current = timestamp;
+    }
+    return sample;
+  }, [deviceSerial, lockedPackage]);
+
+  const collectOneShotSample = useCallback(async () => {
+    const sample = await requestOneShotSample();
     setSamples((current) => prunePerformanceSamples([...current, sample], Number(sample.timestamp_ms)));
     setLastSampleCompletedAtMs(Number(sample.timestamp_ms) || Date.now());
     setStatus(null);
     return true;
-  }, [deviceSerial, lockedPackage]);
+  }, [requestOneShotSample]);
 
   const collectAgentMergedSample = useCallback(async () => {
     const agentSample = await withPerformanceSampleTimeout(
@@ -202,18 +213,27 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
     let adbSample: PerformanceSample | null = null;
     try {
       const snapshot = await ensurePerformanceStream();
-      adbSample = snapshot?.last_sample ?? null;
+      adbSample = freshPerformanceStreamSample(snapshot, lastStreamSampleTimestampRef.current);
+      if (adbSample) {
+        lastStreamSampleTimestampRef.current = Number(adbSample.timestamp_ms);
+      } else {
+        adbSample = await requestOneShotSample();
+      }
       if (snapshot?.last_error) {
         setStatus({ ok: false, msg: snapshot.last_error });
       }
     } catch {
-      adbSample = null;
+      try {
+        adbSample = await requestOneShotSample();
+      } catch {
+        adbSample = null;
+      }
     }
     const sample = mergePerformanceAgentSample(adbSample, agentSample);
     setSamples((current) => prunePerformanceSamples([...current, sample], Number(sample.timestamp_ms)));
     setLastSampleCompletedAtMs(Number(sample.timestamp_ms) || Date.now());
     return true;
-  }, [deviceSerial, ensurePerformanceStream, lockedPackage, sampleIntervalMs]);
+  }, [deviceSerial, ensurePerformanceStream, lockedPackage, requestOneShotSample, sampleIntervalMs]);
 
   const refreshAgentStatus = useCallback(async () => {
     if (!deviceSerial) {
@@ -637,8 +657,8 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
         <MetricSection title={t("performance.app")}>
           <MetricTile label="PID" value={displaySample?.pid ?? emptyValue} />
           <MetricTile label="CPU" value={displaySample ? formatPercent(displayMetrics.processCpuPercent) : emptyValue} />
-          <MetricTile label="RSS" value={displaySample ? formatKb(displaySample.process.rss_kb) : emptyValue} />
-          <MetricTile label="PSS" value={displaySample ? formatKb(displaySample.process.pss_kb) : emptyValue} />
+          <MetricTile label={t("performance.appMemoryPss")} value={displaySample ? formatKb(displaySample.process.pss_kb) : emptyValue} />
+          <MetricTile label={t("performance.rssAuxiliary")} value={displaySample ? formatKb(displaySample.process.rss_kb) : emptyValue} />
           <MetricTile label={t("performance.threads")} value={displaySample?.process.thread_count ?? emptyValue} />
           <MetricTile label={t("performance.state")} value={displaySample?.process.state || (displaySample?.target_package ? t("performance.notRunning") : emptyValue)} />
         </MetricSection>
@@ -657,7 +677,7 @@ export default function PerformancePanel({ deviceTarget, active }: Props) {
           <MetricTile label={t("performance.cpuFrequency")} value={displaySample ? formatCpuFrequencyPair(displaySample) : emptyValue} />
           <MetricTile label={t("performance.gpuUsage")} value={displaySample ? formatGpuUsage(displayMetrics.gpuUsagePercent, displaySample, t) : emptyValue} />
           <MetricTile label={t("performance.gpuFrequency")} value={displaySample ? formatGpuFrequencyPair(displaySample) : emptyValue} />
-          <MetricTile label={t("performance.memory")} value={displaySample ? formatMemoryPair(displaySample) : emptyValue} />
+          <MetricTile label={t("performance.memoryAvailable")} value={displaySample ? formatAvailableMemoryPair(displaySample) : emptyValue} />
           <MetricTile label={t("performance.network")} value={displaySample ? formatNetwork(displayMetrics) : emptyValue} />
         </MetricSection>
 
@@ -906,16 +926,17 @@ function TrendSection({
     },
     {
       key: "rss",
-      title: t("performance.trendRss"),
+      title: t("performance.trendRssLive"),
       color: "var(--color-citrus)",
       valueOf: (point) => point.rssMb,
       formatValue: formatMb,
     },
     {
-      key: "memory",
-      title: t("performance.trendMemory"),
+      key: "memoryAvailable",
+      title: t("performance.trendMemoryAvailable"),
       color: "var(--color-meadow)",
-      valueOf: (point) => point.memoryUsedGb,
+      zeroBase: true,
+      valueOf: (point) => point.memoryAvailableGb,
       formatValue: formatGb,
     },
     {
@@ -1066,9 +1087,7 @@ function buildAlerts(samples: PerformanceSample[], latest: PerformanceSample | n
   if ((latest.battery.temperature_c ?? 0) >= 45) {
     alerts.push({ key: "temperature", message: t("performance.alertTemperature", { temp: formatTemperature(latest.battery.temperature_c) }) });
   }
-  const fiveMinutesAgo = Number(latest.timestamp_ms) - 5 * 60 * 1000;
-  const baseline = samples.find((sample) => Number(sample.timestamp_ms) >= fiveMinutesAgo && sample.process.rss_kb);
-  if (baseline?.process.rss_kb && latest.process.rss_kb && latest.process.rss_kb > baseline.process.rss_kb * 1.2) {
+  if (hasProcessRssGrowth(samples, latest)) {
     alerts.push({ key: "memory", message: t("performance.alertMemory") });
   }
   return alerts;
@@ -1227,9 +1246,8 @@ function formatGb(value: number | null | undefined) {
   return `${value.toFixed(1)} GB`;
 }
 
-function formatMemoryPair(sample: PerformanceSample | null) {
-  const usedKb = sample?.system.mem_used_kb ?? deriveUsed(sample?.system.mem_total_kb, sample?.system.mem_available_kb);
-  return formatLimitPair(usedKb, sample?.system.mem_total_kb, formatKb);
+function formatAvailableMemoryPair(sample: PerformanceSample | null) {
+  return formatLimitPair(sample?.system.mem_available_kb, sample?.system.mem_total_kb, formatKb);
 }
 
 function formatStoragePair(sample: PerformanceSample | null) {

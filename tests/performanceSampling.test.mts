@@ -15,6 +15,8 @@ import {
   buildPerformanceJsonExport,
   buildPerformanceTrendPoints,
   calculatePerformanceMetrics,
+  freshPerformanceStreamSample,
+  hasProcessRssGrowth,
   initialPerformanceCadenceMarks,
   isPerformanceSampleTimeout,
   nextPerformancePollDueMs,
@@ -24,7 +26,7 @@ import {
   shouldIncludeSlowSample,
   withPerformanceSampleTimeout,
 } from "../src/performanceSampling.ts";
-import type { PerformanceSample } from "../src/types/index.ts";
+import type { PerformanceSample, PerformanceStreamSnapshot } from "../src/types/index.ts";
 
 test("performance sampling cadence separates slow and frame intervals", () => {
   assert.equal(shouldIncludeSlowSample(10_000, null), true);
@@ -63,6 +65,27 @@ test("performance stream follows selected interval after first sample", () => {
   assert.equal(nextPerformanceStreamPollIntervalMs(2000, true), 2000);
 });
 
+test("performance stream samples must be active and advance the ADB timestamp", () => {
+  const current = sample({ timestamp_ms: 2_000 });
+  const snapshot: PerformanceStreamSnapshot = {
+    active: true,
+    device_serial: "USB123",
+    target_package: current.target_package,
+    follow_foreground: true,
+    interval_ms: 1_000,
+    started_at_ms: 1_000,
+    last_sample: current,
+    last_error: null,
+  };
+
+  assert.equal(freshPerformanceStreamSample(snapshot, null), current);
+  assert.equal(freshPerformanceStreamSample(snapshot, 1_999), current);
+  assert.equal(freshPerformanceStreamSample(snapshot, 2_000), null);
+  assert.equal(freshPerformanceStreamSample(snapshot, 2_001), null);
+  assert.equal(freshPerformanceStreamSample({ ...snapshot, active: false }, null), null);
+  assert.equal(freshPerformanceStreamSample({ ...snapshot, last_sample: null }, null), null);
+});
+
 test("performance agent status normalizes unknown backend states to failed", () => {
   assert.equal(normalizePerformanceAgentStatus("connected"), "connected");
   assert.equal(normalizePerformanceAgentStatus("permission_limited"), "permission_limited");
@@ -77,23 +100,41 @@ test("performance sample source reflects agent and adb availability", () => {
   assert.equal(performanceSampleSource("failed", false, false), "agent_unavailable");
 });
 
-test("performance agent sample merge keeps adb system metrics and uses fresher agent app metrics", () => {
+test("performance agent sample merge keeps ADB target-process metrics authoritative", () => {
   const adb = sample({
     timestamp_ms: 1_000,
     packageName: "com.example.game",
+    pid: 123,
     rssKb: 10_000,
     pssKb: 9_000,
     cpuTotal: 1_000,
     cpuIdle: 200,
+    rx: 1_000,
+    tx: 2_000,
   });
   const agent = sample({
     timestamp_ms: 1_200,
     packageName: "com.example.game",
+    pid: 999,
     rssKb: 22_000,
     pssKb: 20_000,
+    rx: 9_000,
+    tx: 8_000,
   });
   agent.sample_source = "agent";
   agent.process.thread_count = 42;
+  agent.foreground_package = "com.example.foreground";
+  agent.frame_stats = {
+    supported: true,
+    frame_count: 999,
+    fps: 1,
+    average_frame_ms: 999,
+    p50_frame_ms: 999,
+    p95_frame_ms: 999,
+    jank_count: 999,
+    jank_rate: 100,
+    reason: "untrusted Agent frame data",
+  };
   agent.system.cpu_total_jiffies = null;
   agent.system.cpu_idle_jiffies = null;
   agent.battery.temperature_c = null;
@@ -103,14 +144,57 @@ test("performance agent sample merge keeps adb system metrics and uses fresher a
 
   assert.equal(merged.sample_source, "merged");
   assert.equal(merged.agent_status, "connected");
-  assert.equal(merged.timestamp_ms, 1_200);
-  assert.equal(merged.process.rss_kb, 22_000);
-  assert.equal(merged.process.pss_kb, 20_000);
-  assert.equal(merged.process.thread_count, 42);
+  assert.equal(merged.timestamp_ms, 1_000);
+  assert.equal(merged.foreground_package, "com.example.foreground");
+  assert.equal(merged.pid, 123);
+  assert.equal(merged.process.pid, 123);
+  assert.equal(merged.process.rss_kb, 10_000);
+  assert.equal(merged.process.pss_kb, 9_000);
+  assert.equal(merged.process.thread_count, 20);
+  assert.equal(merged.network.rx_bytes, 1_000);
+  assert.equal(merged.network.tx_bytes, 2_000);
   assert.equal(merged.system.cpu_total_jiffies, 1_000);
   assert.equal(merged.system.cpu_idle_jiffies, 200);
   assert.equal(merged.battery.temperature_c, 35);
   assert.equal(merged.storage.data_available_kb, 40_000);
+  assert.equal(merged.frame_stats?.fps, 58);
+  assert.equal(merged.frame_stats?.reason, null);
+  assert.ok(merged.unavailable.includes("Agent target-process metrics are unavailable; using ADB metrics"));
+});
+
+test("agent-only samples do not present Agent self metrics as target-app metrics", () => {
+  const agent = sample({
+    timestamp_ms: 1_200,
+    packageName: "com.example.game",
+    pid: 999,
+    rssKb: 22_000,
+    pssKb: 20_000,
+    rx: 9_000,
+    tx: 8_000,
+  });
+  agent.sample_source = "agent";
+
+  const sanitized = mergePerformanceAgentSample(null, agent);
+
+  assert.equal(sanitized.sample_source, "agent");
+  assert.equal(sanitized.pid, null);
+  assert.equal(sanitized.process.package_name, null);
+  assert.equal(sanitized.process.pid, null);
+  assert.equal(sanitized.process.rss_kb, null);
+  assert.equal(sanitized.process.pss_kb, null);
+  assert.equal(sanitized.process.thread_count, null);
+  assert.equal(sanitized.network.rx_bytes, null);
+  assert.equal(sanitized.network.tx_bytes, null);
+  assert.equal(sanitized.system.mem_total_kb, null);
+  assert.equal(sanitized.system.mem_available_kb, null);
+  assert.equal(sanitized.battery.level_percent, null);
+  assert.equal(sanitized.thermal.status, null);
+  assert.equal(sanitized.display.refresh_rate_hz, null);
+  assert.equal(sanitized.storage.data_available_kb, null);
+  assert.equal(sanitized.gpu.supported, false);
+  assert.equal(sanitized.gpu.busy_percent, null);
+  assert.equal(sanitized.frame_stats, null);
+  assert.ok(sanitized.unavailable.includes("Agent target-process metrics are unavailable; ADB sample required"));
 });
 
 test("performance sample watchdog has headroom for slow wireless probes", () => {
@@ -196,7 +280,9 @@ test("performance trend points derive chart-ready values from adjacent samples",
       rx: 1_024,
       tx: 2_048,
       rssKb: 10_240,
+      pssKb: 8_192,
       memUsedKb: 1_048_576,
+      memAvailableKb: 3_145_728,
       gpuBusyPercent: 12,
     }),
     sample({
@@ -207,7 +293,9 @@ test("performance trend points derive chart-ready values from adjacent samples",
       rx: 3_072,
       tx: 4_096,
       rssKb: 20_480,
+      pssKb: 15_360,
       memUsedKb: 2_097_152,
+      memAvailableKb: 2_621_440,
       gpuBusyPercent: 24,
     }),
   ]);
@@ -215,10 +303,12 @@ test("performance trend points derive chart-ready values from adjacent samples",
   assert.equal(points.length, 2);
   assert.equal(points[0].processCpuPercent, null);
   assert.equal(points[0].rssMb, 10);
+  assert.equal(points[0].pssMb, 8);
   assert.equal(points[1].processCpuPercent, 10);
   assert.equal(points[1].systemCpuPercent, 80);
   assert.equal(points[1].rssMb, 20);
-  assert.equal(points[1].memoryUsedGb, 2);
+  assert.equal(points[1].pssMb, 15);
+  assert.equal(points[1].memoryAvailableGb, 2.5);
   assert.equal(points[1].gpuUsagePercent, 24);
   assert.equal(points[1].gpuFrequencyMhz, 500);
   assert.equal(points[1].networkKbPerSecond, 2);
@@ -275,6 +365,38 @@ test("performance display snapshot does not carry app metrics across target pack
   assert.equal(snapshot.sample.target_package, "com.android.settings");
   assert.equal(snapshot.sample.process.pss_kb, null);
   assert.equal(snapshot.sample.frame_stats, null);
+});
+
+test("performance display snapshot does not carry PSS across a same-package process restart", () => {
+  const previousProcess = sample({
+    timestamp_ms: 1_000,
+    packageName: "com.example.app",
+    pid: 123,
+    pssKb: 12_000,
+  });
+  const restartedProcess = sample({
+    timestamp_ms: 2_000,
+    packageName: "com.example.app",
+    pid: 456,
+  });
+  restartedProcess.process.pss_kb = null;
+
+  const snapshot = buildPerformanceDisplaySnapshot([previousProcess, restartedProcess]);
+
+  assert.ok(snapshot);
+  assert.equal(snapshot.sample.process.pid, 456);
+  assert.equal(snapshot.sample.process.pss_kb, null);
+});
+
+test("RSS growth alerts compare only the same process over a complete window", () => {
+  const baseline = sample({ timestamp_ms: 0, packageName: "com.example.app", pid: 123, rssKb: 10_000 });
+  const grown = sample({ timestamp_ms: 300_000, packageName: "com.example.app", pid: 123, rssKb: 12_500 });
+  const tooSoon = sample({ timestamp_ms: 60_000, packageName: "com.example.app", pid: 123, rssKb: 12_500 });
+  const restarted = sample({ timestamp_ms: 300_000, packageName: "com.example.app", pid: 456, rssKb: 12_500 });
+
+  assert.equal(hasProcessRssGrowth([baseline, grown], grown), true);
+  assert.equal(hasProcessRssGrowth([baseline, tooSoon], tooSoon), false);
+  assert.equal(hasProcessRssGrowth([baseline, restarted], restarted), false);
 });
 
 test("performance GPU diagnostics classify available and limited counter states", () => {
@@ -355,8 +477,23 @@ test("performance bounded metrics show real limits without synthetic percent cap
   assert.match(source, /formatGpuFrequencyPair\(displaySample\)/);
   assert.match(source, /formatStoragePair\(displaySample\)/);
   assert.match(source, /formatGpuMemory\(displaySample\)/);
+  assert.match(source, /formatAvailableMemoryPair\(displaySample\)/);
+  assert.match(source, /performance\.memoryAvailable/);
   assert.match(source, /performance\.cpuFrequency/);
   assert.match(source, /overflowWrap: "anywhere"/);
+});
+
+test("performance UI prioritizes app PSS and device available-memory headroom", () => {
+  const source = readFileSync(new URL("../src/components/PerformancePanel.tsx", import.meta.url), "utf8");
+
+  assert.ok(source.indexOf('performance.appMemoryPss') < source.indexOf('performance.rssAuxiliary'));
+  assert.match(source, /title: t\("performance\.trendRssLive"\)/);
+  assert.match(source, /valueOf: \(point\) => point\.rssMb/);
+  assert.match(source, /title: t\("performance\.trendMemoryAvailable"\)/);
+  assert.match(source, /valueOf: \(point\) => point\.memoryAvailableGb/);
+  assert.match(source, /key: "memoryAvailable",[\s\S]*?zeroBase: true,[\s\S]*?point\.memoryAvailableGb/);
+  assert.match(source, /<Table\.Th>RSS<\/Table\.Th>/);
+  assert.match(source, /formatKb\(sample\.process\.rss_kb\)/);
 });
 
 test("performance GPU diagnostics default to collapsed details", () => {
@@ -401,6 +538,7 @@ test("performance exports include metadata and csv headers", () => {
   assert.equal(json.samples[0].target_package, "com.example.app");
   assert.match(csv, /gpu_busy_percent/);
   assert.match(csv, /gpu_memory_total_bytes/);
+  assert.match(csv, /mem_available_kb/);
   assert.match(csv, /^timestamp_ms,target_package,foreground_package/);
   assert.match(csv, /42,com\.example\.app,com\.example\.app/);
 });
@@ -417,6 +555,7 @@ function sample(overrides: {
   rssKb?: number;
   pssKb?: number;
   memUsedKb?: number;
+  memAvailableKb?: number;
   gpuBusyPercent?: number;
   gpuBusy?: number;
   gpuTotal?: number;
@@ -448,7 +587,7 @@ function sample(overrides: {
       cpu_total_jiffies: overrides.cpuTotal ?? 0,
       cpu_idle_jiffies: overrides.cpuIdle ?? 0,
       mem_total_kb: 1_000_000,
-      mem_available_kb: 500_000,
+      mem_available_kb: overrides.memAvailableKb ?? 500_000,
       mem_used_kb: overrides.memUsedKb ?? 500_000,
       cpu_frequency: {
         average_current_khz: 1_000_000,

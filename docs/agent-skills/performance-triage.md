@@ -7,6 +7,9 @@ As an Android performance investigator, I want a repeatable triage loop for slow
 ## Acceptance Criteria
 
 - CPU or process pressure is captured.
+- App memory uses PSS as the primary footprint while retaining RSS as an auxiliary resident-set signal.
+- Device memory uses `MemAvailable` headroom; a derived used percentage alone is not treated as memory pressure.
+- ADB owns target-process memory and network truth; ordinary Agent APK self metrics are never relabeled as the target app.
 - Foreground activity is confirmed.
 - Frame rendering evidence is captured when available.
 - Thermal and display-composition state are captured or marked unavailable.
@@ -24,4 +27,3 @@ As an Android performance investigator, I want a repeatable triage loop for slow
 ## Boundaries
 
 The ordinary APK Agent cannot unlock privileged GPU counters. ADB probes remain the source for system CPU, thermal, display, and gfxinfo fallback data.
-

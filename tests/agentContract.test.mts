@@ -52,6 +52,18 @@ test("agent APK is configured as a bundled Tauri resource", () => {
   assert.ok(statSync(new URL("../src-tauri/resources/agent/adb-manager-agent.apk", import.meta.url)).size > 0);
 });
 
+test("agent samples do not mislabel Agent self metrics as target-app metrics", () => {
+  const service = readFileSync(
+    new URL("../agent-android/src/main/java/com/cozyla/adbmanager/agent/AgentService.java", import.meta.url),
+    "utf8",
+  );
+
+  assert.doesNotMatch(service, /Debug\.getMemoryInfo/);
+  assert.doesNotMatch(service, /TrafficStats\.getUid/);
+  assert.doesNotMatch(service, /Process\.myPid/);
+  assert.match(service, /ordinary APK cannot read target process metrics/);
+});
+
 test("desktop build workflow ensures the Agent APK before frontend build", () => {
   const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
   const ensureScript = readFileSync(new URL("../scripts/ensure-agent-apk.mjs", import.meta.url), "utf8");

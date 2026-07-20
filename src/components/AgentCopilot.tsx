@@ -57,7 +57,11 @@ import {
 } from "../androidAgentSkills";
 import type { DeviceTargetState } from "../deviceTarget";
 import { getStore, saveStoreValue, STORE_KEYS } from "../storage";
-import { mergePerformanceAgentSample, normalizePerformanceAgentStatus } from "../performanceSampling";
+import {
+  mergePerformanceAgentSample,
+  normalizePerformanceAgentStatus,
+  performanceAgentContextSample,
+} from "../performanceSampling";
 import {
   addScoutTaskArtifact,
   decideScoutToolExecution,
@@ -6420,18 +6424,19 @@ async function collectPerformanceContextResult(
   }
 
   try {
-    agentSample = await invoke<PerformanceSample>("adb_agent_sample", {
+    const rawAgentSample = await invoke<PerformanceSample>("adb_agent_sample", {
       deviceSerial,
       targetPackage,
       intervalMs: 1000,
     });
+    agentSample = performanceAgentContextSample(rawAgentSample);
   } catch (error) {
     errors.push(`agent sample: ${String(error)}`);
   }
 
   try {
     streamSnapshot = await invoke<PerformanceStreamSnapshot>("adb_performance_stream_snapshot", { deviceSerial });
-    adbSample = streamSnapshot.last_sample;
+    adbSample = streamSnapshot.active ? streamSnapshot.last_sample : null;
     if (streamSnapshot.last_error) {
       errors.push(`performance stream: ${streamSnapshot.last_error}`);
     }

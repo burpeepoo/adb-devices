@@ -56,13 +56,15 @@ The desktop start command also tries `appops set <agent> GET_USAGE_STATS allow`;
 if the device rejects that app-op, Agent mode stays usable but reports
 `permission_limited`.
 
-V1 exposes a localhost-only local abstract socket through `adb forward`:
+V2 exposes a localhost-only local abstract socket through `adb forward`:
 
 - `GET /health`
 - `POST /target`
 - `GET /samples/stream`
 - `POST /stop`
 
-The APK does not unlock system GPU counters. It reports its own permissions and
-device-visible sampling data; desktop ADB probes continue to provide system
-CPU, battery, thermal, storage, GPU, and `gfxinfo` fallback data.
+The APK does not unlock another app's process, UID-network, or system GPU
+counters. It reports Agent health and device-visible foreground context; desktop
+ADB probes remain authoritative for target PID, RSS/PSS, threads, network,
+system CPU, battery, thermal, storage, GPU, and `gfxinfo` fallback data. Agent
+self-process metrics must never be labeled as target-app metrics.

@@ -278,13 +278,15 @@ Data and evidence ownership:
 
 - The frontend keeps a rolling 15-minute sample window.
 - Exported JSON/CSV includes metadata, intervals, and retained samples.
-- Agent APK samples are labeled by source and merged with ADB system samples when available.
+- Agent APK samples are labeled by source and contribute health/foreground context when available; ADB remains authoritative for target-process, target-memory, and device-network metrics.
 
 Interfaces and command boundary:
 
 - ADB-only sampling remains the compatible baseline.
 - Agent mode installs/starts/connects bundled `com.cozyla.adbmanager.agent` explicitly and checks `/health`.
-- Agent-only data must not replace unavailable system GPU, thermal, battery, storage, or `gfxinfo` probes.
+- Agent-only data must not replace target PID/RSS/PSS/threads, device network, system GPU, thermal, battery, storage, or `gfxinfo` probes.
+- Cached target-process metrics must carry package/PID provenance and must not survive a process restart under the same package name.
+- Available-memory headroom requires `MemAvailable`; unsupported kernels show the metric as unavailable instead of substituting `MemFree` under the same label.
 
 Safety, failure, and non-claims:
 

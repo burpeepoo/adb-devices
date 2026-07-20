@@ -125,7 +125,7 @@ The key requirement: evidence collection is agent-directed, not hardcoded as the
 | AI Agent | Conversation, reasoning, planning, deciding what tools to call, synthesizing results. |
 | ADB Manager | Device selection, permission policy, tool execution, artifact storage, UI, audit trail. |
 | ADB | Host-to-device bridge for commands and evidence collection. |
-| Device-side APK Agent | Optional telemetry provider for app/process/network data when installed and permitted. |
+| Device-side APK Agent | Optional provider of Agent health and foreground-package context when installed and permitted; ADB remains authoritative for performance telemetry. |
 | Embedded skills | Reusable optional evidence shortcuts the agent may invoke or adapt, not mandatory workflows. |
 | Evidence Session | Durable store for walkthrough, bug repro, and report artifacts. |
 

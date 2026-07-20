@@ -1,4 +1,9 @@
-import type { PerformanceAgentStatus, PerformanceSample, PerformanceSampleSource } from "./types";
+import type {
+  PerformanceAgentStatus,
+  PerformanceSample,
+  PerformanceSampleSource,
+  PerformanceStreamSnapshot,
+} from "./types";
 
 export const PERFORMANCE_FAST_INTERVAL_OPTIONS_MS = [500, 1000, 2000, 5000] as const;
 export const PERFORMANCE_DEFAULT_FAST_INTERVAL_MS = 1000;
@@ -8,6 +13,8 @@ export const PERFORMANCE_RETENTION_MS = 15 * 60 * 1000;
 export const PERFORMANCE_SAMPLE_WATCHDOG_MS = 20000;
 export const PERFORMANCE_SAMPLE_TIMEOUT_ERROR = "PERFORMANCE_SAMPLE_TIMEOUT";
 export const PERFORMANCE_STREAM_FIRST_SAMPLE_POLL_MS = 500;
+export const PERFORMANCE_RSS_GROWTH_WINDOW_MS = 5 * 60 * 1000;
+const AGENT_TARGET_METRICS_UNAVAILABLE = "Agent target-process metrics are unavailable";
 
 export interface PerformanceDerivedMetrics {
   processCpuPercent: number | null;
@@ -37,7 +44,7 @@ export interface PerformanceTrendPoint {
   systemCpuPercent: number | null;
   rssMb: number | null;
   pssMb: number | null;
-  memoryUsedGb: number | null;
+  memoryAvailableGb: number | null;
   fps: number | null;
   p95FrameMs: number | null;
   jankRate: number | null;
@@ -138,7 +145,11 @@ export function mergePerformanceAgentSample(
     throw new Error("at least one performance sample is required");
   }
   if (!adbSample) {
-    return markPerformanceSampleSource(agentSample!, "agent", agentSample!.agent_status ?? "connected");
+    return markPerformanceSampleSource(
+      agentContextOnlySample(agentSample!, `${AGENT_TARGET_METRICS_UNAVAILABLE}; ADB sample required`),
+      "agent",
+      agentSample!.agent_status ?? "connected",
+    );
   }
   if (!agentSample) {
     return markPerformanceSampleSource(adbSample, "adb", adbSample.agent_status ?? null);
@@ -146,27 +157,113 @@ export function mergePerformanceAgentSample(
 
   return {
     ...adbSample,
-    timestamp_ms: Math.max(adbSample.timestamp_ms, agentSample.timestamp_ms),
+    timestamp_ms: adbSample.timestamp_ms,
     sample_source: "merged",
     agent_status: normalizePerformanceAgentStatus(agentSample.agent_status ?? "connected"),
-    target_package: agentSample.target_package ?? adbSample.target_package,
+    target_package: adbSample.target_package ?? agentSample.target_package,
     foreground_package: agentSample.foreground_package ?? adbSample.foreground_package,
     foreground_activity: agentSample.foreground_activity ?? adbSample.foreground_activity,
-    pid: agentSample.pid ?? adbSample.pid,
+    pid: adbSample.pid,
+    process: adbSample.process,
+    network: adbSample.network,
+    frame_stats: adbSample.frame_stats,
+    unavailable: [
+      ...new Set([
+        ...adbSample.unavailable,
+        ...agentSample.unavailable,
+        `${AGENT_TARGET_METRICS_UNAVAILABLE}; using ADB metrics`,
+      ]),
+    ],
+  };
+}
+
+export function performanceAgentContextSample(sample: PerformanceSample): PerformanceSample {
+  return agentContextOnlySample(sample);
+}
+
+function agentContextOnlySample(sample: PerformanceSample, unavailable?: string): PerformanceSample {
+  return {
+    timestamp_ms: sample.timestamp_ms,
+    device_serial: sample.device_serial,
+    sample_source: "agent",
+    agent_status: sample.agent_status,
+    target_package: sample.target_package,
+    foreground_package: sample.foreground_package,
+    foreground_activity: sample.foreground_activity,
+    pid: null,
     process: {
-      ...adbSample.process,
-      ...nonNullObject(agentSample.process),
-      package_name: agentSample.process.package_name ?? adbSample.process.package_name,
-      pid: agentSample.process.pid ?? adbSample.process.pid,
-      running: agentSample.process.running || adbSample.process.running,
+      package_name: null,
+      pid: null,
+      state: null,
+      cpu_jiffies: null,
+      rss_kb: null,
+      pss_kb: null,
+      thread_count: null,
+      running: false,
     },
     network: {
-      rx_bytes: agentSample.network.rx_bytes ?? adbSample.network.rx_bytes,
-      tx_bytes: agentSample.network.tx_bytes ?? adbSample.network.tx_bytes,
+      rx_bytes: null,
+      tx_bytes: null,
     },
-    frame_stats: agentSample.frame_stats ?? adbSample.frame_stats,
-    unavailable: [...new Set([...adbSample.unavailable, ...agentSample.unavailable])],
+    system: {
+      cpu_total_jiffies: null,
+      cpu_idle_jiffies: null,
+      mem_total_kb: null,
+      mem_available_kb: null,
+      mem_used_kb: null,
+      cpu_frequency: {
+        average_current_khz: null,
+        average_max_khz: null,
+        online_cores: 0,
+      },
+    },
+    battery: {
+      level_percent: null,
+      status: null,
+      temperature_c: null,
+    },
+    thermal: {
+      status: null,
+      status_label: null,
+      raw: null,
+    },
+    display: {
+      size: null,
+      density: null,
+      refresh_rate_hz: null,
+    },
+    storage: {
+      data_total_kb: null,
+      data_used_kb: null,
+      data_available_kb: null,
+    },
+    gpu: {
+      supported: false,
+      busy_percent: null,
+      busy_time: null,
+      total_time: null,
+      current_frequency_hz: null,
+      max_frequency_hz: null,
+      memory_total_bytes: null,
+      process_memory_bytes: null,
+      source: null,
+      reason: null,
+      raw: null,
+    },
+    frame_stats: null,
+    unavailable: [...new Set([...sample.unavailable, ...(unavailable ? [unavailable] : [])])],
   };
+}
+
+export function freshPerformanceStreamSample(
+  snapshot: PerformanceStreamSnapshot | null,
+  previousTimestampMs: number | null,
+): PerformanceSample | null {
+  if (!snapshot?.active || !snapshot.last_sample) return null;
+  const timestampMs = Number(snapshot.last_sample.timestamp_ms);
+  if (!Number.isFinite(timestampMs) || timestampMs <= 0) return null;
+  if (previousTimestampMs !== null && timestampMs <= previousTimestampMs) return null;
+  return snapshot.last_sample;
 }
 
 function markPerformanceSampleSource(
@@ -192,6 +289,29 @@ export function shouldIncludeFrameSample(nowMs: number, lastFrameSampleMs: numbe
 export function prunePerformanceSamples(samples: PerformanceSample[], nowMs: number): PerformanceSample[] {
   const cutoff = nowMs - PERFORMANCE_RETENTION_MS;
   return samples.filter((sample) => sample.timestamp_ms >= cutoff);
+}
+
+export function hasProcessRssGrowth(
+  samples: PerformanceSample[],
+  latest: PerformanceSample,
+  windowMs = PERFORMANCE_RSS_GROWTH_WINDOW_MS,
+  growthThreshold = 0.2,
+): boolean {
+  const latestRss = finiteOrNull(latest.process.rss_kb);
+  if (latestRss === null || latestRss <= 0 || latest.process.pid === null) return false;
+
+  const cutoff = Number(latest.timestamp_ms) - windowMs;
+  let baseline: PerformanceSample | null = null;
+  for (const sample of samples) {
+    const timestamp = Number(sample.timestamp_ms);
+    if (timestamp > cutoff || !isSameProcessSample(sample, latest)) continue;
+    if (baseline === null || timestamp > Number(baseline.timestamp_ms)) {
+      baseline = sample;
+    }
+  }
+
+  const baselineRss = finiteOrNull(baseline?.process.rss_kb);
+  return baselineRss !== null && baselineRss > 0 && latestRss > baselineRss * (1 + growthThreshold);
 }
 
 export function calculatePerformanceMetrics(
@@ -239,7 +359,7 @@ export function buildPerformanceTrendPoints(samples: PerformanceSample[]): Perfo
       systemCpuPercent: metrics.systemCpuPercent,
       rssMb: kbToMb(sample.process.rss_kb),
       pssMb: kbToMb(sample.process.pss_kb),
-      memoryUsedGb: kbToGb(sample.system.mem_used_kb),
+      memoryAvailableGb: kbToGb(sample.system.mem_available_kb),
       fps: finiteOrNull(sample.frame_stats?.fps),
       p95FrameMs: finiteOrNull(sample.frame_stats?.p95_frame_ms),
       jankRate: finiteOrNull(sample.frame_stats?.jank_rate),
@@ -376,6 +496,7 @@ export function buildPerformanceCsvExport(samples: PerformanceSample[]): string 
       "system_cpu_total_jiffies",
       "system_cpu_idle_jiffies",
       "mem_used_kb",
+      "mem_available_kb",
       "mem_total_kb",
       "battery_level_percent",
       "battery_temperature_c",
@@ -408,6 +529,7 @@ export function buildPerformanceCsvExport(samples: PerformanceSample[]): string 
       sample.system.cpu_total_jiffies,
       sample.system.cpu_idle_jiffies,
       sample.system.mem_used_kb,
+      sample.system.mem_available_kb,
       sample.system.mem_total_kb,
       sample.battery.level_percent,
       sample.battery.temperature_c,
@@ -574,7 +696,10 @@ function isSameProcessSample(previous: PerformanceSample, current: PerformanceSa
 }
 
 function targetKey(sample: PerformanceSample): string | null {
-  return sample.target_package ?? sample.foreground_package ?? sample.process.package_name ?? null;
+  const packageName = sample.target_package ?? sample.foreground_package ?? sample.process.package_name ?? null;
+  if (packageName === null) return null;
+  const pid = sample.process.pid ?? sample.pid;
+  return `${packageName}::${pid ?? "no-pid"}`;
 }
 
 function lastNonNullForTarget<T>(
@@ -652,12 +777,6 @@ function networkKbPerSecond(metrics: PerformanceDerivedMetrics): number | null {
   const tx = metrics.txBytesPerSecond;
   if (rx === null && tx === null) return null;
   return ((rx ?? 0) + (tx ?? 0)) / 1024;
-}
-
-function nonNullObject<T extends object>(value: T): Partial<T> {
-  return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).filter(([, entry]) => entry !== null && entry !== undefined),
-  ) as Partial<T>;
 }
 
 function csvCell(value: unknown): string {

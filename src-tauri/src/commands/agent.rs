@@ -8,7 +8,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager};
 
 use crate::adb::{self, AdbError};
-use crate::commands::performance::{NetworkSample, PerformanceSample, ProcessSample};
+use crate::commands::performance::PerformanceSample;
 
 const AGENT_PACKAGE: &str = "com.cozyla.adbmanager.agent";
 const AGENT_SERVICE: &str = "com.cozyla.adbmanager.agent/.AgentService";
@@ -16,7 +16,7 @@ const AGENT_BOOTSTRAP_ACTIVITY: &str = "com.cozyla.adbmanager.agent/.AgentBootst
 const AGENT_APK_RESOURCE: &str = "resources/agent/adb-manager-agent.apk";
 const AGENT_SOCKET: &str = "localabstract:adb_manager_agent";
 const AGENT_PROTOCOL_VERSION: u32 = 2;
-const AGENT_BUNDLED_VERSION_NAME: &str = "0.1.3";
+const AGENT_BUNDLED_VERSION_NAME: &str = "0.1.4";
 
 #[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -599,9 +599,7 @@ fn read_agent_sample_line(port: u16, timeout: Duration) -> Result<String, String
 fn parse_agent_sample(device_serial: &str, line: &str) -> Result<PerformanceSample, String> {
     let value = serde_json::from_str::<serde_json::Value>(line)
         .map_err(|error| format!("Agent sample JSON parse failed: {error}"))?;
-    let process = value.get("process");
-    let network = value.get("network");
-    let mut sample = PerformanceSample {
+    Ok(PerformanceSample {
         timestamp_ms: value_u128(&value, "timestamp_ms").unwrap_or_else(now_ms),
         device_serial: device_serial.to_string(),
         sample_source: "agent".to_string(),
@@ -609,24 +607,6 @@ fn parse_agent_sample(device_serial: &str, line: &str) -> Result<PerformanceSamp
         target_package: value_str(&value, "target_package"),
         foreground_package: value_str(&value, "foreground_package"),
         foreground_activity: value_str(&value, "foreground_activity"),
-        pid: value_u32(&value, "pid"),
-        process: ProcessSample {
-            package_name: process.and_then(|item| value_str(item, "package_name")),
-            pid: process.and_then(|item| value_u32(item, "pid")),
-            state: process.and_then(|item| value_str(item, "state")),
-            cpu_jiffies: process.and_then(|item| value_u64(item, "cpu_jiffies")),
-            rss_kb: process.and_then(|item| value_u64(item, "rss_kb")),
-            pss_kb: process.and_then(|item| value_u64(item, "pss_kb")),
-            thread_count: process.and_then(|item| value_u32(item, "thread_count")),
-            running: process
-                .and_then(|item| item.get("running"))
-                .and_then(|item| item.as_bool())
-                .unwrap_or(false),
-        },
-        network: NetworkSample {
-            rx_bytes: network.and_then(|item| value_u64(item, "rx_bytes")),
-            tx_bytes: network.and_then(|item| value_u64(item, "tx_bytes")),
-        },
         unavailable: value
             .get("unavailable")
             .and_then(|item| item.as_array())
@@ -638,14 +618,7 @@ fn parse_agent_sample(device_serial: &str, line: &str) -> Result<PerformanceSamp
             })
             .unwrap_or_default(),
         ..PerformanceSample::default()
-    };
-    if sample.process.package_name.is_none() {
-        sample.process.package_name = sample.target_package.clone();
-    }
-    if sample.process.pid.is_none() {
-        sample.process.pid = sample.pid;
-    }
-    Ok(sample)
+    })
 }
 
 fn value_str(value: &serde_json::Value, key: &str) -> Option<String> {
@@ -661,17 +634,6 @@ fn value_u128(value: &serde_json::Value, key: &str) -> Option<u128> {
         .get(key)
         .and_then(|item| item.as_u64())
         .map(u128::from)
-}
-
-fn value_u64(value: &serde_json::Value, key: &str) -> Option<u64> {
-    value.get(key).and_then(|item| item.as_u64())
-}
-
-fn value_u32(value: &serde_json::Value, key: &str) -> Option<u32> {
-    value
-        .get(key)
-        .and_then(|item| item.as_u64())
-        .and_then(|item| u32::try_from(item).ok())
 }
 
 fn http_request(
@@ -891,7 +853,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_agent_ndjson_samples_into_performance_samples() {
+    fn parses_agent_ndjson_as_context_without_trusting_legacy_metrics() {
         let sample = parse_agent_sample(
             "USB123",
             r#"{"timestamp_ms":1200,"sample_source":"agent","agent_status":"permission_limited","target_package":"com.example.game","foreground_package":"com.example.game","pid":42,"process":{"package_name":"com.example.game","pid":42,"rss_kb":22000,"pss_kb":20000,"thread_count":12,"running":true},"network":{"rx_bytes":100,"tx_bytes":200},"unavailable":["ordinary APK cannot read system GPU counters"]}"#,
@@ -902,10 +864,11 @@ mod tests {
         assert_eq!(sample.sample_source, "agent");
         assert_eq!(sample.agent_status.as_deref(), Some("permission_limited"));
         assert_eq!(sample.target_package.as_deref(), Some("com.example.game"));
-        assert_eq!(sample.process.rss_kb, Some(22000));
-        assert_eq!(sample.process.pss_kb, Some(20000));
-        assert_eq!(sample.process.thread_count, Some(12));
-        assert_eq!(sample.network.rx_bytes, Some(100));
+        assert_eq!(sample.pid, None);
+        assert_eq!(sample.process.rss_kb, None);
+        assert_eq!(sample.process.pss_kb, None);
+        assert_eq!(sample.process.thread_count, None);
+        assert_eq!(sample.network.rx_bytes, None);
         assert_eq!(
             sample.unavailable,
             vec!["ordinary APK cannot read system GPU counters".to_string()]

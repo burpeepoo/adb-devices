@@ -1,6 +1,5 @@
 package com.cozyla.adbmanager.agent;
 
-import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -11,11 +10,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
-import android.net.TrafficStats;
 import android.os.Build;
-import android.os.Debug;
 import android.os.IBinder;
-import android.os.Process;
 import android.os.SystemClock;
 import android.util.Log;
 import java.io.BufferedReader;
@@ -33,7 +29,7 @@ public final class AgentService extends Service {
   private static final String SOCKET_NAME = "adb_manager_agent";
   private static final String CHANNEL_ID = "adb_manager_agent";
   private static final int PROTOCOL_VERSION = 2;
-  private static final String AGENT_VERSION = "0.1.3";
+  private static final String AGENT_VERSION = "0.1.4";
 
   private final AtomicBoolean running = new AtomicBoolean(false);
   private volatile String targetPackage = "";
@@ -197,12 +193,7 @@ public final class AgentService extends Service {
   }
 
   private String sampleJson() {
-    Debug.MemoryInfo memoryInfo = new Debug.MemoryInfo();
-    Debug.getMemoryInfo(memoryInfo);
-    int threadCount = Thread.getAllStackTraces().size();
     String foregroundPackage = foregroundPackage();
-    long rx = TrafficStats.getUidRxBytes(Process.myUid());
-    long tx = TrafficStats.getUidTxBytes(Process.myUid());
     String packageName = targetPackage.isEmpty() ? foregroundPackage : targetPackage;
     return "{"
         + "\"timestamp_ms\":" + System.currentTimeMillis() + ","
@@ -210,15 +201,10 @@ public final class AgentService extends Service {
         + "\"agent_status\":\"" + (hasUsageStatsAccess() ? "connected" : "permission_limited") + "\","
         + "\"target_package\":" + jsonNullable(packageName) + ","
         + "\"foreground_package\":" + jsonNullable(foregroundPackage) + ","
-        + "\"pid\":" + Process.myPid() + ","
-        + "\"process\":{\"package_name\":" + jsonNullable(packageName) + ","
-        + "\"pid\":" + Process.myPid() + ","
-        + "\"rss_kb\":" + memoryInfo.getTotalPss() + ","
-        + "\"pss_kb\":" + memoryInfo.getTotalPss() + ","
-        + "\"thread_count\":" + threadCount + ","
-        + "\"running\":true},"
-        + "\"network\":{\"rx_bytes\":" + rx + ",\"tx_bytes\":" + tx + "},"
-        + "\"unavailable\":[\"ordinary APK cannot read system GPU counters\"]"
+        + "\"unavailable\":["
+        + "\"ordinary APK cannot read target process metrics\","
+        + "\"ordinary APK cannot read target UID network counters\","
+        + "\"ordinary APK cannot read system GPU counters\"]"
         + "}";
   }
 
