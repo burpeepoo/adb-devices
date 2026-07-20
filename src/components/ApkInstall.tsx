@@ -8,7 +8,6 @@ import { IconApps } from "@tabler/icons-react";
 import PackageNameInput from "./PackageNameInput";
 import SectionTitle from "./common/SectionTitle";
 import { packageMatchScore } from "../utils/packageSearch";
-import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 
 type InstallStatus = "pending" | "installing" | "success" | "failed";
@@ -388,7 +387,6 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
       <section className="apk-install-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-4">
         <div className="shrink-0">
           <SectionTitle icon={<IconApps size={17} />} label={t('apkInstall.title')} mb="md" />
-          <DeviceTargetBanner target={deviceTarget} className="mb-3" />
         </div>
 
         {/* APK selection */}
@@ -550,7 +548,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
           </div>
         </div>
 
-        <div className="apk-install-action-bar sticky bottom-0 z-10 shrink-0 border-t border-gray-100 bg-white pt-3 pb-3">
+        <div className="apk-install-action-bar shrink-0 border-t border-gray-100 bg-white pt-3 pb-3">
           {installing && (
             <div className="mb-4">
               <div className="mb-1 flex items-center justify-between text-xs text-gray-500">
