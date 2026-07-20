@@ -1,0 +1,13 @@
+en-US:
+ADB Manager 2.2.1 keeps existing devices online when wireless pairing or mDNS scanning fails.
+
+- Failed wireless pairing no longer restarts the shared ADB server or disconnects unrelated devices.
+- Manual mDNS scans now update only their scan results and do not clear the current online device list after a transient failure.
+- Explicit ADB repair and restart actions remain available when the user chooses recovery.
+
+zh-CN:
+ADB Manager 2.2.1 修复无线配对或 mDNS 扫描失败时在线设备被一起掉线的问题。
+
+- 无线配对失败不再自动重启共享 ADB 服务，也不会断开其他无关设备。
+- 手动 mDNS 扫描只更新扫描结果，临时失败时不会清空当前在线设备列表。
+- 用户仍可在需要时主动使用 ADB 修复和重启操作。

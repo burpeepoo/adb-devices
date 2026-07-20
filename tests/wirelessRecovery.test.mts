@@ -136,6 +136,20 @@ test("mdns auto-connect reports refreshed device truth instead of stale command 
   assert.match(autoConnectBlock, /pairConnect\.autoConnected/);
 });
 
+test("failed pairing and mDNS scans do not disturb the shared online device list", () => {
+  const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
+  const deviceCommand = readFileSync(new URL("../src-tauri/src/commands/device.rs", import.meta.url), "utf8");
+  const pairCommand = componentSlice(
+    deviceCommand,
+    "pub fn adb_pair",
+    "#[tauri::command(async)]\npub fn adb_connect",
+  );
+  const scanAction = componentSlice(source, "const handleScan", "const handlePair");
+
+  assert.doesNotMatch(pairCommand, /restart_adb_server/);
+  assert.doesNotMatch(scanAction, /await onConnected\(\)/);
+});
+
 test("recent endpoint restart reconnect is exposed and preserves pairing state", () => {
   const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
   const deviceCommand = readFileSync(new URL("../src-tauri/src/commands/device.rs", import.meta.url), "utf8");

@@ -12,7 +12,7 @@ This map connects user-facing actions to frontend code, Tauri commands, and back
 | mDNS scan | `PairConnect.tsx` | `adb_mdns_discover` | Runs `adb mdns services`, and on macOS falls back to system `dns-sd` when ADB mDNS returns no services. |
 | mDNS connect | `PairConnect.tsx` | `adb_auto_connect` | Connects to mDNS connect service address. |
 | mDNS auto-connect all | `PairConnect.tsx` | `adb_mdns_auto_connect` | Uses mDNS service output and attempts connection. |
-| Pair | `PairConnect.tsx` | `adb_pair` | Runs `adb pair ip:port code`, retries once after a pairing-preserving ADB restart on retriable transport errors, then connects the current mDNS connect port for the same IP. |
+| Pair | `PairConnect.tsx` | `adb_pair` | Runs `adb pair ip:port code`; failures are reported without restarting the shared ADB server, and successful pairing connects the current mDNS connect port for the same IP. |
 | Manual connect | `PairConnect.tsx` | `adb_connect` | Runs `adb connect ip:port`, then falls back to the current mDNS connect port and ADB mDNS auto-connect for same IP. |
 | Recent reconnect | `PairConnect.tsx` | `adb_reconnect_endpoint` | Disconnects endpoint, optionally restarts ADB while preserving pairing state, connects, optionally retries/falls back to mDNS. |
 | Restart ADB | `PairConnect.tsx` | `adb_restart_server_preserving_pairing` | Disconnects, kills server, waits for port 5037 close, force-kills matching server if needed, starts and waits without changing pairing files. |

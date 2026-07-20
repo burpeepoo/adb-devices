@@ -114,7 +114,7 @@ Pair logic:
 
 1. User enters IP, pair port, and 6-digit code.
 2. `adb_pair` runs `adb pair <ip:port> <code>` with a 25-second timeout.
-3. If pair output has retriable transport errors such as `protocol fault`, backend restarts the local ADB server once while preserving existing pairing state, then retries.
+3. If pairing fails, backend reports the failure without restarting the shared ADB server. This keeps already-connected devices online; ADB repair or restart remains an explicit recovery action.
 4. After successful pair, backend discovers the current `_adb-tls-connect` service for the same IP and explicitly runs `adb connect <ip:current_connect_port>`. If no current port is found, it falls back to `ADB_MDNS_AUTO_CONNECT=adb-tls-connect adb devices -l`.
 5. UI records success/failure, saves the refreshed connect port when discovery exposes one, refreshes the device list, and may reveal repair controls after repeated failures.
 

@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-07-20
+
+### Fixed
+
+- Fixed failed wireless pairing from restarting the shared ADB server and dropping unrelated online devices.
+- Fixed manual mDNS scans from refreshing the device list after a scan failure, preventing transient scan results from clearing online devices.
+
 ## [2.2.0] - 2026-07-16
 
 ### Added

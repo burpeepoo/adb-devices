@@ -760,7 +760,6 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setHostIdentityResetVisible(false);
       try {
         await discoverMdns(false, true);
-        await onConnected();
       } finally {
         setBusyAddress(null);
       }

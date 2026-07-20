@@ -5,6 +5,7 @@
 Current code separates four recovery levels:
 
 - Normal connect and recent reconnect do not restart ADB.
+- A failed pairing attempt does not restart ADB or disconnect unrelated online devices.
 - Explicit restart/reconnect restarts the local ADB server while preserving pairing state.
 - Wireless pairing repair backs up and removes only `adb_known_hosts.pb`, then restarts ADB.
 - `adb_reset_host_identity` backs up and removes `adb_known_hosts.pb`, `adbkey`, and `adbkey.pub`, then starts ADB.

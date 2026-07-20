@@ -451,19 +451,14 @@ pub fn adb_pair(
 ) -> Result<String, AdbError> {
     let _guard = lock_adb_server_operation(&state)?;
     let addr = format!("{}:{}", ip, port);
-    let mut output = run_pair_command(&app, &addr, &code)?;
+    let output = run_pair_command(&app, &addr, &code)?;
 
     if !pair_output_succeeded(&output) {
-        let first_msg = output_message(&output);
-        if pairing_retry_strategy(&first_msg) == PairingRetryStrategy::RestartAdbPreservingPairing {
-            restart_adb_server_preserving_pairing(&app)?;
-            output = run_pair_command(&app, &addr, &code)?;
-        }
-
-        if !pair_output_succeeded(&output) {
-            let msg = output_message(&output);
-            return Err(pair_failed_error(msg));
-        }
+        // A failed pairing attempt must not restart the shared ADB server. A
+        // server restart disconnects every existing transport, including
+        // devices unrelated to this pairing attempt. Recovery remains an
+        // explicit user action in the wireless recovery ladder.
+        return Err(pair_failed_error(output_message(&output)));
     }
 
     match connect_via_current_mdns_port(&app, &ip) {
@@ -797,29 +792,6 @@ fn pair_output_succeeded(output: &std::process::Output) -> bool {
 
 fn pair_failed_error(message: String) -> AdbError {
     AdbError::CommandFailed(t!("device.pair_failed", "message" => message).into_owned())
-}
-
-fn is_pairing_retriable_after_adb_restart(message: &str) -> bool {
-    let message = message.to_ascii_lowercase();
-    message.contains("protocol fault")
-        || message.contains("couldn't read status message")
-        || message.contains("failed to start pairing connection client")
-        || message.contains("unable to start pairingclient connection")
-        || message.contains("no route to host")
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum PairingRetryStrategy {
-    None,
-    RestartAdbPreservingPairing,
-}
-
-fn pairing_retry_strategy(message: &str) -> PairingRetryStrategy {
-    if is_pairing_retriable_after_adb_restart(message) {
-        PairingRetryStrategy::RestartAdbPreservingPairing
-    } else {
-        PairingRetryStrategy::None
-    }
 }
 
 fn should_restart_adb_after_failed_connect(message: &str) -> bool {
@@ -1462,36 +1434,6 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
         assert!(!backup_contains(&android_dir, "adb_known_hosts.pb"));
 
         fs::remove_dir_all(android_dir).unwrap();
-    }
-
-    #[test]
-    fn pairing_transport_errors_are_retriable_after_adb_restart() {
-        assert!(is_pairing_retriable_after_adb_restart(
-            "error: protocol fault (couldn't read status message): Undefined error: 0"
-        ));
-        assert!(is_pairing_retriable_after_adb_restart(
-            "Failed to start pairing connection client [failed to connect to '192.168.110.131:34959': No route to host]"
-        ));
-        assert!(is_pairing_retriable_after_adb_restart(
-            "Unable to start PairingClient connection"
-        ));
-        assert!(!is_pairing_retriable_after_adb_restart(
-            "Invalid pairing code"
-        ));
-    }
-
-    #[test]
-    fn pairing_protocol_fault_uses_non_destructive_adb_restart_retry() {
-        assert_eq!(
-            pairing_retry_strategy(
-                "error: protocol fault (couldn't read status message): Undefined error: 0"
-            ),
-            PairingRetryStrategy::RestartAdbPreservingPairing
-        );
-        assert_eq!(
-            pairing_retry_strategy("Invalid pairing code"),
-            PairingRetryStrategy::None
-        );
     }
 
     #[test]
