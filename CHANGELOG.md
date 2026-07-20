@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-07-20
+
+### Changed
+
+- Changed the APK installation page so the full page can scroll while the installation queue stays usable, keeping progress and action controls visible in compact windows.
+- Changed performance sampling and Agent diagnostics to report memory metrics from trustworthy device data instead of synthetic or misleading values.
+- Changed packaged ADB resolution to prefer the bundled runtime for consistent behavior across host machines, with system and SDK fallbacks for development or incomplete bundles.
+
+### Fixed
+
+- Fixed the APK installation layout by removing the duplicated target-device panel and preventing the install action bar from covering installation progress or queue rows.
+
 ## [2.2.1] - 2026-07-20
 
 ### Fixed

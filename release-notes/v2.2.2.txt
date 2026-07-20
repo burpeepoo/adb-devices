@@ -1,0 +1,15 @@
+en-US:
+ADB Manager 2.2.2 makes APK installation easier to use in compact windows and improves the trustworthiness and consistency of device tooling.
+
+- The APK installation page now scrolls as a whole while the installation queue remains usable, so progress and action controls stay reachable.
+- The duplicated target-device panel was removed from APK installation because the current device is already shown in the surrounding app shell.
+- Performance sampling and Agent diagnostics now report memory metrics from trustworthy device data instead of synthetic or misleading values.
+- Packaged builds now prefer the bundled ADB runtime for consistent behavior across host machines, with system and SDK fallbacks for development or incomplete bundles.
+
+zh-CN:
+ADB Manager 2.2.2 优化了紧凑窗口下的 APK 安装体验，并提升了设备工具数据的可信度与运行一致性。
+
+- APK 安装页现在支持整体滚动，同时保留可用的安装队列，安装进度和操作按钮不会再被遮挡。
+- 移除了 APK 安装页中与应用外层当前设备信息重复的目标设备面板。
+- 性能采样和 Agent 诊断现在使用可信的设备内存数据，不再展示合成或容易误导的指标。
+- 打包版本优先使用内置 ADB 运行时，确保不同主机上的行为一致；开发环境或资源不完整时仍可回退到系统或 SDK 中的 ADB。
