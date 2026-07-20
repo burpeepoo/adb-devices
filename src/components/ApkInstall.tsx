@@ -384,7 +384,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
       onPasteCapture={handlePaste}
       className={`apk-install-page flex h-full min-h-0 w-full min-w-0 max-w-full flex-col gap-4 overflow-y-auto overflow-x-hidden rounded-lg pb-3 transition-colors ${dragging ? "bg-blue-50/60" : ""}`}
     >
-      <section className="apk-install-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-4">
+      <section className="apk-install-card flex min-w-0 shrink-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-4">
         <div className="shrink-0">
           <SectionTitle icon={<IconApps size={17} />} label={t('apkInstall.title')} mb="md" />
         </div>
@@ -455,9 +455,9 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
           )}
         </div>
 
-        <div className={`apk-install-queue-panel mb-4 flex min-w-0 min-h-0 flex-1 basis-0 flex-col ${queuePanelSizeClass}`}>
+        <div className={`apk-install-queue-panel mb-4 flex min-w-0 min-h-0 flex-none flex-col ${queuePanelSizeClass}`}>
           <div
-            className={`flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 ${
+            className={`flex h-full w-full min-w-0 flex-col ${queuePanelSizeClass} overflow-hidden rounded-lg border border-gray-200 ${
               apkItems.length > 0 ? "" : "border-dashed bg-gray-50"
             }`}
           >
