@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { resolveActiveSettingsSection } from "../src/settingsNavigation.ts";
 
 test("settings uses the Cirrus app shell layout and colors", () => {
   const source = readFileSync(new URL("../src/components/Settings.tsx", import.meta.url), "utf8");
@@ -22,6 +23,29 @@ test("settings uses the Cirrus app shell layout and colors", () => {
   assert.match(source, /settings\.sectionAgent/);
   assert.match(source, /settings\.sectionFiles/);
   assert.match(source, /settings\.sectionUpdates/);
+  assert.match(source, /settingsContentRef/);
+  assert.match(source, /onScroll={syncActiveSection}/);
+  assert.match(source, /onScrollCapture={syncActiveSection}/);
+  assert.match(source, /document\.addEventListener\("scroll"/);
+  assert.match(source, /event\.preventDefault\(\)/);
+  assert.match(source, /IntersectionObserver/);
+  assert.match(source, /threshold: 1/);
+  assert.match(source, /syncHashSection/);
+  assert.match(source, /data-settings-section-title/);
+  assert.match(source, /activeSection === "settings-updates"/);
   assert.match(zh.settings.sectionAgent, /Agent/);
   assert.match(en.settings.sectionUpdates, /Updates/);
+});
+
+test("settings navigation changes only after a section title is fully visible", () => {
+  const measurements = [
+    { id: "settings-agent" as const, top: 70, bottom: 90 },
+    { id: "settings-files" as const, top: 820, bottom: 840 },
+    { id: "settings-updates" as const, top: 1220, bottom: 1240 },
+  ];
+
+  assert.equal(resolveActiveSettingsSection(measurements, 60, 800, "settings-agent"), "settings-agent");
+  assert.equal(resolveActiveSettingsSection(measurements, 60, 85, "settings-agent"), "settings-agent");
+  assert.equal(resolveActiveSettingsSection(measurements, 400, 850, "settings-agent"), "settings-files");
+  assert.equal(resolveActiveSettingsSection(measurements, 400, 830, "settings-files"), "settings-files");
 });

@@ -1,6 +1,6 @@
 import { Autocomplete, Badge, Button, Divider, Group, Modal, Paper, PasswordInput, Progress, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
 import { IconFolder, IconRefresh } from "@tabler/icons-react";
-import { type ClipboardEvent, type ReactNode, useEffect, useState } from "react";
+import { type ClipboardEvent, type MouseEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
@@ -18,6 +18,11 @@ import {
   normalizeAgentProviderSettings,
 } from "../agentProviderSettings";
 import { extractClipboardPaths, isLikelyLocalPath } from "../pathClipboard";
+import {
+  resolveActiveSettingsSection,
+  SETTINGS_SECTION_IDS,
+  type SettingsSectionId,
+} from "../settingsNavigation";
 
 interface Props {
   settings: AppSettings;
@@ -70,6 +75,8 @@ export default function Settings({
   const [appVersion, setAppVersion] = useState("");
   const [runtimeDiscovery, setRuntimeDiscovery] = useState<AgentRuntimeDiscoveryResult | null>(null);
   const [runtimeDiscoveryLoading, setRuntimeDiscoveryLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState<SettingsSectionId>("settings-agent");
+  const settingsContentRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setLocal({
@@ -100,6 +107,80 @@ export default function Settings({
 
   useEffect(() => {
     void refreshRuntimeDiscovery();
+  }, []);
+
+  const syncActiveSection = useCallback(() => {
+    const content = settingsContentRef.current;
+    if (!content) return;
+
+    const contentRect = content.getBoundingClientRect();
+    const viewportTop = Math.max(contentRect.top, 0);
+    const viewportBottom = Math.min(contentRect.bottom, window.innerHeight);
+    const measurements = SETTINGS_SECTION_IDS.flatMap((id) => {
+      const title = content.querySelector<HTMLElement>(
+        "[data-settings-section-title=\"" + id + "\"]",
+      );
+      if (!title) return [];
+      const titleRect = title.getBoundingClientRect();
+      return [{ id, top: titleRect.top, bottom: titleRect.bottom }];
+    });
+
+    setActiveSection((current) =>
+      resolveActiveSettingsSection(measurements, viewportTop, viewportBottom, current),
+    );
+  }, []);
+
+  useEffect(() => {
+    syncActiveSection();
+    const handleScroll = () => {
+      window.requestAnimationFrame(syncActiveSection);
+    };
+    window.addEventListener("scroll", handleScroll, true);
+    document.addEventListener("scroll", handleScroll, true);
+
+    const content = settingsContentRef.current;
+    const titleObserver =
+      content && "IntersectionObserver" in window
+        ? new IntersectionObserver(
+            (entries) => {
+              const fullyVisibleIds = entries
+                .filter((entry) => entry.isIntersecting && entry.intersectionRatio >= 1)
+                .map((entry) => entry.target.getAttribute("data-settings-section-title"))
+                .filter((id): id is SettingsSectionId =>
+                  SETTINGS_SECTION_IDS.includes(id as SettingsSectionId),
+                );
+              const nextId = SETTINGS_SECTION_IDS.filter((id) => fullyVisibleIds.includes(id));
+              const lastFullyVisibleId = nextId[nextId.length - 1];
+              if (lastFullyVisibleId) {
+                setActiveSection(lastFullyVisibleId);
+              }
+            },
+            { root: content, threshold: 1 },
+          )
+        : null;
+
+    content?.querySelectorAll<HTMLElement>("[data-settings-section-title]").forEach((title) => {
+      titleObserver?.observe(title);
+    });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      document.removeEventListener("scroll", handleScroll, true);
+      titleObserver?.disconnect();
+    };
+  }, [syncActiveSection]);
+
+  useEffect(() => {
+    const syncHashSection = () => {
+      const sectionId = window.location.hash.replace(/^#/, "");
+      if (SETTINGS_SECTION_IDS.includes(sectionId as SettingsSectionId)) {
+        setActiveSection(sectionId as SettingsSectionId);
+      }
+    };
+
+    syncHashSection();
+    window.addEventListener("hashchange", syncHashSection);
+    return () => window.removeEventListener("hashchange", syncHashSection);
   }, []);
 
   const handleSelectDir = async (type: "screenshotDir" | "recordingDir") => {
@@ -254,6 +335,7 @@ export default function Settings({
     >
       <div
         className="settings-shell"
+        onScrollCapture={syncActiveSection}
         style={{
           height: "100vh",
           minHeight: 0,
@@ -290,9 +372,24 @@ export default function Settings({
           </Stack>
 
           <Stack gap={6} className="settings-nav">
-            <SettingsNavItem href="#settings-agent" label={t("settings.sectionAgent")} active />
-            <SettingsNavItem href="#settings-files" label={t("settings.sectionFiles")} />
-            <SettingsNavItem href="#settings-updates" label={t("settings.sectionUpdates")} />
+            <SettingsNavItem
+              href="#settings-agent"
+              label={t("settings.sectionAgent")}
+              active={activeSection === "settings-agent"}
+              onSelect={() => setActiveSection("settings-agent")}
+            />
+            <SettingsNavItem
+              href="#settings-files"
+              label={t("settings.sectionFiles")}
+              active={activeSection === "settings-files"}
+              onSelect={() => setActiveSection("settings-files")}
+            />
+            <SettingsNavItem
+              href="#settings-updates"
+              label={t("settings.sectionUpdates")}
+              active={activeSection === "settings-updates"}
+              onSelect={() => setActiveSection("settings-updates")}
+            />
           </Stack>
 
           <div style={{ flex: 1 }} />
@@ -334,7 +431,12 @@ export default function Settings({
             </Group>
           </Group>
 
-          <div className="settings-content" style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+          <div
+            ref={settingsContentRef}
+            className="settings-content"
+            onScroll={syncActiveSection}
+            style={{ flex: 1, minHeight: 0, overflow: "auto" }}
+          >
             <Stack gap="md" maw={1040}>
               <SettingsSection
                 id="settings-agent"
@@ -661,10 +763,28 @@ export default function Settings({
   );
 }
 
-function SettingsNavItem({ href, label, active = false }: { href: string; label: string; active?: boolean }) {
+function SettingsNavItem({
+  href,
+  label,
+  active = false,
+  onSelect,
+}: {
+  href: string;
+  label: string;
+  active?: boolean;
+  onSelect: () => void;
+}) {
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    onSelect();
+    document.getElementById(href.slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <a
       href={href}
+      onClick={handleClick}
+      aria-current={active ? "page" : undefined}
       style={{
         minHeight: 44,
         borderRadius: "var(--radius-pill)",
@@ -702,7 +822,7 @@ function SettingsSection({
       <Stack gap="md">
         <Group justify="space-between" gap="sm" wrap="wrap">
           <Stack gap={2} style={{ minWidth: 0 }}>
-            <Text size="sm" fw={800}>
+            <Text size="sm" fw={800} data-settings-section-title={id}>
               {title}
             </Text>
             {description ? (
