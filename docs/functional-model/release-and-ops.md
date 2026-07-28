@@ -99,6 +99,13 @@ Required local secrets/identities:
 
 Do not commit or print secret values.
 
+Updater signing key rotation:
+
+- The updater signing key was rotated on 2026-07-28 after the previous private key was lost.
+- Versions embedding the previous updater public key cannot verify artifacts signed by the current private key and must be upgraded with a manually distributed installer.
+- Versions embedding the current public key can use the normal updater feed again.
+- Back up `~/.tauri/adb-manager-updater.key` and any password separately from the repository; losing this private key requires another manual migration.
+
 Timestamp gotcha:
 
 - Local DNS/proxy can break Apple timestamping.

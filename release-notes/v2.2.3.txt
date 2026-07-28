@@ -1,0 +1,15 @@
+en-US:
+ADB Manager 2.2.3 improves Display Color tuning and keeps Settings navigation aligned with the visible content.
+
+- Display Color now combines the color wheel and precise X/Y fields in one Color Temperature Coordinates card with shared current, target, readback, status, and apply controls.
+- Long parameter names, firmware values, sliders, and apply actions remain visible in compact desktop windows.
+- Settings navigation now follows the section that is fully visible instead of switching too early.
+- This release starts a new signed updater chain after an updater key rotation. Builds signed with the previous key require a manual installer before normal automatic updates resume.
+
+zh-CN:
+ADB Manager 2.2.3 优化了显示调色操作，并让设置页导航与当前可见内容保持一致。
+
+- 显示调色现在将色环和精确 X/Y 输入合并到同一张“色温坐标”卡片，共用当前值、目标值、读回值、状态和应用按钮。
+- 在紧凑桌面窗口中，较长的参数名、固件数值、滑杆和应用按钮仍能完整显示。
+- 设置页导航现在会跟随完整可见的章节，不再过早切换。
+- 本版本在更新签名密钥轮换后启用新的签名更新链路；使用旧密钥签名的版本需要先通过手动安装包升级，之后才能恢复正常自动更新。

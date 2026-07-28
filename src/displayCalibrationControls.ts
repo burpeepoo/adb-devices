@@ -243,6 +243,19 @@ export function formatColorTemperaturePoint(x: number, y: number) {
   return `${point.x.toFixed(2)},${point.y.toFixed(2)}`;
 }
 
+export function updateColorTemperaturePointAxis(
+  value: string,
+  axis: "x" | "y",
+  nextValue: number,
+) {
+  const point = parseColorTemperaturePoint(value);
+  if (!point || !Number.isFinite(nextValue)) return null;
+  return formatColorTemperaturePoint(
+    axis === "x" ? nextValue : point.x,
+    axis === "y" ? nextValue : point.y,
+  );
+}
+
 export function clampColorTemperaturePointToNativeWheel(x: number, y: number) {
   const safeX = clamp(x, 0, COLOR_TEMPERATURE_POINT_RANGE);
   const safeY = clamp(y, 0, COLOR_TEMPERATURE_POINT_RANGE);

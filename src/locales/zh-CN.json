@@ -101,6 +101,8 @@
     "currentValue": "当前值",
     "desiredValue": "目标值",
     "firmwareRawValue": "固件原始值",
+    "preciseCoordinateX": "X 坐标",
+    "preciseCoordinateY": "Y 坐标",
     "before": "之前",
     "after": "之后",
     "select": "选择",
@@ -147,6 +149,8 @@
       "contrast": "Contrast",
       "saturation": "Saturation",
       "colorTemperatureValue": "色温值",
+      "colorTemperaturePointPrecise": "X/Y 精确坐标",
+      "colorTemperaturePointCombined": "色温坐标",
       "colorTemperaturePoint": "色环坐标",
       "smartBacklight": "Smart backlight"
     },

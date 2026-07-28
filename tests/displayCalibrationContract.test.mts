@@ -1,6 +1,129 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import {
+  COLOR_TEMPERATURE_POINT_CONTROL_ID,
+  COLOR_TEMPERATURE_VALUE_CONTROL_ID,
+  DISPLAY_CALIBRATION_CONTROLS,
+  updateColorTemperaturePointAxis,
+} from "../src/displayCalibrationControls.ts";
+import { layoutDisplayCalibrationControlRows } from "../src/displayCalibrationControlBoard.ts";
+
+test("precise color coordinate editing updates one axis and keeps the point inside the native wheel", () => {
+  assert.equal(
+    updateColorTemperaturePointAxis("128.88,150.97", "x", 129.25),
+    "129.25,150.97",
+  );
+  assert.equal(
+    updateColorTemperaturePointAxis("128.88,150.97", "y", 151.2),
+    "128.88,151.20",
+  );
+  assert.equal(
+    updateColorTemperaturePointAxis("102.50,102.50", "x", 205),
+    "197.31,102.50",
+  );
+  assert.equal(updateColorTemperaturePointAxis("invalid", "x", 120), null);
+});
+
+test("control board merges precise coordinates with the wheel and keeps the raw value card at bottom-right", () => {
+  const component = readFileSync(new URL("../src/components/DisplayCalibrationLab.tsx", import.meta.url), "utf8");
+  const styles = readFileSync(new URL("../src/components/DisplayCalibrationLab.css", import.meta.url), "utf8");
+  const zh = JSON.parse(readFileSync(new URL("../src/locales/zh-CN.json", import.meta.url), "utf8"));
+  const en = JSON.parse(readFileSync(new URL("../src/locales/en-US.json", import.meta.url), "utf8"));
+  const slots = layoutDisplayCalibrationControlRows(
+    DISPLAY_CALIBRATION_CONTROLS.map((control) => ({ control })),
+  );
+
+  assert.deepEqual(
+    slots.map(({ row, variant }) => `${row.control.id}:${variant}`),
+    [
+      "colorEnhance:control",
+      "colorBright:control",
+      "contrast:control",
+      "saturation:control",
+      `${COLOR_TEMPERATURE_POINT_CONTROL_ID}:colorPoint`,
+      "smartBacklight:control",
+      `${COLOR_TEMPERATURE_VALUE_CONTROL_ID}:control`,
+    ],
+  );
+  assert.deepEqual(
+    DISPLAY_CALIBRATION_CONTROLS.slice(-3).map((control) => control.id),
+    [
+      COLOR_TEMPERATURE_VALUE_CONTROL_ID,
+      COLOR_TEMPERATURE_POINT_CONTROL_ID,
+      "smartBacklight",
+    ],
+  );
+  assert.equal(
+    slots.filter(({ row }) => row.control.id === COLOR_TEMPERATURE_POINT_CONTROL_ID).length,
+    1,
+  );
+  assert.equal(slots[4]?.variant, "colorPoint");
+  const rawColorTemperatureControl = DISPLAY_CALIBRATION_CONTROLS.find(
+    (control) => control.id === COLOR_TEMPERATURE_VALUE_CONTROL_ID,
+  );
+  assert.equal(rawColorTemperatureControl?.kind, "integer");
+  assert.deepEqual(rawColorTemperatureControl?.target, {
+    kind: "settings",
+    namespace: "system",
+    key: "aw_color_temperature_value",
+  });
+  assert.match(component, /CombinedColorPointInput/);
+  assert.match(component, /PreciseColorPointInput/);
+  assert.match(component, /updateColorTemperaturePointAxis/);
+  assert.match(component, /displayCalibration\.controls\.colorTemperaturePointCombined/);
+  assert.match(component, /type="number"/);
+  assert.match(component, /aria-label=\{`\$\{t\(titleKey\)\} · \$\{t\("displayCalibration\.apply"\)\}`\}/);
+  assert.match(styles, /\.display-calibration-precise-point/);
+  const cssRule = (selector: string) => {
+    const ruleStart = styles.indexOf(`${selector} {`);
+    assert.notEqual(ruleStart, -1, `missing CSS rule: ${selector}`);
+    const ruleEnd = styles.indexOf("}", ruleStart);
+    assert.notEqual(ruleEnd, -1, `unterminated CSS rule: ${selector}`);
+    return styles.slice(ruleStart, ruleEnd + 1);
+  };
+  assert.match(
+    cssRule(".display-calibration-control-board"),
+    /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*420px\),\s*1fr\)\)/,
+  );
+  assert.match(
+    cssRule(".display-calibration-control__main code"),
+    /overflow-wrap:\s*anywhere/,
+  );
+  assert.match(
+    cssRule(".display-calibration-control__main code"),
+    /white-space:\s*normal/,
+  );
+  for (const selector of [
+    ".display-calibration-chip strong",
+    ".display-calibration-chip small",
+  ]) {
+    const rule = cssRule(selector);
+    assert.match(rule, /overflow-wrap:\s*anywhere/);
+    assert.match(rule, /white-space:\s*normal/);
+    assert.doesNotMatch(rule, /text-overflow:\s*ellipsis/);
+  }
+  assert.match(
+    cssRule(".display-calibration-control__input"),
+    /grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+  );
+  assert.match(
+    cssRule(".display-calibration-control__input > .display-calibration-action"),
+    /justify-self:\s*end/,
+  );
+  assert.match(
+    cssRule(".display-calibration-control.is-color-point"),
+    /grid-column:\s*1\s*\/\s*-1/,
+  );
+  assert.match(
+    cssRule(".display-calibration-color-point-editor"),
+    /grid-template-columns:\s*116px\s+minmax\(0,\s*1fr\)/,
+  );
+  assert.equal(zh.displayCalibration.controls.colorTemperaturePointPrecise, "X/Y 精确坐标");
+  assert.equal(en.displayCalibration.controls.colorTemperaturePointPrecise, "Precise X/Y Coordinates");
+  assert.equal(zh.displayCalibration.controls.colorTemperaturePointCombined, "色温坐标");
+  assert.equal(en.displayCalibration.controls.colorTemperaturePointCombined, "Color Temperature Coordinates");
+});
 
 test("display calibration is registered as a visible diagnostics workspace", () => {
   const lib = readFileSync(new URL("../src-tauri/src/lib.rs", import.meta.url), "utf8");

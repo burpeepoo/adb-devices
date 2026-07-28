@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [2.2.3] - 2026-07-28
+
+### Added
+
+- Added precise X/Y editing to the Display Color coordinate control while keeping values constrained to the device Settings color wheel.
+
+### Changed
+
+- Combined the Display Color wheel and precise X/Y fields into one shared Color Temperature Coordinates card with one set of current, target, readback, status, and apply controls.
+- Started a new signed updater chain after rotating the lost updater private key; builds signed with the previous key require a manually distributed installer before normal automatic updates resume.
+
+### Fixed
+
+- Fixed Display Color cards so long parameter names, firmware values, sliders, and apply actions remain visible in compact desktop windows.
+- Fixed Settings section navigation so the active item follows the section that is fully visible instead of switching while the previous section still dominates the viewport.
+
 ## [2.2.2] - 2026-07-20
 
 ### Changed

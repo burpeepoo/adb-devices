@@ -40,7 +40,9 @@ import {
   sameTarget,
   targetSignature,
   type DisplayCalibrationControlDefinition,
+  updateColorTemperaturePointAxis,
 } from "../displayCalibrationControls";
+import { layoutDisplayCalibrationControlRows } from "../displayCalibrationControlBoard";
 import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import SectionTitle from "./common/SectionTitle";
 import "./DisplayCalibrationLab.css";
@@ -51,6 +53,16 @@ interface Props {
 
 type BusyKey = "root" | "pattern" | "baseline" | "current" | "diff" | "apply" | "export" | "save";
 type ControlStatus = { ok: boolean; msg: string };
+type ControlBoardRow = {
+  control: DisplayCalibrationControlDefinition;
+  baselineValue: string | null;
+  currentValue: string | null;
+  draftValue: string;
+  readbackValue: string | null;
+  status: ControlStatus | null;
+  busy: boolean;
+  applying: boolean;
+};
 type SnapshotRefreshResult = {
   snapshot: DisplayCalibrationSnapshot | null;
   diff: DisplayCalibrationDiff | null;
@@ -847,16 +859,7 @@ function ControlBoard({
   onApply,
   t,
 }: {
-  rows: Array<{
-    control: DisplayCalibrationControlDefinition;
-    baselineValue: string | null;
-    currentValue: string | null;
-    draftValue: string;
-    readbackValue: string | null;
-    status: ControlStatus | null;
-    busy: boolean;
-    applying: boolean;
-  }>;
+  rows: ControlBoardRow[];
   busy: boolean;
   onDraftChange: (control: DisplayCalibrationControlDefinition, value: string, shouldApply?: boolean) => void;
   onApply: (control: DisplayCalibrationControlDefinition, value: string) => void;
@@ -868,49 +871,98 @@ function ControlBoard({
     desired: colorPointRow?.draftValue ?? null,
     readback: colorPointRow?.readbackValue ?? null,
   };
+  const layoutSlots = layoutDisplayCalibrationControlRows(rows);
+
   return (
     <div className="display-calibration-control-board">
-      {rows.map((row) => {
-        const currentDisplay = formatControlChipValue(row.control, row.currentValue, pairedPointValues.current, t);
-        const desiredDisplay = formatControlChipValue(row.control, row.draftValue, pairedPointValues.desired, t);
-        const readbackDisplay = formatControlChipValue(row.control, row.readbackValue, pairedPointValues.readback, t);
-        return (
-          <div key={row.control.id} className="display-calibration-control">
-            <div className="display-calibration-control__main">
-              <div className="display-calibration-control__title">
-                <strong>{t(row.control.labelKey)}</strong>
-              </div>
-              <code title={formatDisplayCalibrationTarget(row.control.target)}>{row.control.parameterName}</code>
-            </div>
-            <div className="display-calibration-control__values">
-              <ReadonlyChip label={t("displayCalibration.currentValue")} {...currentDisplay} />
-              <ReadonlyChip label={t("displayCalibration.desiredValue")} {...desiredDisplay} />
-              <ReadonlyChip label={t("displayCalibration.readback")} {...readbackDisplay} />
-            </div>
-            <div className="display-calibration-control__input">
-              <ControlInput
-                control={row.control}
-                value={row.draftValue}
-                disabled={busy}
-                onChange={(value, shouldApply) => onDraftChange(row.control, value, shouldApply)}
-              />
-              <button
-                className="display-calibration-action is-primary"
-                onClick={() => onApply(row.control, row.draftValue)}
-                disabled={busy || !row.draftValue.trim()}
-                type="button"
-              >
-                {row.applying ? t("displayCalibration.applying") : t("displayCalibration.apply")}
-              </button>
-            </div>
-            {row.status ? (
-              <div className={`display-calibration-control__status ${row.status.ok ? "is-ok" : "is-error"}`}>
-                {row.status.msg}
-              </div>
-            ) : null}
-          </div>
-        );
-      })}
+      {layoutSlots.map(({ row, variant }) => (
+        <ControlCard
+          key={`${row.control.id}:${variant}`}
+          row={row}
+          pairedPointValues={pairedPointValues}
+          busy={busy}
+          colorPoint={variant === "colorPoint"}
+          onDraftChange={onDraftChange}
+          onApply={onApply}
+          t={t}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ControlCard({
+  row,
+  pairedPointValues,
+  busy,
+  colorPoint = false,
+  onDraftChange,
+  onApply,
+  t,
+}: {
+  row: ControlBoardRow;
+  pairedPointValues: {
+    current: string | null;
+    desired: string | null;
+    readback: string | null;
+  };
+  busy: boolean;
+  colorPoint?: boolean;
+  onDraftChange: (control: DisplayCalibrationControlDefinition, value: string, shouldApply?: boolean) => void;
+  onApply: (control: DisplayCalibrationControlDefinition, value: string) => void;
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  const currentDisplay = formatControlChipValue(row.control, row.currentValue, pairedPointValues.current, t);
+  const desiredDisplay = formatControlChipValue(row.control, row.draftValue, pairedPointValues.desired, t);
+  const readbackDisplay = formatControlChipValue(row.control, row.readbackValue, pairedPointValues.readback, t);
+  const titleKey = colorPoint
+    ? "displayCalibration.controls.colorTemperaturePointCombined"
+    : row.control.labelKey;
+
+  return (
+    <div className={`display-calibration-control${colorPoint ? " is-color-point" : ""}`}>
+      <div className="display-calibration-control__main">
+        <div className="display-calibration-control__title">
+          <strong>{t(titleKey)}</strong>
+        </div>
+        <code title={formatDisplayCalibrationTarget(row.control.target)}>{row.control.parameterName}</code>
+      </div>
+      <div className="display-calibration-control__values">
+        <ReadonlyChip label={t("displayCalibration.currentValue")} {...currentDisplay} />
+        <ReadonlyChip label={t("displayCalibration.desiredValue")} {...desiredDisplay} />
+        <ReadonlyChip label={t("displayCalibration.readback")} {...readbackDisplay} />
+      </div>
+      <div className="display-calibration-control__input">
+        {colorPoint ? (
+          <CombinedColorPointInput
+            value={row.draftValue}
+            disabled={busy}
+            onChange={(value, shouldApply) => onDraftChange(row.control, value, shouldApply)}
+            t={t}
+          />
+        ) : (
+          <ControlInput
+            control={row.control}
+            value={row.draftValue}
+            disabled={busy}
+            onChange={(value, shouldApply) => onDraftChange(row.control, value, shouldApply)}
+          />
+        )}
+        <button
+          className="display-calibration-action is-primary"
+          aria-label={`${t(titleKey)} · ${t("displayCalibration.apply")}`}
+          onClick={() => onApply(row.control, row.draftValue)}
+          disabled={busy || !row.draftValue.trim()}
+          type="button"
+        >
+          {row.applying ? t("displayCalibration.applying") : t("displayCalibration.apply")}
+        </button>
+      </div>
+      {row.status ? (
+        <div className={`display-calibration-control__status ${row.status.ok ? "is-ok" : "is-error"}`}>
+          {row.status.msg}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -953,6 +1005,132 @@ function formatColorTemperaturePointOnly(value: string | null) {
   const point = parseColorTemperaturePoint(value);
   if (!point) return null;
   return formatColorTemperaturePoint(point.x, point.y);
+}
+
+function CombinedColorPointInput({
+  value,
+  disabled,
+  onChange,
+  t,
+}: {
+  value: string;
+  disabled: boolean;
+  onChange: (value: string, shouldApply?: boolean) => void;
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  return (
+    <div className="display-calibration-color-point-editor">
+      <ColorPointPicker
+        value={value}
+        disabled={disabled}
+        onChange={onChange}
+        wheelOnly
+      />
+      <PreciseColorPointInput
+        value={value}
+        disabled={disabled}
+        onChange={onChange}
+        t={t}
+      />
+    </div>
+  );
+}
+
+function PreciseColorPointInput({
+  value,
+  disabled,
+  onChange,
+  t,
+}: {
+  value: string;
+  disabled: boolean;
+  onChange: (value: string, shouldApply?: boolean) => void;
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  const point = parseColorTemperaturePoint(value) ?? {
+    x: COLOR_TEMPERATURE_POINT_RANGE / 2,
+    y: COLOR_TEMPERATURE_POINT_RANGE / 2,
+  };
+  const [editingAxis, setEditingAxis] = useState<"x" | "y" | null>(null);
+  const [axisDrafts, setAxisDrafts] = useState({
+    x: point.x.toFixed(2),
+    y: point.y.toFixed(2),
+  });
+
+  useEffect(() => {
+    const nextPoint = parseColorTemperaturePoint(value) ?? {
+      x: COLOR_TEMPERATURE_POINT_RANGE / 2,
+      y: COLOR_TEMPERATURE_POINT_RANGE / 2,
+    };
+    setAxisDrafts((previous) => ({
+      x: editingAxis === "x" ? previous.x : nextPoint.x.toFixed(2),
+      y: editingAxis === "y" ? previous.y : nextPoint.y.toFixed(2),
+    }));
+  }, [editingAxis, value]);
+
+  const normalizedPointValue = formatColorTemperaturePoint(point.x, point.y);
+
+  const updateAxis = (axis: "x" | "y", nextValue: string) => {
+    setAxisDrafts((previous) => ({ ...previous, [axis]: nextValue }));
+    if (nextValue.trim() === "" || !Number.isFinite(Number(nextValue))) return;
+    const nextPoint = updateColorTemperaturePointAxis(
+      normalizedPointValue,
+      axis,
+      Number(nextValue),
+    );
+    if (nextPoint) onChange(nextPoint);
+  };
+
+  const finishEditingAxis = (axis: "x" | "y", draftValue: string) => {
+    const nextValue = draftValue.trim();
+    const nextPoint =
+      nextValue !== "" && Number.isFinite(Number(nextValue))
+        ? updateColorTemperaturePointAxis(normalizedPointValue, axis, Number(nextValue))
+        : null;
+    if (nextPoint) {
+      const parsedNextPoint = parseColorTemperaturePoint(nextPoint);
+      if (parsedNextPoint) {
+        setAxisDrafts({
+          x: parsedNextPoint.x.toFixed(2),
+          y: parsedNextPoint.y.toFixed(2),
+        });
+      }
+      onChange(nextPoint, true);
+    } else {
+      setAxisDrafts({
+        x: point.x.toFixed(2),
+        y: point.y.toFixed(2),
+      });
+    }
+    setEditingAxis(null);
+  };
+
+  return (
+    <div className="display-calibration-precise-point">
+      {(["x", "y"] as const).map((axis) => (
+        <label key={axis} className="display-calibration-precise-point__field">
+          <span>{axis.toUpperCase()}</span>
+          <input
+            className="display-calibration-input"
+            type="number"
+            inputMode="decimal"
+            min={0}
+            max={COLOR_TEMPERATURE_POINT_RANGE}
+            step={0.1}
+            value={axisDrafts[axis]}
+            disabled={disabled}
+            aria-label={t(`displayCalibration.preciseCoordinate${axis.toUpperCase()}`)}
+            onFocus={() => setEditingAxis(axis)}
+            onChange={(event) => updateAxis(axis, event.target.value)}
+            onBlur={(event) => finishEditingAxis(axis, event.currentTarget.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.currentTarget.blur();
+            }}
+          />
+        </label>
+      ))}
+    </div>
+  );
 }
 
 function ControlInput({
@@ -1026,10 +1204,12 @@ function ColorPointPicker({
   value,
   disabled,
   onChange,
+  wheelOnly = false,
 }: {
   value: string;
   disabled: boolean;
   onChange: (value: string, shouldApply?: boolean) => void;
+  wheelOnly?: boolean;
 }) {
   const point = parseColorTemperaturePoint(value) ?? {
     x: COLOR_TEMPERATURE_POINT_RANGE / 2,
@@ -1065,7 +1245,7 @@ function ColorPointPicker({
   };
 
   return (
-    <div className="display-calibration-point-picker">
+    <div className={`display-calibration-point-picker${wheelOnly ? " is-wheel-only" : ""}`}>
       <button
         className="display-calibration-color-wheel"
         type="button"
@@ -1086,7 +1266,15 @@ function ColorPointPicker({
           style={{ left, top, backgroundColor: swatchColor }}
         />
       </button>
-      <input className="display-calibration-input" value={displayValue} title={displayValue} readOnly disabled={disabled} />
+      {wheelOnly ? null : (
+        <input
+          className="display-calibration-input"
+          value={displayValue}
+          title={displayValue}
+          readOnly
+          disabled={disabled}
+        />
+      )}
     </div>
   );
 }

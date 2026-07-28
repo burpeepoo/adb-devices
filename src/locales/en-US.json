@@ -101,6 +101,8 @@
     "currentValue": "Current Value",
     "desiredValue": "Desired Value",
     "firmwareRawValue": "Firmware Raw Value",
+    "preciseCoordinateX": "X coordinate",
+    "preciseCoordinateY": "Y coordinate",
     "before": "Before",
     "after": "After",
     "select": "Select",
@@ -147,6 +149,8 @@
       "contrast": "Contrast",
       "saturation": "Saturation",
       "colorTemperatureValue": "Color Temperature Value",
+      "colorTemperaturePointPrecise": "Precise X/Y Coordinates",
+      "colorTemperaturePointCombined": "Color Temperature Coordinates",
       "colorTemperaturePoint": "Color Wheel Coordinate",
       "smartBacklight": "Smart backlight"
     },
