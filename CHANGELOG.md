@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.2.4] - 2026-07-29
+
+### Changed
+
+- Changed the Display Color raw Color Temperature Value card to read-only display, leaving Color Temperature Coordinates as the only edit and apply path while preserving the derived firmware value.
+
 ## [2.2.3] - 2026-07-28
 
 ### Added

@@ -7,7 +7,10 @@ import {
   DISPLAY_CALIBRATION_CONTROLS,
   updateColorTemperaturePointAxis,
 } from "../src/displayCalibrationControls.ts";
-import { layoutDisplayCalibrationControlRows } from "../src/displayCalibrationControlBoard.ts";
+import {
+  isDisplayCalibrationControlInteractive,
+  layoutDisplayCalibrationControlRows,
+} from "../src/displayCalibrationControlBoard.ts";
 
 test("precise color coordinate editing updates one axis and keeps the point inside the native wheel", () => {
   assert.equal(
@@ -25,7 +28,7 @@ test("precise color coordinate editing updates one axis and keeps the point insi
   assert.equal(updateColorTemperaturePointAxis("invalid", "x", 120), null);
 });
 
-test("control board merges precise coordinates with the wheel and keeps the raw value card at bottom-right", () => {
+test("control board merges precise coordinates with the wheel and keeps the raw value card read-only", () => {
   const component = readFileSync(new URL("../src/components/DisplayCalibrationLab.tsx", import.meta.url), "utf8");
   const styles = readFileSync(new URL("../src/components/DisplayCalibrationLab.css", import.meta.url), "utf8");
   const zh = JSON.parse(readFileSync(new URL("../src/locales/zh-CN.json", import.meta.url), "utf8"));
@@ -43,7 +46,7 @@ test("control board merges precise coordinates with the wheel and keeps the raw 
       "saturation:control",
       `${COLOR_TEMPERATURE_POINT_CONTROL_ID}:colorPoint`,
       "smartBacklight:control",
-      `${COLOR_TEMPERATURE_VALUE_CONTROL_ID}:control`,
+      `${COLOR_TEMPERATURE_VALUE_CONTROL_ID}:readOnly`,
     ],
   );
   assert.deepEqual(
@@ -59,6 +62,14 @@ test("control board merges precise coordinates with the wheel and keeps the raw 
     1,
   );
   assert.equal(slots[4]?.variant, "colorPoint");
+  assert.equal(
+    isDisplayCalibrationControlInteractive(
+      slots.find(({ row }) => row.control.id === COLOR_TEMPERATURE_VALUE_CONTROL_ID)?.variant ??
+        "control",
+    ),
+    false,
+  );
+  assert.equal(isDisplayCalibrationControlInteractive("colorPoint"), true);
   const rawColorTemperatureControl = DISPLAY_CALIBRATION_CONTROLS.find(
     (control) => control.id === COLOR_TEMPERATURE_VALUE_CONTROL_ID,
   );
@@ -72,6 +83,8 @@ test("control board merges precise coordinates with the wheel and keeps the raw 
   assert.match(component, /PreciseColorPointInput/);
   assert.match(component, /updateColorTemperaturePointAxis/);
   assert.match(component, /displayCalibration\.controls\.colorTemperaturePointCombined/);
+  assert.match(component, /readOnly=\{variant === "readOnly"\}/);
+  assert.match(component, /\{!readOnly \? \(/);
   assert.match(component, /type="number"/);
   assert.match(component, /aria-label=\{`\$\{t\(titleKey\)\} · \$\{t\("displayCalibration\.apply"\)\}`\}/);
   assert.match(styles, /\.display-calibration-precise-point/);

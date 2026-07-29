@@ -882,6 +882,7 @@ function ControlBoard({
           pairedPointValues={pairedPointValues}
           busy={busy}
           colorPoint={variant === "colorPoint"}
+          readOnly={variant === "readOnly"}
           onDraftChange={onDraftChange}
           onApply={onApply}
           t={t}
@@ -896,6 +897,7 @@ function ControlCard({
   pairedPointValues,
   busy,
   colorPoint = false,
+  readOnly = false,
   onDraftChange,
   onApply,
   t,
@@ -908,6 +910,7 @@ function ControlCard({
   };
   busy: boolean;
   colorPoint?: boolean;
+  readOnly?: boolean;
   onDraftChange: (control: DisplayCalibrationControlDefinition, value: string, shouldApply?: boolean) => void;
   onApply: (control: DisplayCalibrationControlDefinition, value: string) => void;
   t: ReturnType<typeof useTranslation>["t"];
@@ -932,32 +935,34 @@ function ControlCard({
         <ReadonlyChip label={t("displayCalibration.desiredValue")} {...desiredDisplay} />
         <ReadonlyChip label={t("displayCalibration.readback")} {...readbackDisplay} />
       </div>
-      <div className="display-calibration-control__input">
-        {colorPoint ? (
-          <CombinedColorPointInput
-            value={row.draftValue}
-            disabled={busy}
-            onChange={(value, shouldApply) => onDraftChange(row.control, value, shouldApply)}
-            t={t}
-          />
-        ) : (
-          <ControlInput
-            control={row.control}
-            value={row.draftValue}
-            disabled={busy}
-            onChange={(value, shouldApply) => onDraftChange(row.control, value, shouldApply)}
-          />
-        )}
-        <button
-          className="display-calibration-action is-primary"
-          aria-label={`${t(titleKey)} · ${t("displayCalibration.apply")}`}
-          onClick={() => onApply(row.control, row.draftValue)}
-          disabled={busy || !row.draftValue.trim()}
-          type="button"
-        >
-          {row.applying ? t("displayCalibration.applying") : t("displayCalibration.apply")}
-        </button>
-      </div>
+      {!readOnly ? (
+        <div className="display-calibration-control__input">
+          {colorPoint ? (
+            <CombinedColorPointInput
+              value={row.draftValue}
+              disabled={busy}
+              onChange={(value, shouldApply) => onDraftChange(row.control, value, shouldApply)}
+              t={t}
+            />
+          ) : (
+            <ControlInput
+              control={row.control}
+              value={row.draftValue}
+              disabled={busy}
+              onChange={(value, shouldApply) => onDraftChange(row.control, value, shouldApply)}
+            />
+          )}
+          <button
+            className="display-calibration-action is-primary"
+            aria-label={`${t(titleKey)} · ${t("displayCalibration.apply")}`}
+            onClick={() => onApply(row.control, row.draftValue)}
+            disabled={busy || !row.draftValue.trim()}
+            type="button"
+          >
+            {row.applying ? t("displayCalibration.applying") : t("displayCalibration.apply")}
+          </button>
+        </div>
+      ) : null}
       {row.status ? (
         <div className={`display-calibration-control__status ${row.status.ok ? "is-ok" : "is-error"}`}>
           {row.status.msg}

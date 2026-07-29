@@ -3,7 +3,7 @@ import {
   COLOR_TEMPERATURE_VALUE_CONTROL_ID,
 } from "./displayCalibrationControls.ts";
 
-export type DisplayCalibrationControlBoardVariant = "control" | "colorPoint";
+export type DisplayCalibrationControlBoardVariant = "control" | "colorPoint" | "readOnly";
 
 export interface DisplayCalibrationControlBoardSlot<T> {
   row: T;
@@ -40,8 +40,14 @@ export function layoutDisplayCalibrationControlRows<T extends { control: { id: s
     slots.push({ row: smartBacklightRow, variant: "control" });
   }
   if (rawColorTemperatureRow) {
-    slots.push({ row: rawColorTemperatureRow, variant: "control" });
+    slots.push({ row: rawColorTemperatureRow, variant: "readOnly" });
   }
 
   return slots;
+}
+
+export function isDisplayCalibrationControlInteractive(
+  variant: DisplayCalibrationControlBoardVariant,
+) {
+  return variant !== "readOnly";
 }

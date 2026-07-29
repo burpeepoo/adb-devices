@@ -1,0 +1,11 @@
+en-US:
+ADB Manager 2.2.4 simplifies Display Color temperature tuning.
+
+- Color Temperature Value is now read-only and no longer shows an input or Apply to Device button.
+- Color Temperature Coordinates remains the single editing path and continues to derive and synchronize the firmware raw value.
+
+zh-CN:
+ADB Manager 2.2.4 简化了显示调色中的色温操作。
+
+- “色温值”现在只读展示，不再显示输入框和“应用到设备”按钮。
+- “色温坐标”仍是唯一的编辑入口，并继续计算和同步固件原始色温值。
