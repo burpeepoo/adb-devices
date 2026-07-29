@@ -1,11 +1,11 @@
 {
   "name": "adb-manager",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "ADB Manager for Cozyla PMs",
   "scripts": {
     "dev": "vite",
     "build": "npm run ensure:agent-apk && tsc && vite build",
-    "test": "npm run test:updater-policy && npm run test:release-notes && npm run test:update-notes && npm run test:tab-state && npm run test:path-clipboard && npm run test:device-notes && npm run test:device-selection && npm run test:device-panel-layout && npm run test:device-target && npm run test:device-form-factor && npm run test:pair-connect-endpoints && npm run test:pair-connect-mdns && npm run test:wireless-recovery && npm run test:remote-safety && npm run test:startup-adb-repair && npm run test:workbench-rewrite && npm run test:app-drawer-grouping && npm run test:install-layout && npm run test:logcat-layout && npm run test:package-list && npm run test:settings-layout && npm run test:performance-sampling && npm run test:display-calibration-contract && npm run test:ui-surface-spacing && npm run test:design-md && npm run test:scout-task && npm run test:agent-contract",
+    "test": "npm run test:updater-policy && npm run test:release-notes && npm run test:update-notes && npm run test:tab-state && npm run test:path-clipboard && npm run test:device-notes && npm run test:device-selection && npm run test:device-panel-layout && npm run test:device-target && npm run test:device-form-factor && npm run test:pair-connect-endpoints && npm run test:pair-connect-mdns && npm run test:pair-recovery && npm run test:wireless-recovery && npm run test:remote-safety && npm run test:startup-adb-repair && npm run test:workbench-rewrite && npm run test:app-drawer-grouping && npm run test:install-layout && npm run test:logcat-layout && npm run test:package-list && npm run test:settings-layout && npm run test:performance-sampling && npm run test:display-calibration-contract && npm run test:ui-surface-spacing && npm run test:design-md && npm run test:scout-task && npm run test:agent-contract",
     "test:updater-policy": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/updaterPolicy.test.mts",
     "test:release-notes": "node --test tests/releaseNotes.test.mjs",
     "test:update-notes": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/updateNotes.test.mts",
@@ -18,6 +18,7 @@
     "test:device-form-factor": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/deviceFormFactor.test.mts",
     "test:pair-connect-endpoints": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/pairConnectEndpoints.test.mts",
     "test:pair-connect-mdns": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/pairConnectMdns.test.mts",
+    "test:pair-recovery": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/pairRecovery.test.mts",
     "test:wireless-recovery": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/wirelessRecovery.test.mts",
     "test:remote-safety": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/remoteSafety.test.mts",
     "test:startup-adb-repair": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/startupAdbRepair.test.mts",

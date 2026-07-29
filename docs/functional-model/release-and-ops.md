@@ -229,5 +229,6 @@ When wireless ADB fails:
 3. Check `adb mdns services`.
 4. Probe TCP reachability to the reported port.
 5. If pair returns protocol fault on a reachable port, refresh the device-side wireless pairing dialog/session.
-6. Use app restart/reconnect first.
-7. Use host identity reset only when explicit fallback is needed.
+6. Use the explicit ADB daemon restart-and-retry action to preserve existing host pairing records and retry the submitted IP, port, and code.
+7. Refresh the local pairing cache only as a separately disclosed fallback; this can require devices to be paired again.
+8. Reset the local ADB host identity only after pairing-cache refresh still fails; this removes the host key pair and requires every device to authorize or pair the computer again.

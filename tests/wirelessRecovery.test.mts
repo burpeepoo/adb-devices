@@ -142,12 +142,91 @@ test("failed pairing and mDNS scans do not disturb the shared online device list
   const pairCommand = componentSlice(
     deviceCommand,
     "pub fn adb_pair",
-    "#[tauri::command(async)]\npub fn adb_connect",
+    "#[tauri::command(async)]\npub fn adb_restart_and_retry_pair",
   );
   const scanAction = componentSlice(source, "const handleScan", "const handlePair");
 
   assert.doesNotMatch(pairCommand, /restart_adb_server/);
   assert.doesNotMatch(scanAction, /await onConnected\(\)/);
+});
+
+test("manual pairing recovery preserves pairing records and retries the submitted request", () => {
+  const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
+  const deviceCommand = readFileSync(new URL("../src-tauri/src/commands/device.rs", import.meta.url), "utf8");
+  const tauriCommands = readFileSync(new URL("../src-tauri/src/lib.rs", import.meta.url), "utf8");
+  const pairAction = componentSlice(
+    source,
+    "const handlePair = async () =>",
+    "const handleRestartAndRetryPair",
+  );
+  const retryAction = componentSlice(
+    source,
+    "const handleRestartAndRetryPair",
+    "const handleConnect = async () =>",
+  );
+  const retryCommand = componentSlice(
+    deviceCommand,
+    "pub fn adb_restart_and_retry_pair",
+    "#[tauri::command(async)]\npub fn adb_connect",
+  );
+
+  assert.match(pairAction, /const request = \{ ip, port, code \}/);
+  assert.match(pairAction, /lastFailedPairRequestRef\.current = request/);
+  assert.ok(
+    pairAction.indexOf("await runAdbOperation")
+      < pairAction.indexOf("lastFailedPairRequestRef.current = request"),
+  );
+  assert.ok(
+    pairAction.indexOf("lastFailedPairRequestRef.current = request")
+      < pairAction.indexOf('invoke<string>("adb_pair"'),
+  );
+  assert.match(retryAction, /retryPairAfterAdbRestart\(\s*request/);
+  assert.match(retryAction, /\(command, args\) => invoke<string>\(command, args\)/);
+  assert.match(retryAction, /setPairResult\(result\)/);
+  assert.match(retryAction, /if \(!result\.ok\)/);
+  assert.match(retryAction, /setPairResult\(\{ ok: false, msg: String\(e\) \}\)/);
+  assert.match(retryCommand, /restart_adb_server_preserving_pairing\(&app\)\?/);
+  assert.match(retryCommand, /pair_device\(&app, &ip, &port, &code\)/);
+  assert.ok(
+    retryCommand.indexOf("restart_adb_server_preserving_pairing(&app)?")
+      < retryCommand.indexOf("pair_device(&app, &ip, &port, &code)"),
+  );
+  assert.doesNotMatch(retryCommand, /restart_adb_server\(&app\)\?/);
+  assert.match(tauriCommands, /commands::device::adb_restart_and_retry_pair/);
+});
+
+test("mDNS result recovery binds the disclosed pairing-cache refresh action", () => {
+  const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
+  const english = readFileSync(new URL("../src/locales/en-US.json", import.meta.url), "utf8");
+  const chinese = readFileSync(new URL("../src/locales/zh-CN.json", import.meta.url), "utf8");
+  const resultRecovery = componentSlice(
+    source,
+    "{mdnsResult && (",
+    "onClick={() => setShowManual",
+  );
+
+  assert.match(resultRecovery, /onRepairWirelessPairing=\{handleRepairWirelessPairing\}/);
+  assert.doesNotMatch(resultRecovery, /onRepairWirelessPairing=\{handleRestartAdbAndScan\}/);
+  assert.doesNotMatch(english, /Try safe repair first/);
+  assert.doesNotMatch(chinese, /请先尝试安全修复/);
+  assert.match(english, /retry once with the originally submitted IP, port, and pairing code/);
+  assert.match(chinese, /用原先提交的 IP、端口和配对码重试一次/);
+  assert.match(english, /Use only after refreshing the pairing cache still fails/);
+  assert.match(chinese, /仅在刷新配对缓存后仍失败时使用/);
+});
+
+test("failed restart reconnect surfaces pairing-cache refresh before identity reset", () => {
+  const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
+  const recentReconnect = componentSlice(
+    source,
+    "const handleRecentReconnect",
+    "const restartAdbAndReconnect",
+  );
+
+  assert.match(
+    recentReconnect,
+    /if \(restartAdb\) \{\s*setPairRepairVisible\(true\);\s*setHostIdentityResetVisible\(true\);\s*\}/,
+  );
 });
 
 test("recent endpoint restart reconnect is exposed and preserves pairing state", () => {
@@ -166,6 +245,7 @@ test("recent endpoint restart reconnect is exposed and preserves pairing state",
   assert.match(restartScan, /preservePairing: true/);
   assert.match(reconnectCommand, /if restart_adb \{\s*restart_adb_server_preserving_pairing\(&app\)\?/);
   assert.doesNotMatch(reconnectCommand, /if restart_adb \{\s*restart_adb_server\(&app\)\?/);
+  assert.doesNotMatch(reconnectCommand, /restart_adb_server\(&app\)\?/);
 });
 
 test("wireless ADB authorization timeout uses a dedicated hidden ADB-backed command", () => {

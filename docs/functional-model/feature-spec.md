@@ -35,7 +35,6 @@ Frontend:
 - `useDevices.ts`
 - `components/layout/DevicePanel.tsx`
 - `DeviceConsole.tsx`
-- `DeviceConsoleShortcuts.tsx`
 
 Backend:
 
@@ -61,9 +60,9 @@ User-visible behavior:
 - Notes are local-only and keyed by `device_sn || serial`.
 - The device-list refresh button scans trusted wireless devices before refreshing the visible list, so newly available paired devices can move online without opening the wireless pairing panel first.
 - Online wireless rows expose a compact ADB no-timeout switch below the note area; USB and offline rows do not show it. The switch prefers the connected device's current setting over the locally stored preference.
-- Device console exposes shortcuts to APK install, screenshot, record, mirror, remote console, image cast, clipboard, logcat, and packages.
+- Device console exposes grouped shortcuts to APK install, screenshot, record, mirror, remote console, image cast, clipboard, Logcat, performance, Workbench, and packages. On desktop the three groups stay equal-height columns; each group uses one vertical action column, and the shorter App/Package group leaves its fourth row empty.
 - The Scout Tasks section on the device console exposes Chat, Feature Walkthrough, and Bug Repro in that order. Each card enters its matching Scout workspace mode, including when the Agent Tasks workspace remains mounted from an earlier visit.
-- Device status and diagnostics are loaded on selection, not continuously polled.
+- Device summary data is loaded on selection, not continuously polled. The console keeps the detailed diagnostics accordion but does not render the redundant general Status accordion.
 - Device-targeting tools share a target-device strip. ADB actions require an explicit online selected device; the UI does not intentionally pass an empty serial to use ADB's default device.
 - Screenshot/recording shortcuts, Workbench execution, APK install, image cast, clipboard, Logcat refresh, package export, scrcpy mirror/navigation, and app drawer launch all use the selected online serial and surface target identity in results or exports where practical.
 
@@ -83,6 +82,7 @@ Backend:
 - `adb_auto_connect`
 - `adb_mdns_auto_connect`
 - `adb_pair`
+- `adb_restart_and_retry_pair`
 - `adb_connect`
 - `adb_reconnect_endpoint`
 - `adb_restart_server`
@@ -117,8 +117,10 @@ Pair logic:
 1. User enters IP, pair port, and 6-digit code.
 2. `adb_pair` runs `adb pair <ip:port> <code>` with a 25-second timeout.
 3. If pairing fails, backend reports the failure without restarting the shared ADB server. This keeps already-connected devices online; ADB repair or restart remains an explicit recovery action.
-4. After successful pair, backend discovers the current `_adb-tls-connect` service for the same IP and explicitly runs `adb connect <ip:current_connect_port>`. If no current port is found, it falls back to `ADB_MDNS_AUTO_CONNECT=adb-tls-connect adb devices -l`.
-5. UI records success/failure, saves the refreshed connect port when discovery exposes one, refreshes the device list, and may reveal repair controls after repeated failures.
+4. A failed manual pairing result offers an explicit **Restart ADB and retry pairing** action. The UI captures the submitted IP, pair port, and code before the first attempt; recovery uses that immutable request even if the visible fields were edited afterward.
+5. `adb_restart_and_retry_pair` holds the serialized ADB operation lock, restarts the local daemon while preserving `adb_known_hosts.pb`, `adbkey`, and `adbkey.pub`, then retries the captured request once. Restart success alone is never presented as pairing success; the retry result replaces the earlier pairing result.
+6. After successful pair, backend discovers the current `_adb-tls-connect` service for the same IP and explicitly runs `adb connect <ip:current_connect_port>`. If no current port is found, it falls back to `ADB_MDNS_AUTO_CONNECT=adb-tls-connect adb devices -l`.
+7. UI records success/failure, saves the refreshed connect port when discovery exposes one, refreshes the device list, and may reveal repair controls after repeated failures.
 
 Connect logic:
 
@@ -141,8 +143,8 @@ ADB restart/recovery logic:
 - Repair preserves `adbkey` and `adbkey.pub`, so this computer's ADB host identity is unchanged.
 - `adb_reset_host_identity` is the destructive fallback: it stops ADB, backs up and removes `adb_known_hosts.pb`, `adbkey`, and `adbkey.pub`, then starts ADB.
 - Pair/connect operations are serialized by `adb_server_operation`.
-- The PairConnect UI presents a six-step wireless recovery ladder: network/ADB state, mDNS scan, recent endpoint probe, manual current connect port, safe wireless repair, and host identity reset.
-- The recovery ladder recommends recent probes when mDNS is empty but recent endpoints exist, recommends manual current-port entry when a recent endpoint is reachable, and escalates safe repair / host identity reset to recommended or last-fallback states after failures while keeping both actions available in the ladder.
+- The PairConnect UI presents a six-step wireless recovery ladder: network/ADB state, mDNS scan, recent endpoint probe, manual current connect port, wireless pairing-cache refresh, and host identity reset.
+- The recovery ladder recommends recent probes when mDNS is empty but recent endpoints exist, recommends manual current-port entry when a recent endpoint is reachable, and escalates pairing-cache refresh / host identity reset to recommended or last-fallback states after failures while keeping both actions available in the ladder. Pairing-cache refresh explicitly warns that saved wireless pairings may need to be established again.
 - Host identity reset requires a confirmation modal that explains it can force all Android devices to authorize or pair this computer again.
 
 Startup repair:
@@ -159,7 +161,7 @@ Important failure signals:
 - `no route to host`
 - `failed to start pairing connection client`
 
-These are treated as candidates for restart/retry or explicit repair. If TCP is reachable but pair keeps returning protocol fault, the device-side wireless pairing dialog/session may be stale and should be refreshed on device.
+These are treated as candidates for the explicit restart-and-retry action or later pairing-cache refresh. If TCP is reachable but pair keeps returning protocol fault, the device-side wireless pairing dialog/session may be stale and should be refreshed on device.
 
 ## 4. ADB Workbench
 

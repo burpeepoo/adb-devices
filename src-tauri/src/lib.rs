@@ -69,6 +69,7 @@ pub fn run() {
             commands::device::adb_auto_connect,
             commands::device::adb_mdns_auto_connect,
             commands::device::adb_pair,
+            commands::device::adb_restart_and_retry_pair,
             commands::device::adb_connect,
             commands::device::adb_reconnect_endpoint,
             commands::device::adb_disconnect,

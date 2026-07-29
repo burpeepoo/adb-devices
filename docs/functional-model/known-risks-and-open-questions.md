@@ -5,7 +5,8 @@
 Current code separates four recovery levels:
 
 - Normal connect and recent reconnect do not restart ADB.
-- A failed pairing attempt does not restart ADB or disconnect unrelated online devices.
+- A normal failed pairing attempt does not restart ADB or disconnect unrelated online devices.
+- The explicit **Restart ADB and retry pairing** action restarts the daemon while preserving all pairing files, then retries the exact submitted request once; the retry result, not the restart result, is user-visible.
 - Explicit restart/reconnect restarts the local ADB server while preserving pairing state.
 - Wireless pairing repair backs up and removes only `adb_known_hosts.pb`, then restarts ADB.
 - `adb_reset_host_identity` backs up and removes `adb_known_hosts.pb`, `adbkey`, and `adbkey.pub`, then starts ADB.
@@ -15,7 +16,7 @@ Boundary:
 - Restart/reconnect should be tried before refreshing pairing cache when a saved endpoint is still reachable.
 - Wireless repair refreshes the host-side pairing cache without changing this computer's ADB identity.
 - Host identity reset remains a separate explicit fallback because it invalidates the local ADB key.
-- The UI should continue to present safe repair before host identity reset, while keeping both actions available in the wireless recovery ladder. Reset confirmation must mention `adbkey` removal and the need to re-authorize or re-pair devices.
+- The UI should disclose that pairing-cache refresh removes `adb_known_hosts.pb` and may require re-pairing before presenting host identity reset as the final fallback. Reset confirmation must mention `adbkey` removal and the need to re-authorize or re-pair devices.
 
 ## Explicit Device Targeting
 

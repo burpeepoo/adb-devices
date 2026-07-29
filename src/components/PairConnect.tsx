@@ -24,6 +24,7 @@ import {
   mdnsDeviceKey,
   type UnpairedMdnsDevice,
 } from "../pairConnectMdns";
+import { retryPairAfterAdbRestart, type PairRequest } from "../pairRecovery";
 import { buildWirelessRecoverySteps, type WirelessRecoveryStep } from "../wirelessRecovery.ts";
 import ResultAlert from "./common/ResultAlert";
 
@@ -52,6 +53,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
   const discoveringRef = useRef(false);
   const pairCodeInputFocusedRef = useRef(false);
   const pairConnectFailureCountRef = useRef(0);
+  const lastFailedPairRequestRef = useRef<PairRequest | null>(null);
   const startupRepairCheckedRef = useRef(false);
   const [pairIp, setPairIp] = useState("");
   const [pairPort, setPairPort] = useState("");
@@ -473,7 +475,10 @@ export default function PairConnect({ devices, onConnected }: Props) {
         await discoverMdns(true, true);
       } catch (e) {
         recordPairConnectFailure();
-        if (restartAdb) setHostIdentityResetVisible(true);
+        if (restartAdb) {
+          setPairRepairVisible(true);
+          setHostIdentityResetVisible(true);
+        }
         setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
         setMdnsResult({
           ok: false,
@@ -771,11 +776,13 @@ export default function PairConnect({ devices, onConnected }: Props) {
     const port = pairPort.trim();
     const code = pairCode.trim();
     if (!ip || !port || !code) return;
+    const request = { ip, port, code };
     await runAdbOperation(async () => {
       setPairLoading(true);
       setPairResult(null);
       setPairRepairVisible(false);
       setHostIdentityResetVisible(false);
+      lastFailedPairRequestRef.current = request;
       try {
         const result = await invoke<string>("adb_pair", {
           ip,
@@ -783,8 +790,40 @@ export default function PairConnect({ devices, onConnected }: Props) {
           code,
         });
         setPairResult({ ok: true, msg: result });
+        lastFailedPairRequestRef.current = null;
         clearPairConnectFailures();
         await rememberPairedEndpoint(ip, port);
+        await onConnected();
+      } catch (e) {
+        recordPairConnectFailure();
+        setPairResult({ ok: false, msg: String(e) });
+      } finally {
+        setPairLoading(false);
+      }
+    });
+  };
+
+  const handleRestartAndRetryPair = async () => {
+    const request = lastFailedPairRequestRef.current;
+    if (!request) return;
+    await runAdbOperation(async () => {
+      setPairLoading(true);
+      setPairResult(null);
+      setPairRepairVisible(false);
+      setHostIdentityResetVisible(false);
+      try {
+        const result = await retryPairAfterAdbRestart(
+          request,
+          (command, args) => invoke<string>(command, args),
+        );
+        setPairResult(result);
+        if (!result.ok) {
+          recordPairConnectFailure();
+          return;
+        }
+        lastFailedPairRequestRef.current = null;
+        clearPairConnectFailures();
+        await rememberPairedEndpoint(request.ip, request.port);
         await onConnected();
       } catch (e) {
         recordPairConnectFailure();
@@ -984,7 +1023,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
                 resettingHostIdentity={resettingHostIdentity}
                 showRepair={pairRepairVisible}
                 showResetHostIdentity={hostIdentityResetVisible}
-                onRepairWirelessPairing={handleRestartAdbAndScan}
+                onRepairWirelessPairing={handleRepairWirelessPairing}
                 onResetHostIdentity={handleResetHostIdentity}
               />
             )}
@@ -1033,13 +1072,15 @@ export default function PairConnect({ devices, onConnected }: Props) {
               </Button>
               {pairResult && (
                 <ResultMessage result={pairResult}>
-                  {!pairResult.ok && (pairRepairVisible || hostIdentityResetVisible) && (
+                  {!pairResult.ok && (
                     <PairRepairAction
-                      repairing={repairingAdb}
+                      repairing={pairLoading}
                       resettingHostIdentity={resettingHostIdentity}
-                      showRepair={pairRepairVisible}
+                      showRepair
                       showResetHostIdentity={hostIdentityResetVisible}
-                      onRepairWirelessPairing={handleRepairWirelessPairing}
+                      repairDescriptionKey="pairConnect.restartAndRetryPairDesc"
+                      repairLabelKey="pairConnect.restartAndRetryPair"
+                      onRepairWirelessPairing={handleRestartAndRetryPair}
                       onResetHostIdentity={handleResetHostIdentity}
                     />
                   )}
@@ -1719,6 +1760,8 @@ function PairRepairAction({
   resettingHostIdentity,
   showRepair,
   showResetHostIdentity,
+  repairDescriptionKey = "pairConnect.repairWirelessPairingDesc",
+  repairLabelKey = "pairConnect.repairWirelessPairing",
   onRepairWirelessPairing,
   onResetHostIdentity,
 }: {
@@ -1726,6 +1769,8 @@ function PairRepairAction({
   resettingHostIdentity: boolean;
   showRepair: boolean;
   showResetHostIdentity: boolean;
+  repairDescriptionKey?: string;
+  repairLabelKey?: string;
   onRepairWirelessPairing: () => void;
   onResetHostIdentity: () => void;
 }) {
@@ -1735,7 +1780,7 @@ function PairRepairAction({
       {showRepair && (
         <>
           <Text size="xs" c="dimmed">
-            {t("pairConnect.repairWirelessPairingDesc")}
+            {t(repairDescriptionKey)}
           </Text>
           <Button
             onClick={onRepairWirelessPairing}
@@ -1743,7 +1788,7 @@ function PairRepairAction({
             size="xs"
             className="pair-connect-safe-repair-button"
           >
-            {t('pairConnect.repairWirelessPairing')}
+            {t(repairLabelKey)}
           </Button>
         </>
       )}

@@ -270,13 +270,13 @@ export default function DeviceConsole({
 
       <Paper withBorder radius="md" p="md" className="device-console-section">
         <SectionTitle icon={<IconBolt size={17} />} label={t("deviceConsole.workflowTools")} mb="sm" />
-        <SimpleGrid cols={{ base: 1, lg: 3 }} spacing="md">
+        <SimpleGrid cols={{ base: 1, lg: 3 }} spacing="md" className="device-console-tool-groups">
           {buildToolGroups(t).map((group) => (
             <Stack key={group.title} gap="sm" className="device-console-tool-group">
               <Text fw={800} ta="left">
                 {group.title}
               </Text>
-              <SimpleGrid cols={{ base: 2, sm: 3, lg: 2 }} spacing="xs" className="device-console-tool-grid">
+              <SimpleGrid cols={1} spacing="xs" className="device-console-tool-grid">
                 {group.tools.map((tool) => {
                   const Icon = tool.icon;
                   return (
@@ -298,38 +298,7 @@ export default function DeviceConsole({
         </SimpleGrid>
       </Paper>
 
-      <Accordion multiple defaultValue={["status"]} variant="separated" className="device-console-details">
-        <Accordion.Item value="status">
-          <Accordion.Control>
-            <Group justify="space-between" gap="sm">
-              <Group gap={8} wrap="nowrap">
-                <IconActivityHeartbeat size={16} />
-                <span>{t("deviceConsole.status")}</span>
-              </Group>
-              {summaryLoading && (
-                <Text size="xs" c="dimmed">
-                  {t("deviceConsole.loadingStatus")}
-                </Text>
-              )}
-            </Group>
-          </Accordion.Control>
-          <Accordion.Panel>
-            {summaryError && (
-              <Text size="xs" c="red" mb="sm">
-                {t("deviceConsole.statusFailed")}
-              </Text>
-            )}
-            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="sm">
-              <InfoField label={t("deviceConsole.android")} value={androidSummary(summary)} />
-              <InfoField label={t("deviceConsole.signature")} value={signatureSummary(summary, t)} />
-              <InfoField label={t("deviceConsole.battery")} value={batterySummary(summary, t)} />
-              <InfoField label={t("deviceConsole.display")} value={displaySummary(summary)} />
-              <InfoField label={t("deviceConsole.physicalSize")} value={summary?.display_physical_size_mm} />
-              <InfoField label={t("deviceConsole.storage")} value={summary?.storage} />
-              <InfoField label={t("deviceConsole.foregroundApp")} value={summary?.foreground_app} />
-            </SimpleGrid>
-          </Accordion.Panel>
-        </Accordion.Item>
+      <Accordion variant="separated" className="device-console-details">
         <Accordion.Item value="diagnostics">
           <Accordion.Control>
             <Group gap={8} wrap="nowrap">
@@ -338,16 +307,28 @@ export default function DeviceConsole({
             </Group>
           </Accordion.Control>
           <Accordion.Panel>
-            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-              <InfoField label={t("deviceConsole.securityPatch")} value={summary?.security_patch} />
-              <InfoField label={t("deviceConsole.selinux")} value={summary?.selinux} />
-              <InfoField label={t("deviceConsole.uptime")} value={summary?.uptime} />
-              <InfoField label={t("deviceConsole.cpuAbi")} value={summary?.cpu_abi} />
-              <InfoField label={t("deviceConsole.verifiedBoot")} value={summary?.verified_boot_state} />
-              <InfoField label={t("deviceConsole.vbmeta")} value={summary?.vbmeta_device_state} />
-              <InfoField label={t("deviceConsole.bootloader")} value={summary?.bootloader_state} />
-              <InfoField label={t("deviceConsole.buildFingerprint")} value={summary?.build_fingerprint} />
-            </SimpleGrid>
+            {summaryLoading && (
+              <Text size="xs" c="dimmed">
+                {t("deviceConsole.loadingStatus")}
+              </Text>
+            )}
+            {summaryError && (
+              <Text size="xs" c="red">
+                {t("deviceConsole.statusFailed")}
+              </Text>
+            )}
+            {!summaryLoading && !summaryError && (
+              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+                <InfoField label={t("deviceConsole.securityPatch")} value={summary?.security_patch} />
+                <InfoField label={t("deviceConsole.selinux")} value={summary?.selinux} />
+                <InfoField label={t("deviceConsole.uptime")} value={summary?.uptime} />
+                <InfoField label={t("deviceConsole.cpuAbi")} value={summary?.cpu_abi} />
+                <InfoField label={t("deviceConsole.verifiedBoot")} value={summary?.verified_boot_state} />
+                <InfoField label={t("deviceConsole.vbmeta")} value={summary?.vbmeta_device_state} />
+                <InfoField label={t("deviceConsole.bootloader")} value={summary?.bootloader_state} />
+                <InfoField label={t("deviceConsole.buildFingerprint")} value={summary?.build_fingerprint} />
+              </SimpleGrid>
+            )}
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion>
@@ -441,40 +422,6 @@ function connectionLabel(t: (key: string) => string, type: DeviceInfo["connectio
   return t("deviceList.unknown");
 }
 
-function androidSummary(summary: DeviceSummary | null) {
-  if (!summary) return "";
-  if (summary.android_version && summary.api_level) return `${summary.android_version} (API ${summary.api_level})`;
-  if (summary.android_version) return summary.android_version;
-  if (summary.api_level) return `API ${summary.api_level}`;
-  return "";
-}
-
-function batterySummary(summary: DeviceSummary | null, t: (key: string) => string) {
-  if (!summary) return "";
-  return [summary.battery_level, batteryStatusLabel(summary.battery_status, t)].filter(Boolean).join(" · ");
-}
-
-function signatureSummary(summary: DeviceSummary | null, t: (key: string) => string) {
-  if (!summary) return "";
-  return [
-    summary.build_tags,
-    prefixedValue(t("deviceConsole.verifiedBoot"), summary.verified_boot_state),
-    prefixedValue(t("deviceConsole.vbmeta"), summary.vbmeta_device_state),
-    prefixedValue(t("deviceConsole.bootloader"), summary.bootloader_state),
-  ]
-    .filter(Boolean)
-    .join(" · ");
-}
-
-function displaySummary(summary: DeviceSummary | null) {
-  if (!summary) return "";
-  return [summary.display_size, summary.display_density].filter(Boolean).join(" · ");
-}
-
-function prefixedValue(label: string, value: string) {
-  return value ? `${label}: ${value}` : "";
-}
-
 function deviceIcon(formFactor: DeviceFormFactor) {
   if (formFactor === "largeScreen") return IconDeviceTv;
   if (formFactor === "tablet") return IconDeviceTablet;
@@ -491,14 +438,4 @@ function formFactorLabelKey(formFactor: DeviceFormFactor) {
   if (formFactor === "largeScreen") return "deviceConsole.largeScreen";
   if (formFactor === "tablet") return "deviceConsole.tablet";
   return "deviceConsole.phone";
-}
-
-function batteryStatusLabel(status: string, t: (key: string) => string) {
-  const keyByStatus: Record<string, string> = {
-    Charging: "deviceConsole.batteryCharging",
-    Discharging: "deviceConsole.batteryDischarging",
-    "Not charging": "deviceConsole.batteryNotCharging",
-    Full: "deviceConsole.batteryFull",
-  };
-  return keyByStatus[status] ? t(keyByStatus[status]) : status;
 }

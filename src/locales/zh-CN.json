@@ -704,7 +704,9 @@
     "fillLastConnect": "填入最近连接",
     "showManualConnect": "展开手动连接",
     "restartAdbAndScan": "重启 ADB 并重新扫描",
-    "repairWirelessPairing": "修复无线配对",
+    "repairWirelessPairing": "刷新配对缓存",
+    "restartAndRetryPair": "重启 ADB 并重试配对",
+    "restartAndRetryPairDesc": "保留现有无线配对记录，重启本机 ADB daemon，并用原先提交的 IP、端口和配对码重试一次。",
     "recentConnectionsTitle": "最近连接",
     "recentConnectionsDesc": "扫描不到设备时，可以先检测最近成功连接过的地址；端口仍可达时可直接重连。",
     "probeAllRecent": "检测最近连接",
@@ -720,21 +722,21 @@
       "reachable": "端口可达",
       "unreachable": "不可达"
     },
-    "repairingAdb": "修复中...",
+    "repairingAdb": "处理中...",
     "adbRestarted": "ADB 服务已重启",
-    "repairWirelessPairingDesc": "安全修复只刷新无线配对缓存，保留这台电脑的 ADB 身份。",
+    "repairWirelessPairingDesc": "会备份并清除本机无线配对记录、重启 ADB，并保留 adbkey；现有无线设备可能需要重新配对。",
     "repairReconnected": "{{message}}，并已重连 {{count}} 个最近连接的设备",
     "repairFound": "{{message}}，重新扫描发现 {{count}} 个局域网 ADB 服务",
     "repairNoDevice": "{{message}}，但仍未发现设备。请确认 Android 无线调试页面显示的 IP 和端口，并尝试手动连接。",
     "resetHostIdentity": "重置本机 ADB 身份",
-    "resetHostIdentityDesc": "仅在重启 ADB 后仍失败时使用；会让这台电脑在所有 Android 设备上重新授权或配对。",
+    "resetHostIdentityDesc": "仅在刷新配对缓存后仍失败时使用；会让这台电脑在所有 Android 设备上重新授权或配对。",
     "resetConfirmTitle": "确认重置本机 ADB 身份？",
-    "resetConfirmDesc": "这会移除 adb_known_hosts.pb、adbkey 和 adbkey.pub。所有已授权或已配对的 Android 设备都可能需要重新授权或重新配对。请先尝试安全修复。",
+    "resetConfirmDesc": "这会移除 adb_known_hosts.pb、adbkey 和 adbkey.pub。所有已授权或已配对的 Android 设备都可能需要重新授权或重新配对。请先尝试刷新配对缓存。",
     "resetConfirmAction": "重置本机身份",
     "resetConfirmCancel": "取消",
     "recovery": {
       "title": "无线恢复阶梯",
-      "desc": "按顺序排查：先看网络和发现，再试最近端点与当前端口；安全修复优先，重置本机身份只作为最后 fallback。",
+      "desc": "按顺序排查：先看网络和发现，再试最近端点与当前端口；刷新配对缓存仅作为重新配对前的 fallback，重置本机身份放在最后。",
       "multiNetwork": "检测到多个本地网段，请确认电脑和 Android 设备在同一 Wi-Fi/网段。",
       "states": {
         "idle": "待确认",
@@ -762,19 +764,19 @@
           "desc": "端口可达或 Android 页面已显示新端口时，手动填入当前 connect port。"
         },
         "repair": {
-          "title": "安全修复无线配对",
-          "desc": "刷新 adb_known_hosts.pb 并重启本机 ADB server，保留 adbkey。"
+          "title": "刷新无线配对缓存",
+          "desc": "备份并清除 adb_known_hosts.pb 后重启 ADB，保留 adbkey；现有无线设备可能需要重新配对。"
         },
         "reset": {
           "title": "重置本机身份",
-          "desc": "只有安全修复后仍失败时使用；会让所有设备重新授权或配对。"
+          "desc": "只有刷新配对缓存后仍失败时使用；会让所有设备重新授权或配对。"
         }
       },
       "actions": {
         "scan": "重新扫描",
         "probeRecent": "检测最近连接",
         "showManual": "打开手动输入",
-        "repair": "安全修复",
+        "repair": "刷新配对缓存",
         "reset": "重置身份"
       }
     },

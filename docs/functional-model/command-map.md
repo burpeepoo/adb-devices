@@ -13,10 +13,11 @@ This map connects user-facing actions to frontend code, Tauri commands, and back
 | mDNS connect | `PairConnect.tsx` | `adb_auto_connect` | Connects to mDNS connect service address. |
 | mDNS auto-connect all | `PairConnect.tsx` | `adb_mdns_auto_connect` | Uses mDNS service output and attempts connection. |
 | Pair | `PairConnect.tsx` | `adb_pair` | Runs `adb pair ip:port code`; failures are reported without restarting the shared ADB server, and successful pairing connects the current mDNS connect port for the same IP. |
+| Restart and retry pair | `PairConnect.tsx`, `pairRecovery.ts` | `adb_restart_and_retry_pair` | Explicit recovery action that restarts the local ADB daemon without changing pairing files, then retries the exact submitted IP, pair port, and code under the same serialized ADB operation. |
 | Manual connect | `PairConnect.tsx` | `adb_connect` | Runs `adb connect ip:port`, then falls back to the current mDNS connect port and ADB mDNS auto-connect for same IP. |
 | Recent reconnect | `PairConnect.tsx` | `adb_reconnect_endpoint` | Disconnects endpoint, optionally restarts ADB while preserving pairing state, connects, optionally retries/falls back to mDNS. |
 | Restart ADB | `PairConnect.tsx` | `adb_restart_server_preserving_pairing` | Disconnects, kills server, waits for port 5037 close, force-kills matching server if needed, starts and waits without changing pairing files. |
-| Repair wireless pairing | `PairConnect.tsx` | `adb_repair_wireless_pairing` | Backs up/removes only `adb_known_hosts.pb`, preserves `adbkey` and `adbkey.pub`, then restarts ADB. |
+| Refresh wireless pairing cache | `PairConnect.tsx` | `adb_repair_wireless_pairing` | Backs up/removes only `adb_known_hosts.pb`, preserves `adbkey` and `adbkey.pub`, then restarts ADB; existing wireless devices may need to pair again. |
 | Reset host identity | `PairConnect.tsx` | `adb_reset_host_identity` | Backs up/removes `adb_known_hosts.pb`, `adbkey`, `adbkey.pub`, then starts ADB. |
 | Disconnect endpoint | `PairConnect.tsx` | `adb_disconnect` | Runs `adb disconnect ip:port`. |
 | Local IPs | `PairConnect.tsx` | `get_local_ipv4_addresses` | Reads host private IPv4 addresses for network filtering. |

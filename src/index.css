@@ -936,9 +936,12 @@ code {
   align-items: center;
 }
 
-.device-console-tool-group {
-  --device-console-tool-button-max-width: 172px;
+.device-console-tool-groups {
+  align-items: stretch;
+}
 
+.device-console-tool-group {
+  height: 100%;
   padding: var(--space-md);
   background: var(--surface-sunken);
   border-radius: var(--radius-tile);
@@ -948,15 +951,13 @@ code {
 
 .device-console-tool-grid {
   width: 100%;
-  max-width: calc((var(--device-console-tool-button-max-width) * 2) + var(--space-xs));
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  justify-content: start;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: repeat(4, minmax(40px, auto));
 }
 
 .device-console-tool-group .mantine-Button-root {
   width: 100%;
   min-width: 0;
-  max-width: var(--device-console-tool-button-max-width);
   min-height: 40px;
   padding-inline: 10px;
   font-size: 12px !important;

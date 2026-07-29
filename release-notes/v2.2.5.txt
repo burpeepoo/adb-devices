@@ -1,0 +1,15 @@
+en-US:
+ADB Manager 2.2.5 improves wireless pairing recovery and simplifies the Device Console.
+
+- Failed manual wireless pairing can now explicitly restart the local ADB daemon and retry the exact submitted IP, port, and pairing code without deleting existing host pairing records.
+- Pairing-cache refresh remains a separate, clearly disclosed fallback because it may require devices to be paired again.
+- Device Console tool groups now show one action per row in equal-height cards, with an empty final slot where needed.
+- The redundant Status section has been removed while on-demand Diagnostics remains available.
+
+zh-CN:
+ADB Manager 2.2.5 优化了无线配对恢复，并简化了设备控制台。
+
+- 手动无线配对失败后，现在可以明确重启本机 ADB daemon，并使用原先提交的 IP、端口和配对码重试，同时保留已有的主机配对记录。
+- “刷新配对缓存”继续作为单独且明确提示风险的兜底操作，因为它可能要求设备重新配对。
+- 设备控制台的工具分组现在每行只显示一个操作，三张卡片保持等高，不足的最后一个位置留空。
+- 已移除与性能调试重复的“状态”区域，同时保留可按需展开的“诊断”。

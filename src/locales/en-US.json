@@ -704,7 +704,9 @@
     "fillLastConnect": "Fill last connection",
     "showManualConnect": "Show manual connection",
     "restartAdbAndScan": "Restart ADB and rescan",
-    "repairWirelessPairing": "Repair wireless pairing",
+    "repairWirelessPairing": "Refresh pairing cache",
+    "restartAndRetryPair": "Restart ADB and retry pairing",
+    "restartAndRetryPairDesc": "Preserve existing wireless pairing records, restart the local ADB daemon, and retry once with the originally submitted IP, port, and pairing code.",
     "recentConnectionsTitle": "Recent connections",
     "recentConnectionsDesc": "When scanning finds nothing, check recently connected addresses first. If the port is still reachable, reconnect directly.",
     "probeAllRecent": "Check recent",
@@ -720,21 +722,21 @@
       "reachable": "Reachable",
       "unreachable": "Unreachable"
     },
-    "repairingAdb": "Repairing...",
+    "repairingAdb": "Working...",
     "adbRestarted": "ADB server restarted",
-    "repairWirelessPairingDesc": "Safe repair refreshes the wireless pairing cache while preserving this computer's ADB identity.",
+    "repairWirelessPairingDesc": "Backs up and clears local wireless pairing records, restarts ADB, and preserves adbkey. Existing wireless devices may need to pair again.",
     "repairReconnected": "{{message}} and reconnected {{count}} recent device(s).",
     "repairFound": "{{message}}. Rescan found {{count}} LAN ADB service(s).",
     "repairNoDevice": "{{message}}, but no devices were found. Check the current IP and port shown on Android's wireless debugging page, then try manual connection.",
     "resetHostIdentity": "Reset local ADB identity",
-    "resetHostIdentityDesc": "Use only after restarting ADB still fails. This computer will need to be re-authorized or paired again on all Android devices.",
+    "resetHostIdentityDesc": "Use only after refreshing the pairing cache still fails. This computer will need to be re-authorized or paired again on all Android devices.",
     "resetConfirmTitle": "Reset this computer's ADB identity?",
-    "resetConfirmDesc": "This removes adb_known_hosts.pb, adbkey, and adbkey.pub. All authorized or paired Android devices may need to authorize or pair this computer again. Try safe repair first.",
+    "resetConfirmDesc": "This removes adb_known_hosts.pb, adbkey, and adbkey.pub. All authorized or paired Android devices may need to authorize or pair this computer again. Try refreshing the pairing cache first.",
     "resetConfirmAction": "Reset identity",
     "resetConfirmCancel": "Cancel",
     "recovery": {
       "title": "Wireless recovery ladder",
-      "desc": "Work down the ladder: check network and discovery first, then recent endpoints and the current Android port. Safe repair comes before host identity reset.",
+      "desc": "Work down the ladder: check network and discovery first, then recent endpoints and the current Android port. Refresh pairing cache only before re-pairing, and reset host identity last.",
       "multiNetwork": "Multiple local networks detected. Confirm the computer and Android device are on the same Wi-Fi/subnet.",
       "states": {
         "idle": "Pending",
@@ -762,19 +764,19 @@
           "desc": "If a port is reachable or Android shows a new port, enter the current connect port manually."
         },
         "repair": {
-          "title": "Safe wireless repair",
-          "desc": "Refresh adb_known_hosts.pb and restart the local ADB server while preserving adbkey."
+          "title": "Refresh wireless pairing cache",
+          "desc": "Back up and clear adb_known_hosts.pb, then restart ADB while preserving adbkey. Existing wireless devices may need to pair again."
         },
         "reset": {
           "title": "Reset host identity",
-          "desc": "Use only after safe repair still fails; all devices may need to authorize or pair again."
+          "desc": "Use only after refreshing the pairing cache still fails; all devices may need to authorize or pair again."
         }
       },
       "actions": {
         "scan": "Scan again",
         "probeRecent": "Probe recent",
         "showManual": "Open manual input",
-        "repair": "Safe repair",
+        "repair": "Refresh pairing cache",
         "reset": "Reset identity"
       }
     },

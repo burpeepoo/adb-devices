@@ -300,7 +300,13 @@ test("device console prioritizes Scout tasks before grouped utility tools", () =
   assert.match(copilot, /modeRequestId\?: number/);
   assert.match(copilot, /setCopilotMode\(requestedMode\)/);
   assert.match(consoleSource, /buildToolGroups/);
+  assert.match(consoleSource, /device-console-tool-groups/);
   assert.match(consoleSource, /device-console-tool-group/);
+  assert.match(
+    consoleSource,
+    /<SimpleGrid cols=\{\{ base: 1, lg: 3 \}\} spacing="md" className="device-console-tool-groups">/,
+  );
+  assert.match(consoleSource, /<SimpleGrid cols=\{1\} spacing="xs" className="device-console-tool-grid">/);
   assert.doesNotMatch(consoleSource, /DeviceConsoleShortcuts/);
   assert.doesNotMatch(
     consoleSource,
@@ -311,13 +317,13 @@ test("device console prioritizes Scout tasks before grouped utility tools", () =
   assert.match(consoleSource, /mih=\{40\}/);
   assert.doesNotMatch(consoleSource, /\s+h=\{40\}/);
   assert.match(styles, /\.device-console-task-card/);
+  assert.match(styles, /\.device-console-tool-groups/);
+  assert.match(styles, /\.device-console-tool-groups\s*\{[\s\S]*align-items:\s*stretch/);
   assert.match(styles, /\.device-console-tool-group/);
-  assert.match(styles, /--device-console-tool-button-max-width:\s*172px/);
-  assert.match(styles, /\.device-console-tool-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(styles, /\.device-console-tool-grid\s*\{[\s\S]*max-width:\s*calc\(\(var\(--device-console-tool-button-max-width\) \* 2\) \+ var\(--space-xs\)\)/);
-  assert.match(styles, /\.device-console-tool-grid\s*\{[\s\S]*justify-content:\s*start/);
+  assert.match(styles, /\.device-console-tool-group\s*\{[\s\S]*height:\s*100%/);
+  assert.match(styles, /\.device-console-tool-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.match(styles, /\.device-console-tool-grid\s*\{[\s\S]*grid-template-rows:\s*repeat\(4, minmax\(40px, auto\)\)/);
   assert.match(styles, /\.device-console-tool-group \.mantine-Button-root\s*\{[\s\S]*width:\s*100%/);
-  assert.match(styles, /\.device-console-tool-group \.mantine-Button-root\s*\{[\s\S]*max-width:\s*var\(--device-console-tool-button-max-width\)/);
   assert.match(styles, /font-size:\s*12px !important/);
   assert.match(styles, /\.device-console-tool-group \.mantine-Button-section/);
   assert.match(styles, /flex:\s*0 0 18px/);
@@ -326,8 +332,18 @@ test("device console prioritizes Scout tasks before grouped utility tools", () =
   assert.match(styles, /white-space:\s*nowrap/);
   const scoutIndex = consoleSource.indexOf("deviceConsole.scoutTasks");
   const workflowIndex = consoleSource.indexOf("deviceConsole.workflowTools");
+  const statusItemIndex = consoleSource.indexOf('Accordion.Item value="status"');
   assert.ok(scoutIndex >= 0);
   assert.ok(workflowIndex > scoutIndex);
+  assert.equal(statusItemIndex, -1);
+  assert.match(consoleSource, /Accordion\.Item value="diagnostics"/);
+  assert.match(consoleSource, /deviceConsole\.securityPatch/);
+  assert.match(consoleSource, /const \[summaryLoading, setSummaryLoading\] = useState\(false\)/);
+  assert.match(consoleSource, /const \[summaryError, setSummaryError\] = useState<string \| null>\(null\)/);
+  assert.match(
+    consoleSource,
+    /Accordion\.Item value="diagnostics"[\s\S]*summaryLoading[\s\S]*deviceConsole\.loadingStatus[\s\S]*summaryError[\s\S]*deviceConsole\.statusFailed/,
+  );
   assert.match(zh.deviceConsole.scoutTasks, /Scout/);
   assert.match(zh.deviceConsole.taskChatTitle, /对话/);
   assert.match(zh.deviceConsole.taskWalkthroughTitle, /功能走查/);

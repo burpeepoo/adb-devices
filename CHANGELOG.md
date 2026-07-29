@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.2.5] - 2026-07-29
+
+### Changed
+
+- Changed Device Console tool groups to use one action per row with equal-height three-column cards, leaving the final slot empty when a group has fewer actions.
+- Removed the redundant Device Console Status section while keeping on-demand Diagnostics available.
+- Separated wireless pairing recovery into a pairing-preserving ADB daemon restart/retry action and an explicitly disclosed pairing-cache refresh action.
+
+### Fixed
+
+- Fixed failed manual wireless pairing recovery so it restarts the local ADB daemon, retries the exact submitted IP, port, and pairing code, and reports the actual retry result without silently clearing host pairing records.
+
 ## [2.2.4] - 2026-07-29
 
 ### Changed

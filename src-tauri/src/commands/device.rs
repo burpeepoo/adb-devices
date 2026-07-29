@@ -450,18 +450,30 @@ pub fn adb_pair(
     code: String,
 ) -> Result<String, AdbError> {
     let _guard = lock_adb_server_operation(&state)?;
-    let addr = format!("{}:{}", ip, port);
-    let output = run_pair_command(&app, &addr, &code)?;
+    pair_device(&app, &ip, &port, &code)
+}
 
+#[tauri::command(async)]
+pub fn adb_restart_and_retry_pair(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    ip: String,
+    port: String,
+    code: String,
+) -> Result<String, AdbError> {
+    let _guard = lock_adb_server_operation(&state)?;
+    restart_adb_server_preserving_pairing(&app)?;
+    pair_device(&app, &ip, &port, &code)
+}
+
+fn pair_device(app: &AppHandle, ip: &str, port: &str, code: &str) -> Result<String, AdbError> {
+    let addr = format!("{}:{}", ip, port);
+    let output = run_pair_command(app, &addr, code)?;
     if !pair_output_succeeded(&output) {
-        // A failed pairing attempt must not restart the shared ADB server. A
-        // server restart disconnects every existing transport, including
-        // devices unrelated to this pairing attempt. Recovery remains an
-        // explicit user action in the wireless recovery ladder.
         return Err(pair_failed_error(output_message(&output)));
     }
 
-    match connect_via_current_mdns_port(&app, &ip) {
+    match connect_via_current_mdns_port(app, ip) {
         Ok(Some(_)) => Ok(t!("device.pair_success_connected", ip = ip).to_string()),
         _ => Ok(t!("device.pair_success_pending", ip = ip).to_string()),
     }
@@ -517,18 +529,6 @@ pub fn adb_reconnect_endpoint(
     let output = connect_address(&app, &addr)?;
     if let Some(message) = connect_success_message(&output, &addr, restart_adb) {
         return Ok(message);
-    }
-
-    if restart_adb && should_restart_adb_after_failed_connect(&output_message(&output)) {
-        restart_adb_server(&app)?;
-        let retry_output = connect_address(&app, &addr)?;
-        if let Some(message) = connect_success_message(&retry_output, &addr, true) {
-            return Ok(message);
-        }
-        if let Some(message) = connect_via_mdns_autoconnect(&app, &ip)? {
-            return Ok(message);
-        }
-        return Err(connect_failed_error(&retry_output));
     }
 
     if let Some(message) = connect_via_mdns_autoconnect(&app, &ip)? {
@@ -792,13 +792,6 @@ fn pair_output_succeeded(output: &std::process::Output) -> bool {
 
 fn pair_failed_error(message: String) -> AdbError {
     AdbError::CommandFailed(t!("device.pair_failed", "message" => message).into_owned())
-}
-
-fn should_restart_adb_after_failed_connect(message: &str) -> bool {
-    let message = message.to_ascii_lowercase();
-    message.contains("protocol fault")
-        || message.contains("couldn't read status message")
-        || message.contains("no route to host")
 }
 
 fn discover_mdns_devices(app: &AppHandle) -> Result<Vec<MdnsDevice>, AdbError> {
@@ -1487,25 +1480,6 @@ Lookup adb-NCRC10008CC-ALDBGe._adb-tls-connect._tcp.local.
             parse_dns_sd_lookup(lookup),
             Some(("Android.local".to_string(), "34353".to_string()))
         );
-    }
-
-    #[test]
-    fn wireless_transport_errors_are_repair_candidates() {
-        assert!(should_restart_adb_after_failed_connect(
-            "failed to connect to '192.168.110.131:40607': No route to host"
-        ));
-        assert!(should_restart_adb_after_failed_connect(
-            "error: protocol fault (couldn't read status message): Undefined error: 0"
-        ));
-        assert!(!should_restart_adb_after_failed_connect(
-            "failed to connect to '192.168.110.131:40607': Connection refused"
-        ));
-        assert!(!should_restart_adb_after_failed_connect(
-            "unknown host service"
-        ));
-        assert!(!should_restart_adb_after_failed_connect(
-            "already connected to 192.168.110.131:40607"
-        ));
     }
 
     #[test]
