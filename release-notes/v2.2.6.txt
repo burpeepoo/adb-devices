@@ -1,0 +1,15 @@
+en-US:
+ADB Manager 2.2.6 makes wireless ADB restart recovery truthful and actionable.
+
+- Restart recovery now verifies the responding daemon and retries the current manual endpoint even when it has never connected successfully before.
+- mDNS visibility no longer counts as a connected device; recovery succeeds only after a real wireless ADB transport is online.
+- macOS builds include Local Network privacy guidance, both wireless ADB Bonjour service declarations, and localized permission text.
+- Failed endpoint errors such as “No route to host” remain visible instead of being replaced by a discovery-only result.
+
+zh-CN:
+ADB Manager 2.2.6 让无线 ADB 重启恢复结果更准确、更可操作。
+
+- 重启恢复现在会校验实际响应的 daemon，并重试当前手填端点，即使该端点此前从未成功连接。
+- 仅发现 mDNS 服务不再算作设备已连接；只有真实无线 ADB transport 上线才算恢复成功。
+- macOS 版本加入本地网络权限提示、两个无线 ADB Bonjour 服务声明和本地化权限文案。
+- “No route to host”等端点错误会保留展示，不会被仅发现服务的结果覆盖。

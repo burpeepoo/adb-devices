@@ -494,20 +494,22 @@ pub fn adb_connect(
         return Ok(message);
     }
 
-    if let Some(message) = connect_via_mdns_autoconnect(&app, &ip)? {
+    let message = output_message(&output);
+    let direct_error = if let Some(error) = macos_local_network_access_error(&message) {
+        error
+    } else if message.to_ascii_lowercase().contains("refused") {
+        AdbError::CommandFailed(t!("device.connect_refused", address = addr).into_owned())
+    } else {
+        AdbError::CommandFailed(
+            t!("device.connect_refused_wifi", "message" => message).into_owned(),
+        )
+    };
+
+    if let Ok(Some(message)) = connect_via_mdns_autoconnect(&app, &ip) {
         return Ok(message);
     }
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    if stdout.contains("refused") {
-        Err(AdbError::CommandFailed(
-            t!("device.connect_refused", address = addr).into_owned(),
-        ))
-    } else {
-        Err(AdbError::CommandFailed(
-            t!("device.connect_refused_wifi", "message" => stdout.trim()).into_owned(),
-        ))
-    }
+    Err(direct_error)
 }
 
 #[tauri::command(async)]
@@ -531,23 +533,62 @@ pub fn adb_reconnect_endpoint(
         return Ok(message);
     }
 
-    if let Some(message) = connect_via_mdns_autoconnect(&app, &ip)? {
+    let direct_error = connect_failed_error(&output);
+    if let Ok(Some(message)) = connect_via_mdns_autoconnect(&app, &ip) {
         return Ok(message);
     }
 
-    Err(connect_failed_error(&output))
+    Err(direct_error)
 }
 
 fn start_adb_server(app: &AppHandle) -> Result<(), AdbError> {
     let output = adb::run_adb_with_timeout(app, &["start-server"], None, Duration::from_secs(8))?;
     adb::ensure_success(&output, &t!("device.adb_start_failed"))?;
-    if wait_for_adb_server_to_start(Duration::from_secs(3)) {
-        return Ok(());
+    if !wait_for_adb_server_to_start(Duration::from_secs(3)) {
+        return Err(AdbError::CommandFailed(
+            t!("device.adb_start_failed").into_owned(),
+        ));
     }
 
-    Err(AdbError::CommandFailed(
-        t!("device.adb_start_failed").into_owned(),
-    ))
+    verify_adb_server_identity_and_health(app)
+}
+
+fn verify_adb_server_identity_and_health(app: &AppHandle) -> Result<(), AdbError> {
+    let expected_path = adb::get_adb_path(app)?;
+    let status = adb::run_adb_with_timeout(app, &["server-status"], None, Duration::from_secs(5))?;
+    adb::ensure_success(&status, &t!("device.adb_health_failed"))?;
+
+    let status_text = String::from_utf8_lossy(&status.stdout);
+    let reported_path = parse_adb_server_executable_path(&status_text)
+        .ok_or_else(|| AdbError::CommandFailed(t!("device.adb_health_failed").into_owned()))?;
+    if !paths_refer_to_same_file(&expected_path, &reported_path) {
+        return Err(AdbError::CommandFailed(
+            t!(
+                "device.adb_wrong_server",
+                "path" => reported_path.display().to_string()
+            )
+            .into_owned(),
+        ));
+    }
+
+    let devices = adb::run_adb_with_timeout(app, &["devices", "-l"], None, Duration::from_secs(5))?;
+    adb::ensure_success(&devices, &t!("device.adb_health_failed"))
+}
+
+fn parse_adb_server_executable_path(status: &str) -> Option<PathBuf> {
+    status.lines().find_map(|line| {
+        line.trim()
+            .strip_prefix("executable_absolute_path:")
+            .map(str::trim)
+            .map(|path| PathBuf::from(path.trim_matches('"')))
+            .filter(|path| !path.as_os_str().is_empty())
+    })
+}
+
+fn paths_refer_to_same_file(expected: &Path, reported: &Path) -> bool {
+    let expected = fs::canonicalize(expected).unwrap_or_else(|_| expected.to_path_buf());
+    let reported = fs::canonicalize(reported).unwrap_or_else(|_| reported.to_path_buf());
+    expected == reported
 }
 
 fn restart_adb_server(app: &AppHandle) -> Result<(), AdbError> {
@@ -791,7 +832,9 @@ fn pair_output_succeeded(output: &std::process::Output) -> bool {
 }
 
 fn pair_failed_error(message: String) -> AdbError {
-    AdbError::CommandFailed(t!("device.pair_failed", "message" => message).into_owned())
+    macos_local_network_access_error(&message).unwrap_or_else(|| {
+        AdbError::CommandFailed(t!("device.pair_failed", "message" => message).into_owned())
+    })
 }
 
 fn discover_mdns_devices(app: &AppHandle) -> Result<Vec<MdnsDevice>, AdbError> {
@@ -866,19 +909,43 @@ fn connect_success_message(
 }
 
 fn connect_failed_error(output: &std::process::Output) -> AdbError {
-    AdbError::CommandFailed(
-        t!("device.connect_failed", "message" => output_message(output)).into_owned(),
-    )
+    let message = output_message(output);
+    macos_local_network_access_error(&message).unwrap_or_else(|| {
+        AdbError::CommandFailed(t!("device.connect_failed", "message" => message).into_owned())
+    })
+}
+
+fn macos_local_network_access_error(message: &str) -> Option<AdbError> {
+    if !cfg!(target_os = "macos") || !is_local_network_route_error(message) {
+        return None;
+    }
+
+    Some(AdbError::CommandFailed(
+        t!("device.local_network_access_failed", "message" => message).into_owned(),
+    ))
+}
+
+fn is_local_network_route_error(message: &str) -> bool {
+    let normalized = message.to_ascii_lowercase();
+    normalized.contains("no route to host")
+        || normalized.contains("ehostunreach")
+        || normalized.contains("network unreachable")
+        || normalized.contains("network is unreachable")
+        || normalized.contains("10065")
 }
 
 fn output_message(output: &std::process::Output) -> String {
-    let stderr = String::from_utf8_lossy(&output.stderr);
     let stdout = String::from_utf8_lossy(&output.stdout);
-    if stderr.trim().is_empty() {
-        stdout.trim().to_string()
-    } else {
-        stderr.trim().to_string()
-    }
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    combined_output_message(&stdout, &stderr)
+}
+
+fn combined_output_message(stdout: &str, stderr: &str) -> String {
+    [stdout.trim(), stderr.trim()]
+        .into_iter()
+        .filter(|part| !part.is_empty())
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 #[tauri::command(async)]
@@ -1364,6 +1431,49 @@ adb-NCSC10001SC-vD4b53  _adb-tls-pairing._tcp  192.168.110.103:36353
             endpoint_address(" 192.168.110.111 ", " 36887 "),
             "192.168.110.111:36887"
         );
+    }
+
+    #[test]
+    fn parses_adb_server_executable_path() {
+        let status = r#"
+version: "36.0.2"
+executable_absolute_path: "/Applications/ADB Manager.app/Contents/Resources/cozyla-adb"
+mdns_enabled: true
+"#;
+
+        assert_eq!(
+            parse_adb_server_executable_path(status),
+            Some(PathBuf::from(
+                "/Applications/ADB Manager.app/Contents/Resources/cozyla-adb"
+            ))
+        );
+        assert_eq!(parse_adb_server_executable_path("version: 36.0.2"), None);
+    }
+
+    #[test]
+    fn classifies_unreachable_network_errors_without_matching_generic_refusals() {
+        for message in [
+            "failed to connect: No route to host",
+            "connect failed: EHOSTUNREACH",
+            "Network is unreachable",
+            "network unreachable",
+            "socket error 10065 WSAEHOSTUNREACH",
+        ] {
+            assert!(is_local_network_route_error(message), "{message}");
+        }
+
+        assert!(!is_local_network_route_error("Connection refused"));
+        assert!(!is_local_network_route_error("Connection timed out"));
+    }
+
+    #[test]
+    fn combines_adb_stdout_and_stderr_for_diagnostics() {
+        assert_eq!(
+            combined_output_message("failed to connect to 10.0.0.200:46829", "No route to host"),
+            "failed to connect to 10.0.0.200:46829\nNo route to host"
+        );
+        assert_eq!(combined_output_message("connected", ""), "connected");
+        assert_eq!(combined_output_message("", "daemon error"), "daemon error");
     }
 
     #[test]

@@ -25,6 +25,22 @@ export function reconnectEndpointsAfterAdbRestart(
   return endpoints;
 }
 
+export function reconnectCandidatesWithCurrentEndpoint(
+  recentConnects: RecentConnectEndpoint[],
+  currentIp: string,
+  currentPort: string,
+  now = Date.now(),
+) {
+  const current = parseAdbIpEndpoint(`${currentIp.trim()}:${currentPort.trim()}`);
+  if (!current) return recentConnects;
+
+  const currentKey = endpointKey(current);
+  return [
+    { ...current, lastConnectedAt: now },
+    ...recentConnects.filter((endpoint) => endpointKey(endpoint) !== currentKey),
+  ];
+}
+
 export function reconnectEndpointWithCurrentPort(
   endpoint: RecentConnectEndpoint,
   mdnsDevices: MdnsDevice[],

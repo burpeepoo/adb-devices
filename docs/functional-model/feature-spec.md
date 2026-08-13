@@ -132,17 +132,20 @@ Connect logic:
 Recent reconnect logic:
 
 - Recent endpoints can be reconnected without restarting ADB.
+- A syntactically valid current manual IP/port is tried first during explicit restart/reconnect even if its first connection failed and it has not entered recent history yet.
 - When reconnecting, the app can replace stale port with the current connected port or current mDNS connect port for the same IP.
 - Explicit restart/reconnect can call `adb_reconnect_endpoint` with `restart_adb = true`; that path restarts the local ADB server while preserving pairing state, then reconnects the endpoint.
 - The auto-connect action reports connected count from the refreshed device list after `adb_mdns_auto_connect`, not from the raw auto-connect command output, so duplicate or stale mDNS rows do not claim a device is connected until it appears in current ADB truth.
 
 ADB restart/recovery logic:
 
-- `adb_restart_server_preserving_pairing` disconnects, kills the ADB server, waits for port 5037 to close, force-kills matching ADB server processes if needed, starts the server, and waits for port 5037 to open without changing `.android` pairing files.
+- `adb_restart_server_preserving_pairing` disconnects, kills the ADB server, waits for port 5037 to close, force-kills matching ADB server processes if needed, and starts the server without changing `.android` pairing files. Port 5037 opening is only a transport precondition: the backend then requires `adb server-status` to identify the bundled executable and `adb devices -l` to pass under timeouts.
 - `adb_repair_wireless_pairing` backs up and removes only `adb_known_hosts.pb`, then restarts ADB.
 - Repair preserves `adbkey` and `adbkey.pub`, so this computer's ADB host identity is unchanged.
 - `adb_reset_host_identity` is the destructive fallback: it stops ADB, backs up and removes `adb_known_hosts.pb`, `adbkey`, and `adbkey.pub`, then starts ADB.
 - Pair/connect operations are serialized by `adb_server_operation`.
+- Restart/reconnect records every failed endpoint attempt and reports the last concrete ADB error. Later local-IP, mDNS, or UI-refresh failures do not replace that endpoint error. A visible mDNS service does not count as recovery; success requires a successful endpoint reconnect or an online wireless ADB transport from a direct, non-skippable `adb_devices` query.
+- On macOS, the signed app bundle declares local-network usage and both wireless ADB Bonjour service types. Route-unreachable failures are surfaced with the Local Network privacy setting as a concrete diagnostic instead of being overwritten by mDNS fallback state.
 - The PairConnect UI presents a six-step wireless recovery ladder: network/ADB state, mDNS scan, recent endpoint probe, manual current connect port, wireless pairing-cache refresh, and host identity reset.
 - The recovery ladder recommends recent probes when mDNS is empty but recent endpoints exist, recommends manual current-port entry when a recent endpoint is reachable, and escalates pairing-cache refresh / host identity reset to recommended or last-fallback states after failures while keeping both actions available in the ladder. Pairing-cache refresh explicitly warns that saved wireless pairings may need to be established again.
 - Host identity reset requires a confirmation modal that explains it can force all Android devices to authorize or pair this computer again.
@@ -153,6 +156,7 @@ Startup repair:
 - Waits 3.5 seconds after launch before attempting.
 - If a device is already online, records completion and does not repair.
 - If no device is online and recent endpoints exist, attempts a non-visible `restartAdbAndReconnect`.
+- Records startup repair completion only when that recovery returns a real ADB connection; daemon restart or mDNS discovery alone does not complete the repair gate.
 
 Important failure signals:
 

@@ -13,6 +13,8 @@ errors.timeout_detail: "%{seconds} 秒内没有返回，请检查端口是否仍
 # Device commands
 device.scan_failed: "扫描局域网 ADB 设备失败"
 device.adb_start_failed: "启动 ADB 服务失败"
+device.adb_health_failed: "ADB 服务已启动，但未通过协议健康检查"
+device.adb_wrong_server: "ADB 从非预期的可执行文件启动: %{path}"
 device.adb_stop_failed: "停止 ADB 服务失败，请在终端运行 adb kill-server 后重试"
 device.adb_restarted: "ADB 服务已重启"
 device.adb_operation_state_error: "ADB 操作状态不可用"
@@ -21,6 +23,7 @@ device.adb_identity_reset: "已重置本机 ADB 身份，请在 Android 设备�
 device.connected_to: "已连接到 %{address}"
 device.connected_after_adb_restart: "重启 ADB 后已连接到 %{address}"
 device.connect_failed: "连接失败: %{message}"
+device.local_network_access_failed: "ADB 无法访问局域网: %{message}。请在“系统设置 > 隐私与安全性 > 本地网络”中允许 ADB Manager；开发版需使用稳定签名的应用，然后重启 ADB 再试"
 device.already_connected: "已连接（%{address} 已在线）"
 device.connected_via_mdns: "已通过 mDNS 自动发现连接到 %{ip}"
 device.auto_connect_failed: "自动连接已配对设备失败"

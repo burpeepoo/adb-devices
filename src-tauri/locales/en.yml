@@ -13,6 +13,8 @@ errors.timeout_detail: "No response within %{seconds} seconds. Check if the port
 # Device commands
 device.scan_failed: "Failed to scan for LAN ADB devices"
 device.adb_start_failed: "Failed to start ADB server"
+device.adb_health_failed: "ADB server started but did not pass its protocol health check"
+device.adb_wrong_server: "ADB restarted from an unexpected executable: %{path}"
 device.adb_stop_failed: "Failed to stop ADB server. Run adb kill-server in Terminal, then try again"
 device.adb_restarted: "ADB server restarted"
 device.adb_operation_state_error: "ADB operation state is unavailable"
@@ -21,6 +23,7 @@ device.adb_identity_reset: "Local ADB identity reset. Re-authorize or pair again
 device.connected_to: "Connected to %{address}"
 device.connected_after_adb_restart: "Connected to %{address} after restarting ADB"
 device.connect_failed: "Connection failed: %{message}"
+device.local_network_access_failed: "ADB cannot reach the local network: %{message}. In System Settings > Privacy & Security > Local Network, allow ADB Manager. Development builds must use a stable signed app, then restart ADB and retry"
 device.already_connected: "Already connected (%{address} is online)"
 device.connected_via_mdns: "Auto-connected to %{ip} via mDNS discovery"
 device.auto_connect_failed: "Failed to auto-connect paired devices"

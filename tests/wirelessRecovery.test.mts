@@ -1,8 +1,79 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { summarizeAdbRestartRecovery } from "../src/adbRestartRecovery.ts";
 import { buildWirelessRecoverySteps } from "../src/wirelessRecovery.ts";
 import type { MdnsDevice, RecentConnectEndpoint } from "../src/types/index.ts";
+
+test("restart recovery fails when no device reconnects and preserves the last endpoint error", () => {
+  assert.deepEqual(
+    summarizeAdbRestartRecovery({
+      reconnectedCount: 0,
+      visibleServiceCount: 1,
+      reconnectErrors: [
+        "mDNS refresh failed",
+        "ADB command failed: Connection failed: No route to host",
+      ],
+    }),
+    {
+      recovered: false,
+      outcome: "services_only",
+      lastError: "ADB command failed: Connection failed: No route to host",
+    },
+  );
+});
+
+test("restart recovery succeeds only after a real endpoint reconnect", () => {
+  assert.deepEqual(
+    summarizeAdbRestartRecovery({
+      reconnectedCount: 1,
+      visibleServiceCount: 0,
+      reconnectErrors: [],
+    }),
+    {
+      recovered: true,
+      outcome: "reconnected",
+      lastError: null,
+    },
+  );
+});
+
+test("macOS bundle declares local-network and wireless ADB Bonjour usage", () => {
+  const plist = readFileSync(new URL("../src-tauri/Info.plist", import.meta.url), "utf8");
+  const config = readFileSync(new URL("../src-tauri/tauri.conf.json", import.meta.url), "utf8");
+  const english = readFileSync(new URL("../src-tauri/en.lproj/InfoPlist.strings", import.meta.url), "utf8");
+  const chinese = readFileSync(new URL("../src-tauri/zh-Hans.lproj/InfoPlist.strings", import.meta.url), "utf8");
+
+  assert.match(config, /"infoPlist"\s*:\s*"Info\.plist"/);
+  assert.match(plist, /<key>NSLocalNetworkUsageDescription<\/key>/);
+  assert.match(plist, /<key>NSBonjourServices<\/key>/);
+  assert.match(plist, /_adb-tls-connect\._tcp/);
+  assert.match(plist, /_adb-tls-pairing\._tcp/);
+  assert.match(config, /en\.lproj\/InfoPlist\.strings/);
+  assert.match(config, /zh-Hans\.lproj\/InfoPlist\.strings/);
+  assert.match(english, /NSLocalNetworkUsageDescription/);
+  assert.match(chinese, /使用本地网络发现并连接/);
+});
+
+test("restart health checks the responding ADB server and failed reconnects are not swallowed", () => {
+  const source = readFileSync(new URL("../src/components/PairConnect.tsx", import.meta.url), "utf8");
+  const backend = readFileSync(new URL("../src-tauri/src/commands/device.rs", import.meta.url), "utf8");
+  const restartFlow = componentSlice(source, "const restartAdbAndReconnect", "useEffect(() => {");
+  const startServer = componentSlice(backend, "fn start_adb_server", "fn restart_adb_server");
+
+  assert.match(startServer, /verify_adb_server_identity_and_health/);
+  assert.match(backend, /\["server-status"\]/);
+  assert.match(backend, /\["devices", "-l"\]/);
+  assert.match(backend, /let direct_error = connect_failed_error\(&output\);/);
+  assert.match(backend, /if let Ok\(Some\(message\)\) = connect_via_mdns_autoconnect/);
+  assert.match(restartFlow, /reconnectCandidatesWithCurrentEndpoint\(\s*recentConnects,\s*connectIp,\s*connectPort/);
+  assert.match(restartFlow, /authoritativeDevices = await invoke<DeviceInfo\[\]>\("adb_devices"\)/);
+  assert.doesNotMatch(restartFlow, /Array\.isArray\(refreshedDevices\)[\s\S]*devicesRef\.current/);
+  assert.match(restartFlow, /reconnectErrors\.push\(String\(error\)\)/);
+  assert.match(restartFlow, /ok:\s*recoverySummary\.recovered/);
+  assert.match(restartFlow, /return recoverySummary\.recovered/);
+  assert.doesNotMatch(restartFlow, /catch\s*\{\s*setEndpointProbeStates/);
+});
 
 test("recommends recent endpoint probing when mDNS finds nothing but history exists", () => {
   const steps = buildWirelessRecoverySteps({
@@ -281,7 +352,7 @@ function recent(ip: string, port: string): RecentConnectEndpoint {
 
 function componentSlice(source: string, startMarker: string, endMarker: string) {
   const start = source.indexOf(startMarker);
-  const end = source.indexOf(endMarker);
+  const end = source.indexOf(endMarker, start + startMarker.length);
   assert.ok(start >= 0, `${startMarker} should exist`);
   assert.ok(end > start, `${endMarker} should appear after ${startMarker}`);
   return source.slice(start, end);

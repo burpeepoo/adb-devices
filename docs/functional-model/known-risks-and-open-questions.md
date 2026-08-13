@@ -119,7 +119,7 @@ Startup repair is intentionally gated by version and 10-minute cooldown. It avoi
 
 Risk:
 
-- If a device briefly appears online after app update and then drops offline, startup repair may mark itself complete too early.
+- A device can briefly appear online after app update and then drop offline. Restart recovery now refuses to mark discovery-only or failed reconnect attempts complete, but it does not yet require a post-connect settle window.
 
 Potential follow-up:
 
@@ -133,12 +133,16 @@ Risks:
 
 - Corporate Wi-Fi, AP isolation, VPNs, multiple NICs, or stale Android wireless sessions can hide valid devices.
 - Filtering to host private network prefixes can suppress useful services if the host has incomplete IP info.
+- macOS Local Network privacy is attributed to the responsible signed app. Ad-hoc or identity-changing development bundles can lose stable permission attribution even when raw TCP reachability and Bonjour discovery still appear to work.
+- mDNS visibility proves only that a Bonjour service was discovered; it does not prove the app-launched ADB daemon can open the endpoint or complete the ADB/TLS connection.
 
 Mitigation:
 
 - Keep manual IP/port entry available.
 - Keep recent endpoints visible and probeable.
 - Show local network hints when multiple local networks are detected.
+- Ship macOS builds with localized English and Simplified Chinese `NSLocalNetworkUsageDescription`, both `_adb-tls-connect._tcp` and `_adb-tls-pairing._tcp` Bonjour declarations, and a stable Apple signing identity.
+- Preserve the endpoint's ADB error and show the macOS Local Network setting when the route is unreachable; do not replace that error with a discovery-only success message.
 
 ## Connect Button Performance
 

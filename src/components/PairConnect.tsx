@@ -14,6 +14,7 @@ import { DeviceInfo, MdnsDevice, PairConnectSettings, RecentConnectEndpoint } fr
 import {
   endpointKey,
   recentConnectEndpointsFromDevices,
+  reconnectCandidatesWithCurrentEndpoint,
   reconnectEndpointWithCurrentPort,
   reconnectEndpointsAfterAdbRestart,
 } from "../pairConnectEndpoints";
@@ -25,6 +26,7 @@ import {
   type UnpairedMdnsDevice,
 } from "../pairConnectMdns";
 import { retryPairAfterAdbRestart, type PairRequest } from "../pairRecovery";
+import { summarizeAdbRestartRecovery } from "../adbRestartRecovery";
 import { buildWirelessRecoverySteps, type WirelessRecoveryStep } from "../wirelessRecovery.ts";
 import ResultAlert from "./common/ResultAlert";
 
@@ -497,6 +499,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
     revealResetWhenUnrecovered,
     preservePairing = false,
   }: AdbRestartReconnectOptions) => {
+    const reconnectErrors: string[] = [];
     setBusyAddress(busyKey);
     setRepairingAdb(true);
     setDiscovering(true);
@@ -506,8 +509,14 @@ export default function PairConnect({ devices, onConnected }: Props) {
     try {
       let restartMessage = t('pairConnect.adbRestarted');
       let didRestart = false;
-      const reconnectEndpoints = reconnectEndpointsAfterAdbRestart(recentConnects, []);
+      const reconnectCandidates = reconnectCandidatesWithCurrentEndpoint(
+        recentConnects,
+        connectIp,
+        connectPort,
+      );
+      const reconnectEndpoints = reconnectEndpointsAfterAdbRestart(reconnectCandidates, []);
       const reconnectedEndpoints: RecentConnectEndpoint[] = [];
+      const recoveryErrors: string[] = [];
 
       if (preservePairing) {
         restartMessage = await invoke<string>("adb_restart_server_preserving_pairing");
@@ -529,7 +538,8 @@ export default function PairConnect({ devices, onConnected }: Props) {
           });
           setEndpointProbeStates((current) => ({ ...current, [key]: "reachable" }));
           reconnectedEndpoints.push({ ...endpoint, lastConnectedAt: Date.now() });
-        } catch {
+        } catch (error) {
+          reconnectErrors.push(String(error));
           setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
         }
       }
@@ -540,13 +550,25 @@ export default function PairConnect({ devices, onConnected }: Props) {
         );
       }
 
-      const currentLocalIps = await refreshLocalIps();
-      const devices = await invoke<MdnsDevice[]>("adb_mdns_discover");
-      const visibleDevices = filterMdnsDevicesForLocalNetworks(devices, currentLocalIps);
-      setMdnsDevices(visibleDevices);
+      let currentLocalIps = localIpsRef.current;
+      try {
+        currentLocalIps = await refreshLocalIps();
+      } catch (error) {
+        recoveryErrors.push(String(error));
+      }
+
+      let visibleDevices: MdnsDevice[] = [];
+      try {
+        const discoveredDevices = await invoke<MdnsDevice[]>("adb_mdns_discover");
+        visibleDevices = filterMdnsDevicesForLocalNetworks(discoveredDevices, currentLocalIps);
+        setMdnsDevices(visibleDevices);
+      } catch (error) {
+        recoveryErrors.push(String(error));
+        setMdnsDevices([]);
+      }
 
       if (reconnectedEndpoints.length === 0 && visibleDevices.length > 0) {
-        const scannedEndpoints = reconnectEndpointsAfterAdbRestart(recentConnects, visibleDevices);
+        const scannedEndpoints = reconnectEndpointsAfterAdbRestart(reconnectCandidates, visibleDevices);
         for (const endpoint of scannedEndpoints) {
           const key = endpointKey(endpoint);
           if (reconnectEndpoints.some((tried) => endpointKey(tried) === key)) continue;
@@ -558,7 +580,8 @@ export default function PairConnect({ devices, onConnected }: Props) {
             });
             setEndpointProbeStates((current) => ({ ...current, [key]: "reachable" }));
             reconnectedEndpoints.push({ ...endpoint, lastConnectedAt: Date.now() });
-          } catch {
+          } catch (error) {
+            reconnectErrors.push(String(error));
             setEndpointProbeStates((current) => ({ ...current, [key]: "unreachable" }));
           }
         }
@@ -571,33 +594,68 @@ export default function PairConnect({ devices, onConnected }: Props) {
         setLastConnect({ ip: latest.ip, port: latest.port });
         savePairConnect({ connectIp: latest.ip, connectPort: latest.port, recentConnects: nextRecent }, nextRecent);
       }
-      const message = reconnectedEndpoints.length
-        ? t('pairConnect.repairReconnected', { message: restartMessage, count: reconnectedEndpoints.length })
-        : visibleDevices.length
-          ? t('pairConnect.repairFound', { message: restartMessage, count: visibleDevices.length })
-          : t('pairConnect.repairNoDevice', { message: restartMessage });
-      const recovered = visibleDevices.length > 0 || reconnectedEndpoints.length > 0;
-      if (recovered) {
+      let authoritativeDevices: DeviceInfo[] = [];
+      try {
+        authoritativeDevices = await invoke<DeviceInfo[]>("adb_devices");
+      } catch (error) {
+        recoveryErrors.push(String(error));
+      }
+      try {
+        await onConnected();
+      } catch (error) {
+        recoveryErrors.push(String(error));
+      }
+      const onlineDeviceCount = authoritativeDevices
+        .filter((device) => device.state === "device" && isLanConnectedDevice(device)).length;
+      const recoverySummary = summarizeAdbRestartRecovery({
+        reconnectedCount: Math.max(reconnectedEndpoints.length, onlineDeviceCount),
+        visibleServiceCount: visibleDevices.length,
+        reconnectErrors: [...recoveryErrors, ...reconnectErrors],
+      });
+      const recoveredCount = Math.max(reconnectedEndpoints.length, onlineDeviceCount);
+      const message = recoverySummary.outcome === "reconnected"
+        ? t('pairConnect.repairReconnected', { message: restartMessage, count: recoveredCount })
+        : recoverySummary.outcome === "services_only"
+          ? recoverySummary.lastError
+            ? t('pairConnect.repairServicesOnlyWithError', {
+                message: restartMessage,
+                count: visibleDevices.length,
+                error: recoverySummary.lastError,
+              })
+            : t('pairConnect.repairServicesOnly', {
+                message: restartMessage,
+                count: visibleDevices.length,
+              })
+          : recoverySummary.lastError
+            ? t('pairConnect.repairFailed', {
+                message: restartMessage,
+                error: recoverySummary.lastError,
+              })
+            : t('pairConnect.repairNoDevice', { message: restartMessage });
+      if (recoverySummary.recovered) {
         clearPairConnectFailures();
       } else if (revealResetWhenUnrecovered) {
         pairConnectFailureCountRef.current = 0;
-        setPairRepairVisible(false);
+        setPairRepairVisible(preservePairing);
         setHostIdentityResetVisible(true);
       }
       if (showResult) {
         setMdnsResult({
-          ok: true,
+          ok: recoverySummary.recovered,
           msg: message,
         });
       }
-      if (showResult && visibleDevices.length === 0 && reconnectedEndpoints.length === 0) setShowManual(true);
-      await onConnected();
-      return true;
+      if (showResult && !recoverySummary.recovered) setShowManual(true);
+      return recoverySummary.recovered;
     } catch (e) {
+      const endpointError = [...reconnectErrors]
+        .reverse()
+        .map((error) => error.trim())
+        .find(Boolean);
       if (showResult) {
         setPairRepairVisible(true);
         setHostIdentityResetVisible(true);
-        setMdnsResult({ ok: false, msg: String(e) });
+        setMdnsResult({ ok: false, msg: endpointError || String(e) });
         setShowManual(true);
       }
       return false;
@@ -606,7 +664,7 @@ export default function PairConnect({ devices, onConnected }: Props) {
       setDiscovering(false);
       setBusyAddress(null);
     }
-  }, [clearPairConnectFailures, onConnected, recentConnects, refreshLocalIps, savePairConnect, t]);
+  }, [clearPairConnectFailures, connectIp, connectPort, onConnected, recentConnects, refreshLocalIps, savePairConnect, t]);
 
   useEffect(() => {
     if (!pairConnectLoaded || startupRepairCheckedRef.current) return;

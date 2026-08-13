@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [2.2.6] - 2026-08-13
+
+### Changed
+
+- Changed ADB restart recovery to verify the responding daemon identity and protocol health before continuing wireless reconnect attempts.
+- Changed wireless recovery to retry the current manual endpoint, preserve endpoint errors, and require a real online ADB transport instead of treating mDNS visibility as success.
+- Added macOS Local Network privacy guidance, stable Bonjour declarations, and localized permission text for wireless ADB discovery and connection.
+
+### Fixed
+
+- Fixed app-launched ADB connections that could report success after only opening port 5037 or discovering an mDNS service.
+- Fixed startup repair so failed reconnects are not recorded as completed repairs.
+
 ## [2.2.5] - 2026-07-29
 
 ### Changed

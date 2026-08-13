@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   recentConnectEndpointsFromDevices,
+  reconnectCandidatesWithCurrentEndpoint,
   reconnectEndpointWithCurrentPort,
   reconnectEndpointsAfterAdbRestart,
 } from "../src/pairConnectEndpoints.ts";
@@ -32,6 +33,29 @@ test("deduplicates endpoints after mDNS port replacement", () => {
   );
 
   assert.deepEqual(endpoints, [recent("192.168.110.111", "36887")]);
+});
+
+test("retries the valid current manual endpoint even before it enters recent history", () => {
+  const candidates = reconnectCandidatesWithCurrentEndpoint(
+    [recent("192.168.110.111", "36887")],
+    " 10.0.0.200 ",
+    " 46829 ",
+    2000,
+  );
+
+  assert.deepEqual(candidates, [
+    recent("10.0.0.200", "46829", 2000),
+    recent("192.168.110.111", "36887"),
+  ]);
+});
+
+test("does not add an invalid current manual endpoint to restart candidates", () => {
+  const recentEndpoints = [recent("192.168.110.111", "36887")];
+
+  assert.deepEqual(
+    reconnectCandidatesWithCurrentEndpoint(recentEndpoints, "10.0.0.999", "46829"),
+    recentEndpoints,
+  );
 });
 
 test("single reconnect uses the currently connected port for the same IP", () => {
