@@ -20,3 +20,13 @@ test("logcat uses the Cirrus tool surface instead of legacy utility cards", () =
   assert.match(css, /var\(--color-indigo\)/);
   assert.doesNotMatch(css, /blue-600|gray-200|#2563eb|#1d4ed8/);
 });
+
+test("logcat requests an explicit time range instead of a fixed 1000-line tail", () => {
+  const source = readFileSync(logcatPath, "utf8");
+
+  assert.match(source, /lookbackSeconds:/);
+  assert.match(source, /logcat\.timeRange/);
+  assert.match(source, /snapshot\?\.requested_filter/);
+  assert.match(source, /snapshot\?\.truncated/);
+  assert.doesNotMatch(source, /lineLimit:\s*1000/);
+});

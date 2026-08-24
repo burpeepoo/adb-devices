@@ -9,6 +9,7 @@ test("tab order covers every workspace tab", () => {
     "pair",
     "workbench",
     "agent",
+    "files",
     "install",
     "screenshot",
     "record",
@@ -73,4 +74,6 @@ test("tab keys can be resolved from automation-friendly hash values", () => {
   assert.equal(initialTabKeyFrom("#settings-updates", null), "pair");
   assert.equal(initialTabKeyFrom("#pair", "agent"), "agent");
   assert.equal(hashForTab("agent"), "#agent");
+  assert.equal(tabKeyFromValue("#files"), "files");
+  assert.equal(hashForTab("files"), "#files");
 });

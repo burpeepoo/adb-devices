@@ -25,6 +25,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { classifyDeviceFormFactor, type DeviceFormFactor } from "../deviceFormFactor";
 import { deviceIdentityKey, type DeviceNotes } from "../deviceNotes";
+import { FileManagerIcon } from "../toolMetadata";
 import type { DeviceInfo, DeviceSummary, TabKey } from "../types";
 import SectionTitle from "./common/SectionTitle";
 import PairConnect from "./PairConnect";
@@ -373,6 +374,7 @@ function buildToolGroups(t: (key: string) => string) {
     {
       title: t("deviceConsole.appTools"),
       tools: [
+        { key: "files" as const, label: t("tabs.fileManager"), icon: FileManagerIcon },
         { key: "install" as const, label: t("tabs.apkInstall"), icon: IconBolt },
         { key: "packages" as const, label: t("tabs.packageList"), icon: IconPackages },
         { key: "imageCast" as const, label: t("tabs.imageCast"), icon: IconPhotoUp },

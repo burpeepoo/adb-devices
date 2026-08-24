@@ -244,7 +244,8 @@
   background: var(--surface-sunken);
 }
 
-.package-log-path-field {
+.package-log-path-field,
+.package-log-range-field {
   display: grid;
   gap: 7px;
   margin-top: 18px;
@@ -253,7 +254,9 @@
   font-weight: 600;
 }
 
-.package-log-path-field input {
+.package-log-path-field input,
+.package-log-range-field input,
+.package-log-range-field select {
   width: 100%;
   min-height: 44px;
   padding: 0 14px;
@@ -265,16 +268,42 @@
   font-weight: 400;
 }
 
-.package-log-path-field input:focus {
+.package-log-path-field input:focus,
+.package-log-range-field input:focus,
+.package-log-range-field select:focus {
   outline: none;
   border-color: var(--color-signal);
   box-shadow: var(--focus-ring);
 }
 
-.package-log-path-field small {
+.package-log-path-field small,
+.package-log-range-field small {
   color: var(--text-muted);
   font-size: var(--fs-label);
   font-weight: 400;
+}
+
+.package-log-range-control {
+  display: flex;
+  min-width: 0;
+  gap: 8px;
+}
+
+.package-log-range-control select {
+  min-width: 0;
+  flex: 1 1 auto;
+  cursor: pointer;
+}
+
+.package-log-range-control input {
+  width: 120px;
+  flex: 0 0 120px;
+}
+
+.package-log-range-control select:disabled,
+.package-log-range-control input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .package-log-dialog-error {

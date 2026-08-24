@@ -83,6 +83,12 @@ export interface ExportedPackageLogs {
   output_dir: string;
   remote_path: string;
   logcat_file: string | null;
+  logcat_scope: string | null;
+  logcat_line_count: number;
+  logcat_source_start: string | null;
+  logcat_source_end: string | null;
+  logcat_lookback_seconds: number | null;
+  logcat_all_available: boolean;
   metadata_file: string;
   warnings: string[];
 }
@@ -93,6 +99,17 @@ export interface LogcatEntry {
   pid: string;
   tag: string;
   message: string;
+}
+
+export interface LogcatSnapshot {
+  entries: LogcatEntry[];
+  total_lines: number;
+  truncated: boolean;
+  time_range_requested: boolean;
+  requested_lookback_seconds: number | null;
+  requested_filter: string;
+  source_start: string | null;
+  source_end: string | null;
 }
 
 export interface PerformanceSample {
@@ -457,5 +474,6 @@ export type TabKey =
   | "logcat"
   | "displayCalibration"
   | "agent"
+  | "files"
   | "performance"
   | "packages";

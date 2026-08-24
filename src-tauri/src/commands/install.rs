@@ -7,7 +7,8 @@ use tauri::{AppHandle, State};
 
 use crate::adb::{self, AdbError};
 use crate::commands::clipboard_paths::{
-    normalize_clipboard_path, read_clipboard_file_paths, read_clipboard_text_paths,
+    normalize_clipboard_text_path, normalize_explicit_path_input, read_clipboard_file_paths,
+    read_clipboard_text_paths,
 };
 use crate::state::AppState;
 
@@ -96,14 +97,20 @@ pub fn parse_apk_package(apk_path: String) -> Result<String, AdbError> {
 }
 
 #[tauri::command(async)]
-pub fn resolve_apk_paths(paths: Vec<String>) -> Result<Vec<String>, AdbError> {
+pub async fn resolve_apk_paths(paths: Vec<String>) -> Result<Vec<String>, AdbError> {
+    tauri::async_runtime::spawn_blocking(move || resolve_apk_paths_blocking(paths))
+        .await
+        .map_err(|error| AdbError::CommandFailed(format!("APK path task failed: {error}")))?
+}
+
+fn resolve_apk_paths_blocking(paths: Vec<String>) -> Result<Vec<String>, AdbError> {
     let mut seen = HashSet::new();
     let mut apk_paths = Vec::new();
 
     for path in paths {
-        let normalized = normalize_clipboard_path(&path);
+        let normalized = normalize_explicit_path_input(&path);
         if !normalized.is_empty() {
-            collect_apk_paths(Path::new(&normalized), &mut seen, &mut apk_paths);
+            collect_apk_paths(Path::new(&normalized), true, &mut seen, &mut apk_paths);
         }
     }
 
@@ -111,22 +118,44 @@ pub fn resolve_apk_paths(paths: Vec<String>) -> Result<Vec<String>, AdbError> {
 }
 
 #[tauri::command(async)]
-pub fn read_clipboard_apk_paths() -> Result<Vec<String>, AdbError> {
-    let mut paths = read_clipboard_file_paths();
+pub async fn read_clipboard_apk_paths() -> Result<Vec<String>, AdbError> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let paths = read_clipboard_file_paths()?;
 
-    if paths.is_empty() {
-        paths = read_clipboard_text_paths();
-    }
+        let paths = if paths.is_empty() {
+            read_clipboard_text_paths()?
+                .into_iter()
+                .map(|path| normalize_clipboard_text_path(&path))
+                .collect()
+        } else {
+            paths
+        };
 
-    resolve_apk_paths(paths)
+        resolve_apk_paths_blocking(paths)
+    })
+    .await
+    .map_err(|error| AdbError::CommandFailed(format!("Clipboard APK task failed: {error}")))?
 }
 
-fn collect_apk_paths(path: &Path, seen: &mut HashSet<String>, apk_paths: &mut Vec<String>) {
-    if !path.exists() {
+fn collect_apk_paths(
+    path: &Path,
+    follow_selected_link: bool,
+    seen: &mut HashSet<String>,
+    apk_paths: &mut Vec<String>,
+) {
+    let metadata = if follow_selected_link {
+        std::fs::metadata(path)
+    } else {
+        std::fs::symlink_metadata(path)
+    };
+    let Ok(metadata) = metadata else {
+        return;
+    };
+    if !follow_selected_link && metadata.file_type().is_symlink() {
         return;
     }
 
-    if path.is_file() {
+    if metadata.is_file() {
         if path
             .extension()
             .and_then(|ext| ext.to_str())
@@ -140,7 +169,7 @@ fn collect_apk_paths(path: &Path, seen: &mut HashSet<String>, apk_paths: &mut Ve
         return;
     }
 
-    if !path.is_dir() {
+    if !metadata.is_dir() {
         return;
     }
 
@@ -154,7 +183,7 @@ fn collect_apk_paths(path: &Path, seen: &mut HashSet<String>, apk_paths: &mut Ve
     children.sort();
 
     for child in children {
-        collect_apk_paths(&child, seen, apk_paths);
+        collect_apk_paths(&child, false, seen, apk_paths);
     }
 }
 
@@ -325,7 +354,7 @@ mod tests {
 
         let mut seen = HashSet::new();
         let mut apk_paths = Vec::new();
-        collect_apk_paths(&root, &mut seen, &mut apk_paths);
+        collect_apk_paths(&root, true, &mut seen, &mut apk_paths);
 
         apk_paths.sort();
         assert_eq!(apk_paths.len(), 2);
@@ -333,5 +362,18 @@ mod tests {
         assert!(apk_paths.iter().any(|path| path.ends_with("b.APK")));
 
         std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn explicit_apk_inputs_keep_file_uri_compatibility() {
+        let path =
+            std::env::temp_dir().join(format!("adb-manager uri apk-{}.apk", std::process::id()));
+        std::fs::write(&path, b"").unwrap();
+        let file_uri = format!("file://{}", path.to_string_lossy().replace(' ', "%20"));
+
+        let resolved = resolve_apk_paths_blocking(vec![file_uri]).unwrap();
+
+        assert_eq!(resolved, vec![path.to_string_lossy().to_string()]);
+        std::fs::remove_file(path).unwrap();
     }
 }

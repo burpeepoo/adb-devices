@@ -4,6 +4,7 @@ export const TAB_KEYS: TabKey[] = [
   "pair",
   "workbench",
   "agent",
+  "files",
   "install",
   "screenshot",
   "record",

@@ -6,6 +6,10 @@ use tauri::{AppHandle, Manager};
 use chrono::Local;
 
 use crate::adb::{self, AdbError};
+use crate::commands::logcat::{
+    build_logcat_args, logcat_text_bounds, normalize_lookback_seconds, resolve_logcat_since,
+    LogcatBufferSet,
+};
 
 #[derive(Debug, Serialize, Clone)]
 pub struct PackageInfo {
@@ -35,8 +39,24 @@ pub struct ExportedPackageLogs {
     pub output_dir: String,
     pub remote_path: String,
     pub logcat_file: Option<String>,
+    pub logcat_scope: Option<String>,
+    pub logcat_line_count: usize,
+    pub logcat_source_start: Option<String>,
+    pub logcat_source_end: Option<String>,
+    pub logcat_lookback_seconds: Option<u32>,
+    pub logcat_all_available: bool,
     pub metadata_file: String,
     pub warnings: Vec<String>,
+}
+
+#[derive(Debug)]
+struct PackageLogcatCapture {
+    path: String,
+    scope: String,
+    line_count: usize,
+    source_start: Option<String>,
+    source_end: Option<String>,
+    warnings: Vec<String>,
 }
 
 const COZYLA_LOG_ROOTS: &[&str] = &[
@@ -233,6 +253,7 @@ pub fn adb_pull_package_logs(
     package_name: String,
     remote_path: Option<String>,
     include_logcat: Option<bool>,
+    logcat_lookback_seconds: Option<u32>,
     device_serial: Option<String>,
 ) -> Result<ExportedPackageLogs, AdbError> {
     let package_name = validate_package_name(&package_name)?;
@@ -290,9 +311,29 @@ pub fn adb_pull_package_logs(
     )?;
     adb::ensure_success(&pull_output, &t!("package.logs_pull_failed"))?;
 
+    let requested_logcat_range = logcat_lookback_seconds.unwrap_or(6 * 60 * 60);
+    let normalized_logcat_lookback = normalize_lookback_seconds(Some(requested_logcat_range));
+    let logcat_all_available = requested_logcat_range == 0;
+    let mut logcat_scope = None;
+    let mut logcat_line_count = 0;
+    let mut logcat_source_start = None;
+    let mut logcat_source_end = None;
     let logcat_file = if include_logcat.unwrap_or(true) {
-        match pull_package_logcat(&app, &serial, &package_name, &output_dir) {
-            Ok(Some(result)) => Some(result),
+        match pull_package_logcat(
+            &app,
+            &serial,
+            &package_name,
+            &output_dir,
+            normalized_logcat_lookback,
+        ) {
+            Ok(Some(result)) => {
+                logcat_scope = Some(result.scope);
+                logcat_line_count = result.line_count;
+                logcat_source_start = result.source_start;
+                logcat_source_end = result.source_end;
+                warnings.extend(result.warnings);
+                Some(result.path)
+            }
             Ok(None) => {
                 warnings.push(t!("package.logcat_not_running").into_owned());
                 None
@@ -312,6 +353,12 @@ pub fn adb_pull_package_logs(
         "device_serial": &serial,
         "remote_path": &selected_path,
         "logcat_file": &logcat_file,
+        "logcat_scope": &logcat_scope,
+        "logcat_line_count": logcat_line_count,
+        "logcat_source_start": &logcat_source_start,
+        "logcat_source_end": &logcat_source_end,
+        "logcat_lookback_seconds": normalized_logcat_lookback,
+        "logcat_all_available": logcat_all_available,
         "warnings": &warnings,
         "collected_at": Local::now().to_rfc3339(),
     });
@@ -324,6 +371,12 @@ pub fn adb_pull_package_logs(
         output_dir: output_dir_string,
         remote_path: selected_path,
         logcat_file,
+        logcat_scope,
+        logcat_line_count,
+        logcat_source_start,
+        logcat_source_end,
+        logcat_lookback_seconds: normalized_logcat_lookback,
+        logcat_all_available,
         metadata_file: metadata_file.to_string_lossy().to_string(),
         warnings,
     })
@@ -476,37 +529,93 @@ fn pull_package_logcat(
     serial: &str,
     package_name: &str,
     output_dir: &std::path::Path,
-) -> Result<Option<String>, AdbError> {
-    let pid_output = adb::run_adb(app, &["shell", "pidof", package_name], Some(serial))?;
-    let pid = String::from_utf8_lossy(&pid_output.stdout)
-        .split_whitespace()
-        .next()
-        .map(ToString::to_string);
-    let Some(pid) = pid else {
-        return Ok(None);
-    };
-
-    let pid_arg = format!("--pid={pid}");
-    let log_output = adb::run_adb(
+    lookback_seconds: Option<u32>,
+) -> Result<Option<PackageLogcatCapture>, AdbError> {
+    let uid_output = adb::run_adb(
         app,
         &[
-            "logcat",
-            "-b",
-            "all",
-            pid_arg.as_str(),
-            "-d",
-            "-v",
-            "threadtime",
-            "-t",
-            "3000",
+            "shell",
+            "cmd",
+            "package",
+            "list",
+            "packages",
+            "-U",
+            package_name,
         ],
         Some(serial),
     )?;
+    let uid = if uid_output.status.success() {
+        parse_package_uid(&String::from_utf8_lossy(&uid_output.stdout), package_name)
+    } else {
+        None
+    };
+
+    let (scope_arg, scope, mut warnings) = if let Some(uid) = uid {
+        let warnings = if uid == "1000" {
+            vec![t!("package.logcat_shared_uid_scope", "uid" => uid.clone()).into_owned()]
+        } else {
+            Vec::new()
+        };
+        (format!("--uid={uid}"), format!("uid:{uid}"), warnings)
+    } else {
+        let pid_output = adb::run_adb(app, &["shell", "pidof", package_name], Some(serial))?;
+        let pid = String::from_utf8_lossy(&pid_output.stdout)
+            .split_whitespace()
+            .next()
+            .map(ToString::to_string);
+        let Some(pid) = pid else {
+            return Ok(None);
+        };
+        (
+            format!("--pid={pid}"),
+            format!("pid:{pid}"),
+            vec![t!("package.logcat_pid_fallback").into_owned()],
+        )
+    };
+
+    let since = resolve_logcat_since(app, Some(serial), lookback_seconds)?;
+    let owned_args = build_logcat_args(
+        None,
+        0,
+        true,
+        since.as_deref(),
+        Some(scope_arg.as_str()),
+        LogcatBufferSet::All,
+    );
+    let arg_refs = owned_args.iter().map(String::as_str).collect::<Vec<_>>();
+    let log_output =
+        adb::run_adb_with_timeout(app, &arg_refs, Some(serial), Duration::from_secs(90))?;
     adb::ensure_success(&log_output, &t!("package.logcat_pull_failed"))?;
 
+    let text = String::from_utf8_lossy(&log_output.stdout);
+    let (line_count, source_start, source_end) = logcat_text_bounds(&text);
     let path = output_dir.join("logcat.txt");
     std::fs::write(&path, log_output.stdout)?;
-    Ok(Some(path.to_string_lossy().to_string()))
+    if line_count == 0 {
+        warnings.push(t!("package.logcat_empty_range").into_owned());
+    }
+    Ok(Some(PackageLogcatCapture {
+        path: path.to_string_lossy().to_string(),
+        scope,
+        line_count,
+        source_start,
+        source_end,
+        warnings,
+    }))
+}
+
+fn parse_package_uid(output: &str, package_name: &str) -> Option<String> {
+    output.lines().find_map(|line| {
+        let mut parts = line.split_whitespace();
+        let package = parts.next()?.strip_prefix("package:")?;
+        if package != package_name {
+            return None;
+        }
+        parts
+            .find_map(|part| part.strip_prefix("uid:"))
+            .filter(|uid| !uid.is_empty() && uid.chars().all(|ch| ch.is_ascii_digit()))
+            .map(ToString::to_string)
+    })
 }
 
 fn parse_package_versions(dumpsys_output: &str) -> (String, String) {
@@ -644,6 +753,12 @@ fn parse_all_package_details(
         build_number,
     );
 
+    // `dumpsys package packages` can repeat updated system apps: the active
+    // /data package appears first and the disabled /system base later. Keep the
+    // active entry so the UI does not render duplicate keys or stale row data.
+    let mut seen = std::collections::HashSet::new();
+    packages.retain(|package| seen.insert(package.name.clone()));
+
     packages
 }
 
@@ -676,8 +791,8 @@ fn push_package(
 mod tests {
     use super::{
         apk_output_file_name, candidate_log_paths, is_strong_log_candidate,
-        matches_package_log_name, next_available_output_dir, parse_pm_paths, safe_filename,
-        validate_remote_log_path,
+        matches_package_log_name, next_available_output_dir, parse_all_package_details,
+        parse_package_uid, parse_pm_paths, safe_filename, validate_remote_log_path,
     };
 
     #[test]
@@ -694,6 +809,39 @@ package:/data/app/~~abc/com.android.chrome-xyz/split_config.arm64_v8a.apk
                 "/data/app/~~abc/com.android.chrome-xyz/split_config.arm64_v8a.apk",
             ]
         );
+    }
+
+    #[test]
+    fn parses_exact_package_uid_for_historical_logcat_scope() {
+        let output = "package:com.cozyla.calendar uid:10123\npackage:com.cozyla.id uid:1000\n";
+
+        assert_eq!(
+            parse_package_uid(output, "com.cozyla.id"),
+            Some("1000".to_string())
+        );
+        assert_eq!(parse_package_uid(output, "com.cozyla.missing"), None);
+    }
+
+    #[test]
+    fn package_details_keep_the_active_updated_system_app_only_once() {
+        let output = "\
+  Package [com.cozyla.id] (active):
+    versionCode=2026071417 minSdk=28 targetSdk=36
+    versionName=1.0.0.2026071417
+  Package [com.cozyla.calendar] (calendar):
+    versionCode=2026073011 minSdk=33 targetSdk=36
+    versionName=1.2.5.2026073011
+  Package [com.cozyla.id] (disabled-system-base):
+    versionCode=2026033011 minSdk=28 targetSdk=36
+    versionName=1.0.0.2026033011
+";
+
+        let packages = parse_all_package_details(output, "SERIAL", "BUILD");
+
+        assert_eq!(packages.len(), 2);
+        assert_eq!(packages[0].name, "com.cozyla.id");
+        assert_eq!(packages[0].version_code, "2026071417");
+        assert_eq!(packages[1].name, "com.cozyla.calendar");
     }
 
     #[test]

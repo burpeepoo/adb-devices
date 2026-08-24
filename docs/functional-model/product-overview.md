@@ -9,6 +9,7 @@ The app is optimized for repeated engineering and support workflows:
 - Pair and reconnect wireless ADB devices.
 - Inspect device status and diagnostics.
 - Install APKs and export installed APKs.
+- Browse the selected device's ADB-accessible filesystem and copy files or folders in either direction with explicit conflict handling.
 - Capture screenshots and recordings.
 - Mirror/control the device through scrcpy.
 - Sample app and device performance through ADB-only foreground, process, system, battery, thermal, network, storage, and frame-stat probes.
@@ -53,12 +54,13 @@ Startup sequence:
 
 Navigation:
 
-- The left rail exposes 14 tabs: `pair`, `workbench`, `agent`, `install`, `screenshot`, `record`, `mirror`, `remote`, `imageCast`, `clipboard`, `logcat`, `displayCalibration`, `performance`, `packages`.
+- The left rail exposes 15 tabs: `pair`, `workbench`, `agent`, `files`, `install`, `screenshot`, `record`, `mirror`, `remote`, `imageCast`, `clipboard`, `logcat`, `displayCalibration`, `performance`, `packages`.
 - The visible rail groups those tabs into primary destinations, capture/control tools, diagnostics, apps/packages, and utilities, with Device Console and Agent Tasks intentionally promoted above the lower-level tools.
 - English navigation uses compact rail-only labels for the longest entries (`Devices`, `Remote`, `ADB Tools`, and `Performance`), while page titles and device-console shortcuts keep the full feature names.
 - The Settings button opens a modal, not a tab.
 - Tabs are lazily mounted and then kept mounted once visited, so long-running tool state is not discarded when switching away.
 - The Pair tab is implemented as the device console. It includes the selected device summary, primary Scout task launchers for Feature Walkthrough and Bug Repro, grouped device-tool shortcuts, and an embedded pair/connect panel.
+- The Files tab is a selected-device browser for the current Android user and ADB identity. It exposes observed shared/media/system roots plus direct absolute-path navigation, paginates hidden and ordinary entries, pushes Finder/Explorer files or chosen host paths, and exports selected device items to an explicit host directory. Permission denial is distinct from an empty directory, no transfer silently overwrites, and the feature never enables root or bypasses Android's sandbox.
 - The Mirror tab combines scrcpy-based local interactive mirroring with a selected-device app drawer for launching installed apps.
 - The Remote tab starts an opt-in browser/PWA gateway for phone or second-computer control, with Tailscale-first direct links, role QR sessions, 7-day trusted browsers, experimental HLS video streaming, screenshot/MJPEG fallback viewing, and whitelisted ADB actions.
 - The Agent tab is labeled as Agent Tasks and is the only Scout workspace. It opens as a task console with three primary tasks: Chat, Feature Walkthrough, and Bug Repro. The console owns icon-led, keyboard-navigable task tabs plus compact readiness chips for Agent APK, Scout accessibility control, and Agent runtime/CLI health; clicking the runtime chip opens an independent health modal that can also change the current-device CLI profile. The main task panel stays focused on the selected task instead of repeating mode tabs or full-width runtime status cards. Walkthrough and Bug Repro goals are entered near the bottom start controls, where users are already deciding to start the Agent task. The panel routes normal multi-turn prompts to the selected Agent CLI profile, lets the agent request typed read-only device tools when needed, and keeps embedded Android-agent skills available as optional evidence shortcuts instead of forcing every prompt through a fixed workflow. There is no persistent bottom-right Scout icon or right-side Scout drawer; users enter Scout through Agent Tasks so behavior stays consistent with the rest of the app shell.

@@ -7,6 +7,7 @@ pub(crate) mod clipboard_paths;
 pub mod device;
 pub mod display_calibration;
 pub mod evidence;
+pub mod file_manager;
 pub mod image_cast;
 pub mod install;
 pub mod logcat;

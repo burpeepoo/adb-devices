@@ -1,0 +1,31 @@
+en-US:
+IMPORTANT: Because the signing certificate/update-signing chain has changed, some existing installations may not be able to complete the in-app automatic update.
+
+If the in-app update fails, manually download and install the latest release from GitHub:
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+- macOS: download the latest `.dmg` or `.pkg` installer.
+- Windows: download the latest `setup.exe` or `.msi` installer.
+
+ADB Manager 2.2.7 adds an access-aware device file manager and clearer diagnostic history tools.
+
+- Browse ADB-accessible device paths with quick locations, breadcrumbs, direct path input, hidden entries, pagination, and explicit permission or transport states.
+- Push files and folders to the visible device directory or export selected device items to an explicit host directory with progress, cancellation, conflict review, and explicit replacement.
+- The unreliable device-to-Finder/Explorer clipboard action has been removed.
+- Logcat history ranges use device time across the main, system, and crash buffers, and package-log collection records the selected path, scope, range, and warnings.
+
+zh-CN:
+重要：由于签名证书/更新签名链已切换，部分旧安装包可能无法直接完成应用内自动更新。
+
+如果应用内更新失败，请前往 GitHub 最新 Release 页面，手动下载并安装最新版：
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+- macOS：下载最新的 `.dmg` 或 `.pkg` 安装包。
+- Windows：下载最新的 `setup.exe` 或 `.msi` 安装包。
+
+ADB Manager 2.2.7 新增了按访问能力工作的设备文件管理器，并改进了诊断日志历史记录。
+
+- 浏览 ADB 身份可访问的设备路径，支持快捷位置、面包屑、设备路径输入、隐藏文件、分页，以及明确的权限或连接状态。
+- 将文件和文件夹推送到当前设备目录，或将选中的设备项目导出到明确指定的电脑目录，支持进度、取消、冲突确认和显式替换。
+- 已移除不可靠的“复制到 Finder/资源管理器”设备导出操作。
+- Logcat 历史范围改为使用设备时间，并读取 main、system、crash 缓冲区；应用日志采集会记录选定路径、作用域、时间范围和警告。

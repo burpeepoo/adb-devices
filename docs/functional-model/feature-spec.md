@@ -371,10 +371,11 @@ Application log collection:
 
 - Each package row exposes `Pull logs`.
 - The collection flow first checks standard app external/media log locations and matching folders under `/storage/emulated/0/Documents/cozyla/logs/`; the user can select a detected candidate or replace it with an absolute device path.
-- When exactly one high-confidence package path exists, the row action starts collection directly; ambiguous or leaf-only matches open the path picker instead of silently selecting a directory.
-- One collection pulls the selected remote file/directory, captures up to 3000 lines of current-process Logcat when the package is running, and writes `metadata.json` with package, device, source path, timestamp, and warnings.
+- A high-confidence package path is preselected, but the collection dialog remains open so the operator can confirm the device path and choose the Logcat history range before starting.
+- One collection pulls the selected remote file/directory and attaches all available matching Logcat within the selected range (6 hours by default, with presets, custom minutes, or all buffered logs). It prefers UID scope to retain entries across process restarts and falls back to the current PID only if UID resolution is unavailable.
+- `metadata.json` records package, device, source path, timestamp, Logcat UID/PID scope, requested lookback, actual first/last timestamps, line count, and warnings. Shared UID collection is explicitly warned because it can include other processes with the same UID.
 - Output is saved under the host Downloads directory: `ADB_Manager/AppLogs/<package>/logs_<timestamp>` and can be revealed from the result banner.
-- Automatic Logcat capture is best-effort and PID-scoped; persisted feature logs from the remote path remain the authoritative artifact.
+- Automatic Logcat capture remains best-effort because Android stores logs in finite ring buffers. Persisted feature logs from the remote path remain the authoritative artifact when older Logcat has already been overwritten.
 
 ## 7. Screenshot
 
@@ -543,6 +544,34 @@ Logic:
 - Backend escapes input for `adb shell input text`.
 - Spaces are encoded for ADB input behavior.
 
+## 12.5. Device File Manager
+
+Goal: browse and transfer every selected-device path that the current Android user and ADB identity can actually access, without implying that ADB bypasses the Android sandbox.
+
+Frontend: `FileManager.tsx`, `fileManagerModel.ts`
+
+Backend:
+
+- `adb_file_capabilities`
+- `adb_file_list`
+- `adb_file_push`
+- `adb_file_pull`
+- shared `read_clipboard_local_paths`
+
+Logic:
+
+- A selected online serial is mandatory for every request; no command falls back to ADB's default target.
+- Capabilities are re-probed on device change and expose shared/media quick locations, `/data/local/tmp`, readable system paths, current ADB UID/build, and Android user state.
+- Direct absolute-path entry and breadcrumbs support deep navigation. The current path is shown as the device-directory subtitle, while clickable breadcrumbs, quick locations, and the device-path input remain visible. A NUL-delimited remote listing protocol preserves spaces, quotes, Unicode, newlines, leading dashes, and shell metacharacters; paths are POSIX-quoted before remote shell execution. Remote scripts use the non-PTY `adb shell` protocol so their exit status is propagated; `exec-out` is not used for success/failure decisions.
+- Listings include hidden items, typed file metadata, and bounded pagination. Permission denial, not found, transport failure, loading, successful empty, and more-results states remain distinct.
+- Host files/folders can enter through the picker, drag/drop, or native Finder/Explorer file clipboard. They are pushed only to the currently visible directory.
+- Device regular files/directories can be exported to a selected host folder. Symlinks and special files remain visible but are not transferred.
+- Existing destinations return per-item conflicts. The UI explicitly confirms replacement and retries only conflicted sources. A conflicting directory is replaced as one complete item after a successful same-parent staged transfer; it is never merged into an existing tree or allowed to follow destination links. The backend verifies the committed destination and disappearance of its stage before reporting success; filesystems that reject atomic rename exchange use a checked same-parent move/backup/rollback fallback.
+- Temporary transfer stages are scoped to the active operation and are removed or accounted for before a successful result is reported.
+- The initial feature does not delete, rename, move, chmod, remount, call `adb root`, call `su`, or use package-scoped `run-as`.
+
+The complete boundary and acceptance contract lives in `docs/product-design/device-file-manager-capability.md`.
+
 ## 13. Logcat
 
 Goal: read, filter, stream, and export device logs.
@@ -558,9 +587,12 @@ Backend:
 
 Snapshot logic:
 
-- Runs `adb logcat -d -v threadtime -t <limit>`.
-- Default line limit is 800, clamped from 100 to 3000.
-- Optional filter text is split into logcat arguments.
+- The desktop UI reads `main`, `system`, and `crash` with `adb logcat -d -v threadtime -T <device time>` and explicit `*:V`, so native Verbose tags such as `tls-handler` are not hidden by inherited host filter state.
+- The default UI history range is 30 minutes. Presets cover 5, 15, and 30 minutes, 1, 6, and 24 hours, all buffered logs, plus custom whole minutes up to 7 days.
+- The backend calculates `-T` from device wall clock rather than assuming the host and Android device share a timezone.
+- The UI receives at most 10,000 recent parsed entries for responsiveness and shows the raw device line count, actual first/last timestamps, and a truncation warning. An ADB tag filter should be applied before refresh when a noisy range exceeds the UI cap; package-log collection writes the complete selected raw range to disk.
+- Bounded Agent snapshots retain the line-count mode, defaulting to 800 and clamped to the backend entry cap.
+- Optional filter text is split into logcat arguments; an empty filter explicitly becomes `*:V`.
 
 Streaming logic:
 

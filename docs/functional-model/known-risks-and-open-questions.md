@@ -37,6 +37,36 @@ Mitigation:
 - Reuse the shared target-device strip and helper for new device tools.
 - Add helper tests for target selection and keep `npm test` covering them.
 
+## Device File Access And Staging Boundaries
+
+The Files workspace is bounded by the selected device's current Android user, ADB UID, discretionary permissions, SELinux policy, encryption/unlock state, mount mode, and OEM behavior. Standard production `shell` access commonly reaches shared storage and `/data/local/tmp`, but it does not imply access to `/data/data`, `/data/user/*`, or every physical file. Even an already-root ADB shell can still encounter SELinux, encryption, or read-only mount limits.
+
+Risks:
+
+- A directory can pass an observed `test -w` signal and still reject the actual write because storage, policy, transport, or filesystem state changes.
+- Treating `Permission denied` as an empty directory would hide the access boundary and produce false evidence.
+- `adb shell` joins remote command arguments; an unquoted device path can become shell syntax even when the host process uses separate argv values.
+- A device-to-host native copy materializes potentially sensitive data in app-cache staging. Removing that staging immediately would break a later Finder/Explorer paste; retaining it indefinitely would increase local exposure.
+- Existing directory replacement is deliberately whole-item replacement, not a merge: after the staged copy succeeds, the old conflicting item is moved aside, the new item is committed, and the old item is restored if the commit fails. The confirmation warns that files found only in the old destination directory will be removed.
+- Android shared-storage layers can reject `RENAME_EXCHANGE` even when Toybox exposes `mv -x`. The verified fallback has a brief destination visibility gap and cannot eliminate a deliberately hostile rename race without a device-side helper using no-follow file descriptors.
+- The initial file manager assumes a normal single-operator workflow, not an adversarial process that deliberately swaps host or device path entries between validation and ADB sync opening them. Sources and destinations are revalidated before and after transfer, but ADB sync does not expose held no-follow file descriptors; a same-kind, same-size hostile replacement can therefore evade those checks.
+- A disconnect, timeout, or failed rollback can leave a same-parent hidden `.adb-manager-stage-*` recovery item on the device. Uncertain commit state deliberately preserves that path instead of risking deletion of the only recoverable copy; this slice has no automatic remote recovery sweep.
+- Device filesystems can reject otherwise valid host names. For example, the current Android shared-storage mount rejected a filename containing a newline; this must remain a per-item transfer failure, never a silently renamed or partially committed success.
+- Very large files and folders currently use one blocking `adb push`/`pull` operation per item and have no progress, cancel, or resume protocol.
+- Host filename rules differ. Windows-incompatible device names are sanitized for export, so the local name can differ from the remote name.
+
+Mitigation:
+
+- Preserve per-path read/write/denied state and treat only the actual transfer result as authoritative; capability limits remain available to path gating without a standalone summary card.
+- Preserve permission, not-found, timeout, offline/unauthorized, conflict, partial-success, and empty states separately.
+- Build one remote shell command with POSIX single-quoted data arguments; keep `push`/`pull` values as sync-protocol argv and cover metacharacters in tests.
+- Run status-bearing remote scripts through non-PTY `adb shell`, preserve their NUL-delimited stdout, and verify the final destination plus stage disappearance before success. Use exchange when supported; otherwise use checked no-clobber moves and backup/rollback, and retain the hostile-race limitation above.
+- Reject observed symlinks, reparse points, and special files; bound recursion; and revalidate tree shape, names, types, and sizes. Do not describe this as protection from an actively hostile concurrent writer without a future host/device helper that transfers through held no-follow handles.
+- Surface uncertain commit state and its exact recovery path, and do not blindly clean it after a timeout, transport failure, or rollback failure. A future recovery manifest is required before automatic remote cleanup is safe.
+- Require explicit replacement confirmation and report every source/destination result. Never change identity, root, remount, or choose another path silently.
+- Stage each native copy in a unique app-cache batch and expose the local path. During a later file-access capability probe (such as entering or refreshing the Files workspace) or native copy/staging operation, make a best-effort cleanup of only scoped batches older than seven days; there is no background cleanup timer while the app is closed.
+- Keep delete/rename/move/permission editing out of the initial capability. Add cancellable transfer jobs only when real large-batch evidence justifies the lifecycle.
+
 ## Display Color Control Boundaries
 
 Display Color now has a visible diagnostics tab and a fixed device-control board. The feature is ADB Manager-driven: desired values are chosen on desktop, the selected device is the preview surface, writes require explicit confirmation, and panel color still needs physical validation.
@@ -211,16 +241,21 @@ Risks:
 
 ## Logcat Snapshot Limits
 
-Snapshot mode reads a bounded tail of logcat.
+The desktop snapshot can request a device-time history range, but Android still stores Logcat in finite per-device ring buffers.
 
-Risk:
+Risks:
 
-- Important earlier lines may be missing.
+- A requested 6- or 24-hour range can cover less time when chatty buffers have already overwritten older entries.
+- The desktop table caps returned rows for responsiveness. Without a narrow ADB filter, an important early tag can be outside the loaded tail even though the raw selected range contained it.
+- Package collection prefers UID scope so it can cross process restarts. A shared UID such as `1000` can mix other same-UID processes into the exported Logcat.
+- If package UID resolution fails, the fallback current-PID scope cannot recover records from an earlier process instance.
 
 Mitigation:
 
-- Streaming mode and export are available for longer diagnostic sessions.
-- Package application-log collection separately pulls persisted remote files and records when current-process Logcat is unavailable; it does not claim that a package name can reliably identify all historical Logcat lines.
+- Show both the requested range and the actual first/last timestamps returned by the device, plus total line count and truncation state.
+- Make verbose priority explicit and advise operators to use a tag-level ADB filter such as `tls-handler:V *:S` before refreshing a noisy desktop range.
+- Package application-log collection writes the complete selected all-buffer UID/PID range to disk, records scope/range/count/warnings in `metadata.json`, and keeps persisted remote files as the authoritative evidence when Logcat history is gone.
+- Do not claim that choosing a longer range restores entries already overwritten by the Android ring buffer.
 
 ## Release Feed Freshness
 

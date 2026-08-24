@@ -1,12 +1,20 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { LogcatEntry } from "../types";
+import { LogcatEntry, LogcatSnapshot } from "../types";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Button as MantineButton, Checkbox, Menu } from "@mantine/core";
 import { IconChevronDown, IconListDetails } from "@tabler/icons-react";
 import SectionTitle from "./common/SectionTitle";
 import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import type { DeviceTargetState } from "../deviceTarget.ts";
+import {
+  LOGCAT_CUSTOM_RANGE,
+  LOGCAT_RANGE_VALUES,
+  MAX_LOGCAT_LOOKBACK_MINUTES,
+  logcatRangeAmount,
+  resolveLogcatLookbackSeconds,
+} from "../logcatTimeRange";
 import "./Logcat.css";
 
 interface Props {
@@ -15,7 +23,10 @@ interface Props {
 
 const LEVELS = ["V", "D", "I", "W", "E", "F"] as const;
 const AUTO_REFRESH_MS = 60000;
+const SNAPSHOT_ENTRY_LIMIT = 10_000;
+const DEFAULT_LOOKBACK_SECONDS = 30 * 60;
 type LogcatLevel = (typeof LEVELS)[number];
+type StatusTone = "ok" | "warning" | "error";
 
 export default function Logcat({ deviceTarget }: Props) {
   const { t } = useTranslation();
@@ -23,37 +34,74 @@ export default function Logcat({ deviceTarget }: Props) {
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [status, setStatus] = useState<{ tone: StatusTone; msg: string } | null>(null);
+  const [snapshot, setSnapshot] = useState<LogcatSnapshot | null>(null);
   const [selectedLevels, setSelectedLevels] = useState<LogcatLevel[]>([...LEVELS]);
   const [tagFilter, setTagFilter] = useState("");
   const [pidFilter, setPidFilter] = useState("");
   const [query, setQuery] = useState("");
   const [adbFilter, setAdbFilter] = useState("");
+  const [selectedRange, setSelectedRange] = useState(String(DEFAULT_LOOKBACK_SECONDS));
+  const [customLookbackMinutes, setCustomLookbackMinutes] = useState("60");
   const logRef = useRef<HTMLDivElement | null>(null);
+  const refreshRequest = useRef(0);
+  const lookbackSeconds = resolveLogcatLookbackSeconds(selectedRange, customLookbackMinutes);
+  const selectedRangeLabel = formatLookbackLabel(lookbackSeconds, true, t);
 
   const refreshLogcat = async () => {
     if (loading) return;
     if (!deviceTarget.serial) {
-      setStatus({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
+      setStatus({ tone: "error", msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
       return;
     }
+    if (lookbackSeconds === null) {
+      setStatus({ tone: "error", msg: t("logcat.rangeInvalid") });
+      return;
+    }
+    const requestId = ++refreshRequest.current;
     setLoading(true);
     setStatus(null);
     try {
-      const nextEntries = await invoke<LogcatEntry[]>("adb_read_logcat", {
+      const nextSnapshot = await invoke<LogcatSnapshot>("adb_read_logcat", {
         deviceSerial: deviceTarget.serial,
         logcatFilter: adbFilter.trim() || null,
-        lineLimit: 1000,
+        lineLimit: SNAPSHOT_ENTRY_LIMIT,
+        lookbackSeconds: lookbackSeconds,
       });
-      setEntries(nextEntries);
+      if (requestId !== refreshRequest.current) return;
+      setSnapshot(nextSnapshot);
+      setEntries(nextSnapshot.entries);
       setActive(true);
-      setStatus({ ok: true, msg: t('logcat.refreshed', { count: nextEntries.length }) });
+      if (nextSnapshot.total_lines === 0) {
+        setStatus({ tone: "warning", msg: t("logcat.emptyInRange", { range: selectedRangeLabel }) });
+      } else if (nextSnapshot.truncated) {
+        setStatus({
+          tone: "warning",
+          msg: t("logcat.refreshedTruncated", {
+            loaded: nextSnapshot.entries.length,
+            total: nextSnapshot.total_lines,
+          }),
+        });
+      } else {
+        setStatus({ tone: "ok", msg: t("logcat.refreshed", { count: nextSnapshot.entries.length }) });
+      }
     } catch (e) {
-      setStatus({ ok: false, msg: String(e) });
+      if (requestId === refreshRequest.current) {
+        setStatus({ tone: "error", msg: String(e) });
+      }
     } finally {
-      setLoading(false);
+      if (requestId === refreshRequest.current) setLoading(false);
     }
   };
+
+  useEffect(() => {
+    refreshRequest.current += 1;
+    setEntries([]);
+    setSnapshot(null);
+    setActive(false);
+    setLoading(false);
+    setStatus(null);
+  }, [deviceTarget.serial]);
 
   useEffect(() => {
     if (!active) return;
@@ -61,7 +109,7 @@ export default function Logcat({ deviceTarget }: Props) {
       refreshLogcat();
     }, AUTO_REFRESH_MS);
     return () => window.clearInterval(timer);
-  }, [active, adbFilter, deviceTarget, loading]);
+  }, [active, adbFilter, customLookbackMinutes, deviceTarget.serial, loading, selectedRange]);
 
   useEffect(() => {
     if (logRef.current) {
@@ -105,30 +153,47 @@ export default function Logcat({ deviceTarget }: Props) {
       ? selectedLevels.join(", ")
       : t('logcat.none');
 
-  const exportText = useMemo(
-    () =>
-      [
-        deviceTarget.status === "ready" ? `Device: ${deviceTarget.label} (${deviceTarget.identity})` : "",
-        deviceTarget.status === "ready" ? "" : "",
-        ...visibleEntries.map((entry) =>
-          [entry.timestamp, entry.pid, entry.level, entry.tag ? `${entry.tag}:` : "", entry.message]
-            .filter(Boolean)
-            .join(" ")
-        ),
-      ].filter((line, index) => line || index > 1).join("\n"),
-    [deviceTarget, visibleEntries]
-  );
+  const exportText = useMemo(() => {
+    const loadedRange = formatLookbackLabel(
+      snapshot?.requested_lookback_seconds ?? null,
+      snapshot?.time_range_requested ?? false,
+      t,
+    );
+    const localFilters = [
+      `${t("logcat.level")}=${selectedLevelSummary}`,
+      `Tag=${tagFilter.trim() || "*"}`,
+      `PID=${pidFilter.trim() || "*"}`,
+      `${t("logcat.fullSearch")}=${query.trim() || "*"}`,
+    ].join("; ");
+    const header = [
+      deviceTarget.status === "ready" ? `Device: ${deviceTarget.label} (${deviceTarget.identity})` : "",
+      `${t("logcat.requestedRange")}: ${loadedRange}`,
+      `${t("logcat.actualCoverage")}: ${formatCoverage(snapshot, t)}`,
+      `${t("logcat.adbFilter")}: ${snapshot?.requested_filter ?? "*:V"}`,
+      `${t("logcat.deviceReturnedRows")}: ${snapshot?.total_lines ?? entries.length}`,
+      `${t("logcat.loadedRows")}: ${entries.length}`,
+      `${t("logcat.exportedRows")}: ${visibleEntries.length}`,
+      `${t("logcat.snapshotTruncated")}: ${snapshot?.truncated ? t("logcat.yes") : t("logcat.no")}`,
+      `${t("logcat.localFilters")}: ${localFilters}`,
+    ].filter(Boolean);
+    const lines = visibleEntries.map((entry) =>
+      [entry.timestamp, entry.pid, entry.level, entry.tag ? `${entry.tag}:` : "", entry.message]
+        .filter(Boolean)
+        .join(" ")
+    );
+    return [...header, "", ...lines].join("\n");
+  }, [deviceTarget, entries.length, pidFilter, query, selectedLevelSummary, snapshot, t, tagFilter, visibleEntries]);
 
   const handleClose = async () => {
     setActive(false);
-    setStatus({ ok: true, msg: t('logcat.autoRefreshClosed') });
+    setStatus({ tone: "ok", msg: t('logcat.autoRefreshClosed') });
     await invoke("adb_stop_logcat").catch(() => {
       // Snapshot mode does not keep a process alive.
     });
   };
 
   const handleExport = async () => {
-    if (!exportText || exporting) return;
+    if (entries.length === 0 || exporting) return;
     setExporting(true);
     setStatus(null);
     try {
@@ -138,10 +203,10 @@ export default function Logcat({ deviceTarget }: Props) {
         content: exportText,
       });
       if (savedPath) {
-        setStatus({ ok: true, msg: t('logcat.exported', { path: savedPath }) });
+        setStatus({ tone: "ok", msg: t('logcat.exported', { path: savedPath }) });
       }
     } catch (e) {
-      setStatus({ ok: false, msg: String(e) });
+      setStatus({ tone: "error", msg: String(e) });
     } finally {
       setExporting(false);
     }
@@ -183,7 +248,7 @@ export default function Logcat({ deviceTarget }: Props) {
             </button>
             <button
               onClick={handleExport}
-              disabled={!exportText || exporting}
+              disabled={entries.length === 0 || exporting}
               className="logcat-action"
             >
               {exporting ? t('logcat.exporting') : t('logcat.export')}
@@ -193,6 +258,37 @@ export default function Logcat({ deviceTarget }: Props) {
         <DeviceTargetBanner target={deviceTarget} className="logcat-target" />
 
         <div className="logcat-filters">
+          <label className="logcat-field">
+            <span className="logcat-field__label">{t("logcat.timeRange")}</span>
+            <div className="logcat-range-control">
+              <select
+                value={selectedRange}
+                onChange={(event) => setSelectedRange(event.target.value)}
+                className="logcat-input logcat-select"
+                disabled={loading}
+              >
+                {LOGCAT_RANGE_VALUES.map((seconds) => (
+                  <option key={seconds} value={seconds}>
+                    {formatLookbackLabel(seconds === 0 ? null : seconds, true, t)}
+                  </option>
+                ))}
+                <option value={LOGCAT_CUSTOM_RANGE}>{t("logcat.customRange")}</option>
+              </select>
+              {selectedRange === LOGCAT_CUSTOM_RANGE && (
+                <input
+                  type="number"
+                  min={1}
+                  max={MAX_LOGCAT_LOOKBACK_MINUTES}
+                  step={1}
+                  value={customLookbackMinutes}
+                  onChange={(event) => setCustomLookbackMinutes(event.target.value)}
+                  className="logcat-input logcat-custom-range"
+                  aria-label={t("logcat.customMinutes")}
+                  disabled={loading}
+                />
+              )}
+            </div>
+          </label>
           <div className="logcat-field">
             <span className="logcat-field__label">{t('logcat.level')}</span>
             <Menu closeOnItemClick={false} position="bottom-start" width={220} shadow="md" withinPortal>
@@ -297,20 +393,49 @@ export default function Logcat({ deviceTarget }: Props) {
         </div>
 
         <div className="logcat-footer">
-          <span>{t('logcat.readLatest')}</span>
           <span>
-            {t('logcat.showCount', { visible: visibleEntries.length, total: entries.length })}
+            {snapshot
+              ? t("logcat.coverageSummary", {
+                  requested: formatLookbackLabel(
+                    snapshot.requested_lookback_seconds,
+                    snapshot.time_range_requested,
+                    t,
+                  ),
+                  actual: formatCoverage(snapshot, t),
+                })
+              : t("logcat.rangeBufferHint")}
+          </span>
+          <span>
+            {t('logcat.showCountDetailed', {
+              visible: visibleEntries.length,
+              loaded: entries.length,
+              total: snapshot?.total_lines ?? entries.length,
+            })}
           </span>
         </div>
 
         {status && (
-          <div className={`logcat-status ${status.ok ? "is-ok" : "is-error"}`}>
+          <div className={`logcat-status is-${status.tone}`}>
             {status.msg}
           </div>
         )}
       </section>
     </div>
   );
+}
+
+function formatLookbackLabel(seconds: number | null, timeRangeRequested: boolean, t: TFunction) {
+  if (!timeRangeRequested) return t("logcat.lineTail");
+  if (seconds === null) return t("logcat.allAvailable");
+  const amount = logcatRangeAmount(seconds);
+  return t(amount.unit === "hours" ? "logcat.rangeHours" : "logcat.rangeMinutes", {
+    count: amount.count,
+  });
+}
+
+function formatCoverage(snapshot: LogcatSnapshot | null, t: TFunction) {
+  if (!snapshot?.source_start || !snapshot.source_end) return t("logcat.noCoverage");
+  return `${snapshot.source_start} – ${snapshot.source_end}`;
 }
 
 function levelTextClass(level: string) {

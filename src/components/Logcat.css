@@ -72,7 +72,7 @@
 
 .logcat-filters {
   display: grid;
-  grid-template-columns: minmax(180px, 1.2fr) repeat(4, minmax(130px, 1fr));
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
   gap: var(--space-sm);
   margin-bottom: var(--space-md);
 }
@@ -104,6 +104,28 @@
 .logcat-input {
   padding: 0 var(--space-md);
   outline: none;
+}
+
+.logcat-range-control {
+  display: flex;
+  min-width: 0;
+  gap: var(--space-sm);
+}
+
+.logcat-select {
+  min-width: 0;
+  flex: 1 1 auto;
+  cursor: pointer;
+}
+
+.logcat-custom-range {
+  width: 108px;
+  flex: 0 0 108px;
+}
+
+.logcat-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .logcat-input:focus {
@@ -204,6 +226,7 @@
   margin-top: var(--space-sm);
   color: var(--text-muted);
   font-size: var(--fs-label);
+  flex-wrap: wrap;
 }
 
 .logcat-status {
@@ -217,6 +240,11 @@
 .logcat-status.is-ok {
   color: var(--color-success);
   background: color-mix(in srgb, var(--color-success) 10%, var(--color-paper));
+}
+
+.logcat-status.is-warning {
+  color: var(--color-citrus-dark, #9a3d18);
+  background: color-mix(in srgb, var(--color-citrus) 10%, var(--color-paper));
 }
 
 .logcat-status.is-error {

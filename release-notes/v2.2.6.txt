@@ -1,4 +1,12 @@
 en-US:
+IMPORTANT: Because the signing certificate/update-signing chain has changed, some existing installations may not be able to complete the in-app automatic update.
+
+If the in-app update fails, manually download and install the latest release from GitHub:
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+- macOS: download the latest `.dmg` or `.pkg` installer.
+- Windows: download the latest `setup.exe` or `.msi` installer.
+
 ADB Manager 2.2.6 makes wireless ADB restart recovery truthful and actionable.
 
 - Restart recovery now verifies the responding daemon and retries the current manual endpoint even when it has never connected successfully before.
@@ -7,6 +15,14 @@ ADB Manager 2.2.6 makes wireless ADB restart recovery truthful and actionable.
 - Failed endpoint errors such as “No route to host” remain visible instead of being replaced by a discovery-only result.
 
 zh-CN:
+重要：由于签名证书/更新签名链已切换，部分旧安装包可能无法直接完成应用内自动更新。
+
+如果应用内更新失败，请前往 GitHub 最新 Release 页面，手动下载并安装最新版：
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+- macOS：下载最新的 `.dmg` 或 `.pkg` 安装包。
+- Windows：下载最新的 `setup.exe` 或 `.msi` 安装包。
+
 ADB Manager 2.2.6 让无线 ADB 重启恢复结果更准确、更可操作。
 
 - 重启恢复现在会校验实际响应的 daemon，并重试当前手填端点，即使该端点此前从未成功连接。

@@ -102,6 +102,7 @@ import type {
   EvidenceSessionKind,
   EvidenceScribeIntensity,
   LaunchableApp,
+  LogcatSnapshot,
   PerformanceAgentStatusResponse,
   PerformanceSample,
   PerformanceStreamSnapshot,
@@ -2355,7 +2356,7 @@ export default function AgentCopilot({
             };
           }
           case "logcat.snapshot": {
-            const entries = await invoke<unknown[]>("adb_read_logcat", {
+            const snapshot = await invoke<LogcatSnapshot>("adb_read_logcat", {
               deviceSerial,
               logcatFilter: stringArg(call.args.filter) || null,
               lineLimit: numberArg(call.args.lineLimit, 400, 100, 1200),
@@ -2364,8 +2365,8 @@ export default function AgentCopilot({
               id: call.id,
               tool: call.tool,
               ok: true,
-              summary: t("agent.toolLogcatSnapshot", { count: entries.length }),
-              data: entries.slice(-120),
+              summary: t("agent.toolLogcatSnapshot", { count: snapshot.entries.length }),
+              data: snapshot.entries.slice(-120),
             };
           }
           case "package.list": {

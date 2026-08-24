@@ -1,6 +1,8 @@
 use rust_i18n::t;
+use std::io::Read;
 use std::path::PathBuf;
 use std::process::{Child, Command, Output, Stdio};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager};
 
@@ -11,6 +13,7 @@ pub enum AdbError {
     AdbNotInstalled,
     CommandFailed(String),
     CommandTimedOut(String),
+    CommandCancelled,
     NoDevice,
     AlreadyRecording,
     NotRecording,
@@ -35,6 +38,7 @@ impl std::fmt::Display for AdbError {
                     t!("errors.command_timed_out", "message" => msg.clone())
                 )
             }
+            Self::CommandCancelled => write!(f, "ADB command cancelled"),
             Self::NoDevice => write!(f, "{}", t!("errors.no_device")),
             Self::AlreadyRecording => write!(f, "{}", t!("errors.already_recording")),
             Self::NotRecording => write!(f, "{}", t!("errors.not_recording")),
@@ -261,8 +265,18 @@ pub fn run_adb_with_timeout(
     device_serial: Option<&str>,
     timeout: Duration,
 ) -> Result<Output, AdbError> {
+    run_adb_with_timeout_cancelable(app, args, device_serial, timeout, None)
+}
+
+pub fn run_adb_with_timeout_cancelable(
+    app: &AppHandle,
+    args: &[&str],
+    device_serial: Option<&str>,
+    timeout: Duration,
+    cancellation: Option<&AtomicBool>,
+) -> Result<Output, AdbError> {
     let mut cmd = build_adb_command(app, args, device_serial)?;
-    wait_with_timeout(&mut cmd, timeout)
+    wait_with_timeout(&mut cmd, timeout, cancellation)
 }
 
 pub fn spawn_adb_piped(
@@ -304,7 +318,7 @@ pub fn run_adb_with_env_timeout(
     for (key, value) in envs {
         cmd.env(key, value);
     }
-    wait_with_timeout(&mut cmd, timeout)
+    wait_with_timeout(&mut cmd, timeout, None)
 }
 
 fn build_adb_command(
@@ -320,27 +334,77 @@ fn build_adb_command(
     Ok(cmd)
 }
 
-fn wait_with_timeout(cmd: &mut Command, timeout: Duration) -> Result<Output, AdbError> {
+fn wait_with_timeout(
+    cmd: &mut Command,
+    timeout: Duration,
+    cancellation: Option<&AtomicBool>,
+) -> Result<Output, AdbError> {
     cmd.stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped());
     let mut child = cmd.spawn()?;
+    let mut stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| AdbError::CommandFailed("Failed to capture command stdout".to_string()))?;
+    let mut stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| AdbError::CommandFailed("Failed to capture command stderr".to_string()))?;
+    // Drain both pipes while the process runs. Waiting first can deadlock once
+    // either pipe reaches its OS capacity (large logcat snapshots hit this).
+    let stdout_reader = std::thread::spawn(move || {
+        let mut output = Vec::new();
+        stdout.read_to_end(&mut output).map(|_| output)
+    });
+    let stderr_reader = std::thread::spawn(move || {
+        let mut output = Vec::new();
+        stderr.read_to_end(&mut output).map(|_| output)
+    });
     let started = Instant::now();
 
-    loop {
-        if child.try_wait()?.is_some() {
-            return Ok(child.wait_with_output()?);
+    let status = loop {
+        if let Some(status) = child.try_wait()? {
+            break status;
+        }
+
+        if cancellation.is_some_and(|flag| flag.load(Ordering::Relaxed)) {
+            let _ = child.kill();
+            let _ = child.wait();
+            let _ = stdout_reader.join();
+            let _ = stderr_reader.join();
+            return Err(AdbError::CommandCancelled);
         }
 
         if started.elapsed() >= timeout {
             let _ = child.kill();
-            let _ = child.wait_with_output();
+            let _ = child.wait();
+            let _ = stdout_reader.join();
+            let _ = stderr_reader.join();
             return Err(AdbError::CommandTimedOut(
                 t!("errors.timeout_detail", seconds = timeout.as_secs()).into_owned(),
             ));
         }
 
         std::thread::sleep(Duration::from_millis(100));
-    }
+    };
+
+    let stdout = join_output_reader(stdout_reader, "stdout")?;
+    let stderr = join_output_reader(stderr_reader, "stderr")?;
+    Ok(Output {
+        status,
+        stdout,
+        stderr,
+    })
+}
+
+fn join_output_reader(
+    reader: std::thread::JoinHandle<std::io::Result<Vec<u8>>>,
+    stream_name: &str,
+) -> Result<Vec<u8>, AdbError> {
+    reader
+        .join()
+        .map_err(|_| AdbError::CommandFailed(format!("Failed to collect command {stream_name}")))?
+        .map_err(AdbError::Io)
 }
 
 pub fn ensure_success(output: &std::process::Output, context: &str) -> Result<(), AdbError> {
@@ -434,5 +498,31 @@ mod tests {
     #[test]
     fn reports_unavailable_when_no_adb_source_exists() {
         assert_eq!(select_adb_path(None, None, None), None);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn timeout_runner_drains_output_larger_than_the_os_pipe_capacity() {
+        let mut command = process::hidden_command("/bin/sh");
+        command.args(["-c", "head -c 1048576 /dev/zero"]);
+
+        let output = wait_with_timeout(&mut command, Duration::from_secs(2), None)
+            .expect("large finite output should complete before the timeout");
+
+        assert!(output.status.success());
+        assert_eq!(output.stdout.len(), 1_048_576);
+        assert!(output.stderr.is_empty());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn timeout_runner_kills_a_cancelled_child() {
+        let mut command = process::hidden_command("/bin/sh");
+        command.args(["-c", "sleep 10"]);
+        let cancellation = AtomicBool::new(true);
+
+        let result = wait_with_timeout(&mut command, Duration::from_secs(2), Some(&cancellation));
+
+        assert!(matches!(result, Err(AdbError::CommandCancelled)));
     }
 }

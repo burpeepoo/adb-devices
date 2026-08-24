@@ -29,6 +29,25 @@ Collected on demand for the selected online device:
 
 Extends `DeviceInfo` with `lastSeen`. Online devices update history; historical devices are shown as `disconnected` when absent from current `adb devices -l`.
 
+## File Manager Types
+
+`FileManagerCapabilities` is refreshed for the explicit selected serial. It records the effective ADB UID, observed `shell` or already-root access mode, build/debuggability signals, current Android user/state, and per-location existence/read/write probes. These probes describe current access signals; they do not promise that a later transfer must succeed.
+
+`DeviceDirectoryListing`
+
+| Field | Meaning |
+| --- | --- |
+| `path` | Canonical absolute directory returned by the device. |
+| `readable`, `writable` | Observed shell access signals for this directory. |
+| `entries` | One bounded page of typed `DeviceFileEntry` values, including hidden names. |
+| `offset`, `nextOffset`, `limit`, `hasMore` | Pagination state; an empty successful page is distinct from an error. |
+
+`DeviceFileEntry` carries name, absolute path, `file` / `directory` / `symlink` / `other` kind, optional size/modified/mode/symlink metadata, and observed read/write signals. Only regular files and directories are transferable in the initial capability.
+
+`FileTransferBatch` contains per-item `FileTransferResult` values and derived success/conflict/failure counts. A conflict is a separate status, not a failure or implicit overwrite. Retrying with overwrite replaces only the conflicted results in the visible batch.
+
+Device-to-host export uses an explicit host directory selected for the transfer. The initial file manager does not stage device files into the native Finder/Explorer clipboard; successful and failed destinations remain represented by the per-item `FileTransferResult` values in the transfer batch.
+
 ## Wireless Types
 
 `MdnsDevice`

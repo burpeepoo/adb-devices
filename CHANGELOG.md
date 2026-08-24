@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [2.2.7] - 2026-08-24
+
+### Added
+
+- Added a selected-device file manager for browsing ADB-accessible paths, including hidden entries, bounded pagination, breadcrumbs, quick locations, direct device-path navigation, and explicit access states.
+- Added guarded host-to-device push and device-to-host export for files and folders, with per-item progress, cancellation, conflict review, and whole-item replacement confirmation.
+- Added device-clock Logcat history ranges across the main, system, and crash buffers, including all-buffer package-log capture with UID-scoped history and collection metadata.
+
+### Changed
+
+- Changed the file manager to keep the current path in the device-directory subtitle and keep quick locations plus direct path input visible without a collapsible section.
+- Changed device-to-host export to use an explicit host directory; removed the unreliable device-to-Finder/Explorer clipboard action.
+- Changed package-log collection to keep path and Logcat-range confirmation in the collection flow instead of silently starting from an inferred path.
+
+### Fixed
+
+- Fixed the file manager layout so the directory workspace remains usable in compact windows and distinguishes permission, empty, loading, and transport states.
+- Fixed Logcat filtering so an empty filter explicitly requests Verbose entries instead of inheriting a host filter that can hide device diagnostics.
+
 ## [2.2.6] - 2026-08-13
 
 ### Changed

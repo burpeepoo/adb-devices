@@ -40,6 +40,7 @@ import DisplayCalibrationLab from "./components/DisplayCalibrationLab";
 import AgentCopilot from "./components/AgentCopilot";
 import PerformancePanel from "./components/PerformancePanel";
 import PackageList from "./components/PackageList";
+import FileManager from "./components/FileManager";
 import Settings from "./components/Settings";
 import AppUpdatePrompt from "./components/AppUpdatePrompt";
 
@@ -103,6 +104,7 @@ export default function App() {
     { key: "logcat" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
     { key: "displayCalibration" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
     { key: "performance" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
+    { key: "files" as const, groupLabel: t("layout.navApps"), emphasis: "tool" as const },
     { key: "install" as const, groupLabel: t("layout.navApps"), emphasis: "tool" as const },
     { key: "packages" as const, groupLabel: t("layout.navApps"), emphasis: "tool" as const },
     { key: "clipboard" as const, groupLabel: t("layout.navUtilities"), emphasis: "tool" as const },
@@ -617,6 +619,7 @@ export default function App() {
       );
     }
     if (tab === "performance") return <PerformancePanel deviceTarget={deviceTarget} active={activeTab === "performance"} />;
+    if (tab === "files") return <FileManager deviceTarget={deviceTarget} active={activeTab === "files"} />;
     if (tab === "packages") return <PackageList deviceTarget={deviceTarget} />;
     return null;
   };

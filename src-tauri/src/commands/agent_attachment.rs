@@ -6,7 +6,8 @@ use std::path::Path;
 
 use crate::adb::AdbError;
 use crate::commands::clipboard_paths::{
-    normalize_clipboard_path, read_clipboard_file_paths, read_clipboard_text_paths,
+    normalize_clipboard_text_path, normalize_explicit_path_input, read_clipboard_file_paths,
+    read_clipboard_text_paths,
 };
 
 const MAX_TEXT_PREVIEW_BYTES: u64 = 512 * 1024;
@@ -26,16 +27,24 @@ pub struct AgentAttachmentFilePayload {
 }
 
 #[tauri::command(async)]
-pub fn read_agent_attachment_files(
+pub async fn read_agent_attachment_files(
     paths: Vec<String>,
 ) -> Result<Vec<AgentAttachmentFilePayload>, AdbError> {
-    Ok(read_attachment_files(paths))
+    tauri::async_runtime::spawn_blocking(move || read_attachment_files(paths))
+        .await
+        .map_err(|error| AdbError::CommandFailed(format!("Attachment file task failed: {error}")))
 }
 
 #[tauri::command(async)]
-pub fn read_clipboard_agent_attachment_files() -> Result<Vec<AgentAttachmentFilePayload>, AdbError>
-{
-    Ok(read_attachment_files(read_clipboard_local_paths()))
+pub async fn read_clipboard_agent_attachment_files(
+) -> Result<Vec<AgentAttachmentFilePayload>, AdbError> {
+    tauri::async_runtime::spawn_blocking(|| {
+        Ok(read_attachment_files(read_clipboard_local_paths_blocking()?))
+    })
+    .await
+    .map_err(|error| {
+        AdbError::CommandFailed(format!("Clipboard attachment task failed: {error}"))
+    })?
 }
 
 /// Returns the real local paths represented by a native clipboard selection.
@@ -43,22 +52,32 @@ pub fn read_clipboard_agent_attachment_files() -> Result<Vec<AgentAttachmentFile
 /// Finder commonly exposes a file name as `text/plain`; reading the native
 /// pasteboard first preserves the full path for Scout text fields.
 #[tauri::command(async)]
-pub fn read_clipboard_local_paths() -> Vec<String> {
-    let mut paths = read_clipboard_file_paths();
+pub async fn read_clipboard_local_paths() -> Result<Vec<String>, AdbError> {
+    tauri::async_runtime::spawn_blocking(read_clipboard_local_paths_blocking)
+        .await
+        .map_err(|error| AdbError::CommandFailed(format!("Clipboard path task failed: {error}")))?
+}
 
-    if paths.is_empty() {
-        paths = read_clipboard_text_paths()
+fn read_clipboard_local_paths_blocking() -> Result<Vec<String>, AdbError> {
+    let paths = read_clipboard_file_paths()?;
+
+    let paths = if paths.is_empty() {
+        read_clipboard_text_paths()?
             .into_iter()
             .filter(|path| is_file_uri_or_absolute_path(path))
-            .collect();
-    }
+            .map(|path| normalize_clipboard_text_path(&path))
+            .collect()
+    } else {
+        // Native clipboard APIs already return real paths. Keep every byte of
+        // the path intact, including literal percent sequences and whitespace.
+        paths
+    };
 
     let mut seen = HashSet::new();
-    paths
+    Ok(paths
         .into_iter()
-        .map(|path| normalize_clipboard_path(&path))
         .filter(|path| !path.is_empty() && seen.insert(path.clone()))
-        .collect()
+        .collect())
 }
 
 fn read_attachment_files(paths: Vec<String>) -> Vec<AgentAttachmentFilePayload> {
@@ -66,7 +85,7 @@ fn read_attachment_files(paths: Vec<String>) -> Vec<AgentAttachmentFilePayload> 
     let mut attachments = Vec::new();
 
     for path in paths {
-        let normalized = normalize_clipboard_path(&path);
+        let normalized = normalize_explicit_path_input(&path);
         if normalized.is_empty() || !seen.insert(normalized.clone()) {
             continue;
         }
@@ -129,8 +148,9 @@ fn read_attachment_file(path: &Path) -> Option<AgentAttachmentFilePayload> {
 }
 
 fn is_file_uri_or_absolute_path(path: &str) -> bool {
-    let trimmed = path.trim().trim_matches(['"', '\'']);
-    trimmed.starts_with("file://") || Path::new(trimmed).is_absolute()
+    let normalized = normalize_clipboard_text_path(path);
+    path.trim().trim_matches(['"', '\'']).starts_with("file://")
+        || Path::new(&normalized).is_absolute()
 }
 
 fn mime_type_for_path(path: &Path) -> String {
@@ -228,5 +248,21 @@ mod tests {
         assert!(is_file_uri_or_absolute_path("file:///Users/test/a.png"));
         assert!(is_file_uri_or_absolute_path("/Users/test/a.png"));
         assert!(!is_file_uri_or_absolute_path("a.png"));
+    }
+
+    #[test]
+    fn explicit_attachment_inputs_keep_file_uri_compatibility() {
+        let path = std::env::temp_dir().join(format!(
+            "adb-manager-agent attachment-{}.txt",
+            std::process::id()
+        ));
+        fs::write(&path, "uri attachment").unwrap();
+        let file_uri = format!("file://{}", path.to_string_lossy().replace(' ', "%20"));
+
+        let attachments = read_attachment_files(vec![file_uri]);
+
+        assert_eq!(attachments.len(), 1);
+        assert_eq!(attachments[0].source_path, path.to_string_lossy());
+        fs::remove_file(path).unwrap();
     }
 }

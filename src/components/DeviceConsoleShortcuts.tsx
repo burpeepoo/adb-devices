@@ -8,6 +8,7 @@ interface Props {
 }
 
 const SHORTCUT_TABS: TabKey[] = [
+  "files",
   "install",
   "screenshot",
   "record",

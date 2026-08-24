@@ -2,10 +2,19 @@ import { useState, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { ExportedApk, ExportedPackageLogs, LogPathCandidate, PackageInfo } from "../types";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
+import { FocusTrap } from "@mantine/core";
 import SectionTitle from "./common/SectionTitle";
 import DeviceTargetBanner from "./common/DeviceTargetBanner";
 import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 import { toolIcons, toolLabelKeys } from "../toolMetadata";
+import {
+  LOGCAT_CUSTOM_RANGE,
+  LOGCAT_RANGE_VALUES,
+  MAX_LOGCAT_LOOKBACK_MINUTES,
+  logcatRangeAmount,
+  resolveLogcatLookbackSeconds,
+} from "../logcatTimeRange";
 import "./PackageList.css";
 
 interface Props {
@@ -33,10 +42,20 @@ export default function PackageList({ deviceTarget }: Props) {
   const [pullingLogsPackage, setPullingLogsPackage] = useState<string | null>(null);
   const [logDialogError, setLogDialogError] = useState<string | null>(null);
   const [logsResult, setLogsResult] = useState<ExportedPackageLogs | null>(null);
+  const [selectedLogcatRange, setSelectedLogcatRange] = useState(String(6 * 60 * 60));
+  const [customLogcatMinutes, setCustomLogcatMinutes] = useState("60");
   const logDetectionRequest = useRef(0);
+  const logDialogTrigger = useRef<HTMLButtonElement | null>(null);
+  const logcatLookbackSeconds = resolveLogcatLookbackSeconds(
+    selectedLogcatRange,
+    customLogcatMinutes,
+  );
 
   const deviceError = () =>
     t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`);
+  const restoreLogDialogFocus = () => {
+    window.setTimeout(() => logDialogTrigger.current?.focus(), 0);
+  };
 
   const handleList = useCallback(async () => {
     if (!deviceTarget.serial) {
@@ -152,6 +171,10 @@ export default function PackageList({ deviceTarget }: Props) {
       setLogDialogError(deviceError());
       return;
     }
+    if (logcatLookbackSeconds === null) {
+      setLogDialogError(t("packageList.logcatRangeInvalid"));
+      return;
+    }
     setPullingLogsPackage(name);
     setLogDialogError(null);
     setError(null);
@@ -160,6 +183,7 @@ export default function PackageList({ deviceTarget }: Props) {
         packageName: name,
         remotePath: path.trim() || null,
         includeLogcat: true,
+        logcatLookbackSeconds: logcatLookbackSeconds,
         deviceSerial: deviceTarget.serial,
       });
       setLogsResult(result);
@@ -167,6 +191,7 @@ export default function PackageList({ deviceTarget }: Props) {
       setLogDialogPackage(null);
       setDetectedLogPaths([]);
       setSelectedLogPath("");
+      restoreLogDialogFocus();
     } catch (e) {
       setLogDialogError(String(e));
     } finally {
@@ -174,11 +199,12 @@ export default function PackageList({ deviceTarget }: Props) {
     }
   };
 
-  const openLogDialog = async (name: string) => {
+  const openLogDialog = async (name: string, trigger: HTMLButtonElement) => {
     if (!deviceTarget.serial) {
       setError(deviceError());
       return;
     }
+    logDialogTrigger.current = trigger;
     setError(null);
     setLogDialogPackage(name);
     setDetectedLogPaths([]);
@@ -186,12 +212,6 @@ export default function PackageList({ deviceTarget }: Props) {
     setLogDialogError(null);
     const result = await detectLogPaths(name);
     if (!result) return;
-    const automaticPaths = result.filter((candidate) =>
-      ["cozyla-package", "app-external", "app-media"].includes(candidate.source),
-    );
-    if (automaticPaths.length === 1) {
-      await pullLogs(name, automaticPaths[0].path);
-    }
   };
 
   const closeLogDialog = () => {
@@ -202,6 +222,7 @@ export default function PackageList({ deviceTarget }: Props) {
     setDetectedLogPaths([]);
     setSelectedLogPath("");
     setLogDialogError(null);
+    restoreLogDialogFocus();
   };
 
   const handlePullLogs = async () => {
@@ -297,6 +318,16 @@ export default function PackageList({ deviceTarget }: Props) {
                 {logsResult.warnings.join(" ")}
               </div>
             )}
+            <div className="package-list-result-hint">
+              {logsResult.logcat_file
+                ? t("packageList.logcatAttached", {
+                    lines: logsResult.logcat_line_count,
+                    scope: logsResult.logcat_scope || t("packageList.logcatScopeUnknown"),
+                    range: formatPackageLogcatRange(logsResult, t),
+                    coverage: formatPackageLogcatCoverage(logsResult, t),
+                  })
+                : t("packageList.logcatNotAttached")}
+            </div>
             <div className="package-list-result-hint">{t("packageList.logcatScopeHint")}</div>
           </div>
         )}
@@ -345,7 +376,7 @@ export default function PackageList({ deviceTarget }: Props) {
             </thead>
             <tbody>
               {sorted.map((pkg) => (
-                <tr key={pkg.name} className="border-b border-gray-100 hover:bg-gray-50">
+                <tr key={`${pkg.device_serial}:${pkg.name}`} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="package-list-cell package-list-name" title={pkg.name}>{pkg.name}</td>
                   <td className="package-list-cell package-list-value">{pkg.version_name || "-"}</td>
                   <td className="package-list-cell package-list-value">{pkg.version_code || "-"}</td>
@@ -367,7 +398,7 @@ export default function PackageList({ deviceTarget }: Props) {
                         {exportingPackage === pkg.name ? t('packageList.exportingApk') : t('packageList.exportApk')}
                       </button>
                       <button
-                        onClick={() => openLogDialog(pkg.name)}
+                        onClick={(event) => openLogDialog(pkg.name, event.currentTarget)}
                         disabled={pullingLogsPackage !== null || !deviceTarget.serial}
                         className="chip package-list-action package-list-action-primary disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -399,20 +430,31 @@ export default function PackageList({ deviceTarget }: Props) {
       )}
 
       {logDialogPackage && (
-        <div className="package-log-dialog-backdrop" role="presentation" onMouseDown={closeLogDialog}>
-          <section
-            className="package-log-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="package-log-dialog-title"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
+        <div
+          className="package-log-dialog-backdrop"
+          role="presentation"
+          onMouseDown={closeLogDialog}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              closeLogDialog();
+            }
+          }}
+        >
+          <FocusTrap active>
+            <section
+              className="package-log-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="package-log-dialog-title"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
             <div className="package-log-dialog-header">
               <div>
                 <h2 id="package-log-dialog-title">{t("packageList.logDialogTitle")}</h2>
                 <p>{logDialogPackage}</p>
               </div>
-              <button type="button" className="package-log-dialog-close" onClick={closeLogDialog} aria-label={t("packageList.cancel")}>
+              <button type="button" className="package-log-dialog-close" onClick={closeLogDialog} aria-label={t("packageList.cancel")} data-autofocus>
                 ×
               </button>
             </div>
@@ -456,6 +498,37 @@ export default function PackageList({ deviceTarget }: Props) {
               <small>{t("packageList.logPathManualHint")}</small>
             </label>
 
+            <label className="package-log-range-field">
+              <span>{t("packageList.logcatTimeRange")}</span>
+              <div className="package-log-range-control">
+                <select
+                  value={selectedLogcatRange}
+                  onChange={(event) => setSelectedLogcatRange(event.target.value)}
+                  disabled={Boolean(pullingLogsPackage)}
+                >
+                  {LOGCAT_RANGE_VALUES.map((seconds) => (
+                    <option key={seconds} value={seconds}>
+                      {formatPackageRangeOption(seconds, t)}
+                    </option>
+                  ))}
+                  <option value={LOGCAT_CUSTOM_RANGE}>{t("packageList.logcatCustomRange")}</option>
+                </select>
+                {selectedLogcatRange === LOGCAT_CUSTOM_RANGE && (
+                  <input
+                    type="number"
+                    min={1}
+                    max={MAX_LOGCAT_LOOKBACK_MINUTES}
+                    step={1}
+                    value={customLogcatMinutes}
+                    onChange={(event) => setCustomLogcatMinutes(event.target.value)}
+                    aria-label={t("packageList.logcatCustomMinutes")}
+                    disabled={Boolean(pullingLogsPackage)}
+                  />
+                )}
+              </div>
+              <small>{t("packageList.logcatTimeRangeHint")}</small>
+            </label>
+
             {logDialogError && <div className="package-log-dialog-error">{logDialogError}</div>}
 
             <div className="package-log-dialog-actions">
@@ -466,9 +539,41 @@ export default function PackageList({ deviceTarget }: Props) {
                 {pullingLogsPackage ? t("packageList.pullingLogs") : t("packageList.collectLogs")}
               </button>
             </div>
-          </section>
+            </section>
+          </FocusTrap>
         </div>
       )}
     </div>
   );
+}
+
+function formatPackageRangeOption(seconds: number, t: TFunction) {
+  if (seconds === 0) return t("packageList.logcatAllAvailable");
+  const amount = logcatRangeAmount(seconds);
+  return t(
+    amount.unit === "hours"
+      ? "packageList.logcatRangeHours"
+      : "packageList.logcatRangeMinutes",
+    { count: amount.count },
+  );
+}
+
+function formatPackageLogcatRange(
+  result: ExportedPackageLogs,
+  t: TFunction,
+) {
+  if (result.logcat_all_available || result.logcat_lookback_seconds === null) {
+    return t("packageList.logcatAllAvailable");
+  }
+  return formatPackageRangeOption(result.logcat_lookback_seconds, t);
+}
+
+function formatPackageLogcatCoverage(
+  result: ExportedPackageLogs,
+  t: TFunction,
+) {
+  if (!result.logcat_source_start || !result.logcat_source_end) {
+    return t("packageList.logcatNoCoverage");
+  }
+  return `${result.logcat_source_start} – ${result.logcat_source_end}`;
 }
