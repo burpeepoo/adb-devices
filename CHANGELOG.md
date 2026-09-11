@@ -11,7 +11,7 @@
 
 ### Changed
 
-- App selection in Network Inspector displays package names consistently without a Calendar-specific prefix.
+- App selection in Network Inspector consistently displays package names.
 - Stopping capture or losing the device connection preserves collected requests and their original device for inspection and export; a successful new capture replaces them.
 
 ## [2.2.7] - 2026-08-24
