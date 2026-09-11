@@ -472,6 +472,7 @@ export type TabKey =
   | "imageCast"
   | "clipboard"
   | "logcat"
+  | "network"
   | "displayCalibration"
   | "agent"
   | "files"

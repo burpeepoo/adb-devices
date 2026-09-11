@@ -18,6 +18,7 @@ test("tab order covers every workspace tab", () => {
     "imageCast",
     "clipboard",
     "logcat",
+    "network",
     "displayCalibration",
     "performance",
     "packages",
@@ -47,22 +48,26 @@ test("compact English navigation labels stay distinct from full page titles", ()
     remote: "layout.toolNavigation.remote",
     workbench: "layout.toolNavigation.workbench",
     performance: "layout.toolNavigation.performance",
+    network: "layout.toolNavigation.network",
   });
   assert.deepEqual(en.layout.toolNavigation, {
     pair: "Devices",
     remote: "Remote",
     workbench: "ADB Tools",
     performance: "Performance",
+    network: "Network",
   });
   assert.equal(en.tabs.pairConnect, "Device Console");
   assert.equal(en.tabs.remoteControl, "Remote Console");
   assert.equal(en.tabs.workbench, "ADB Workbench");
   assert.equal(en.tabs.performance, "Performance Sampling");
+  assert.equal(en.tabs.network, "Network Inspector");
   assert.deepEqual(zh.layout.toolNavigation, {
     pair: zh.tabs.pairConnect,
     remote: zh.tabs.remoteControl,
     workbench: zh.tabs.workbench,
     performance: zh.tabs.performance,
+    network: "接口请求",
   });
   assert.match(appSource, /label: t\(toolNavigationLabelKeys\[item\.key\] \?\? toolLabelKeys\[item\.key\]\)/);
 });

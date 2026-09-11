@@ -5,4 +5,5 @@ export const toolNavigationLabelKeys: Partial<Record<TabKey, string>> = {
   remote: "layout.toolNavigation.remote",
   workbench: "layout.toolNavigation.workbench",
   performance: "layout.toolNavigation.performance",
+  network: "layout.toolNavigation.network",
 };

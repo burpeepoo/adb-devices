@@ -13,6 +13,8 @@ agent-android/debug.keystore
 
 # Logs
 *.log
+# Private Calendar APK and local network-capture verification artifacts
+artifacts/network-inspector-20260911/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

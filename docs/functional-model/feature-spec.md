@@ -606,6 +606,36 @@ UI behavior:
 - Can export visible text.
 - Uses periodic refresh for snapshot mode while active.
 
+## 13.5. App Network Inspector
+
+Goal: select an app, watch requests, inspect request/response details and export
+the retained capture as JSON. Frontend: `NetworkInspector.tsx`,
+`useNetworkCapture.ts`, `networkInspector.ts`. Backend: `commands/network.rs`.
+
+- Source is the selected app main process's existing `OkHttp` logs, not arbitrary
+  network packets. The first verified target is Calendar's 1.2.8.2026090317 debug
+  APK. A debug flag alone does not ensure HTTP logs are present.
+- App choices display package names consistently; no application-specific label
+  prefix is added.
+- A dedicated, PID-scoped logcat child preserves thread IDs. It is independent of
+  the ordinary Logcat page. The frontend drains a bounded queue every 250 ms.
+- Requests are identified within a capture and paired by PID/thread and URL.
+  Parallel threads remain separate. Ambiguous/orphan/interrupted records retain
+  their missing-data state rather than borrowing another request's response.
+- Main process restart/exit ends capture. The user can start again after opening
+  the app. Changing devices stops the old capture and retains its records with
+  the original device shown; a successful new capture replaces them. This also
+  preserves evidence through automatic device-selection fallback on disconnect.
+- Stop retains requests for detail inspection/export. Request search filters the
+  view; JSON export includes the entire retained capture, device/app metadata,
+  source, truncation/matching limits, and masking status.
+- Credential headers and common credential fields/query values are hidden.
+  A lost backend log line ends capture to avoid pairing across a known gap.
+- Empty capture explicitly explains that only already-enabled HTTP logs can be
+  shown. No app changes, probes, certificates, root or network writes are made.
+
+Active contract and validation plan: `docs/product-design/app-network-inspector.md`.
+
 ## 14. Performance Sampling
 
 Goal: sample selected-device and target-app performance during live Android testing.

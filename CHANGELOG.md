@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.2.8] - 2026-09-11
+
+### Added
+
+- Added Network Inspector for selecting an app, following its live OkHttp requests, inspecting parameters and responses, and exporting the retained capture as JSON.
+- Added visible request completeness states, credential masking, bounded capture retention, and independent request matching across concurrent threads.
+
+### Changed
+
+- App selection in Network Inspector displays package names consistently without a Calendar-specific prefix.
+- Stopping capture or losing the device connection preserves collected requests and their original device for inspection and export; a successful new capture replaces them.
+
 ## [2.2.7] - 2026-08-24
 
 ### Added

@@ -36,6 +36,7 @@ import RemoteControl from "./components/RemoteControl";
 import ImageCast from "./components/ImageCast";
 import Clipboard from "./components/Clipboard";
 import Logcat from "./components/Logcat";
+import NetworkInspector from "./components/NetworkInspector";
 import DisplayCalibrationLab from "./components/DisplayCalibrationLab";
 import AgentCopilot from "./components/AgentCopilot";
 import PerformancePanel from "./components/PerformancePanel";
@@ -102,6 +103,7 @@ export default function App() {
     { key: "imageCast" as const, groupLabel: t("layout.navCapture"), emphasis: "tool" as const },
     { key: "workbench" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
     { key: "logcat" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
+    { key: "network" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
     { key: "displayCalibration" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
     { key: "performance" as const, groupLabel: t("layout.navDiagnostics"), emphasis: "tool" as const },
     { key: "files" as const, groupLabel: t("layout.navApps"), emphasis: "tool" as const },
@@ -606,6 +608,7 @@ export default function App() {
     if (tab === "imageCast") return <ImageCast deviceTarget={deviceTarget} active={activeTab === "imageCast"} />;
     if (tab === "clipboard") return <Clipboard deviceTarget={deviceTarget} />;
     if (tab === "logcat") return <Logcat deviceTarget={deviceTarget} />;
+    if (tab === "network") return <NetworkInspector deviceTarget={deviceTarget} />;
     if (tab === "displayCalibration") return <DisplayCalibrationLab deviceTarget={deviceTarget} />;
     if (tab === "agent") {
       return (

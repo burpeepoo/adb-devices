@@ -1,5 +1,19 @@
 # Known Risks And Open Questions
 
+## App HTTP Log Inspection Limits
+
+- Network Inspector currently reads existing OkHttp logs from one app main
+  process. Apps without that logging, other network stacks and app subprocesses
+  are outside the first-version coverage. Debuggable alone is insufficient.
+- PID/TID/URL log correlation is not a protocol-level connection ID. Ambiguous or
+  incomplete blocks must stay incomplete; byte/body omission or truncation is
+  reported, never silently interpreted as an empty response.
+- Captures are bounded, transient, and stop on app process changes or detected
+  backend line loss. Export preserves retention/masking/completeness metadata.
+- Default credential masking does not purport to remove all business or personal
+  data from arbitrary request/response text. Exports remain local unless the user
+  separately shares them.
+
 ## Wireless Recovery Boundaries
 
 Current code separates four recovery levels:

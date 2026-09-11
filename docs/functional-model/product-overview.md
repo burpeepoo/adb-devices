@@ -17,6 +17,7 @@ The app is optimized for repeated engineering and support workflows:
 - Run Scout-assisted Agent tasks that use typed ADB evidence tools and keep local evidence history.
 - Push/open reference images on the device.
 - Send clipboard text and inspect logcat.
+- Inspect supported app HTTP logs as live request lists, request/response details, and masked JSON exports.
 - Package and update the app through signed release artifacts.
 
 ## Primary Users
@@ -54,7 +55,7 @@ Startup sequence:
 
 Navigation:
 
-- The left rail exposes 15 tabs: `pair`, `workbench`, `agent`, `files`, `install`, `screenshot`, `record`, `mirror`, `remote`, `imageCast`, `clipboard`, `logcat`, `displayCalibration`, `performance`, `packages`.
+- The left rail exposes 16 tabs: `pair`, `workbench`, `agent`, `files`, `install`, `screenshot`, `record`, `mirror`, `remote`, `imageCast`, `clipboard`, `logcat`, `network`, `displayCalibration`, `performance`, `packages`.
 - The visible rail groups those tabs into primary destinations, capture/control tools, diagnostics, apps/packages, and utilities, with Device Console and Agent Tasks intentionally promoted above the lower-level tools.
 - English navigation uses compact rail-only labels for the longest entries (`Devices`, `Remote`, `ADB Tools`, and `Performance`), while page titles and device-console shortcuts keep the full feature names.
 - The Settings button opens a modal, not a tab.

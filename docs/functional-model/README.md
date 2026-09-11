@@ -53,6 +53,7 @@ The app exposes these tool areas:
 11. Display calibration lab
 12. Package list, APK export, and application log collection
 13. Settings, language, updater, and ADB/scrcpy installation helpers
+14. App Network Inspector: live OkHttp request list, parameters/responses, and JSON export
 
 ## Maintenance Rules
 

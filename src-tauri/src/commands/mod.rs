@@ -12,6 +12,7 @@ pub mod image_cast;
 pub mod install;
 pub mod logcat;
 pub mod mirror;
+pub mod network;
 pub mod package;
 pub mod performance;
 pub mod record;

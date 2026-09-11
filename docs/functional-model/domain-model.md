@@ -188,6 +188,17 @@ Thresholds:
 - `installing`: prevents concurrent APK installs.
 - `device_sn_cache`: avoids repeated `ro.serialno` calls.
 
+## App Network Capture
+
+`NetworkCaptureState` is an independently managed transient desktop capture,
+separate from ordinary Logcat and persisted Scout evidence sessions. Its session
+ID binds one explicit device serial, package and main-process PID to a bounded
+log queue and lifecycle status. Lines retain source timestamp, PID, TID and
+message; the frontend owns deterministic interpretation of the supported OkHttp
+format. Normalized requests have per-session IDs, request/response headers and
+body states, HTTP status/duration when recorded, and matching/completeness
+warnings. JSON export is an explicit local save; there is no new store key.
+
 ## Remote Control App Drawer
 
 `LaunchableApp` represents one activity that Android exposes through `MAIN` + `LAUNCHER`:

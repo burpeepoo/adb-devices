@@ -1,0 +1,29 @@
+en-US:
+ADB Manager 2.2.8 adds Network Inspector.
+
+- Select an app, watch its requests arrive, and open a request to inspect URL parameters, headers, request body, response body, HTTP status, and duration.
+- Stop capture and export all retained requests as JSON. Connection loss or a device change preserves the previous capture until a new capture starts successfully.
+- Common credential fields are masked, and missing, omitted, truncated, or unsupported bodies remain explicit.
+- App choices consistently show package names, including com.cozyla.calendar.
+
+Network Inspector reads existing OkHttp logs from the selected app's main process. A debug build alone does not guarantee HTTP logs are available. This version has been verified with Calendar's debug build.
+
+If an older installation cannot complete the in-app update because it uses the previous update-signing chain, manually download and install the latest release:
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+macOS: choose a .dmg or .pkg installer. Windows: choose setup.exe or .msi.
+
+zh-CN:
+ADB Manager 2.2.8 新增接口请求检查器。
+
+- 选择 App 后实时查看请求，点开可检查地址参数、请求头、请求正文、响应正文、HTTP 状态和耗时。
+- 停止后仍可查看并导出全部保留记录。设备断连或切换后，上一轮记录会保留到新采集成功开始。
+- 常见凭据字段自动遮盖；缺失、省略、截断或无法展示的正文会明确标注。
+- App 列表统一只显示包名，com.cozyla.calendar 不再添加额外前缀。
+
+检查器读取所选 App 主进程已有的 OkHttp 日志。Debug 包本身不保证包含接口详情，本版已使用 Calendar Debug 包验证。
+
+如果旧安装包因使用之前的更新签名链而无法完成应用内更新，请手动下载并安装最新版本：
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+macOS：选择 .dmg 或 .pkg 安装包。Windows：选择 setup.exe 或 .msi 安装包。

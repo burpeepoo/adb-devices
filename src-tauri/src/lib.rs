@@ -4,7 +4,7 @@ mod process;
 mod state;
 
 use state::AppState;
-use tauri::Emitter;
+use tauri::{Emitter, Manager};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 rust_i18n::i18n!("locales", fallback = "en");
@@ -54,6 +54,7 @@ pub fn run() {
             Ok(())
         })
         .manage(AppState::default())
+        .manage(commands::network::NetworkCaptureState::default())
         .invoke_handler(tauri::generate_handler![
             commands::device::adb_devices,
             commands::device::adb_device_summary,
@@ -117,6 +118,9 @@ pub fn run() {
             commands::logcat::adb_start_logcat,
             commands::logcat::adb_stop_logcat,
             commands::logcat::export_text_file,
+            commands::network::adb_network_capture_start,
+            commands::network::adb_network_capture_snapshot,
+            commands::network::adb_network_capture_stop,
             commands::screenshot::adb_screenshot,
             commands::record::adb_start_recording,
             commands::record::adb_stop_recording,
@@ -155,6 +159,12 @@ pub fn run() {
             commands::settings::set_locale,
             commands::workbench::adb_workbench_execute,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| {
+            if matches!(event, tauri::RunEvent::Exit) {
+                app.state::<commands::network::NetworkCaptureState>()
+                    .shutdown();
+            }
+        });
 }
