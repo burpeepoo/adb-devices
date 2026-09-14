@@ -86,6 +86,19 @@ Apps that do not emit supported HTTP logs will show an explicit waiting/no-sourc
 explanation. Android Studio-style runtime probes remain a separate future
 adapter; this machine currently lacks its required Studio runtime artifacts.
 
+### Meals compatibility follow-up (2026-09-14)
+
+The supported exact logger tags are now `OkHttp` and `okhttp.OkHttpClient`, using
+one backend allowlist at collection and parsing. The latter was verified on
+Meals 1.2.9.2026090815. JSON log chunks can be reassembled at 4000-character
+boundaries only when the final declared byte count accounts for every inserted
+separator and the result is valid JSON. Real newlines, masking, capture limits
+and incomplete/withheld states remain part of the contract. Unknown or ambiguous
+fragmentation is not guessed.
+
+Repair specification and validation status:
+`docs/product-design/network-inspector-meals-compatibility-fix.md`.
+
 ## Implementation contracts and public test seams
 
 Backend commands (camelCase invoke arguments, snake_case response fields):

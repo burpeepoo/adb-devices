@@ -194,8 +194,10 @@ Thresholds:
 separate from ordinary Logcat and persisted Scout evidence sessions. Its session
 ID binds one explicit device serial, package and main-process PID to a bounded
 log queue and lifecycle status. Lines retain source timestamp, PID, TID and
-message; the frontend owns deterministic interpretation of the supported OkHttp
-format. Normalized requests have per-session IDs, request/response headers and
+message; exact logger tags `OkHttp` and `okhttp.OkHttpClient` share the same
+validated input path. The frontend owns deterministic interpretation of the
+supported OkHttp format and byte-verified JSON chunk reconstruction. Normalized
+requests have per-session IDs, request/response headers and
 body states, HTTP status/duration when recorded, and matching/completeness
 warnings. JSON export is an explicit local save; there is no new store key.
 

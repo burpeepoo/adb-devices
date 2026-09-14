@@ -3,8 +3,14 @@
 ## App HTTP Log Inspection Limits
 
 - Network Inspector currently reads existing OkHttp logs from one app main
-  process. Apps without that logging, other network stacks and app subprocesses
-  are outside the first-version coverage. Debuggable alone is insufficient.
+  process, accepting exact tags `OkHttp` and `okhttp.OkHttpClient`. Apps without
+  those logs, other network stacks and app subprocesses are outside current
+  coverage. Debuggable alone is insufficient.
+- JSON chunk reconstruction requires the logger's final byte count to account
+  exactly for every candidate 4000-character separator and a valid reconstructed
+  document. Unknown logger chunk sizes, missing length/end markers, data loss,
+  and mixed ambiguous boundaries are not guessed. Existing limits and masking
+  can still leave such bodies incomplete or withheld.
 - PID/TID/URL log correlation is not a protocol-level connection ID. Ambiguous or
   incomplete blocks must stay incomplete; byte/body omission or truncation is
   reported, never silently interpreted as an empty response.

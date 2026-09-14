@@ -1,0 +1,23 @@
+en-US:
+ADB Manager 2.2.10 improves App Network Inspector compatibility.
+
+- Supports both common OkHttp logger tag forms so compatible apps can appear in request capture.
+- Reassembles large JSON response and request bodies only when logger chunk boundaries, declared byte lengths, and valid JSON agree; real line breaks are preserved and credentials remain masked.
+- Keeps incomplete or unsupported content explicit and bounded.
+
+If an older installation cannot complete the in-app update because it uses the previous update-signing chain, manually download and install the latest release:
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+macOS: choose a .dmg or .pkg installer. Windows: choose setup.exe or .msi.
+
+zh-CN:
+ADB Manager 2.2.10 改进 App 接口请求检查器兼容性。
+
+- 支持常见的两种 OkHttp 日志标签格式，让兼容的 App 能正常出现在请求捕获列表中。
+- 只有在日志分块边界、声明的字节长度和有效 JSON 同时吻合时，才重组较大的 JSON 请求和响应体；真实换行会被保留，凭据仍会脱敏。
+- 对不完整或不支持重组的内容保持明确状态，并限制捕获范围。
+
+如果旧安装包因使用之前的更新签名链而无法完成应用内更新，请手动下载并安装最新版本：
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+macOS：选择 .dmg 或 .pkg 安装包。Windows：选择 setup.exe 或 .msi 安装包。

@@ -54,6 +54,8 @@ const MAX_TOTAL_BODY_BYTES = 4 * 1024 * 1024;
 const MAX_HEADERS = 100;
 const MAX_HEADER_BYTES = 4096;
 const MAX_URL_LENGTH = 8192;
+// OkHttp's Android logger splits each original line at 4000 UTF-16 code units.
+const ANDROID_LOG_CHUNK_LENGTH = 4000;
 const REDACTED = "[REDACTED]";
 const WITHHELD_BODY = "[Body withheld: incomplete, malformed, or unstructured content]";
 const TRACKING_GAP_WARNING = "Request tracking gap on this thread; matching is disabled until a new capture.";
@@ -192,6 +194,8 @@ function bodyDisplayWarnings(direction: Direction, original: NetworkBody, displa
 interface BodyBuffer {
   raw: string;
   byteLength: number;
+  chunkBreaks: number[];
+  previousLineLength: number;
   seen: boolean;
   inBody: boolean;
   ended: boolean;
@@ -205,7 +209,28 @@ interface RequestBuffer {
 }
 
 function emptyBodyBuffer(): BodyBuffer {
-  return { raw: "", byteLength: 0, seen: false, inBody: false, ended: false };
+  return { raw: "", byteLength: 0, chunkBreaks: [], previousLineLength: 0, seen: false, inBody: false, ended: false };
+}
+
+function reassembleChunkedJson(body: BodyBuffer, declaredLength: number | null): string | null {
+  // A 4000-character line can also end in a real newline. Only remove separators
+  // when the logger's exact byte count accounts for every candidate boundary.
+  if (declaredLength === null || body.chunkBreaks.length === 0
+    || body.byteLength - declaredLength !== body.chunkBreaks.length) return null;
+  const parts: string[] = [];
+  let start = 0;
+  for (const boundary of body.chunkBreaks) {
+    parts.push(body.raw.slice(start, boundary));
+    start = boundary + 1;
+  }
+  parts.push(body.raw.slice(start));
+  const reconstructed = parts.join("");
+  try {
+    JSON.parse(reconstructed);
+    return reconstructed;
+  } catch {
+    return null;
+  }
 }
 
 function addWarning(record: NetworkRequest, warning: string): void {
@@ -449,12 +474,15 @@ export class HttpLogParser {
     // some global budget; joining across that gap would invent a payload.
     if (buffer.record[`${direction}Body`].state === "truncated") return;
     const addition = (body.seen ? "\n" : "") + message;
+    const isChunkBoundary = body.seen && body.previousLineLength === ANDROID_LOG_CHUNK_LENGTH;
     body.seen = true;
     const room = Math.min(MAX_BODY_BYTES - body.byteLength, MAX_TOTAL_BODY_BYTES - this.totalBodyBytes);
     const text = utf8Prefix(addition, room);
     const bytes = encoder.encode(text).length;
+    if (isChunkBoundary && text.length > 0) body.chunkBreaks.push(body.raw.length);
     body.raw += text;
     body.byteLength += bytes;
+    body.previousLineLength = message.length;
     this.totalBodyBytes += bytes;
     if (bytes < encoder.encode(addition).length) {
       buffer.record[`${direction}Body`].state = "truncated";
@@ -474,6 +502,14 @@ export class HttpLogParser {
     }
     if (body.state === "truncated") return;
     if (stored.seen) {
+      const reconstructed = reassembleChunkedJson(stored, declaredBytes(marker));
+      if (reconstructed !== null) {
+        const bytes = encoder.encode(reconstructed).length;
+        this.totalBodyBytes -= stored.byteLength - bytes;
+        stored.raw = reconstructed;
+        stored.byteLength = bytes;
+        stored.chunkBreaks = [];
+      }
       body.state = "complete";
       if (body.bytes !== null && body.bytes > stored.byteLength && !/gzipped/i.test(marker)) {
         body.state = "truncated";

@@ -53,6 +53,107 @@ test("captures Calendar-shaped BODY logs incrementally with masked credentials",
   assert.doesNotMatch(JSON.stringify(snapshot), /URL_SECRET|QUERY_SECRET|HEADER_SECRET|BODY_SECRET|COOKIE_SECRET/);
 });
 
+test("reassembles logger-chunked JSON responses before masking and exporting", () => {
+  const parser = new HttpLogParser("chunked-response");
+  const response = JSON.stringify({ instructions: "a".repeat(5_400), token: "CHUNK_SECRET", success: true });
+  parser.ingest(lines([
+    "--> GET https://example.test/meals", "--> END GET",
+    "<-- 200 https://example.test/meals (489ms)", "Content-Type: application/json", "",
+    response.slice(0, 4_000),
+  ]));
+  assert.equal(parser.snapshot().requests[0].responseBody.state, "withheld");
+  parser.ingest(lines([response.slice(4_000), `<-- END HTTP (${Buffer.byteLength(response)}-byte body)`]));
+  const snapshot = parser.snapshot();
+  const request = snapshot.requests[0];
+  assert.equal(request.statusCode, 200);
+  assert.equal(request.responseBody.state, "complete");
+  assert.equal(request.responseBody.bytes, Buffer.byteLength(response));
+  assert.deepEqual(JSON.parse(request.responseBody.text), {
+    instructions: "a".repeat(5_400), token: "[REDACTED]", success: true,
+  });
+  assert.deepEqual(request.warnings, []);
+  const exported = buildNetworkCaptureExport({
+    session_id: "chunked-response", device_serial: "test-device", package_name: "test.app", pid: "10", started_at_ms: 1,
+  }, snapshot, { droppedLines: 0, status: "stopped", exportedAtMs: 2 });
+  assert.equal(JSON.parse(exported).requests[0].responseBody.state, "complete");
+  assert.doesNotMatch(exported, /CHUNK_SECRET/);
+});
+
+test("reconstructs chunked request JSON while preserving real newlines, Unicode and other threads", () => {
+  const parser = new HttpLogParser("multiline-chunks");
+  const note = "汉😀".repeat(8) + "a".repeat(5_000) + "\\\"tail";
+  const payload = JSON.stringify({ note, password: "MULTILINE_SECRET" }, null, 2);
+  const messages = payload.split("\n").flatMap((line) => {
+    const fragments: string[] = [];
+    for (let offset = 0; offset < line.length; offset += 4_000) fragments.push(line.slice(offset, offset + 4_000));
+    return fragments;
+  });
+  parser.ingest(lines(["--> POST https://example.test/long", "Content-Type: application/json", "", ...messages.slice(0, 2)]));
+  parser.ingest(lines([
+    "--> GET https://example.test/other", "--> END GET",
+    "<-- 200 https://example.test/other (1ms)", "", '{"other":true}', "<-- END HTTP (14-byte body)",
+  ], "21"));
+  parser.ingest(lines([...messages.slice(2), `--> END POST (${Buffer.byteLength(payload)}-byte body)`]));
+  const [long, other] = parser.snapshot().requests;
+  assert.equal(long.requestBody.state, "complete");
+  assert.equal(long.requestBody.bytes, Buffer.byteLength(payload));
+  assert.deepEqual(JSON.parse(long.requestBody.text), { note, password: "[REDACTED]" });
+  assert.deepEqual(JSON.parse(other.responseBody.text), { other: true });
+  assert.doesNotMatch(JSON.stringify(parser.snapshot()), /MULTILINE_SECRET/);
+});
+
+test("keeps a real newline at a 4000-character boundary when its declared length includes it", () => {
+  const parser = new HttpLogParser("real-newline");
+  const firstLine = `{"note":"${"a".repeat(3_989)}",`;
+  assert.equal(firstLine.length, 4_000);
+  const secondLine = '"ok":true}';
+  const payload = `${firstLine}\n${secondLine}`;
+  parser.ingest(lines([
+    "--> GET https://example.test/multiline", "--> END GET",
+    "<-- 200 https://example.test/multiline (1ms)", "", firstLine, secondLine,
+    `<-- END HTTP (${Buffer.byteLength(payload)}-byte body)`,
+  ]));
+  const request = parser.snapshot().requests[0];
+  assert.equal(request.responseBody.state, "complete");
+  assert.equal(request.responseBody.bytes, Buffer.byteLength(payload));
+  assert.deepEqual(JSON.parse(request.responseBody.text), { note: "a".repeat(3_989), ok: true });
+  assert.deepEqual(request.warnings, []);
+});
+
+test("does not repair missing, unsupported or unconfirmed body fragments", () => {
+  const payload = JSON.stringify({ note: "a".repeat(5_400), password: "LOST_FRAGMENT_SECRET" });
+  for (const [name, fragments, end] of [
+    ["short", [payload.slice(0, 4_000), payload.slice(4_050)], `<-- END HTTP (${Buffer.byteLength(payload)}-byte body)`],
+    ["unknown-boundary", [payload.slice(0, 3_000), payload.slice(3_000)], `<-- END HTTP (${Buffer.byteLength(payload)}-byte body)`],
+    ["no-byte-count", [payload.slice(0, 4_000), payload.slice(4_000)], "<-- END HTTP"],
+    ["no-end", [payload.slice(0, 4_000), payload.slice(4_000)], ""],
+  ] as const) {
+    const parser = new HttpLogParser(name);
+    parser.ingest(lines([
+      `--> GET https://example.test/${name}`, "--> END GET",
+      `<-- 200 https://example.test/${name} (1ms)`, "", ...fragments,
+      ...(end ? [end] : []),
+    ]));
+    parser.finish("Capture interrupted");
+    assert.equal(parser.snapshot().requests[0].responseBody.state, "withheld", name);
+    assert.doesNotMatch(JSON.stringify(parser.snapshot()), /LOST_FRAGMENT_SECRET/);
+  }
+});
+
+test("does not use a request-start size as proof of a missing request END marker", () => {
+  const parser = new HttpLogParser("missing-request-end");
+  const payload = JSON.stringify({ note: "a".repeat(5_400), password: "NO_END_SECRET" });
+  parser.ingest(lines([
+    `--> POST https://example.test/request (${Buffer.byteLength(payload)}-byte body)`,
+    "Content-Type: application/json", "", payload.slice(0, 4_000), payload.slice(4_000),
+    "<-- 200 https://example.test/request (1ms)", "<-- END HTTP (0-byte body)",
+  ]));
+  const request = parser.snapshot().requests[0];
+  assert.equal(request.requestBody.state, "withheld");
+  assert.match(request.warnings.join(" "), /Request END marker was not captured/);
+  assert.doesNotMatch(JSON.stringify(request), /NO_END_SECRET/);
+});
+
 test("keeps overlapping threads, processes, and successive requests on one thread separate", () => {
   const parser = new HttpLogParser("parallel");
   parser.ingest(lines(["--> GET https://example.test/first", "--> END GET"], "20", "10"));

@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.2.10] - 2026-09-14
+
+### Changed
+
+- Expanded App Network Inspector support for common OkHttp logger tag forms.
+- Preserved complete large JSON request and response bodies when logger chunk boundaries and byte counts prove safe reconstruction.
+
+### Fixed
+
+- Fixed compatible app requests being omitted when they used the fully qualified OkHttp logger tag.
+- Fixed valid large JSON bodies being hidden after logcat chunking inserted a separator.
+
 ## [2.2.9] - 2026-09-14
 
 ### Changed

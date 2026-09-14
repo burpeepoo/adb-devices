@@ -613,9 +613,10 @@ Goal: select an app, watch requests, inspect request/response details and export
 the retained capture as JSON. Frontend: `NetworkInspector.tsx`,
 `useNetworkCapture.ts`, `networkInspector.ts`. Backend: `commands/network.rs`.
 
-- Source is the selected app main process's existing `OkHttp` logs, not arbitrary
-  network packets. The first verified target is Calendar's 1.2.8.2026090317 debug
-  APK. A debug flag alone does not ensure HTTP logs are present.
+- Source is the selected app main process's existing HTTP logs with the exact
+  tags `OkHttp` or `okhttp.OkHttpClient`, not arbitrary network packets. Verified
+  sources include Calendar 1.2.8.2026090317 and Meals 1.2.9.2026090815.
+  A debug flag alone does not ensure HTTP logs are present.
 - App choices display package names consistently; no application-specific label
   prefix is added.
 - A dedicated, PID-scoped logcat child preserves thread IDs. It is independent of
@@ -632,6 +633,10 @@ the retained capture as JSON. Frontend: `NetworkInspector.tsx`,
   source, truncation/matching limits, and masking status.
 - Credential headers and common credential fields/query values are hidden.
   A lost backend log line ends capture to avoid pairing across a known gap.
+- At a completed JSON body, logger chunk separators may be removed only when
+  the 4000-character boundaries, declared UTF-8 byte count and valid JSON agree.
+  Real line breaks are preserved; unsupported or ambiguous content remains
+  subject to the existing incomplete/withheld-body safeguards.
 - Empty capture explicitly explains that only already-enabled HTTP logs can be
   shown. No app changes, probes, certificates, root or network writes are made.
 

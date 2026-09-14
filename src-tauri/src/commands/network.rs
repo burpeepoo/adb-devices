@@ -19,6 +19,7 @@ const MAX_CONTROL_OUTPUT_BYTES: usize = 4 * 1_024;
 const CONTROL_TIMEOUT: Duration = Duration::from_secs(2);
 const PROCESS_CHECK_INTERVAL: Duration = Duration::from_secs(1);
 const WORKER_POLL_INTERVAL: Duration = Duration::from_millis(50);
+const HTTP_LOG_TAGS: [&str; 2] = ["OkHttp", "okhttp.OkHttpClient"];
 
 static NEXT_SESSION_ID: AtomicU64 = AtomicU64::new(1);
 
@@ -319,7 +320,8 @@ fn validate_target(device_serial: &str, package_name: &str) -> Result<(), &'stat
 fn logcat_shell_command(pid: &str) -> String {
     // ADB concatenates shell arguments remotely. Quoting the filters prevents
     // the device shell from expanding '*:S'; PID is validated decimal input.
-    format!("logcat -b main -v threadtime --pid={pid} -T 1 'OkHttp:V' '*:S'")
+    let filters = HTTP_LOG_TAGS.map(|tag| format!("'{tag}:V'")).join(" ");
+    format!("logcat -b main -v threadtime --pid={pid} -T 1 {filters} '*:S'")
 }
 
 fn parse_pid_output(output: &[u8]) -> Result<String, String> {
@@ -744,7 +746,7 @@ fn parse_network_line(line: &str, expected_pid: &str) -> Option<NetworkCaptureLi
         return None;
     }
     let (tag, message) = remainder.trim_start().split_once(':')?;
-    if tag.trim() != "OkHttp" {
+    if !HTTP_LOG_TAGS.contains(&tag.trim()) {
         return None;
     }
     Some(NetworkCaptureLine {
@@ -833,10 +835,10 @@ mod tests {
     }
 
     #[test]
-    fn shell_filters_are_quoted_and_target_only_the_main_pid() {
+    fn shell_filters_capture_both_exact_logger_tags_only_for_the_main_pid() {
         assert_eq!(
             logcat_shell_command("100"),
-            "logcat -b main -v threadtime --pid=100 -T 1 'OkHttp:V' '*:S'"
+            "logcat -b main -v threadtime --pid=100 -T 1 'OkHttp:V' 'okhttp.OkHttpClient:V' '*:S'"
         );
     }
 
@@ -857,6 +859,64 @@ mod tests {
                 .message,
             ""
         );
+    }
+
+    #[test]
+    fn raw_stream_preserves_both_logger_tags_and_thread_bodies_only_for_the_target_pid() {
+        let raw = concat!(
+            "09-11 12:34:56.123 100 101 D OkHttp: --> POST https://example.test/first\n",
+            "09-11 12:34:56.123 100 102 D okhttp.OkHttpClient: --> GET https://example.test/second\n",
+            "09-11 12:34:56.123 100 101 D OkHttp: Content-Type: application/json\n",
+            "09-11 12:34:56.123 100 101 D OkHttp: \n",
+            "09-11 12:34:56.123 100 101 D OkHttp:   {\"request\":\"first\"}  \n",
+            "09-11 12:34:56.123 100 102 D okhttp.OkHttpClient: --> END GET\n",
+            "09-11 12:34:56.123 100 101 D OkHttp: --> END POST (23-byte body)\n",
+            "09-11 12:34:56.123 100 102 D okhttp.OkHttpClient: <-- 200 https://example.test/second (10ms)\n",
+            "09-11 12:34:56.123 100 101 D OkHttp: <-- 200 https://example.test/first (20ms)\n",
+            "09-11 12:34:56.123 100 102 D okhttp.OkHttpClient: Content-Type: application/json\n",
+            "09-11 12:34:56.123 100 101 D OkHttp: Content-Type: application/json\n",
+            "09-11 12:34:56.123 100 102 D okhttp.OkHttpClient: \n",
+            "09-11 12:34:56.123 100 102 D okhttp.OkHttpClient:   {\"response\":\"第二\"}  \n",
+            "09-11 12:34:56.123 100 101 D OkHttp: \n",
+            "09-11 12:34:56.123 100 101 D OkHttp: {\"response\":\"first\"}\n",
+            "09-11 12:34:56.123 100 102 D okhttp.OkHttpClient: <-- END HTTP (10ms, 25-byte body)\n",
+            "09-11 12:34:56.123 100 101 D OkHttp: <-- END HTTP (20ms, 20-byte body)\n",
+            "09-11 12:34:56.123 999 102 D okhttp.OkHttpClient: wrong-pid\n",
+            "09-11 12:34:56.123 100 102 D okhttp.OkHttpClientExtra: near-tag\n",
+            "09-11 12:34:56.123 100 101 D OkHttpOther: near-tag\n",
+            "09-11 12:34:56.123 100 102 D okhttp.okhttpclient: wrong-case\n",
+            "09-11 12:34:56.123 100 102 D Otherokhttp.OkHttpClient: prefixed-tag\n",
+        );
+        let expected = [
+            ("101", "--> POST https://example.test/first"),
+            ("102", "--> GET https://example.test/second"),
+            ("101", "Content-Type: application/json"),
+            ("101", ""),
+            ("101", "  {\"request\":\"first\"}  "),
+            ("102", "--> END GET"),
+            ("101", "--> END POST (23-byte body)"),
+            ("102", "<-- 200 https://example.test/second (10ms)"),
+            ("101", "<-- 200 https://example.test/first (20ms)"),
+            ("102", "Content-Type: application/json"),
+            ("101", "Content-Type: application/json"),
+            ("102", ""),
+            ("102", "  {\"response\":\"第二\"}  "),
+            ("101", ""),
+            ("101", "{\"response\":\"first\"}"),
+            ("102", "<-- END HTTP (10ms, 25-byte body)"),
+            ("101", "<-- END HTTP (20ms, 20-byte body)"),
+        ]
+        .into_iter()
+        .map(|(tid, message)| NetworkCaptureLine {
+            tid: tid.to_string(),
+            ..line(message)
+        })
+        .collect::<Vec<_>>();
+        let buffer = Mutex::new(CaptureBuffer::new(100, 16_384));
+        read_capture_lines(raw.as_bytes(), &buffer, "100").unwrap();
+        let snapshot = lock_buffer(&buffer).drain("both-loggers");
+        assert_eq!(snapshot.lines, expected);
+        assert_eq!(snapshot.dropped_lines, 0);
     }
 
     #[test]
