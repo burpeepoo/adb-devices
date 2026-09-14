@@ -36,38 +36,46 @@ export default function ToolRail({
   onOpenSettings,
   onOpenGithub,
 }: Props) {
-  const renderedGroups: string[] = [];
+  const primaryTools = tools.filter((tool) => tool.emphasis === "primary");
+  const scrollableTools = tools.filter((tool) => tool.emphasis !== "primary");
+
+  const renderTools = (items: ToolConfig[]) => {
+    const renderedGroups = new Set<string>();
+    return items.map((tool) => {
+      const Icon = tool.icon;
+      const active = tool.key === activeTool;
+      const groupLabel = tool.groupLabel || "";
+      const showGroupLabel = groupLabel && !renderedGroups.has(groupLabel);
+      if (showGroupLabel) {
+        renderedGroups.add(groupLabel);
+      }
+      return (
+        <div key={tool.key} className="tool-rail__item">
+          {showGroupLabel ? <div className="tool-rail__section-label">{groupLabel}</div> : null}
+          <Tooltip label={tool.label} position="right" withArrow openDelay={250}>
+            <button
+              type="button"
+              aria-label={tool.label}
+              className={`tool-rail__button${active ? " tool-rail__button--active" : ""}`}
+              data-active={active ? "true" : "false"}
+              data-emphasis={tool.emphasis || "tool"}
+              onClick={() => onSelectTool(tool.key)}
+            >
+              <Icon size={tool.emphasis === "primary" ? 22 : 19} style={{ flex: "0 0 auto" }} />
+              <span className="tool-rail__label">{tool.label}</span>
+            </button>
+          </Tooltip>
+        </div>
+      );
+    });
+  };
+
   return (
     <Stack className="rail-card" h="100%" align="stretch" gap={4} p={8}>
-      <div className="tool-rail__scroll">
-        {tools.map((tool) => {
-          const Icon = tool.icon;
-          const active = tool.key === activeTool;
-          const groupLabel = tool.groupLabel || "";
-          const showGroupLabel = groupLabel && !renderedGroups.includes(groupLabel);
-          if (showGroupLabel) {
-            renderedGroups.push(groupLabel);
-          }
-          return (
-            <div key={tool.key} className="tool-rail__item">
-              {showGroupLabel ? <div className="tool-rail__section-label">{groupLabel}</div> : null}
-              <Tooltip label={tool.label} position="right" withArrow openDelay={250}>
-                <button
-                  type="button"
-                  aria-label={tool.label}
-                  className="tool-rail__button"
-                  data-active={active ? "true" : "false"}
-                  data-emphasis={tool.emphasis || "tool"}
-                  onClick={() => onSelectTool(tool.key)}
-                >
-                  <Icon size={tool.emphasis === "primary" ? 22 : 19} style={{ flex: "0 0 auto" }} />
-                  <span className="tool-rail__label">{tool.label}</span>
-                </button>
-              </Tooltip>
-            </div>
-          );
-        })}
-      </div>
+      {primaryTools.length > 0 ? (
+        <div className="tool-rail__primary">{renderTools(primaryTools)}</div>
+      ) : null}
+      <div className="tool-rail__scroll">{renderTools(scrollableTools)}</div>
       <div className="tool-rail__footer">
         <button
           type="button"

@@ -1,0 +1,21 @@
+en-US:
+ADB Manager 2.2.9 keeps primary navigation visible while scrolling.
+
+- Device Console and Agent Tasks stay fixed at the top of the sidebar. The remaining tools scroll independently, including in the compact icon rail.
+- Fixed navigation highlights that could retain the previous selection after switching workspaces.
+
+If an older installation cannot complete the in-app update because it uses the previous update-signing chain, manually download and install the latest release:
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+macOS: choose a .dmg or .pkg installer. Windows: choose setup.exe or .msi.
+
+zh-CN:
+ADB Manager 2.2.9 让主线入口在滚动时始终可见。
+
+- 侧栏顶部的「主线」、设备控制台和 Agent 任务固定显示，其他工具独立滚动；窄窗口的图标栏同样支持。
+- 修复切换工作区后，导航高亮可能仍停留在上一项的问题。
+
+如果旧安装包因使用之前的更新签名链而无法完成应用内更新，请手动下载并安装最新版本：
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+macOS：选择 .dmg 或 .pkg 安装包。Windows：选择 setup.exe 或 .msi 安装包。

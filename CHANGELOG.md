@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [2.2.9] - 2026-09-14
+
+### Changed
+
+- Kept Device Console and Agent Tasks fixed at the top of the sidebar while the remaining tools scroll independently, including in the compact icon rail.
+
+### Fixed
+
+- Fixed navigation highlights that could retain the previous selection after switching workspaces.
+
 ## [2.2.8] - 2026-09-11
 
 ### Added

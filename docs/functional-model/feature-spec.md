@@ -55,6 +55,7 @@ Logic:
 
 User-visible behavior:
 
+- The left rail keeps the Primary group (Device Console and Agent Tasks) fixed at the top. Capture, Diagnostics, Apps, and Utilities scroll independently between that group and the fixed Settings/GitHub footer, including in the compact icon rail.
 - Device title is `device_sn || serial`.
 - Local notes can override the console title while still showing identity as secondary text.
 - Notes are local-only and keyed by `device_sn || serial`.
