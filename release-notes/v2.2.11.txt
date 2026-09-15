@@ -1,0 +1,23 @@
+en-US:
+ADB Manager 2.2.11 adds a persistent Operation Log for troubleshooting wireless ADB and device operations.
+
+- Records sanitized ADB, discovery, pairing, connection, Logcat, recording, and network capture outcomes with status, duration, bounded output, and errors.
+- Adds search, detail view, export, and clear actions while keeping a rolling local history.
+- Automatically hides pairing codes, typed input, clipboard content, and common credential fields.
+
+If an older installation cannot complete the in-app update because it uses the previous update-signing chain, manually download and install the latest release:
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+macOS: choose a .dmg or .pkg installer. Windows: choose setup.exe or .msi.
+
+zh-CN:
+ADB Manager 2.2.11 新增可持久化的操作日志，方便排查无线 ADB 和设备操作问题。
+
+- 记录 ADB、发现、配对、连接、Logcat、录屏和接口抓取结果，包括状态、耗时、受限输出和错误信息，并自动脱敏。
+- 支持搜索、查看详情、导出和清空，同时保留滚动的本机历史记录。
+- 自动隐藏配对码、输入文字、剪贴板内容和常见凭据字段。
+
+如果旧安装包因使用之前的更新签名链而无法完成应用内更新，请手动下载并安装最新版本：
+https://github.com/burpeepoo/adb-devices/releases/latest
+
+macOS：选择 .dmg 或 .pkg 安装包。Windows：选择 setup.exe 或 .msi 安装包。

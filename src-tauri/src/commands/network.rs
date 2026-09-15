@@ -10,7 +10,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use serde::Serialize;
 use tauri::{AppHandle, State};
 
-use crate::{adb, process};
+use crate::{adb, operation_log, process};
 
 const MAX_QUEUED_LINES: usize = 4_096;
 const MAX_QUEUED_BYTES: usize = 4 * 1_024 * 1_024;
@@ -134,6 +134,7 @@ struct CaptureSession {
     metadata: NetworkCaptureMetadata,
     buffer: Arc<Mutex<CaptureBuffer>>,
     cancellation: Arc<AtomicBool>,
+    terminal_logged: AtomicBool,
     worker: Option<JoinHandle<()>>,
 }
 
@@ -186,6 +187,7 @@ impl NetworkCaptureState {
         Ok(metadata)
     }
 
+    #[cfg(test)]
     fn snapshot(&self, session_id: &str) -> Result<NetworkCaptureSnapshot, String> {
         let current = self.current.lock().map_err(|_| "CAPTURE_STATE_ERROR")?;
         let session = current
@@ -193,6 +195,50 @@ impl NetworkCaptureState {
             .filter(|session| session.metadata.session_id == session_id)
             .ok_or("CAPTURE_NOT_FOUND")?;
         Ok(session.snapshot())
+    }
+
+    fn snapshot_with_operation_log(
+        &self,
+        app: &AppHandle,
+        session_id: &str,
+    ) -> Result<NetworkCaptureSnapshot, String> {
+        let current = self.current.lock().map_err(|_| "CAPTURE_STATE_ERROR")?;
+        let session = current
+            .as_ref()
+            .filter(|session| session.metadata.session_id == session_id)
+            .ok_or("CAPTURE_NOT_FOUND")?;
+        let snapshot = session.snapshot();
+        if snapshot.status != NetworkCaptureStatus::Running
+            && !session.terminal_logged.swap(true, Ordering::AcqRel)
+        {
+            let status = match snapshot.status {
+                NetworkCaptureStatus::Stopped => "info",
+                NetworkCaptureStatus::Error | NetworkCaptureStatus::AppRestarted => "failed",
+                NetworkCaptureStatus::Running => "info",
+            };
+            let detail = format!(
+                "capture session ended with status {:?}, error {:?}, retained {} lines, dropped {}",
+                snapshot.status,
+                snapshot.error_code,
+                snapshot.lines.len(),
+                snapshot.dropped_lines
+            );
+            operation_log::record_event(
+                app,
+                "adb_network_capture_terminal",
+                Some(&session.metadata.device_serial),
+                &format!(
+                    "network capture {} ({})",
+                    session.metadata.package_name, session.metadata.session_id
+                ),
+                status,
+                Duration::from_millis(
+                    capture_now_ms().saturating_sub(session.metadata.started_at_ms),
+                ),
+                &detail,
+            );
+        }
+        Ok(snapshot)
     }
 
     fn stop(&self, session_id: &str) -> Result<NetworkCaptureSnapshot, String> {
@@ -231,15 +277,35 @@ pub fn adb_network_capture_start(
     device_serial: String,
     package_name: String,
 ) -> Result<NetworkCaptureMetadata, String> {
-    validate_target(&device_serial, &package_name).map_err(ToString::to_string)?;
-    state.start_with(|| {
+    let started = Instant::now();
+    if let Err(error) = validate_target(&device_serial, &package_name) {
+        let message = error.to_string();
+        operation_log::record_event(
+            &app,
+            "adb_network_capture_start",
+            Some(&device_serial),
+            "start network capture",
+            "failed",
+            started.elapsed(),
+            &message,
+        );
+        return Err(message);
+    }
+    let device_serial_for_capture = device_serial.clone();
+    let package_name_for_capture = package_name.clone();
+    let result = state.start_with(|| {
         let adb_path = adb::get_adb_path(&app).map_err(|_| "ADB_UNAVAILABLE")?;
         let cancellation = Arc::new(AtomicBool::new(false));
-        let pid = probe_main_pid(&adb_path, &device_serial, &package_name, &cancellation)?;
+        let pid = probe_main_pid(
+            &adb_path,
+            &device_serial_for_capture,
+            &package_name_for_capture,
+            &cancellation,
+        )?;
         verify_main_process(
             &adb_path,
-            &device_serial,
-            &package_name,
+            &device_serial_for_capture,
+            &package_name_for_capture,
             &pid,
             &cancellation,
         )?;
@@ -263,31 +329,83 @@ pub fn adb_network_capture_start(
                 "network-{started_at_ms}-{}",
                 NEXT_SESSION_ID.fetch_add(1, Ordering::Relaxed)
             ),
-            device_serial: device_serial.clone(),
-            package_name: package_name.clone(),
+            device_serial: device_serial_for_capture.clone(),
+            package_name: package_name_for_capture.clone(),
             pid,
             started_at_ms,
         };
         spawn_session(metadata, child, cancellation, move |cancellation| {
-            probe_main_pid(&adb_path, &device_serial, &package_name, cancellation)
+            probe_main_pid(
+                &adb_path,
+                &device_serial_for_capture,
+                &package_name_for_capture,
+                cancellation,
+            )
         })
-    })
+    });
+    let detail = match &result {
+        Ok(metadata) => format!(
+            "capture started for {} (pid {}, session {})",
+            metadata.package_name, metadata.pid, metadata.session_id
+        ),
+        Err(error) => format!("capture start failed: {error}"),
+    };
+    operation_log::record_event(
+        &app,
+        "adb_network_capture_start",
+        Some(&device_serial),
+        &format!("adb -s {device_serial} shell logcat (network capture)"),
+        if result.is_ok() { "success" } else { "failed" },
+        started.elapsed(),
+        &detail,
+    );
+    result
 }
 
 #[tauri::command(async)]
 pub fn adb_network_capture_snapshot(
+    app: AppHandle,
     state: State<'_, NetworkCaptureState>,
     session_id: String,
 ) -> Result<NetworkCaptureSnapshot, String> {
-    state.snapshot(&session_id)
+    state.snapshot_with_operation_log(&app, &session_id)
 }
 
 #[tauri::command(async)]
 pub fn adb_network_capture_stop(
+    app: AppHandle,
     state: State<'_, NetworkCaptureState>,
     session_id: String,
 ) -> Result<NetworkCaptureSnapshot, String> {
-    state.stop(&session_id)
+    let started = Instant::now();
+    let result = state.stop(&session_id);
+    let (status, detail) = match &result {
+        Ok(snapshot) => {
+            let status = match snapshot.status {
+                NetworkCaptureStatus::Stopped => "success",
+                NetworkCaptureStatus::Running => "info",
+                NetworkCaptureStatus::Error | NetworkCaptureStatus::AppRestarted => "failed",
+            };
+            let detail = format!(
+                "capture stopped with {} lines (status {:?}, error {:?})",
+                snapshot.lines.len(),
+                snapshot.status,
+                snapshot.error_code
+            );
+            (status, detail)
+        }
+        Err(error) => ("failed", error.to_string()),
+    };
+    operation_log::record_event(
+        &app,
+        "adb_network_capture_stop",
+        None,
+        "stop network capture",
+        status,
+        started.elapsed(),
+        &detail,
+    );
+    result
 }
 
 fn validate_target(device_serial: &str, package_name: &str) -> Result<(), &'static str> {
@@ -315,6 +433,14 @@ fn validate_target(device_serial: &str, package_name: &str) -> Result<(), &'stat
         return Err("INVALID_PACKAGE");
     }
     Ok(())
+}
+
+fn capture_now_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+        .min(u64::MAX as u128) as u64
 }
 
 fn logcat_shell_command(pid: &str) -> String {
@@ -589,6 +715,7 @@ fn spawn_session(
         metadata,
         buffer,
         cancellation,
+        terminal_logged: AtomicBool::new(false),
         worker: Some(worker),
     })
 }

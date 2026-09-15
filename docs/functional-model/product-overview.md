@@ -55,8 +55,8 @@ Startup sequence:
 
 Navigation:
 
-- The left rail exposes 16 tabs: `pair`, `workbench`, `agent`, `files`, `install`, `screenshot`, `record`, `mirror`, `remote`, `imageCast`, `clipboard`, `logcat`, `network`, `displayCalibration`, `performance`, `packages`.
-- The visible rail groups those tabs into primary destinations, capture/control tools, diagnostics, apps/packages, and utilities, with Device Console and Agent Tasks intentionally promoted above the lower-level tools.
+- The left rail exposes 17 tabs: `pair`, `workbench`, `agent`, `files`, `install`, `screenshot`, `record`, `mirror`, `remote`, `imageCast`, `clipboard`, `logcat`, `operationLog`, `network`, `displayCalibration`, `performance`, `packages`.
+- The visible rail groups those tabs into primary destinations, capture/control tools, diagnostics, apps/packages, and utilities, with Device Console and Agent Tasks intentionally promoted above the lower-level tools. Diagnostics includes the Operation Log workspace for sanitized ADB and host-operation history.
 - English navigation uses compact rail-only labels for the longest entries (`Devices`, `Remote`, `ADB Tools`, and `Performance`), while page titles and device-console shortcuts keep the full feature names.
 - The Settings button opens a modal, not a tab.
 - Tabs are lazily mounted and then kept mounted once visited, so long-running tool state is not discarded when switching away.

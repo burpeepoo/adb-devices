@@ -7,6 +7,29 @@ use std::thread::JoinHandle;
 use tokio::runtime::Runtime;
 use webrtc::peer_connection::RTCPeerConnection;
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct OperationLogEntry {
+    pub id: u64,
+    pub timestamp_ms: u64,
+    pub action: String,
+    pub device_serial: Option<String>,
+    pub command: String,
+    pub status: String,
+    pub duration_ms: u64,
+    pub stdout: String,
+    pub stderr: String,
+    pub error: Option<String>,
+}
+
+#[derive(Default)]
+pub struct OperationLogState {
+    pub loaded: bool,
+    pub entries: Vec<OperationLogEntry>,
+    pub next_id: u64,
+    pub persistence_error: Option<String>,
+    pub persistence_dirty: bool,
+}
+
 #[derive(Default)]
 pub struct RecordingState {
     pub process: Option<std::process::Child>,
@@ -16,6 +39,7 @@ pub struct RecordingState {
 
 pub struct AppState {
     pub adb_server_operation: Mutex<()>,
+    pub operation_log: Mutex<OperationLogState>,
     pub remote_control_operation: Mutex<()>,
     pub remote_screenshot_in_flight: Mutex<HashSet<String>>,
     pub remote_frame_cache: Mutex<HashMap<String, RemoteFrameCache>>,
@@ -37,6 +61,7 @@ impl Default for AppState {
     fn default() -> Self {
         Self {
             adb_server_operation: Mutex::new(()),
+            operation_log: Mutex::new(OperationLogState::default()),
             remote_control_operation: Mutex::new(()),
             remote_screenshot_in_flight: Mutex::new(HashSet::new()),
             remote_frame_cache: Mutex::new(HashMap::new()),

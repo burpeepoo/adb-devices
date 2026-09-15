@@ -472,9 +472,31 @@ export type TabKey =
   | "imageCast"
   | "clipboard"
   | "logcat"
+  | "operationLog"
   | "network"
   | "displayCalibration"
   | "agent"
   | "files"
   | "performance"
   | "packages";
+
+export interface OperationLogEntry {
+  id: number;
+  timestamp_ms: number;
+  action: string;
+  device_serial: string | null;
+  command: string;
+  status: string;
+  duration_ms: number;
+  stdout: string;
+  stderr: string;
+  error: string | null;
+}
+
+export interface OperationLogSnapshot {
+  entries: OperationLogEntry[];
+  path: string | null;
+  persistence_error: string | null;
+  oldest_id: number | null;
+  latest_id: number | null;
+}

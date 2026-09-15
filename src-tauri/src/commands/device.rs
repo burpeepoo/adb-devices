@@ -13,6 +13,7 @@ use std::{
 use tauri::{AppHandle, State};
 
 use crate::adb::{self, AdbError};
+use crate::operation_log;
 use crate::process;
 use crate::state::AppState;
 
@@ -60,9 +61,20 @@ pub struct DeviceSummary {
 
 #[tauri::command(async)]
 pub fn adb_restart_server(app: AppHandle, state: State<'_, AppState>) -> Result<String, AdbError> {
+    let started = Instant::now();
     let _guard = lock_adb_server_operation(&state)?;
-    restart_adb_server(&app)?;
-    Ok(t!("device.wireless_pairing_repaired").to_string())
+    let result = restart_adb_server(&app);
+    let detail = operation_result_detail(&result, "restarted");
+    operation_log::record_event(
+        &app,
+        "adb_restart_server",
+        None,
+        "restart ADB server",
+        if result.is_ok() { "success" } else { "failed" },
+        started.elapsed(),
+        &detail,
+    );
+    result.map(|_| t!("device.wireless_pairing_repaired").to_string())
 }
 
 #[tauri::command(async)]
@@ -70,9 +82,20 @@ pub fn adb_restart_server_preserving_pairing(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<String, AdbError> {
+    let started = Instant::now();
     let _guard = lock_adb_server_operation(&state)?;
-    restart_adb_server_preserving_pairing(&app)?;
-    Ok(t!("device.adb_restarted").to_string())
+    let result = restart_adb_server_preserving_pairing(&app);
+    let detail = operation_result_detail(&result, "restarted");
+    operation_log::record_event(
+        &app,
+        "adb_restart_server_preserving_pairing",
+        None,
+        "restart ADB server (preserve pairing)",
+        if result.is_ok() { "success" } else { "failed" },
+        started.elapsed(),
+        &detail,
+    );
+    result.map(|_| t!("device.adb_restarted").to_string())
 }
 
 #[tauri::command(async)]
@@ -80,20 +103,42 @@ pub fn adb_repair_wireless_pairing(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<String, AdbError> {
+    let started = Instant::now();
     let _guard = lock_adb_server_operation(&state)?;
-    restart_adb_server(&app)?;
-    Ok(t!("device.wireless_pairing_repaired").to_string())
+    let result = restart_adb_server(&app);
+    let detail = operation_result_detail(&result, "pairing cache refreshed");
+    operation_log::record_event(
+        &app,
+        "adb_repair_wireless_pairing",
+        None,
+        "refresh wireless pairing cache",
+        if result.is_ok() { "success" } else { "failed" },
+        started.elapsed(),
+        &detail,
+    );
+    result.map(|_| t!("device.wireless_pairing_repaired").to_string())
 }
 
 pub fn repair_wireless_pairing_for_remote(
     app: &AppHandle,
     state: &AppState,
 ) -> Result<String, AdbError> {
+    let started = Instant::now();
     let _guard = state.adb_server_operation.lock().map_err(|_| {
         AdbError::CommandFailed(t!("device.adb_operation_state_error").into_owned())
     })?;
-    restart_adb_server(app)?;
-    Ok(t!("device.wireless_pairing_repaired").to_string())
+    let result = restart_adb_server(app);
+    let detail = operation_result_detail(&result, "pairing cache refreshed");
+    operation_log::record_event(
+        app,
+        "remote_adb_repair_wireless_pairing",
+        None,
+        "refresh wireless pairing cache (remote)",
+        if result.is_ok() { "success" } else { "failed" },
+        started.elapsed(),
+        &detail,
+    );
+    result.map(|_| t!("device.wireless_pairing_repaired").to_string())
 }
 
 #[tauri::command(async)]
@@ -101,9 +146,20 @@ pub fn adb_reset_host_identity(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<String, AdbError> {
+    let started = Instant::now();
     let _guard = lock_adb_server_operation(&state)?;
-    reset_adb_host_identity(&app)?;
-    Ok(t!("device.adb_identity_reset").to_string())
+    let result = reset_adb_host_identity(&app);
+    let detail = operation_result_detail(&result, "host identity reset");
+    operation_log::record_event(
+        &app,
+        "adb_reset_host_identity",
+        None,
+        "reset local ADB host identity",
+        if result.is_ok() { "success" } else { "failed" },
+        started.elapsed(),
+        &detail,
+    );
+    result.map(|_| t!("device.adb_identity_reset").to_string())
 }
 
 #[tauri::command(async)]
@@ -112,15 +168,26 @@ pub fn get_local_ipv4_addresses() -> Vec<String> {
 }
 
 #[tauri::command(async)]
-pub fn tcp_probe_endpoint(ip: String, port: String) -> bool {
+pub fn tcp_probe_endpoint(app: AppHandle, ip: String, port: String) -> bool {
+    let started = Instant::now();
     let address = format!("{}:{}", ip.trim(), port.trim());
-    let Ok(mut addrs) = address.to_socket_addrs() else {
-        return false;
-    };
-    let Some(socket_addr) = addrs.next() else {
-        return false;
-    };
-    TcpStream::connect_timeout(&socket_addr, Duration::from_secs(2)).is_ok()
+    let result = address
+        .to_socket_addrs()
+        .ok()
+        .and_then(|mut addrs| addrs.next())
+        .is_some_and(|socket_addr| {
+            TcpStream::connect_timeout(&socket_addr, Duration::from_secs(2)).is_ok()
+        });
+    operation_log::record_event(
+        &app,
+        "tcp_probe_endpoint",
+        None,
+        &format!("tcp probe {address}"),
+        if result { "success" } else { "failed" },
+        started.elapsed(),
+        if result { "reachable" } else { "unreachable" },
+    );
+    result
 }
 
 #[tauri::command(async)]
@@ -467,16 +534,33 @@ pub fn adb_restart_and_retry_pair(
 }
 
 fn pair_device(app: &AppHandle, ip: &str, port: &str, code: &str) -> Result<String, AdbError> {
+    let started = Instant::now();
     let addr = format!("{}:{}", ip, port);
-    let output = run_pair_command(app, &addr, code)?;
-    if !pair_output_succeeded(&output) {
-        return Err(pair_failed_error(output_message(&output)));
-    }
+    let result = (|| {
+        let output = run_pair_command(app, &addr, code)?;
+        if !pair_output_succeeded(&output) {
+            return Err(pair_failed_error(output_message(&output)));
+        }
 
-    match connect_via_current_mdns_port(app, ip) {
-        Ok(Some(_)) => Ok(t!("device.pair_success_connected", ip = ip).to_string()),
-        _ => Ok(t!("device.pair_success_pending", ip = ip).to_string()),
-    }
+        match connect_via_current_mdns_port(app, ip) {
+            Ok(Some(_)) => Ok(t!("device.pair_success_connected", ip = ip).to_string()),
+            _ => Ok(t!("device.pair_success_pending", ip = ip).to_string()),
+        }
+    })();
+    operation_log::record_event(
+        app,
+        "adb_pair",
+        None,
+        &format!("adb pair {addr} <redacted>"),
+        if result.is_ok() { "success" } else { "failed" },
+        started.elapsed(),
+        if result.is_ok() {
+            "pairing request completed"
+        } else {
+            "pairing request failed; see the ADB entry for command output"
+        },
+    );
+    result
 }
 
 #[tauri::command(async)]
@@ -486,30 +570,47 @@ pub fn adb_connect(
     ip: String,
     port: String,
 ) -> Result<String, AdbError> {
+    let started = Instant::now();
     let _guard = lock_adb_server_operation(&state)?;
     let addr = endpoint_address(&ip, &port);
-    let output = connect_address(&app, &addr)?;
+    let result = (|| {
+        let output = connect_address(&app, &addr)?;
 
-    if let Some(message) = connect_success_message(&output, &addr, false) {
-        return Ok(message);
-    }
+        if let Some(message) = connect_success_message(&output, &addr, false) {
+            return Ok(message);
+        }
 
-    let message = output_message(&output);
-    let direct_error = if let Some(error) = macos_local_network_access_error(&message) {
-        error
-    } else if message.to_ascii_lowercase().contains("refused") {
-        AdbError::CommandFailed(t!("device.connect_refused", address = addr).into_owned())
-    } else {
-        AdbError::CommandFailed(
-            t!("device.connect_refused_wifi", "message" => message).into_owned(),
-        )
-    };
+        let message = output_message(&output);
+        let direct_error = if let Some(error) = macos_local_network_access_error(&message) {
+            error
+        } else if message.to_ascii_lowercase().contains("refused") {
+            AdbError::CommandFailed(t!("device.connect_refused", address = addr).into_owned())
+        } else {
+            AdbError::CommandFailed(
+                t!("device.connect_refused_wifi", "message" => message).into_owned(),
+            )
+        };
 
-    if let Ok(Some(message)) = connect_via_mdns_autoconnect(&app, &ip) {
-        return Ok(message);
-    }
+        if let Ok(Some(message)) = connect_via_mdns_autoconnect(&app, &ip) {
+            return Ok(message);
+        }
 
-    Err(direct_error)
+        Err(direct_error)
+    })();
+    operation_log::record_event(
+        &app,
+        "adb_connect",
+        None,
+        &format!("adb connect {addr}"),
+        if result.is_ok() { "success" } else { "failed" },
+        started.elapsed(),
+        if result.is_ok() {
+            "connection request completed"
+        } else {
+            "connection request failed; see the ADB entry for command output"
+        },
+    );
+    result
 }
 
 #[tauri::command(async)]
@@ -845,7 +946,7 @@ fn discover_mdns_devices(app: &AppHandle) -> Result<Vec<MdnsDevice>, AdbError> {
     let mut devices = parse_mdns_services(&stdout);
 
     if devices.is_empty() {
-        devices.extend(discover_platform_mdns_devices());
+        devices.extend(discover_platform_mdns_devices(app));
     }
 
     Ok(dedupe_mdns_devices(devices))
@@ -977,6 +1078,13 @@ fn lock_adb_server_operation<'a, 'r>(
         .map_err(|_| AdbError::CommandFailed(t!("device.adb_operation_state_error").into_owned()))
 }
 
+fn operation_result_detail<T>(result: &Result<T, AdbError>, success: &str) -> String {
+    result
+        .as_ref()
+        .map(|_| success.to_string())
+        .unwrap_or_else(|error| error.to_string())
+}
+
 fn infer_connection_type(serial: &str) -> String {
     if serial.contains(':') {
         "wireless".to_string()
@@ -1045,7 +1153,7 @@ fn dedupe_mdns_devices(devices: Vec<MdnsDevice>) -> Vec<MdnsDevice> {
 }
 
 #[cfg(target_os = "macos")]
-fn discover_platform_mdns_devices() -> Vec<MdnsDevice> {
+fn discover_platform_mdns_devices(app: &AppHandle) -> Vec<MdnsDevice> {
     let mut devices = Vec::new();
     for (service_type, connectable) in [
         ("_adb-tls-connect._tcp", true),
@@ -1053,6 +1161,7 @@ fn discover_platform_mdns_devices() -> Vec<MdnsDevice> {
     ] {
         let service_type_for_parse = format!("{service_type}.");
         let Ok(browse_output) = run_command_for_output(
+            app,
             "dns-sd",
             &["-B", service_type, "local."],
             Duration::from_secs(3),
@@ -1061,6 +1170,7 @@ fn discover_platform_mdns_devices() -> Vec<MdnsDevice> {
         };
         for service_name in parse_dns_sd_browse_services(&browse_output, &service_type_for_parse) {
             let Ok(lookup_output) = run_command_for_output(
+                app,
                 "dns-sd",
                 &["-L", &service_name, service_type, "local."],
                 Duration::from_secs(3),
@@ -1089,27 +1199,70 @@ fn discover_platform_mdns_devices() -> Vec<MdnsDevice> {
 }
 
 #[cfg(not(target_os = "macos"))]
-fn discover_platform_mdns_devices() -> Vec<MdnsDevice> {
+fn discover_platform_mdns_devices(_app: &AppHandle) -> Vec<MdnsDevice> {
     Vec::new()
 }
 
 fn run_command_for_output(
+    app: &AppHandle,
     command: &str,
     args: &[&str],
     timeout: Duration,
 ) -> Result<String, std::io::Error> {
+    let started = Instant::now();
+    let command_display = format!(
+        "{} {}",
+        command,
+        args.iter()
+            .map(|arg| arg.to_string())
+            .collect::<Vec<_>>()
+            .join(" ")
+    );
     let mut child = process::hidden_command(command)
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn()?;
-    let started = Instant::now();
+        .spawn()
+        .map_err(|error| {
+            operation_log::record_event(
+                app,
+                "dns_sd",
+                None,
+                &command_display,
+                "failed",
+                started.elapsed(),
+                &error.to_string(),
+            );
+            error
+        })?;
+    let mut timed_out = false;
+    let mut exit_status = None;
     loop {
-        if child.try_wait()?.is_some() {
-            break;
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                exit_status = Some(status);
+                break;
+            }
+            Ok(None) => {}
+            Err(error) => {
+                operation_log::record_process_result(
+                    app,
+                    "dns_sd".to_string(),
+                    None,
+                    command_display,
+                    "failed",
+                    started.elapsed(),
+                    "",
+                    "",
+                    Some(&error.to_string()),
+                    false,
+                );
+                return Err(error);
+            }
         }
         if started.elapsed() >= timeout {
             let _ = child.kill();
+            timed_out = true;
             break;
         }
         std::thread::sleep(Duration::from_millis(100));
@@ -1125,8 +1278,43 @@ fn run_command_for_output(
     }
     let _ = child.wait();
 
-    stdout.extend_from_slice(&stderr);
-    Ok(String::from_utf8_lossy(&stdout).to_string())
+    let output = String::from_utf8_lossy(&stdout).to_string();
+    let stderr_text = String::from_utf8_lossy(&stderr).to_string();
+    let status = if timed_out {
+        if output.trim().is_empty() && stderr_text.trim().is_empty() {
+            "timeout"
+        } else {
+            // dns-sd browse/lookup is intentionally bounded by killing the
+            // long-lived listener after collecting its current output.
+            "info"
+        }
+    } else if exit_status.is_some_and(|value| value.success()) {
+        "success"
+    } else {
+        "failed"
+    };
+    let error = if status == "failed" {
+        Some(if stderr_text.trim().is_empty() {
+            "dns-sd exited with a non-zero status"
+        } else {
+            stderr_text.as_str()
+        })
+    } else {
+        None
+    };
+    operation_log::record_process_result(
+        app,
+        "dns_sd".to_string(),
+        None,
+        command_display,
+        status,
+        started.elapsed(),
+        &output,
+        &stderr_text,
+        error,
+        false,
+    );
+    Ok(output)
 }
 
 fn resolve_reachable_ipv4(host: &str, port: &str) -> Option<String> {

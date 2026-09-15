@@ -1,5 +1,6 @@
 mod adb;
 mod commands;
+mod operation_log;
 mod process;
 mod state;
 
@@ -121,6 +122,8 @@ pub fn run() {
             commands::network::adb_network_capture_start,
             commands::network::adb_network_capture_snapshot,
             commands::network::adb_network_capture_stop,
+            commands::operation_log::get_operation_logs,
+            commands::operation_log::clear_operation_logs,
             commands::screenshot::adb_screenshot,
             commands::record::adb_start_recording,
             commands::record::adb_stop_recording,

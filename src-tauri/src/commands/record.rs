@@ -5,6 +5,7 @@ use std::sync::MutexGuard;
 use tauri::AppHandle;
 
 use crate::adb::{self, AdbError};
+use crate::operation_log;
 use crate::process;
 use crate::state::{AppState, RecordingState};
 
@@ -23,8 +24,18 @@ pub fn adb_start_recording(
     device_serial: Option<String>,
     state: tauri::State<AppState>,
 ) -> Result<String, AdbError> {
+    let started = std::time::Instant::now();
     let mut recording = lock_recording_state(&state)?;
     if recording.process.is_some() {
+        operation_log::record_event(
+            &app,
+            "adb_start_recording",
+            recording.device.as_deref().or(device_serial.as_deref()),
+            "adb shell screenrecord",
+            "failed",
+            started.elapsed(),
+            "screen recording is already running",
+        );
         return Err(AdbError::AlreadyRecording);
     }
 
@@ -39,11 +50,31 @@ pub fn adb_start_recording(
     }
     cmd.args(["shell", "screenrecord", &remote_path]);
 
-    let child = cmd.spawn()?;
+    let child = cmd.spawn().map_err(|error| {
+        operation_log::record_event(
+            &app,
+            "adb_start_recording",
+            device_serial.as_deref(),
+            "adb shell screenrecord",
+            "failed",
+            started.elapsed(),
+            &error.to_string(),
+        );
+        AdbError::from(error)
+    })?;
     recording.process = Some(child);
     recording.device = device_serial;
     recording.remote_path = Some(remote_path);
 
+    operation_log::record_event(
+        &app,
+        "adb_start_recording",
+        recording.device.as_deref(),
+        "adb shell screenrecord",
+        "started",
+        started.elapsed(),
+        "screen recording started",
+    );
     Ok(t!("recording.started").to_string())
 }
 
@@ -54,13 +85,23 @@ pub fn adb_stop_recording(
     device_serial: Option<String>,
     state: tauri::State<AppState>,
 ) -> Result<String, AdbError> {
+    let started = std::time::Instant::now();
     let (serial, remote_path) = {
         let mut recording = lock_recording_state(&state)?;
-        let serial = recording.device.clone().or(device_serial);
+        let serial = recording.device.clone().or(device_serial.clone());
         if let Some(mut child) = recording.process.take() {
             let _ = child.kill();
             let _ = child.wait();
         } else {
+            operation_log::record_event(
+                &app,
+                "adb_stop_recording",
+                device_serial.as_deref(),
+                "stop adb screenrecord",
+                "info",
+                started.elapsed(),
+                "screen recording was not running",
+            );
             return Err(AdbError::NotRecording);
         }
         recording.device = None;
@@ -91,6 +132,16 @@ pub fn adb_stop_recording(
 
     // Cleanup device temp file
     let _ = adb::run_adb(&app, &["shell", "rm", &remote_path], serial_ref);
+
+    operation_log::record_event(
+        &app,
+        "adb_stop_recording",
+        serial_ref,
+        "stop adb screenrecord and pull recording",
+        "success",
+        started.elapsed(),
+        "screen recording stopped and saved",
+    );
 
     Ok(local_path_str)
 }

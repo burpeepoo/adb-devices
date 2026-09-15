@@ -6,6 +6,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager};
 
+use crate::operation_log;
 use crate::process;
 
 #[derive(Debug)]
@@ -254,9 +255,13 @@ pub fn run_adb(
     args: &[&str],
     device_serial: Option<&str>,
 ) -> Result<std::process::Output, AdbError> {
-    let mut cmd = build_adb_command(app, args, device_serial)?;
-    let output = cmd.output()?;
-    Ok(output)
+    let started = Instant::now();
+    let result = match build_adb_command(app, args, device_serial) {
+        Ok(mut cmd) => cmd.output().map_err(AdbError::from),
+        Err(error) => Err(error),
+    };
+    record_adb_result(app, args, device_serial, started, &result);
+    result
 }
 
 pub fn run_adb_with_timeout(
@@ -275,8 +280,13 @@ pub fn run_adb_with_timeout_cancelable(
     timeout: Duration,
     cancellation: Option<&AtomicBool>,
 ) -> Result<Output, AdbError> {
-    let mut cmd = build_adb_command(app, args, device_serial)?;
-    wait_with_timeout(&mut cmd, timeout, cancellation)
+    let started = Instant::now();
+    let result = match build_adb_command(app, args, device_serial) {
+        Ok(mut cmd) => wait_with_timeout(&mut cmd, timeout, cancellation),
+        Err(error) => Err(error),
+    };
+    record_adb_result(app, args, device_serial, started, &result);
+    result
 }
 
 pub fn spawn_adb_piped(
@@ -284,9 +294,28 @@ pub fn spawn_adb_piped(
     args: &[&str],
     device_serial: Option<&str>,
 ) -> Result<Child, AdbError> {
-    let mut cmd = build_adb_command(app, args, device_serial)?;
-    let child = cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).spawn()?;
-    Ok(child)
+    let started = Instant::now();
+    let result = match build_adb_command(app, args, device_serial) {
+        Ok(mut cmd) => cmd
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .map_err(AdbError::from),
+        Err(error) => Err(error),
+    };
+    match &result {
+        Ok(_) => operation_log::record_adb_result(
+            app,
+            args,
+            device_serial,
+            started.elapsed(),
+            "started",
+            None,
+            None,
+        ),
+        Err(error) => record_adb_error(app, args, device_serial, started, error),
+    }
+    result
 }
 
 pub fn run_adb_with_env(
@@ -295,16 +324,20 @@ pub fn run_adb_with_env(
     device_serial: Option<&str>,
     envs: &[(&str, &str)],
 ) -> Result<std::process::Output, AdbError> {
-    let mut cmd = new_adb_command(app)?;
-    if let Some(serial) = device_serial {
-        cmd.args(["-s", serial]);
-    }
-    for (key, value) in envs {
-        cmd.env(key, value);
-    }
-    cmd.args(args);
-    let output = cmd.output()?;
-    Ok(output)
+    let started = Instant::now();
+    let result = (|| {
+        let mut cmd = new_adb_command(app)?;
+        if let Some(serial) = device_serial {
+            cmd.args(["-s", serial]);
+        }
+        for (key, value) in envs {
+            cmd.env(key, value);
+        }
+        cmd.args(args);
+        cmd.output().map_err(AdbError::from)
+    })();
+    record_adb_result(app, args, device_serial, started, &result);
+    result
 }
 
 pub fn run_adb_with_env_timeout(
@@ -314,11 +347,16 @@ pub fn run_adb_with_env_timeout(
     envs: &[(&str, &str)],
     timeout: Duration,
 ) -> Result<Output, AdbError> {
-    let mut cmd = build_adb_command(app, args, device_serial)?;
-    for (key, value) in envs {
-        cmd.env(key, value);
-    }
-    wait_with_timeout(&mut cmd, timeout, None)
+    let started = Instant::now();
+    let result = (|| {
+        let mut cmd = build_adb_command(app, args, device_serial)?;
+        for (key, value) in envs {
+            cmd.env(key, value);
+        }
+        wait_with_timeout(&mut cmd, timeout, None)
+    })();
+    record_adb_result(app, args, device_serial, started, &result);
+    result
 }
 
 fn build_adb_command(
@@ -429,18 +467,71 @@ pub fn run_adb_with_stdin(
     device_serial: Option<&str>,
     stdin_data: &[u8],
 ) -> Result<std::process::Output, AdbError> {
-    let mut cmd = new_adb_command(app)?;
-    if let Some(serial) = device_serial {
-        cmd.args(["-s", serial]);
+    let started = Instant::now();
+    let result = (|| {
+        let mut cmd = new_adb_command(app)?;
+        if let Some(serial) = device_serial {
+            cmd.args(["-s", serial]);
+        }
+        cmd.args(args).stdin(std::process::Stdio::piped());
+        let mut child = cmd.spawn()?;
+        if let Some(mut stdin) = child.stdin.take() {
+            use std::io::Write;
+            stdin.write_all(stdin_data)?;
+        }
+        let output = child.wait_with_output()?;
+        Ok(output)
+    })();
+    record_adb_result(app, args, device_serial, started, &result);
+    result
+}
+
+fn record_adb_result(
+    app: &AppHandle,
+    args: &[&str],
+    device_serial: Option<&str>,
+    started: Instant,
+    result: &Result<Output, AdbError>,
+) {
+    match result {
+        Ok(output) => operation_log::record_adb_result(
+            app,
+            args,
+            device_serial,
+            started.elapsed(),
+            if output.status.success() {
+                "success"
+            } else {
+                "failed"
+            },
+            Some(output),
+            None,
+        ),
+        Err(error) => record_adb_error(app, args, device_serial, started, error),
     }
-    cmd.args(args).stdin(std::process::Stdio::piped());
-    let mut child = cmd.spawn()?;
-    if let Some(mut stdin) = child.stdin.take() {
-        use std::io::Write;
-        stdin.write_all(stdin_data)?;
-    }
-    let output = child.wait_with_output()?;
-    Ok(output)
+}
+
+fn record_adb_error(
+    app: &AppHandle,
+    args: &[&str],
+    device_serial: Option<&str>,
+    started: Instant,
+    error: &AdbError,
+) {
+    let status = match error {
+        AdbError::CommandTimedOut(_) => "timeout",
+        AdbError::CommandCancelled => "cancelled",
+        _ => "failed",
+    };
+    operation_log::record_adb_result(
+        app,
+        args,
+        device_serial,
+        started.elapsed(),
+        status,
+        None,
+        Some(&error.to_string()),
+    );
 }
 
 pub fn check_adb_available(app: &AppHandle) -> bool {

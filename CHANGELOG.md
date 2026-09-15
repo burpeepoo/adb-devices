@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.2.11] - 2026-09-15
+
+### Added
+
+- Added a persistent Operation Log workspace for troubleshooting ADB and device operations.
+- Added searchable operation details, bounded local JSONL history, export, and clear actions.
+
+### Changed
+
+- Added sanitized operation records for ADB commands, discovery, pairing, connection, Logcat, recording, and network capture, including status, duration, bounded output, and errors.
+- Added automatic masking for pairing codes, typed input, clipboard content, and common credential fields.
+
 ## [2.2.10] - 2026-09-14
 
 ### Changed

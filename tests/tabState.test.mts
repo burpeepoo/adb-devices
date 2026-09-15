@@ -18,6 +18,7 @@ test("tab order covers every workspace tab", () => {
     "imageCast",
     "clipboard",
     "logcat",
+    "operationLog",
     "network",
     "displayCalibration",
     "performance",

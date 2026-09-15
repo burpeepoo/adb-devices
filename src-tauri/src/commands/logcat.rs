@@ -2,12 +2,14 @@ use rust_i18n::t;
 use std::io::{BufRead, BufReader};
 use std::process::Stdio;
 use std::thread;
+use std::time::Instant;
 
 use chrono::{Duration as ChronoDuration, NaiveDateTime};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, State};
 
 use crate::adb::{self, AdbError};
+use crate::operation_log;
 use crate::process;
 use crate::state::AppState;
 
@@ -102,16 +104,40 @@ pub fn adb_start_logcat(
     device_serial: Option<String>,
     logcat_filter: Option<String>,
 ) -> Result<String, AdbError> {
+    let started = Instant::now();
     {
         let mut process = state
             .logcat_process
             .lock()
             .map_err(|_| AdbError::CommandFailed(t!("logcat.state_error").into_owned()))?;
         if let Some(child) = process.as_mut() {
-            if child.try_wait()?.is_none() {
-                return Err(AdbError::CommandFailed(
-                    t!("logcat.already_running").into_owned(),
-                ));
+            match child.try_wait()? {
+                None => {
+                    operation_log::record_event(
+                        &app,
+                        "adb_start_logcat",
+                        device_serial.as_deref(),
+                        "start adb logcat",
+                        "failed",
+                        started.elapsed(),
+                        "logcat stream is already running",
+                    );
+                    return Err(AdbError::CommandFailed(
+                        t!("logcat.already_running").into_owned(),
+                    ));
+                }
+                Some(status) if !status.success() => {
+                    operation_log::record_event(
+                        &app,
+                        "adb_logcat_exit",
+                        device_serial.as_deref(),
+                        "adb logcat",
+                        "failed",
+                        started.elapsed(),
+                        "previous logcat stream exited before the next start",
+                    );
+                }
+                Some(_) => {}
             }
             *process = None;
         }
@@ -138,8 +164,30 @@ pub fn adb_start_logcat(
     command.args(filter_args);
     command.stdout(Stdio::piped()).stderr(Stdio::piped());
     adb::prepare_adb_command(&mut command);
+    let command_display = format!(
+        "adb{} logcat -b main -b system -b crash -v threadtime{}",
+        device_serial
+            .as_deref()
+            .map(|serial| format!(" -s {serial}"))
+            .unwrap_or_default(),
+        logcat_filter
+            .as_deref()
+            .map(|filter| format!(" {filter}"))
+            .unwrap_or_default()
+    );
 
-    let mut child = command.spawn()?;
+    let mut child = command.spawn().map_err(|error| {
+        operation_log::record_event(
+            &app,
+            "adb_start_logcat",
+            device_serial.as_deref(),
+            &command_display,
+            "failed",
+            started.elapsed(),
+            &error.to_string(),
+        );
+        AdbError::from(error)
+    })?;
     let stdout = child.stdout.take();
     let stderr = child.stderr.take();
 
@@ -184,27 +232,91 @@ pub fn adb_start_logcat(
             .logcat_device
             .lock()
             .map_err(|_| AdbError::CommandFailed(t!("logcat.state_error").into_owned()))?;
-        *active_device = device_serial;
+        *active_device = device_serial.clone();
     }
 
+    operation_log::record_event(
+        &app,
+        "adb_start_logcat",
+        device_serial.as_deref(),
+        &command_display,
+        "started",
+        started.elapsed(),
+        "logcat stream started",
+    );
     Ok(t!("logcat.started").to_string())
 }
 
 #[tauri::command(async)]
-pub fn adb_stop_logcat(state: State<'_, AppState>) -> Result<String, AdbError> {
+pub fn adb_stop_logcat(app: AppHandle, state: State<'_, AppState>) -> Result<String, AdbError> {
+    let started = Instant::now();
     let mut process = state
         .logcat_process
         .lock()
         .map_err(|_| AdbError::CommandFailed(t!("logcat.state_error").into_owned()))?;
 
     if let Some(mut child) = process.take() {
-        let _ = child.kill();
-        let _ = child.wait();
-        if let Ok(mut active_device) = state.logcat_device.lock() {
-            *active_device = None;
+        let mut unexpected_exit = None;
+        match child.try_wait() {
+            Ok(Some(status)) if !status.success() => {
+                unexpected_exit = Some(format!(
+                    "logcat stream exited before stop (code {:?})",
+                    status.code()
+                ));
+            }
+            Ok(Some(_)) => {}
+            Ok(None) => {
+                let _ = child.kill();
+                let _ = child.wait();
+            }
+            Err(error) => {
+                unexpected_exit = Some(format!("unable to read logcat stream status: {error}"));
+                let _ = child.kill();
+                let _ = child.wait();
+            }
         }
+        let serial = state
+            .logcat_device
+            .lock()
+            .ok()
+            .and_then(|mut value| value.take());
+        if let Some(detail) = unexpected_exit.as_deref() {
+            operation_log::record_event(
+                &app,
+                "adb_logcat_exit",
+                serial.as_deref(),
+                "adb logcat",
+                "failed",
+                started.elapsed(),
+                detail,
+            );
+        }
+        operation_log::record_event(
+            &app,
+            "adb_stop_logcat",
+            serial.as_deref(),
+            "stop adb logcat",
+            if unexpected_exit.is_some() {
+                "failed"
+            } else {
+                "success"
+            },
+            started.elapsed(),
+            unexpected_exit
+                .as_deref()
+                .unwrap_or("logcat stream stopped"),
+        );
         Ok(t!("logcat.closed").to_string())
     } else {
+        operation_log::record_event(
+            &app,
+            "adb_stop_logcat",
+            None,
+            "stop adb logcat",
+            "info",
+            started.elapsed(),
+            "logcat stream was not running",
+        );
         Ok(t!("logcat.not_running").to_string())
     }
 }
