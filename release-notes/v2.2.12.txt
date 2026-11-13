@@ -1,0 +1,11 @@
+en-US:
+ADB Manager 2.2.12 fixes package suggestions for force install.
+
+- Suggestions refresh to show packages installed on the selected Android device.
+- The APK's detected package stays the default uninstall target until you enter or select a package name.
+
+zh-CN:
+ADB Manager 2.2.12 修复了强制安装的包名候选。
+
+- 切换设备后，候选会刷新为当前选中设备上已安装的包名。
+- 默认使用 APK 识别出的包名作为卸载目标，可以手动输入或点选候选来修改。

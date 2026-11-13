@@ -332,6 +332,8 @@ Logic:
 
 - Folder paths are recursively expanded to `.apk` files and deduped.
 - APK package name is parsed from binary `AndroidManifest.xml`.
+- Force-install suggestions search the packages installed on the selected online device. Switching devices clears the previous list and reloads suggestions for the new target.
+- The parsed APK package name is the default uninstall target. A typed package name or an explicitly selected suggestion can override it.
 - Normal install uses `adb install -r`.
 - Force mode attempts `adb uninstall <package>` first, then `adb install <apk>` without `-r`.
 - A backend install lock prevents concurrent installs.

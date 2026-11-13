@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2.2.12] - 2026-11-13
+
+### Fixed
+
+- Refresh force-install package suggestions from the selected Android device when switching devices.
+- Keep the APK's detected package as the default uninstall target until a package name is entered or selected.
+
 ## [2.2.11] - 2026-09-15
 
 ### Added

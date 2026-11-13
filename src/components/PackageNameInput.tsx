@@ -10,10 +10,9 @@ interface Props {
   disabled?: boolean;
   placeholder?: string;
   className?: string;
-  packages?: string[];
+  packages?: string[] | null;
   loadingPackages?: boolean;
   onLoadPackages?: () => Promise<void> | void;
-  onSelectPackage?: (value: string) => void;
   suggestionLimit?: number;
 }
 
@@ -27,7 +26,6 @@ export default function PackageNameInput({
   packages,
   loadingPackages,
   onLoadPackages,
-  onSelectPackage,
   suggestionLimit = 30,
 }: Props) {
   const { t } = useTranslation();
@@ -37,7 +35,8 @@ export default function PackageNameInput({
 
   const availablePackages = packages ?? internalPackages;
   const isLoading = loadingPackages ?? internalLoading;
-  const showSuggestions = focused && value.trim().length >= 2;
+  const hasPackageList = Array.isArray(packages) || internalPackages.length > 0;
+  const showSuggestions = focused && value.trim().length >= 2 && (isLoading || hasPackageList);
 
   const suggestions = useMemo(
     () => (showSuggestions ? rankedPackages(availablePackages, value, suggestionLimit) : []),
@@ -45,12 +44,14 @@ export default function PackageNameInput({
   );
 
   const loadPackages = async () => {
-    if (isLoading || availablePackages.length > 0) return;
+    if (isLoading || hasPackageList) return;
 
     if (onLoadPackages) {
       await onLoadPackages();
       return;
     }
+
+    if (packages !== undefined) return;
 
     if (!deviceSerial) {
       setInternalPackages([]);
@@ -72,7 +73,6 @@ export default function PackageNameInput({
 
   const handleSelect = (pkg: string) => {
     onChange(pkg);
-    onSelectPackage?.(pkg);
     setFocused(false);
   };
 
@@ -109,7 +109,7 @@ export default function PackageNameInput({
                 {pkg}
               </button>
             ))}
-          {!isLoading && availablePackages.length > 0 && suggestions.length === 0 && (
+          {!isLoading && suggestions.length === 0 && (
             <div className="px-2 py-1.5 text-xs text-gray-400">{t("apkInstall.noMatch")}</div>
           )}
         </div>

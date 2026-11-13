@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { IconApps } from "@tabler/icons-react";
 import PackageNameInput from "./PackageNameInput";
 import SectionTitle from "./common/SectionTitle";
-import { packageMatchScore } from "../utils/packageSearch";
 import { deviceTargetResultSuffix, type DeviceTargetState } from "../deviceTarget.ts";
 
 type InstallStatus = "pending" | "installing" | "success" | "failed";
@@ -15,7 +14,6 @@ type InstallStatus = "pending" | "installing" | "success" | "failed";
 interface ApkInstallItem {
   path: string;
   pkgName: string;
-  pkgEdited: boolean;
   parseFailed: boolean;
   status: InstallStatus;
   message: string;
@@ -57,39 +55,28 @@ const pastedFilePaths = (event: ClipboardEvent<HTMLDivElement>) =>
     .map((file) => (file as File & { path?: string }).path)
     .filter((path): path is string => Boolean(path));
 
-const bestPackageMatch = (item: ApkInstallItem, packages: string[]) => {
-  const queries = [item.pkgName, fileName(item.path)].filter(Boolean);
-  let best: { pkg: string; score: number } | null = null;
-
-  for (const query of queries) {
-    for (const pkg of packages) {
-      const score = packageMatchScore(query, pkg);
-      if (!best || score > best.score || (score === best.score && pkg.length < best.pkg.length)) {
-        best = { pkg, score };
-      }
-    }
-  }
-
-  return best && best.score >= 240 ? best.pkg : null;
-};
-
 export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirChange, active }: Props) {
   const { t } = useTranslation();
   const [apkItems, setApkItems] = useState<ApkInstallItem[]>([]);
   const [force, setForce] = useState(false);
-  const [installedPackages, setInstalledPackages] = useState<string[]>([]);
-  const [loadingPackages, setLoadingPackages] = useState(false);
+  const [packageLookup, setPackageLookup] = useState<{ serial: string; packages: string[] | null } | null>(null);
+  const [packageRetry, setPackageRetry] = useState(0);
   const [installing, setInstalling] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const installingRef = useRef(false);
-  const autoPackageLoadAttemptedRef = useRef(false);
 
   const progressPercent = apkItems.length > 0 ? Math.round((completedCount / apkItems.length) * 100) : 0;
-  const apkPathKey = apkItems.map((item) => item.path).join("\n");
   const queuePanelSizeClass = force ? "min-h-[180px]" : "min-h-[140px]";
+  const packageSerial = active && force && apkItems.length > 0 && !installing ? deviceTarget.serial : null;
+  const currentLookup = packageLookup?.serial === packageSerial ? packageLookup : null;
+  const loadingPackages = Boolean(packageSerial && !currentLookup);
+  const packageLoadFailed = currentLookup?.packages === null;
+  const packageSearchHint = deviceTarget.serial
+    ? t('apkInstall.searchHint')
+    : t(deviceTarget.blockReason === "selected-device-not-online" ? "deviceTarget.selectedUnavailable" : "deviceTarget.selectOnlineDevice");
 
   const updateItem = (path: string, patch: Partial<ApkInstallItem>) => {
     setApkItems((items) => items.map((item) => (item.path === path ? { ...item, ...patch } : item)));
@@ -134,7 +121,6 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
           return {
             path,
             pkgName: parsedPkg,
-            pkgEdited: false,
             parseFailed: false,
             status: "pending" as InstallStatus,
             message: "",
@@ -143,7 +129,6 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
           return {
             path,
             pkgName: "",
-            pkgEdited: false,
             parseFailed: true,
             status: "pending" as InstallStatus,
             message: "",
@@ -317,67 +302,26 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
     }
   };
 
-  const handleLoadPackages = useCallback(async (options?: { showErrors?: boolean }) => {
-    if (loadingPackages) return;
-    const showErrors = options?.showErrors ?? true;
-    if (!deviceTarget.serial) {
-      if (showErrors) {
-        setResult({ ok: false, msg: t(`deviceTarget.${deviceTarget.blockReason === "selected-device-not-online" ? "selectedUnavailable" : "selectOnlineDevice"}`) });
-      }
-      return;
-    }
-    setLoadingPackages(true);
-    if (showErrors) {
-      setResult(null);
-    }
-    try {
-      const packages = await invoke<string[]>("adb_list_packages", {
-        deviceSerial: deviceTarget.serial,
-      });
-      setInstalledPackages(packages);
-    } catch (e) {
-      if (showErrors) {
-        setResult({ ok: false, msg: String(e) });
-      }
-    } finally {
-      setLoadingPackages(false);
-    }
-  }, [deviceTarget, loadingPackages, t]);
-
   useEffect(() => {
-    autoPackageLoadAttemptedRef.current = false;
-  }, [apkPathKey, deviceTarget.serial]);
+    setPackageLookup(null);
+    if (!packageSerial) return;
 
-  useEffect(() => {
-    if (!force || apkItems.length === 0 || installedPackages.length > 0 || loadingPackages || installing) return;
-    if (autoPackageLoadAttemptedRef.current) return;
-
-    autoPackageLoadAttemptedRef.current = true;
+    let current = true;
     const timer = window.setTimeout(() => {
-      void handleLoadPackages({ showErrors: false });
+      void invoke<string[]>("adb_list_packages", { deviceSerial: packageSerial })
+        .then((packages) => {
+          if (current) setPackageLookup({ serial: packageSerial, packages });
+        })
+        .catch(() => {
+          if (current) setPackageLookup({ serial: packageSerial, packages: null });
+        });
     }, 350);
 
-    return () => window.clearTimeout(timer);
-  }, [apkItems.length, force, handleLoadPackages, installedPackages.length, installing, loadingPackages]);
-
-  useEffect(() => {
-    if (!force || installedPackages.length === 0 || apkItems.length === 0) return;
-
-    let changed = false;
-    const suggestedItems = apkItems.map((item) => {
-      if (item.pkgEdited) return item;
-
-      const suggestedPkg = bestPackageMatch(item, installedPackages);
-      if (!suggestedPkg || suggestedPkg === item.pkgName) return item;
-
-      changed = true;
-      return { ...item, pkgName: suggestedPkg };
-    });
-
-    if (changed) {
-      setApkItems(suggestedItems);
-    }
-  }, [apkItems, force, installedPackages]);
+    return () => {
+      current = false;
+      window.clearTimeout(timer);
+    };
+  }, [packageSerial, packageRetry]);
 
   return (
     <div
@@ -449,7 +393,7 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
                 {apkItems.length > 1 ? t('apkInstall.forceMultiDesc') : t('apkInstall.forceInstallDesc')}
               </p>
               <p className="text-xs text-gray-400">
-                {loadingPackages ? t('apkInstall.loading') : t('apkInstall.searchHint')}
+                {loadingPackages ? t('apkInstall.loading') : packageLoadFailed ? t('apkInstall.packageLoadFailed') : packageSearchHint}
               </p>
             </div>
           )}
@@ -514,14 +458,13 @@ export default function ApkInstall({ deviceTarget, recentApkDir, onRecentApkDirC
                       <div className="mt-2">
                         <PackageNameInput
                           value={item.pkgName}
-                          onChange={(pkgName) => updateItem(item.path, { pkgName, pkgEdited: true, parseFailed: false })}
-                          onSelectPackage={(pkgName) => updateItem(item.path, { pkgName, pkgEdited: true, parseFailed: false })}
+                          onChange={(pkgName) => updateItem(item.path, { pkgName, parseFailed: false })}
                           deviceSerial={deviceTarget.serial}
                           disabled={installing}
                           placeholder={t('apkInstall.pkgName')}
-                          packages={installedPackages}
+                          packages={currentLookup?.packages ?? null}
                           loadingPackages={loadingPackages}
-                          onLoadPackages={() => handleLoadPackages({ showErrors: true })}
+                          onLoadPackages={packageLoadFailed ? () => setPackageRetry((attempt) => attempt + 1) : undefined}
                           className="w-full px-2 py-1.5 border border-gray-200 rounded-md font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-50"
                         />
                         {item.parseFailed && !item.pkgName.trim() && (
